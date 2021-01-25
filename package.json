@@ -1,0 +1,16 @@
+{
+  "name": "cds-bot",
+  "version": "1.0.0",
+  "description": "private bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TobiBiotex",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "date.format": "^1.1.2",
+    "discord.js": "^12.5.1"
+  }
+}
