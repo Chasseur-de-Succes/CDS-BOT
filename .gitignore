@@ -1,5 +1,5 @@
-config.json
-update.txt
-README.md
+config.js
 /node_modules
 package-lock.json
+update.txt
+README.md

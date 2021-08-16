@@ -2,5 +2,6 @@
     "test": "#f7f0ff",
     "dark_red": "#cc0000",
     "very_pale_blue": "#dfdfff",
-    "cornflower_blue": "#6495ed"
+    "cornflower_blue": "#6495ed",
+    "night": "#00061c"
 }
