@@ -1,2 +1,2 @@
 # CDS-BOT
-## Private discord bot
+## Private discord bot for the "Chasseur de Succes" (CDS) Server
