@@ -12,7 +12,7 @@
     "axios": "^0.21.1",
     "cpu-stat": "^2.0.1",
     "date.format": "^1.1.2",
-    "discord.js": "^12.5.1",
+    "discord.js": "^13.1.0",
     "moment": "^2.29.1",
     "mongoose": "^5.13.4",
     "superagent": "^6.1.0"

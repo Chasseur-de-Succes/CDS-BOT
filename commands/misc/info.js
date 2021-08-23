@@ -33,7 +33,7 @@ module.exports.run = (client, message, args) => {
         .addField('Uptime', (Math.round(timeUp / (1000 * 60 * 60 * 24))) + " days, " + (Math.round(timeUp / (1000 * 60 * 60)) % 24) + " hrs, " + (Math.round(timeUp / (1000 * 60)) % 60) + " mins and " + (Math.round(timeUp / 1000) % 60) + " sec")
         .setFooter('Demandé par ' + message.author.username);
 
-        return message.channel.send(embedStat);
+        return message.channel.send({embeds: [embedStat]});
 
     })
 }

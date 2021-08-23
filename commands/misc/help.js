@@ -38,7 +38,7 @@ module.exports.run = (client, message, args) => {
         }
 
         message.delete();
-        return message.channel.send(embed);
+        return message.channel.send({embeds: [embed]});
     }
     else if(args[0]) {
         let command = args[0];
@@ -69,13 +69,13 @@ module.exports.run = (client, message, args) => {
             .addField('**Aliases**', aliases)
             .setFooter('Demandé par ' + message.author.username);
 
-            return message.channel.send(embedCommand);
+            return message.channel.send({embeds: [embedCommand]});
         } else {
             let errorEmbed = new MessageEmbed()
             .setColor(colors.dark_red)
             .setTitle(`:x: **Cette commande n'existe pas !**`);
 
-            return message.channel.send(errorEmbed);
+            return message.channel.send({embeds: [errorEmbed]});
         }
         
     }

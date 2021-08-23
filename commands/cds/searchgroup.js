@@ -23,7 +23,7 @@ module.exports.run = (client, message, args) => {
             .addField('Règles du nom de groupe', `- Ne peut contenir que des lettres [a ➔ z], des chiffres [0 ➔ 9] ou des caractères spéciaux : "-", "_", "&"
                 - Le nom possède minimum 3 caractères et au maximum 15 caractères`);
 
-        return message.channel.send(embed);
+        return message.channel.send({embeds: [embed]});
     }
     else if(args[0] == "list") { // LIST
         // afficher liste des groupes rejoints (+ préciser quand capitaine du groupe)

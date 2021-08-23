@@ -19,7 +19,7 @@ module.exports.run = (client, message, args) => {
         dnd: "<:dnd_status:696296103183908914> Ne pas déranger",
         offline: "<:offline_status:696296070459949077> Hors ligne"
     };
-    const game = user.presence.activity ? user.presence.activity.name : 'Rien';
+    //const game = user.presence.game ? user.presence.game : 'Rien'; // !!! Not functional
     const nickname = member.nickname != null ? member.nickname : "Aucun";
 
     const embed = new MessageEmbed()
@@ -32,15 +32,15 @@ module.exports.run = (client, message, args) => {
             {name: `> ID`, value: user.id, inline: true},
             {name: '\u200B', value: '\u200B', inline: true},
             {name: `> Statut`, value: status[user.presence.status], inline: true},
-            {name: `> Joue à`, value: game, inline: true},
+            //{name: `> Joue à`, value: game, inline: true},
             {name: `> Humain ?`, value: bot[user.bot], inline: true},
-            //{name: '\u200B', value: '\u200B', inline: true},
+            {name: '\u200B', value: '\u200B', inline: true},
             {name: `> Compte créé le`, value: moment(user.createdAt).format('LLL'), inline: true},
             {name: `> À rejoint le`, value: moment(member.joinedAt).format('llll'), inline: true},
         )
         .setTimestamp();
 
-    return message.channel.send(embed);
+    return message.channel.send({embeds: [embed]});
 }
 
 module.exports.help = MESSAGES.COMMANDS.MISC.USER;

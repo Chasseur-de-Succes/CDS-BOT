@@ -8,7 +8,7 @@ module.exports = async (client, member) => {
     .setDescription(`<@${member.id}>`)
     .addField("ID", member.id);
 
-    client.channels.cache.get('872898815097716807').send(embed);
+    client.channels.cache.get('872898815097716807').send({embeds: [embed]});
     
     // !!! vérifié si user déjà présent (guild id + user id)
     const newUser = {

@@ -37,7 +37,7 @@ module.exports.run = async (client, message, args) => {
     .setTimestamp(new Date())
     .setFooter('Demandé par ' + message.author.username);
 
-    return message.channel.send(embed);
+    return message.channel.send({embeds: [embed]});
 }
 
 module.exports.help = MESSAGES.COMMANDS.MISC.SERVERINFO;

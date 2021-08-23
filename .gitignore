@@ -2,4 +2,4 @@ config.js
 /node_modules
 package-lock.json
 update.txt
-README.md
+note.txt

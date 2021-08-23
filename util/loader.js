@@ -7,7 +7,7 @@ const loadCommands = (client, dir = "./commands/") => {
         for (const file of commands) {
             const getFileName = require(`../${dir}/${dirs}/${file}`);
             client.commands.set(getFileName.help.name, getFileName);
-            console.log(`[INFO] Commande chargée ${getFileName.help.name}`);
+            console.log(`\x1b[34m[INFO] \x1b[0mCommande chargée ${getFileName.help.name}`);
         };
     });
 };
@@ -20,7 +20,7 @@ const loadEvents = (client, dir = "./events/") => {
             const evt = require(`../${dir}/${dirs}/${event}`);
             const evtName = event.split('.')[0];
             client.on(evtName, evt.bind(null, client));
-            console.log(`[INFO] Évènement chargé ${evtName}`);
+            console.log(`\x1b[34m[INFO] \x1b[0mÉvènement chargé ${evtName}`);
         };
     });
 };

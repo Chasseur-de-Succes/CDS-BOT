@@ -49,7 +49,7 @@ module.exports.run = async (client, message, args) => {
     .addField('Type', "appType")
     .addField('Id', "appId");
 
-    return message.channel.send(steamEmbed);
+    return message.channel.send({embeds: [steamEmbed]});
     
 }
 
