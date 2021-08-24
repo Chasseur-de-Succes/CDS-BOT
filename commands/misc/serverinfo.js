@@ -22,16 +22,18 @@ module.exports.run = async (client, message, args) => {
         "us-west" : "🇺🇸 États-Unis (Ouest)",
     };
 
+    const owner = await client.users.fetch(message.guild.ownerId);
+
     const embed = new Discord.MessageEmbed()
     .setColor(colors.night)
     .setTitle(message.guild.name)
-    .setDescription(`ID: ` + message.guild.id)
+    .setDescription(`ID: ` + message.guildId)
     .setThumbnail(message.guild.iconURL())
     .addFields(
-        {name: 'Propriétaire du server', value: ` ${message.guild.owner} (ID: ${message.guild.owner.id})`, inline: false},
+        {name: 'Propriétaire du server', value: ` ${owner.username} (ID: ${message.guild.ownerId})`, inline: false},
         {name: `Membres [${message.guild.memberCount}]`, value: `${message.guild.members.cache.filter(m => !m.user.bot).size} humains\n${message.guild.members.cache.filter(m =>  m.user.bot).size} bots`, inline: true},
-        {name: 'Nitro boost', value: message.guild.premiumSubscriptionCount, inline: true},
-        {name: 'Région', value: region[message.guild.region], inline: true},
+        {name: 'Nitro boost ', value: message.guild.premiumSubscriptionCount.toString(), inline: true},
+        //{name: 'Région', value: `${region[message.guild.region]}`, inline: true},
         {name: 'Serveur créé le', value: moment.utc(message.guild.createdAt).format("dddd, MMMM Do, YYYY"), inline: false},
     )
     .setTimestamp(new Date())
