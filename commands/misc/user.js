@@ -7,7 +7,7 @@ moment.locale('fr');
 
 module.exports.run = (client, message, args) => {
     const user = message.mentions.users.first() || message.author;
-    const member = message.guild.member(user);
+    const member = message.guild.members.cache.get(user.id);
 
     const bot = {
         "false": "👤 Humain",
@@ -31,7 +31,7 @@ module.exports.run = (client, message, args) => {
             {name: `> Pseudonyme`, value: nickname, inline: true},
             {name: `> ID`, value: user.id, inline: true},
             {name: '\u200B', value: '\u200B', inline: true},
-            {name: `> Statut`, value: status[user.presence.status], inline: true},
+            {name: `> Statut`, value: status[member.presence.status], inline: true},
             //{name: `> Joue à`, value: game, inline: true},
             {name: `> Humain ?`, value: bot[user.bot], inline: true},
             {name: '\u200B', value: '\u200B', inline: true},
