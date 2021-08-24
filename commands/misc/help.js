@@ -23,10 +23,13 @@ module.exports.run = (client, message, args) => {
                     categoryRename = ':pencil2: Misc';
                     break;
                 case 'moderation' :
-                    categoryRename = '<:warning2:706510404356014121> Modération';
+                    categoryRename = '<:warning2:879843712073621515> Modération';
                     break;
                 case 'economy' :
                     categoryRename = ':moneybag: Économie';
+                    break;
+                case 'cds' :
+                    categoryRename = ':trophy: CDS';
                     break;
                 default:
                     categoryRename = category;
