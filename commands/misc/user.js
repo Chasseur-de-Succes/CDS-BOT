@@ -14,10 +14,10 @@ module.exports.run = (client, message, args) => {
         "true": "🤖 Bot"
     };
     const status = {
-        online: "<:online_status:696296082254069810> En ligne",
-        idle: "<:idle_status:696296207718416384> Absent",
-        dnd: "<:dnd_status:696296103183908914> Ne pas déranger",
-        offline: "<:offline_status:696296070459949077> Hors ligne"
+        online: "<:online_status:879826752392814662> En ligne",
+        idle: "<:idle_status:879826914452324403> Absent",
+        dnd: "<:dnd_status:879826688480010241> Ne pas déranger",
+        offline: "<:offline_status:879826734181138514> Hors ligne"
     };
     //const game = user.presence.game ? user.presence.game : 'Rien'; // !!! Not functional
     const nickname = member.nickname != null ? member.nickname : "Aucun";
