@@ -31,7 +31,7 @@ module.exports.run = (client, message, args) => {
             {name: `> Pseudonyme`, value: nickname, inline: true},
             {name: `> ID`, value: user.id, inline: true},
             {name: '\u200B', value: '\u200B', inline: true},
-            {name: `> Statut`, value: status[member.presence.status], inline: true},
+            {name: `> Statut`, value: member.presence ? status[member.presence.status] : status['offline'], inline: true},
             //{name: `> Joue à`, value: game, inline: true},
             {name: `> Humain ?`, value: bot[user.bot], inline: true},
             {name: '\u200B', value: '\u200B', inline: true},
