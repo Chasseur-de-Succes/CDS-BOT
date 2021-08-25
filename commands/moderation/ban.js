@@ -23,14 +23,14 @@ module.exports.run = (client, message, args) => {
         // recupere d'abord le membre (s'il existe) pour le ban ensuite
         message.guild.members.fetch(memberToBanId)
         .then(m => module.exports.ban(message, m))
-        .catch(err => message.reply('> ' + memberToBanId + ' n\'existe pas ou n\'est pas ou plus sur le serveur !'));
+        .catch(err => message.reply('> ' + memberToBanId + ' n\'existe pas ou n\'est pas sur le serveur !'));
     }
 }
 
 module.exports.ban = (message, member) => {
     if (!member.bannable) return message.reply('> Impossible de ban ' + member.displayName + ' !');
-        
-    console.log("Ban membre", member.displayName);
+    
+    console.log(`\x1b[34m[INFO] \x1b[0mBan ${member.displayName}`);
     member.ban()
         .then(m => message.channel.send(`> 👋 ${m.displayName} a été banni ! ⛔`))
         .catch(err => message.reply('> Erreur, impossible de ban ' + member.displayName + ' !'));
