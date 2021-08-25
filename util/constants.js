@@ -105,6 +105,14 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Kick un utilisateur",
                 usage: ""
+            },
+            BAN: {
+                name: "ban",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Ban un utilisateur",
+                usage: ""
             }
         }
     }

@@ -19,12 +19,6 @@ module.exports.run = (client, message, args) => {
 
     if (memberToKick) {
         module.exports.kick(message, memberToKick);
-        /* if (!memberToKick.kickable) return message.reply('> Impossible de kick ' + memberToKick.displayName + ' !');
-        
-        console.log("Kick membre", memberToKick.displayName);
-        memberToKick.kick()
-            .then(m => message.channel.send(`> 👋 ${m.displayName} a été kické !`))
-            .catch(err => message.reply('> Erreur, impossible de kick ' + memberToKick.displayName + ' !')); */
     } else if (memberToKickId) {
         // recupere d'abord le membre (s'il existe) pour le kick ensuite
         message.guild.members.fetch(memberToKickId)
@@ -38,7 +32,7 @@ module.exports.kick = (message, member) => {
         
     console.log("Kick membre", member.displayName);
     member.kick()
-        .then(m => message.channel.send(`> 👋 ${m.displayName} a été kické !`))
+        .then(m => message.channel.send(`> 👋 ${m.displayName} a été kické ! <:warning2:879843712073621515>`))
         .catch(err => message.reply('> Erreur, impossible de kick ' + member.displayName + ' !'));
 }
 
