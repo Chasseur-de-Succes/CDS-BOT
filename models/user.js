@@ -4,7 +4,7 @@ const userSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     guildID: String,
     guildName: String,
-    UserID: String,
+    userID: String,
     username: String,
     experience: {
         "type": Number,
@@ -17,6 +17,10 @@ const userSchema = mongoose.Schema({
     money: {
         "type": Number,
         "default": 0
+    },
+    banned: {
+        "type": Boolean,
+        "default": false
     }
 })
 

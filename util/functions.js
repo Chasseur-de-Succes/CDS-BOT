@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { User } = require("../models/index");
 
 module.exports = client => {
+    /* User */
     client.createUser = async user => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, user);
         const createUser = await new User(merged);
@@ -9,7 +10,11 @@ module.exports = client => {
     };
 
     client.getUser = async user => {
-        const data = await User.findOne({userID: user.id});
+        return client.findUserById(user.id);
+    };
+
+    client.findUserById = async id => {
+        const data = await User.findOne({userID: id});
         if (data) return data;
         else return;
     };
@@ -22,4 +27,6 @@ module.exports = client => {
         }
         return data.updateOne(settings);
     };
+
+    /* Guild ? Créer d'autres fichiers de fonctions ? */
 }
