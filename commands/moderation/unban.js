@@ -12,17 +12,32 @@ module.exports.run = (client, message, args) => {
         return message.reply('Veuillez spécifier l\'ID du membre à unban.');
     else {
         // si user est ban
-        if (message.guild.bans.cache.get(userToUnbanId)) {
+        message.guild.bans.fetch(userToUnbanId)
+        .then(user => {
             // on le retire des bannis
             message.guild.members.unban(userToUnbanId)
             .then(user => {
                 console.log(`\x1b[34m[INFO] \x1b[0mUnban ${user.username}`);
-                message.reply(`> Utilisateur ${user.username} unban ! ✔️`);
+                message.reply(`> Utilisateur ${user.username} unban ! ☑️ `);
+
+                // maj attribut 'banned'
+                let userBD = client.getUser(user);
+                if (userBD) {
+                    userBD.then(u => client.updateUser(user, {banned: false}))
+                    .catch(err => {
+                        console.log(`\x1b[31m[ERROR] \x1b[0mErreur sauvegarde unban : ` + err);
+                        message.reply('> Erreur de sauvegarde de l\'unban !');
+                    });
+                }
             })
-            .catch(err => message.reply('> Erreur lors de l\'unban.'));
-        } else {
+            .catch(err => {
+                console.log(`\x1b[31m[ERROR] \x1b[0mErreur unban : ` + err);
+                message.reply('> Erreur lors de l\'unban.')
+            });
+        })
+        .catch(err => {
             message.reply('> ' + userToUnbanId + ' n\'est pas banni sur ce serveur !')
-        }
+        });
     }
 }
 

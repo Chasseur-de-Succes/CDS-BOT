@@ -18,7 +18,7 @@ const userSchema = mongoose.Schema({
         "default": 0
     },
     banned: {
-        "typr": Boolean,
+        "type": Boolean,
         "default": false
     }
 })

@@ -18,22 +18,37 @@ module.exports.run = (client, message, args) => {
         return message.reply('Veuillez spécifier un membre ou son ID.');
 
     if (memberToBan) {
-        module.exports.ban(message, memberToBan);
+        module.exports.ban(client, message, memberToBan);
     } else if (memberToBanId) {
         // recupere d'abord le membre (s'il existe) pour le ban ensuite
         message.guild.members.fetch(memberToBanId)
-        .then(m => module.exports.ban(message, m))
+        .then(m => module.exports.ban(client, message, m))
         .catch(err => message.reply('> ' + memberToBanId + ' n\'existe pas ou n\'est pas sur le serveur !'));
     }
 }
 
-module.exports.ban = (message, member) => {
+module.exports.ban = (client, message, member) => {
     if (!member.bannable) return message.reply('> Impossible de ban ' + member.displayName + ' !');
-    
-    console.log(`\x1b[34m[INFO] \x1b[0mBan ${member.displayName}`);
+
     member.ban()
-        .then(m => message.channel.send(`> 👋 ${m.displayName} a été **banni** ! ⛔`))
-        .catch(err => message.reply('> Erreur, impossible de ban ' + member.displayName + ' !'));
+    .then(m => {
+        console.log(`\x1b[34m[INFO] \x1b[0mBan ${member.displayName}`);
+        message.channel.send(`> 👋 ${m.displayName} a été **banni** ! ⛔`);
+
+        // maj attribut 'banned'
+        let user = client.getUser(member.user);
+        if (user) {
+            user.then(u => client.updateUser(member.user, {banned: true}))
+            .catch(err => {
+                console.log(`\x1b[31m[ERROR] \x1b[0mErreur sauvegarde ban : ` + err);
+                message.reply('> Erreur de sauvegarde du ban !');
+            });
+        }
+    })
+    .catch(err => {
+        console.log(`\x1b[31m[ERROR] \x1b[0mErreur ban : ` + err);
+        message.reply('> Erreur, impossible de ban ' + member.displayName + ' !');
+    });
 }
 
 module.exports.help = MESSAGES.COMMANDS.MODERATION.BAN;
