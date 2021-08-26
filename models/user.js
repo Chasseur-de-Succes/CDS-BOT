@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const userSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
-    guildID: String,
-    guildName: String,
-    UserID: String,
+    userId: String,
     username: String,
+    steamId: String,
     experience: {
         "type": Number,
         "default": 0
@@ -17,6 +16,10 @@ const userSchema = mongoose.Schema({
     money: {
         "type": Number,
         "default": 0
+    },
+    banned: {
+        "typr": Boolean,
+        "default": false
     }
 })
 

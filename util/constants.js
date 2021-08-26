@@ -33,6 +33,14 @@ const MESSAGES = {
                 description: "Affiche des informations sur le serveur",
                 usage: ""
             },
+            REGISTER: {
+                name: "register",
+                aliases: [],
+                category: 'misc',
+                cooldown: 0,
+                description: "Création de son \"compte\" sur le bot",
+                usage: ""
+            },
             UPTIME: {
                 name: "uptime",
                 aliases: ["up"],
