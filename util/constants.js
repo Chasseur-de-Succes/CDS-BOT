@@ -129,6 +129,14 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Mute un utilisateur",
                 usage: ""
+            },
+            UNMUTE: {
+                name: "unmute",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Unmute un utilisateur",
+                usage: ""
             }
         }
     }
