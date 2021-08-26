@@ -121,6 +121,14 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Annuler un ban d'un utilisateur",
                 usage: ""
+            },
+            MUTE: {
+                name: "mute",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Mute un utilisateur",
+                usage: ""
             }
         }
     }

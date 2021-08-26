@@ -32,7 +32,7 @@ module.exports.kick = (message, member) => {
     
     console.log(`\x1b[34m[INFO] \x1b[0mKick ${member.displayName}`);
     member.kick()
-        .then(m => message.channel.send(`> 👋 ${m.displayName} a été kické ! <:warning2:879843712073621515>`))
+        .then(m => message.channel.send(`> 👋 ${m.displayName} a été **kické** ! <:warning2:879843712073621515>`))
         .catch(err => message.reply('> Erreur, impossible de kick ' + member.displayName + ' !'));
 }
 

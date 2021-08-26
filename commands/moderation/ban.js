@@ -32,7 +32,7 @@ module.exports.ban = (message, member) => {
     
     console.log(`\x1b[34m[INFO] \x1b[0mBan ${member.displayName}`);
     member.ban()
-        .then(m => message.channel.send(`> 👋 ${m.displayName} a été banni ! ⛔`))
+        .then(m => message.channel.send(`> 👋 ${m.displayName} a été **banni** ! ⛔`))
         .catch(err => message.reply('> Erreur, impossible de ban ' + member.displayName + ' !'));
 }
 
