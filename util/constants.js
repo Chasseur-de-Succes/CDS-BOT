@@ -105,6 +105,38 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Kick un utilisateur",
                 usage: ""
+            },
+            BAN: {
+                name: "ban",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Ban un utilisateur",
+                usage: ""
+            },
+            UNBAN: {
+                name: "unban",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Annuler un ban d'un utilisateur",
+                usage: ""
+            },
+            MUTE: {
+                name: "mute",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Mute un utilisateur",
+                usage: ""
+            },
+            UNMUTE: {
+                name: "unmute",
+                aliases: [],
+                category: "moderation",
+                cooldown: 0,
+                description: "Unmute un utilisateur",
+                usage: ""
             }
         }
     }
