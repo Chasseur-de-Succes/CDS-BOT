@@ -19,13 +19,17 @@ module.exports.run = (client, message, args) => {
         if(err) {
             console.log(err);
         }
+        let Tobi = client.users.cache.get("229312422043713537");
+        let Kekwel = client.users.cache.get("283681024360054785");
+        let Rick = client.users.cache.get("163697401935298560");
 
         let timeUp = client.uptime;
         let embedStat = new Discord.MessageEmbed()
         .setColor(colors.green)
         .setTitle(client.user.username)
-        .setDescription(`La version actuelle est ${VERSION}\nBot créé par Tobiβiotex#5212`)
+        .setDescription(`La version actuelle est ${VERSION}`)
         .setThumbnail(botIcon)
+        .addField('Dévloppeur', `- ${Tobi.tag} \n- ${Kekwel.tag} \n- ${Rick.tag}`)
         .addField('Créé le', botdateedit)
         .addField('Language', 'JavaScript', true)
         .addField('Library', "discord.js", true)
