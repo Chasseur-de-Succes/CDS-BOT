@@ -137,6 +137,14 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Unmute un utilisateur",
                 usage: ""
+            },
+            PURGE: {
+                name: "purge",
+                aliases: ["clean"],
+                category: "moderation",
+                cooldown: 0,
+                description: "Purge un channel de ses X derniers messages.",
+                usage: ""
             }
         }
     }

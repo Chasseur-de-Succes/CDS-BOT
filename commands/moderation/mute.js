@@ -35,7 +35,7 @@ module.exports.mute = (message, member) => {
     })
     .catch(err => {
         message.reply('> Erreur, impossible de mute ' + member.displayName + ' ! ');
-        console.log(`\x1b[31m[ERROR] \x1b[0m` + err);
+        console.log(`\x1b[31m[ERROR] \x1b[0mErreur mute : ` + err);
     });
 
     // vocal    
