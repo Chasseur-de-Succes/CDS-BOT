@@ -90,7 +90,7 @@ const MESSAGES = {
         ECONOMY: {
             MONEY: {
                 name: "money",
-                aliases: ["balance"],
+                aliases: ["balance", "wallet"],
                 category: "economy",
                 cooldown: 0,
                 description: "Voir son argent",
