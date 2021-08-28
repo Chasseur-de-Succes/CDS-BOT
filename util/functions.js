@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User } = require("../models/index");
+const { User, Group } = require("../models/index");
 
 module.exports = client => {
     /* User */
@@ -29,4 +29,22 @@ module.exports = client => {
     };
 
     /* Guild ? Créer d'autres fichiers de fonctions ? */
+
+    /* Group */
+    client.createGroup = async group => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, group);
+        const createGroup = await new Group(merged);
+        createGroup.save().then(grp => console.log(`Nouveau groupe -> ${grp.name}`));
+    };
+
+    client.findGroupById = async id => {
+        // TODO
+    };
+
+    client.findGroupByName = async name => {
+        const data = await Group.findOne({name: name});
+        if (data) return data;
+        else return;
+    };
+
 }

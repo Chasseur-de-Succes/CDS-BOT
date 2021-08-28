@@ -158,4 +158,12 @@ const MESSAGES = {
     }
 }
 
+const NB_MAX = {
+    GROUP: {
+        MEMBER: 15,
+        CHARNAME: 25
+    }
+}
+
 exports.MESSAGES = MESSAGES;
+exports.NB_MAX = NB_MAX;

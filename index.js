@@ -9,6 +9,7 @@ myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILDS, Intents.FLAGS
 
 const client = new Client({ intents: myIntents });
 require('./util/functions')(client);
+require('./util/steam')(client);
 //client.commands = new Collection();
 //client.aliases = new Collection();
 ["commands", "aliases"].forEach(x => client[x] = new Collection());

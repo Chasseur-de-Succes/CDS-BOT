@@ -25,17 +25,17 @@ module.exports.run = (client, message, args) => {
 
         let timeUp = client.uptime;
         let embedStat = new Discord.MessageEmbed()
-        .setColor(colors.green)
-        .setTitle(client.user.username)
-        .setDescription(`La version actuelle est ${VERSION}`)
-        .setThumbnail(botIcon)
-        .addField('Dévloppeur', `- ${Tobi.tag} \n- ${Kekwel.tag} \n- ${Rick.tag}`)
-        .addField('Créé le', botdateedit)
-        .addField('Language', 'JavaScript', true)
-        .addField('Library', "discord.js", true)
-        .addField('Discord.js', `v${version}`, true)
-        .addField('Uptime', (Math.round(timeUp / (1000 * 60 * 60 * 24))) + " days, " + (Math.round(timeUp / (1000 * 60 * 60)) % 24) + " hrs, " + (Math.round(timeUp / (1000 * 60)) % 60) + " mins and " + (Math.round(timeUp / 1000) % 60) + " sec")
-        .setFooter('Demandé par ' + message.author.username);
+            .setColor(colors.green)
+            .setTitle(client.user.username)
+            .setDescription(`La version actuelle est ${VERSION}`)
+            .setThumbnail(botIcon)
+            .addField('Développeur', `- ${Tobi.tag} \n- ${Kekwel.tag} \n- ${Rick.tag}`)
+            .addField('Créé le', botdateedit)
+            .addField('Language', 'JavaScript', true)
+            .addField('Library', "discord.js", true)
+            .addField('Discord.js', `v${version}`, true)
+            .addField('Uptime', (Math.round(timeUp / (1000 * 60 * 60 * 24))) + " days, " + (Math.round(timeUp / (1000 * 60 * 60)) % 24) + " hrs, " + (Math.round(timeUp / (1000 * 60)) % 60) + " mins and " + (Math.round(timeUp / 1000) % 60) + " sec")
+            .setFooter('Demandé par ' + message.author.username);
 
         return message.channel.send({embeds: [embedStat]});
 
