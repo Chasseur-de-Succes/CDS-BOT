@@ -158,6 +158,7 @@ module.exports.run = async (client, message, args) => {
                 name: nameGrp,
                 nbMax: nbMaxMember,
                 captain: user._id,
+                members: [user._id],
                 gameId: gameId
             };
             await client.createGroup(newGrp);
