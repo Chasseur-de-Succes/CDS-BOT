@@ -6,6 +6,34 @@ const { PREFIX } = require('../../config.js');
 const { dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 
+function sendEmbedGroupInfo(message, group, toDM = false) {
+    const memberCaptain = message.guild.members.cache.get(group.captain.userId);
+    let isAuthorCaptain = message.author === memberCaptain.user;
+
+    let membersStr = ``;
+    for (const member of group.members) {
+        const crtMember = message.guild.members.cache.get(member.userId);
+        if (crtMember !== memberCaptain)
+            membersStr += `${crtMember.user}\n`;
+    }
+    membersStr = membersStr ? membersStr : '*Personne :(*';
+
+    const newMsgEmbed = new MessageEmbed()
+        .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
+        .addFields(
+            { name: 'Jeu', value: `${group.game.name}`, inline: true },
+            { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
+            { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
+            { name: 'Membres', value: `${membersStr}` },
+        );
+
+    // envoie en MP
+    if (toDM)
+        message.author.send({ embeds: [newMsgEmbed] });
+    else 
+        message.channel.send({ embeds: [newMsgEmbed] });
+}
+
 module.exports.run = async (client, message, args) => {
     if(!args[0]) {
         return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.SEARCHGROUP.name} help\``);
@@ -28,6 +56,29 @@ module.exports.run = async (client, message, args) => {
     }
     else if (args[0] == "search") {
         // CHERCHER UN GROUPE SUR UN NOM DE JEU DONNE
+        // recup le reste des arguments : nom du jeu
+        const gameName = args.slice(1).join(' ');
+        try {
+            if (!gameName) 
+                throw `Il manque le nom du jeu !`;
+            let groupes = await client.findGroupNotFullByGameName(gameName);
+            //let groupes = await client.findGroupByGameName(gameName);
+            
+            if (groupes?.length === 0) 
+                throw `Aucun groupe n'est disponible pour ce jeu`;
+            else {
+                for (const group of groupes) {
+                    sendEmbedGroupInfo(message, group)
+                }
+            }
+            
+        } catch (err) {
+            const embedError = new MessageEmbed()
+                .setColor(dark_red)
+                .setTitle(`${cross_mark} ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            return message.channel.send({ embeds: [embedError] });
+        }
     }
     else if(args[0] == "list") { // LIST
         // afficher liste des groupes rejoints (+ préciser quand capitaine du groupe)
