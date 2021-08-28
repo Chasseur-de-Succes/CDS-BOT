@@ -34,7 +34,7 @@ module.exports = client => {
     client.createGroup = async group => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, group);
         const createGroup = await new Group(merged);
-        createGroup.save().then(grp => console.log(`Nouveau groupe -> ${grp.name}`));
+        createGroup.save().then(grp => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau groupe : ${grp.name}`));
     };
 
     client.findGroupById = async id => {

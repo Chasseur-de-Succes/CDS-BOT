@@ -72,8 +72,8 @@ module.exports.run = async (client, message, args) => {
                 throw `> Le nom du groupe existe déjà. Veuillez en choisir un autre.`;
 
             // création de la regex sur le nom du jeu
+            console.log(`\x1b[34m[INFO]\x1b[0m Recherche jeu Steam par nom : ${gameName}..`);
             let regGame = new RegExp(gameName, "i");
-            console.log('REGEX ', regGame);
 
             let msgLoading = await message.channel.send(`Je suis en train de chercher le jeu..`);
             message.channel.sendTyping();
@@ -101,7 +101,7 @@ module.exports.run = async (client, message, args) => {
                     games.unshift(gameData.body[app.appid].data);
             } */
 
-            console.log('\tNB JEUX ', games.length);
+            console.log(`\x1b[34m[INFO]\x1b[0m .. ${games.length} jeu(x) trouvé(s)`);
             if (!games) throw 'Erreur lors de la recherche du jeu';
             if (games.length === 0) throw `Pas de résultat trouvé pour **${gameName}** !`;
             // MAX 5 row, MAX 5 btn par row = 25 boutons
@@ -120,7 +120,6 @@ module.exports.run = async (client, message, args) => {
                         // creation message button
                         let crtGame = games[j];
                         if (crtGame) {
-                            console.log('*', crtGame);
                             row.addComponents(
                                 new MessageButton()
                                     //.setCustomId(crtGame.steam_appid.toString())
@@ -145,9 +144,10 @@ module.exports.run = async (client, message, args) => {
                 let interaction = await msgEmbed.awaitMessageComponent({
                     filter,
                     componentType: 'BUTTON',
-                    time: 10000
+                    // time: 10000
                 });
 
+                console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app id ${interaction.customId} choisi`);
                 gameId = interaction.customId;
                 msgEmbed.delete();
             }

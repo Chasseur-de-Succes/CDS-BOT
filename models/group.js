@@ -11,7 +11,11 @@ const grpSchema = mongoose.Schema({
     },
     captain : { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     members : [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    gameId: Number
+    gameId: Number,
+    dateCreated : {
+        type: Date,
+        default: Date.now
+    }
 })
 
 module.exports = mongoose.model("Group", grpSchema);
