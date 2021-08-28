@@ -11,7 +11,10 @@ const grpSchema = mongoose.Schema({
     },
     captain : { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     members : [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    gameId: Number,
+    game: {
+        id: Number,
+        name: String
+    },
     dateCreated : {
         type: Date,
         default: Date.now

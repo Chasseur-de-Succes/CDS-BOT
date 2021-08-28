@@ -6,8 +6,6 @@ const { PREFIX } = require('../../config.js');
 const { dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 
-const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
-
 module.exports.run = async (client, message, args) => {
     if(!args[0]) {
         return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.SEARCHGROUP.name} help\``);
@@ -27,6 +25,9 @@ module.exports.run = async (client, message, args) => {
                 - Le nom possède minimum 3 caractères et au maximum 15 caractères`);
 
         return message.channel.send({embeds: [embed]});
+    }
+    else if (args[0] == "search") {
+        // CHERCHER UN GROUPE SUR UN NOM DE JEU DONNE
     }
     else if(args[0] == "list") { // LIST
         // afficher liste des groupes rejoints (+ préciser quand capitaine du groupe)
@@ -52,7 +53,7 @@ module.exports.run = async (client, message, args) => {
                     const newMsgEmbed = new MessageEmbed()
                         .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
                         .addFields(
-                            { name: 'ID Jeu', value: `${group.gameId}`, inline: true },
+                            { name: 'Jeu', value: `${group.game.name}`, inline: true },
                             { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
                             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
                             { name: 'Membres', value: `${membersStr}` },
@@ -79,14 +80,14 @@ module.exports.run = async (client, message, args) => {
         //QUITTE LE GROUPE
     }
     else if(args[0] == "create") { // Créer groupe
+        const captain = message.author;
+        const nameGrp = args[1];
+        const nbMaxMember = !!parseInt(args[2]) ? parseInt(args[2]) : null;
+        // recup le reste des arguments : nom du jeu
+        const gameName = args.slice(3).join(' ');
+        // TODO description
+        
         try {            
-            const captain = message.author;
-            const nameGrp = args[1];
-            const nbMaxMember = !!parseInt(args[2]) ? parseInt(args[2]) : null;
-            // recup le reste des arguments : nom du jeu
-            const gameName = args.slice(3).join(' ');
-            // TODO description
-
             if (!nameGrp || !nbMaxMember || !gameName) 
                 throw `> ${PREFIX}searchgroup create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
             
@@ -148,9 +149,10 @@ module.exports.run = async (client, message, args) => {
             // MAX 5 row, MAX 5 btn par row = 25 boutons
             if (games.length > 25) throw `Trop de résultat trouvés pour **${gameName}** !`;
 
-            let gameId;
+            let gameId, realGameName;
             if (games.length === 1) {
                 gameId = games[0].appid.toString();
+                realGameName = games[0].name;
             }
             else {
                 let rows = [];
@@ -190,6 +192,7 @@ module.exports.run = async (client, message, args) => {
 
                 console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app id ${interaction.customId} choisi`);
                 gameId = interaction.customId;
+                realGameName = interaction.component.label;
                 msgEmbed.delete();
             }
 
@@ -200,14 +203,17 @@ module.exports.run = async (client, message, args) => {
                 nbMax: nbMaxMember,
                 captain: userDB._id,
                 members: [userDB._id],
-                gameId: gameId
+                game: {
+                    id: gameId,
+                    name: realGameName
+                }
             };
             await client.createGroup(newGrp);
 
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Le groupe **${nameGrp}** a bien été créé !`)
                 .addFields(
-                    { name: 'ID Jeu', value: `${gameId}`, inline: true },
+                    { name: 'Jeu', value: `${realGameName}`, inline: true },
                     { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
                     { name: 'Capitaine', value: `${captain}` },
                 );

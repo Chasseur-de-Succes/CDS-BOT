@@ -1,4 +1,3 @@
-const { search } = require('superagent');
 const superagent = require('superagent');
 const { STEAM_API_KEY } = require('../config');
 
