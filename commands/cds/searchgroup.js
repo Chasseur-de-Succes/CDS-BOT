@@ -30,6 +30,47 @@ module.exports.run = async (client, message, args) => {
     }
     else if(args[0] == "list") { // LIST
         // afficher liste des groupes rejoints (+ préciser quand capitaine du groupe)
+        let author = message.author;
+        try {
+            let userDB = await client.getUser(author);
+            let groups = await client.findGroupByUser(userDB);
+
+            if (groups?.length > 0) {
+                author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
+                for (const group of groups) {
+                    const memberCaptain = message.guild.members.cache.get(group.captain.userId);
+                    let isAuthorCaptain = author === memberCaptain.user;
+
+                    let membersStr = ``;
+                    for (const member of group.members) {
+                        const crtMember = message.guild.members.cache.get(member.userId);
+                        if (crtMember !== memberCaptain)
+                            membersStr += `${crtMember.user}\n`;
+                    }
+                    membersStr = membersStr ? membersStr : '*Personne :(*';
+
+                    const newMsgEmbed = new MessageEmbed()
+                        .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
+                        .addFields(
+                            { name: 'ID Jeu', value: `${group.gameId}`, inline: true },
+                            { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
+                            { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
+                            { name: 'Membres', value: `${membersStr}` },
+                        );
+                    
+                    // envoie en MP
+                    author.send({ embeds: [newMsgEmbed] });
+                    //message.channel.send({ embeds: [newMsgEmbed] });
+                }
+            } else 
+                throw `Tu n'appartiens à aucun groupe.`
+        } catch (err) {
+            const embedError = new MessageEmbed()
+                .setColor(dark_red)
+                .setTitle(`${cross_mark} ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            return author.send({ embeds: [embedError] });
+        }
     }
     else if(args[0] == "join") { // JOIN
         //REJOINT LE GROUPE SI IL RESTE ENCORE UNE PLACE
@@ -153,12 +194,12 @@ module.exports.run = async (client, message, args) => {
             }
 
             // creation groupe
-            let user = await client.getUser(captain);
+            let userDB = await client.getUser(captain);
             let newGrp = {
                 name: nameGrp,
                 nbMax: nbMaxMember,
-                captain: user._id,
-                members: [user._id],
+                captain: userDB._id,
+                members: [userDB._id],
                 gameId: gameId
             };
             await client.createGroup(newGrp);
@@ -170,7 +211,7 @@ module.exports.run = async (client, message, args) => {
                     { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
                     { name: 'Capitaine', value: `${captain}` },
                 );
-            message.channel.send({ embeds: [newMsgEmbed], components: [] });
+            message.channel.send({ embeds: [newMsgEmbed] });
         } catch (err) {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)

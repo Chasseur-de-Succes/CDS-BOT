@@ -41,6 +41,17 @@ module.exports = client => {
         // TODO
     };
 
+    client.findGroupByUser = async userDB => {
+        const data = await Group.find({
+            $or: [
+                { captain: userDB },
+                { members: userDB },
+            ]})
+            .populate('captain members');
+        if (data) return data;
+        else return;
+    };
+
     client.findGroupByName = async name => {
         const data = await Group.findOne({name: name});
         if (data) return data;
