@@ -16,7 +16,7 @@ function sendEmbedGroupInfo(message, group, toDM = false) {
         if (crtMember !== memberCaptain)
             membersStr += `${crtMember.user}\n`;
     }
-    membersStr = membersStr ? membersStr : '*Personne :(*';
+    membersStr = membersStr ? membersStr : '*Personne 😔*';
 
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
@@ -24,7 +24,7 @@ function sendEmbedGroupInfo(message, group, toDM = false) {
             { name: 'Jeu', value: `${group.game.name}`, inline: true },
             { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
-            { name: 'Membres', value: `${membersStr}` },
+            { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}` },
         );
 
     // envoie en MP
