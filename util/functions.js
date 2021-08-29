@@ -68,7 +68,7 @@ module.exports = client => {
     client.findGroupNotFullByGameName = async name => {
         const data = await Group.find({
             $and: [
-                { 'game.name': { $regex: name} },
+                { 'game.name': new RegExp(name, "i") },
                 { $expr: { $lt: [ "$size", "$nbMax" ]} },
             ]})
             .populate('captain members');
