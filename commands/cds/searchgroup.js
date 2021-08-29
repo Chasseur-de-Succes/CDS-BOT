@@ -124,8 +124,55 @@ module.exports.run = async (client, message, args) => {
             return author.send({ embeds: [embedError] });
         }
     }
-    else if(args[0] == "join") { // JOIN
+    else if(args[0] == "join") { // args : nom du group
         //REJOINT LE GROUPE SI IL RESTE ENCORE UNE PLACE
+        const grpName = args[1];
+
+        try {
+            if (!grpName) 
+                throw `Il manque le nom du groupe !`;
+            
+            // recup le groupe
+            let grp = await client.findGroupByName(grpName);
+            if (!grp) 
+                throw `Le groupe ${grpName} n'existe pas !`;
+            
+            // test si grp complet
+            if (grp.size === grp.nbMax)
+                throw `Le groupe ${grpName} est déjà plein !`;
+            
+            // recup l'userDB pour test si le joueur est déjà dans le groupe
+            let userDB = await client.getUser(message.author);
+            if (grp.members.some(u => u._id.equals(userDB._id))) {
+                if (grp.captain._id.equals(userDB._id))
+                    throw `Tu fais déjà parti du groupe ${grpName}, tu es le capitaine..`;
+                else
+                    throw `Tu fais déjà parti du groupe ${grpName} !`;
+            }
+
+            // update du groupe : size +1, ajout de l'user dans members
+            grp.members.push(userDB);
+            grp.size++;
+            await client.updateGroup(grp, {
+                members: grp.members,
+                size: grp.size,
+                dateUpdated: Date.now()
+            })
+            console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de rejoindre groupe : ${grpName}`);
+            const newMsgEmbed = new MessageEmbed()
+                .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
+                /* .addFields(
+                    { name: 'Jeu', value: `${grp.game.name}`, inline: true },
+                    { name: 'Capitaine', value: `${captain}` },
+                );*/
+            message.channel.send({ embeds: [newMsgEmbed] });
+        } catch(err) {
+            const embedError = new MessageEmbed()
+                .setColor(dark_red)
+                .setTitle(`${cross_mark} ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            return message.channel.send({ embeds: [embedError] });
+        }
     }
     else if(args[0] == "leave") { // LEAVE
         //QUITTE LE GROUPE
@@ -142,7 +189,7 @@ module.exports.run = async (client, message, args) => {
             if (!nameGrp || !nbMaxMember || !gameName) 
                 throw `> ${PREFIX}searchgroup create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
             
-            // TODO test nom groupe [a-Z0-9] avec accent, caracteres speciaux (pas tous), min 3, max 15
+            // test nom groupe [a-Z0-9] avec accent, caracteres speciaux (pas tous), min 3, max 15
             let reg = /([A-Za-zÀ-ÿ0-9]|[&$&+,:;=?|'"<>.*()%!_-]){3,15}/
             // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
             if (nameGrp.length < 3)
@@ -159,7 +206,6 @@ module.exports.run = async (client, message, args) => {
                 throw `> Le nombre **maximum** de joueurs dans un groupe est de **${NB_MAX.GROUP.MEMBER}**`;
 
             // si nom groupe existe
-            // TODO a revoir ? le fait qu'il faut continuer dans le then..
             let grp = await client.findGroupByName(nameGrp);
             if (grp) 
                 throw `> Le nom du groupe existe déjà. Veuillez en choisir un autre.`;

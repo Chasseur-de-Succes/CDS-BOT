@@ -37,6 +37,15 @@ module.exports = client => {
         createGroup.save().then(grp => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau groupe : ${grp.name}`));
     };
 
+    client.updateGroup = async (group, settings) => {
+        let data = group;
+        if (typeof data !== "object") data = {};
+        for (const key in settings) {
+            if(data[key] !== settings[key]) data[key] = settings[key];
+        }
+        return data.updateOne(settings);
+    };
+
     client.findGroupById = async id => {
         // TODO
     };
