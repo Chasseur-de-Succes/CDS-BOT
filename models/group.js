@@ -22,7 +22,8 @@ const grpSchema = mongoose.Schema({
     dateCreated : {
         type: Date,
         default: Date.now
-    }
+    },
+    dateUpdated : Date
 })
 
 module.exports = mongoose.model("Group", grpSchema);
