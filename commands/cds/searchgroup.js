@@ -87,7 +87,7 @@ module.exports.run = async (client, message, args) => {
             let userDB = await client.getUser(author);
             if (!userDB)
                 throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
-                
+
             let groups = await client.findGroupByUser(userDB);
 
             if (groups?.length > 0) {
@@ -223,7 +223,6 @@ module.exports.run = async (client, message, args) => {
                     { name: 'Capitaine', value: `${captain}` },
                 );*/
             message.channel.send({ embeds: [newMsgEmbed] });
-            
         } catch (err) {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
@@ -242,7 +241,7 @@ module.exports.run = async (client, message, args) => {
         
         try {            
             if (!nameGrp || !nbMaxMember || !gameName) 
-                throw `> ${PREFIX}searchgroup create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
+                throw `${PREFIX}searchgroup create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
             
             // test si captain est register
             let userDB = await client.getUser(captain);
@@ -388,6 +387,52 @@ module.exports.run = async (client, message, args) => {
     }
     else if(args[0] == "transfert") { // Transfert le statut capitaine à un autre membre du groupe
         //TRANSFERT LE STATUT CAPITAINE A UN AUTRE MEMBRE DU GROUPE (VERIFIER S'IL EST CAPITAINE)
+        const grpName = args[1];
+        const newCaptain = message.mentions.members.first();
+
+        try {
+            // test args
+            if (!grpName || !newCaptain) 
+                throw `${PREFIX}searchgroup transfert **<name group>** **<mention membre>**\n*transfert le statut capitaine du groupe à la personne mentionné*`;
+
+            // test si user register
+            let userDB = await client.getUser(message.author);
+            if (!userDB)
+                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+            let newCaptainDB = await client.getUser(newCaptain);
+            if (!newCaptainDB)
+                throw `${newCaptain.user.tag} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+
+            // recup le groupe
+            let grp = await client.findGroupByName(grpName);
+            if (!grp) 
+                throw `Le groupe ${grpName} n'existe pas !`;
+            
+            // si l'author n'est pas capitaine 
+            if (!grp.captain._id.equals(userDB._id))
+                throw `Tu n'es pas capitaine du groupe ${grpName} !`;
+            
+            // si le nouveau capitaine fait parti du groupe
+            let memberGrp = grp.members.find(u => u._id.equals(newCaptainDB._id));
+            if (!memberGrp)
+                throw `${newCaptain.user.tag} ne fait pas parti du groupe ${grpName} !`;
+
+            // update du groupe : captain
+            await client.updateGroup(grp, {
+                captain: newCaptainDB,
+                dateUpdated: Date.now()
+            })
+            console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
+            const newMsgEmbed = new MessageEmbed()
+                .setTitle(`${check_mark} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
+            message.channel.send({ embeds: [newMsgEmbed] });
+        } catch (err) {
+            const embedError = new MessageEmbed()
+                .setColor(dark_red)
+                .setTitle(`${cross_mark} ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            return message.channel.send({ embeds: [embedError] });
+        }
     }
     else {
         return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.SEARCHGROUP.name} help\``);
