@@ -1,9 +1,8 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
-const colors = require('../../data/colors.json');
 const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX } = require('../../config.js');
 
-const { dark_red } = require("../../data/colors.json");
+const { night, dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 
 function sendEmbedGroupInfo(message, group, toDM = false) {
@@ -40,7 +39,7 @@ module.exports.run = async (client, message, args) => {
     }
     else if(args[0] == "help") { // HELP
         const embed = new MessageEmbed()
-            .setColor(colors.night)
+            .setColor(night)
             .setDescription(`Permet de rechercher et de rejoindre (ou quitter) un groupe pour un jeu multijoueur`)
             .addField("Commandes", `- ${PREFIX}searchgroup search <game name> : cherche un groupe pour le jeu souhaité
                 \n- ${PREFIX}searchgroup list : affiche la liste des groupes rejoint
@@ -334,7 +333,7 @@ module.exports.run = async (client, message, args) => {
                 }
                 
                 const embed = new MessageEmbed()
-                    .setColor(colors.night)
+                    .setColor(night)
                     .setTitle(`J'ai trouvé ${games.length} jeux !`)
                     .setDescription(`Lequel est celui que tu cherchais ?`);
 
