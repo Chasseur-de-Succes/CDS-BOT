@@ -143,6 +143,9 @@ module.exports.run = async (client, message, args) => {
             
             // recup l'userDB pour test si le joueur est déjà dans le groupe
             let userDB = await client.getUser(message.author);
+            if (!userDB)
+                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+            
             if (grp.members.some(u => u._id.equals(userDB._id))) {
                 if (grp.captain._id.equals(userDB._id))
                     throw `Tu fais déjà parti du groupe ${grpName}, tu es le capitaine..`;
@@ -189,6 +192,9 @@ module.exports.run = async (client, message, args) => {
             
             // recup l'userDB pour test si le joueur est bien dans le groupe
             let userDB = await client.getUser(message.author);
+            if (!userDB)
+                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+
             let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
             if (!memberGrp)
                 throw `Tu ne fais pas parti du groupe ${grpName} !`;
