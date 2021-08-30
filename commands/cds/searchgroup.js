@@ -115,6 +115,8 @@ module.exports.run = async (client, message, args) => {
                     
                     // envoie en MP
                     author.send({ embeds: [newMsgEmbed] });
+                    // petite reaction sur le message original pour dire que c'est ok
+                    message.react(check_mark);
                     //message.channel.send({ embeds: [newMsgEmbed] });
                 }
             } else 
