@@ -37,6 +37,11 @@ module.exports = client => {
         createGroup.save().then(grp => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau groupe : ${grp.name}`));
     };
 
+    client.deleteGroup = async group => {
+        // TODO return ? callback ?
+        Group.deleteOne({ _id: group._id }).then(grp => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Delete groupe : ${group.name}`));
+    }
+
     client.updateGroup = async (group, settings) => {
         let data = group;
         if (typeof data !== "object") data = {};
@@ -62,7 +67,8 @@ module.exports = client => {
     };
 
     client.findGroupByName = async name => {
-        const data = await Group.findOne({ name: name });
+        const data = await Group.findOne({ name: name })
+            .populate('captain members');;
         if (data) return data;
         else return;
     };

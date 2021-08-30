@@ -47,7 +47,7 @@ module.exports.run = async (client, message, args) => {
                 \n- ${PREFIX}searchgroup join <name group> : rejoindre le groupe
                 \n- ${PREFIX}searchgroup leave <name group> : quitter le groupe
                 \n- ${PREFIX}searchgroup create <name group> <nb max> <game name> : créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné
-                \n- ${PREFIX}searchgroup disolve <name group> : dissout le groupe mentionné (capitaine du groupe uniquement)
+                \n- ${PREFIX}searchgroup dissolve <name group> : dissout le groupe mentionné (capitaine du groupe uniquement)
                 \n- ${PREFIX}searchgroup transfert <name group> <mention user> : transfert le statut capitaine du groupe à la personne mentionné`)
             .addField('Règles du nom de groupe', `- Ne peut contenir que des lettres [a ➔ z], des chiffres [0 ➔ 9] ou des caractères spéciaux : "-", "_", "&"
                 - Le nom possède minimum 3 caractères et au maximum 15 caractères`);
@@ -384,8 +384,46 @@ module.exports.run = async (client, message, args) => {
             return message.channel.send({ embeds: [embedError] });
         };
     }
-    else if(args[0] == "disolve") { // Dissout groupe
+    else if(args[0] == "dissolve" || args[0] == "disolve") { // Dissout groupe
         //DISSOUT LE GROUPE SI IL EST CAPITAINE
+        const grpName = args[1];
+
+        try {
+            if (!grpName) 
+                throw `Il manque le nom du groupe !`;
+            
+            // test si user register
+            let userDB = await client.getUser(message.author);
+            if (!userDB)
+                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+
+            // recup le groupe
+            let grp = await client.findGroupByName(grpName);
+            if (!grp) 
+                throw `Le groupe ${grpName} n'existe pas !`;
+
+            // si l'author n'est pas capitaine 
+            if (!grp.captain._id.equals(userDB._id))
+                throw `Tu n'es pas capitaine du groupe ${grpName} !`;
+            
+            // suppr groupe
+            // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
+            await client.deleteGroup(grp);
+            console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a dissout le groupe ${grpName}`);
+
+            let mentionsUsers = '';
+            for (const member of grp.members)
+                mentionsUsers += `<@${member.userId}> `
+            
+            mentionsUsers += ` : le groupe ${grpName} a été dissout.`
+            message.channel.send(mentionsUsers);
+        } catch (err) {
+            const embedError = new MessageEmbed()
+                .setColor(dark_red)
+                .setTitle(`${cross_mark} ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            return message.channel.send({ embeds: [embedError] });
+        }
     }
     else if(args[0] == "transfert") { // Transfert le statut capitaine à un autre membre du groupe
         //TRANSFERT LE STATUT CAPITAINE A UN AUTRE MEMBRE DU GROUPE (VERIFIER S'IL EST CAPITAINE)
