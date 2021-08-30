@@ -77,4 +77,17 @@ module.exports = client => {
         
         return response;
     };
+
+    /**
+     * Fournit un résumé complet du joueur
+     */
+    client.getPlayerSummaries = async userid => {
+        const reponse = await superagent.get('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?')
+            .query({
+                key: STEAM_API_KEY,
+                steamids: userid
+            });
+
+        return reponse;
+    }
 }
