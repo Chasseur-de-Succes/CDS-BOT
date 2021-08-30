@@ -176,6 +176,52 @@ module.exports.run = async (client, message, args) => {
     }
     else if(args[0] == "leave") { // LEAVE
         //QUITTE LE GROUPE
+        const grpName = args[1];
+
+        try {
+            if (!grpName) 
+                throw `Il manque le nom du groupe !`;
+            
+            // recup le groupe
+            let grp = await client.findGroupByName(grpName);
+            if (!grp) 
+                throw `Le groupe ${grpName} n'existe pas !`;
+            
+            // recup l'userDB pour test si le joueur est bien dans le groupe
+            let userDB = await client.getUser(message.author);
+            let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
+            if (!memberGrp)
+                throw `Tu ne fais pas parti du groupe ${grpName} !`;
+            
+            // et s'il est capitaine => sg dissolve ou sg transfert
+            if (grp.captain._id.equals(userDB._id))
+                throw `Tu es capitaine du groupe ${grpName}, utilise plutôt searchgroup transfert ou searchgroup dissolve.`;
+            
+            // update du groupe : size -1, remove de l'user dans members
+            var indexMember = grp.members.indexOf(memberGrp);
+            grp.members.splice(indexMember, 1);
+            grp.size--;
+            await client.updateGroup(grp, {
+                members: grp.members,
+                size: grp.size,
+                dateUpdated: Date.now()
+            })
+            console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de quitter groupe : ${grpName}`);
+            const newMsgEmbed = new MessageEmbed()
+                .setTitle(`${check_mark} Tu as bien quitté le groupe **${grpName}** !`);
+                /* .addFields(
+                    { name: 'Jeu', value: `${grp.game.name}`, inline: true },
+                    { name: 'Capitaine', value: `${captain}` },
+                );*/
+            message.channel.send({ embeds: [newMsgEmbed] });
+            
+        } catch (err) {
+            const embedError = new MessageEmbed()
+                .setColor(dark_red)
+                .setTitle(`${cross_mark} ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            return message.channel.send({ embeds: [embedError] });
+        }
     }
     else if(args[0] == "create") { // Créer groupe
         const captain = message.author;
