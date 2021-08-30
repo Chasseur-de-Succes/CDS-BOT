@@ -85,6 +85,9 @@ module.exports.run = async (client, message, args) => {
         let author = message.author;
         try {
             let userDB = await client.getUser(author);
+            if (!userDB)
+                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+                
             let groups = await client.findGroupByUser(userDB);
 
             if (groups?.length > 0) {
@@ -241,6 +244,11 @@ module.exports.run = async (client, message, args) => {
             if (!nameGrp || !nbMaxMember || !gameName) 
                 throw `> ${PREFIX}searchgroup create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
             
+            // test si captain est register
+            let userDB = await client.getUser(captain);
+            if (!userDB)
+                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+            
             // test nom groupe [a-Z0-9] avec accent, caracteres speciaux (pas tous), min 3, max 15
             let reg = /([A-Za-zÀ-ÿ0-9]|[&$&+,:;=?|'"<>.*()%!_-]){3,15}/
             // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
@@ -346,7 +354,6 @@ module.exports.run = async (client, message, args) => {
             }
 
             // creation groupe
-            let userDB = await client.getUser(captain);
             let newGrp = {
                 name: nameGrp,
                 nbMax: nbMaxMember,
