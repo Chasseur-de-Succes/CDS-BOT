@@ -1,7 +1,9 @@
 const superagent = require('superagent');
 const { STEAM_API_KEY } = require('../config');
+const { TAGS } = require('./constants');
 
 module.exports = client => {
+    // -- API -- //
     /**
      * Cherche et retourne seulement les 10 premiers jeux sur le store qui contient le mot 'gameName'
      * @param {String} gameName 
@@ -64,9 +66,9 @@ module.exports = client => {
 
     /**
      * Récupère les informations d'un jeu Steam en fonction de son appid
-     * // TODO a revoir et à tester
      * @param {Number} appid 
-     * @returns 
+     * @returns Object JSON, au format :
+     * cf http://waikeitse.com/steam-api-tests-and-examples/ 
      */
     client.getAppDetails = async appid => {
         const response = await superagent.get('https://store.steampowered.com/api/appdetails/?')
@@ -90,4 +92,9 @@ module.exports = client => {
 
         return reponse;
     }
+
+    client.getTags = async appid => {
+        const app = await client.getAppDetails(appid);
+        return app?.body[appid]?.data?.categories;
+    };
 }

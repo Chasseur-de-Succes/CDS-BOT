@@ -1,4 +1,3 @@
-const colors = require('../../data/colors.json');
 const { MESSAGES } = require('../../util/constants');
 const { Permissions } = require('discord.js');
 

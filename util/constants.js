@@ -153,6 +153,14 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Purge un channel de ses X derniers messages.",
                 usage: ""
+            },
+            REFRESHGAMES: {
+                name: "refreshgames",
+                aliases: ["rg"],
+                category: "moderation",
+                cooldown: 0,
+                description: "",
+                usage: "refreshGames"
             }
         }
     }
@@ -165,5 +173,13 @@ const NB_MAX = {
     }
 }
 
+// TODO a revoir ?
+const TAGS = {
+    MULTI: {id: 1, description: "Multi-player"},
+    COOP: {id: 9, description: "Co-op"},
+    ACHIEVEMENTS: {id: 22, description: "Steam Achievements"}
+}
+
 exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
+exports.TAGS = TAGS;

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group } = require("../models/index");
+const { User, Group, Game } = require("../models/index");
 
 module.exports = client => {
     /* User */
@@ -68,7 +68,7 @@ module.exports = client => {
 
     client.findGroupByName = async name => {
         const data = await Group.findOne({ name: name })
-            .populate('captain members');;
+            .populate('captain members');
         if (data) return data;
         else return;
     };
@@ -99,4 +99,17 @@ module.exports = client => {
         else return;
     };
 
+    /* GAMES */
+    client.createGame = async game => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, game);
+        const createGame = await new Game(merged);
+        createGame.save().then(game => console.debug(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau game : ${game.name}`));
+    };
+
+    client.findGameByAppid = async appid => {
+        const data = await Game.findOne({ appid: appid })
+            // .populate('');
+        if (data) return data;
+        else return;
+    }
 }
