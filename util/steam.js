@@ -80,6 +80,11 @@ module.exports = client => {
         return response;
     };
 
+    client.getTags = async appid => {
+        const app = await client.getAppDetails(appid);
+        return app?.body[appid]?.data?.categories;
+    };
+
     /**
      * Fournit un résumé complet du joueur
      */
