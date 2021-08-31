@@ -12,6 +12,7 @@ const gameSchema = mongoose.Schema({
     }], */
     isMulti: Boolean, // pour faciliter la recherche TODO facilité ? 
     isCoop: Boolean,
+    // isCoopOnline: Boolean,
     hasAchievements: Boolean, 
     // TODO img url ?
     // TODO achievements

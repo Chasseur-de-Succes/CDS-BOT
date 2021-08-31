@@ -178,6 +178,7 @@ const NB_MAX = {
 // TODO a revoir ?
 const TAGS = {
     MULTI: {id: 1, description: "Multi-player"},
+    // ONLINE_COOP: {id: 38, description: 'Online Co-op'},
     COOP: {id: 9, description: "Co-op"},
     ACHIEVEMENTS: {id: 22, description: "Steam Achievements"}
 }

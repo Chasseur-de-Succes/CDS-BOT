@@ -107,9 +107,17 @@ module.exports = client => {
     };
 
     client.findGameByAppid = async appid => {
-        const data = await Game.findOne({ appid: appid })
-            // .populate('');
+        return await client.findGames({ appid: appid });
+    }
+
+    client.findGamesByName = async name => {
+        return await client.findGames({ 'name': new RegExp(name, "i") });
+    }
+
+    client.findGames = async query => {
+        const data = await Game.find(query)
+        // .populate('');
         if (data) return data;
         else return;
-    }
+    };
 }

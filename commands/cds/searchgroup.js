@@ -276,29 +276,14 @@ module.exports.run = async (client, message, args) => {
 
             let msgLoading = await message.channel.send(`Je suis en train de chercher le jeu..`);
             message.channel.sendTyping();
-            let appList = await client.getAppList();
+
+            // récupère les jeux en base en fonction d'un nom, et si celui ci a des succès et est Multi et/ou Coop
+            let games = await client.findGames({
+                name: regGame, 
+                hasAchievements: true,
+                $or: [{isMulti: true}, {isCoop: true}]
+            });
             msgLoading.delete();
-
-            // TODO test status
-            let apps = appList.body.response.apps;
-            //let apps = appList.body.applist.apps;
-            // filtre les jeux par le nom 
-            //apps = apps.filter(app => app.name.match(regGame));
-            // IStoreApps
-            let games = apps.filter(app => app.name.match(regGame));
-            // TODO filtre only MP game
-
-            // on recupere que les jeux (type: game)
-            // ISteamApps
-            /* let games = [];
-            for (const app of apps) {
-                console.log('hey', app);
-                let gameData = await client.getAppDetails(app.appid);
-
-                console.log('-', gameData.body[app.appid]);
-                if (gameData?.body[app.appid]?.data?.type && gameData?.body[app.appid]?.data?.type === 'game')
-                    games.unshift(gameData.body[app.appid].data);
-            } */
 
             console.log(`\x1b[34m[INFO]\x1b[0m .. ${games.length} jeu(x) trouvé(s)`);
             if (!games) throw 'Erreur lors de la recherche du jeu';
@@ -334,7 +319,7 @@ module.exports.run = async (client, message, args) => {
                 
                 const embed = new MessageEmbed()
                     .setColor(night)
-                    .setTitle(`J'ai trouvé ${games.length} jeux !`)
+                    .setTitle(`J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`)
                     .setDescription(`Lequel est celui que tu cherchais ?`);
 
                 let msgEmbed = await message.channel.send({embeds: [embed], components: rows });

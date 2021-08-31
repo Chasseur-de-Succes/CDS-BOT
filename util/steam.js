@@ -3,6 +3,7 @@ const { STEAM_API_KEY } = require('../config');
 const { TAGS } = require('./constants');
 
 module.exports = client => {
+    // TODO revoir exports, un steam.getGamesByName sera mieux qu'un client.getGamesByName
     // -- API -- //
     /**
      * Cherche et retourne seulement les 10 premiers jeux sur le store qui contient le mot 'gameName'
@@ -25,7 +26,7 @@ module.exports = client => {
      *   }, ... ]
      *  }
      */
-    client.findGamesByName = async gameName => {
+    client.getGamesByName = async gameName => {
         const search = await superagent.get('https://store.steampowered.com/api/storesearch')
                                         .query({
                                             cc: 'FR',
