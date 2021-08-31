@@ -13,12 +13,12 @@ module.exports.run = async (client, message, args) => {
     let startTime = moment();
     let crtIdx = 1, cptGame = 0;
 
-    let msgProgress = await message.channel.send(`[${crtHour()}] - Ok c'est parti ! Récupération de tous les jeux..`);
+    let msgProgress = await message.channel.send(`Ok c'est parti ! Récupération de tous les jeux..`);
 
     client.getAppList()
     .then(async appList => {
         let games = appList.body.response.apps;
-        msgProgress.edit(`[${crtHour()}] - [${crtIdx}/${games.length}] - Traitement des jeux .`);
+        msgProgress.edit(`[${crtIdx}/${games.length}] - Traitement des jeux .`);
         // parcours de tous les jeux
         /* for (let i = 0; i < 10; i++) { // test 10 1er jeu
             let game = games[i]; */
@@ -28,15 +28,15 @@ module.exports.run = async (client, message, args) => {
         for (const game of games) {
             if (crtIdx % 250 === 0) {
                 console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${crtIdx}/${games.length} ..`);
-                await msgProgress.edit(`[${crtHour()}] - [${crtIdx}/${games.length}] - Traitement des jeux ${".".repeat(((crtIdx/250) % 3) + 1)}`);
+                await msgProgress.edit(`[${crtIdx}/${games.length}] - Traitement des jeux ${".".repeat(((crtIdx/250) % 3) + 1)}`);
             }
 
             if (game?.appid) {
                 let gameDB = await client.findGameByAppid(game.appid);
                 // si game existe déjà en base, on skip // TODO a enlever car ~50K game..
-                if (gameDB) 
-                    console.debug(`\x1b[35m[DEBUG]\x1b[0m ${game.name} existe déjà en base, next`);
-                else {
+                if (gameDB?.length > 0) {
+                    console.debug(`GAME ${game.appid} trouvé !`);
+                } else {
                     // on recup les tags du jeu courant
                     try {
                         let app = await client.getAppDetails(game.appid);
@@ -62,7 +62,7 @@ module.exports.run = async (client, message, args) => {
                     } catch (err) {
                         if (err.status === 429) {
                             console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${err}, on attend 5 min ..`);
-                            await msgProgress.edit(`[${crtHour()}] - ${crtIdx}/${games.length} - Trop de requêtes vers l'API Steam ! On attends 5 min ⏳`);
+                            await msgProgress.edit(`${crtIdx}/${games.length} - Trop de requêtes vers l'API Steam ! On attends 5 min ⏳`);
                             // att 5 min
                             await delay(300000);
                         }
