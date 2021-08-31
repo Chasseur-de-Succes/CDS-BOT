@@ -80,6 +80,11 @@ module.exports = client => {
         return response;
     };
 
+    /**
+     * Récupère les catégories d'un jeu Steam en fonction de son appid
+     * @param {Number} appid 
+     * @returns Array de tags, si le jeu en a
+     */
     client.getTags = async appid => {
         const app = await client.getAppDetails(appid);
         return app?.body[appid]?.data?.categories;
@@ -94,12 +99,6 @@ module.exports = client => {
                 key: STEAM_API_KEY,
                 steamids: userid
             });
-
         return reponse;
     }
-
-    client.getTags = async appid => {
-        const app = await client.getAppDetails(appid);
-        return app?.body[appid]?.data?.categories;
-    };
 }

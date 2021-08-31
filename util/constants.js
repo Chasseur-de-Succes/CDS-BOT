@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 const MESSAGES = {
     COMMANDS: {
         MISC: {
@@ -180,6 +182,13 @@ const TAGS = {
     ACHIEVEMENTS: {id: 22, description: "Steam Achievements"}
 }
 
+// TODO a deplacé autre part ? methodes
+// attends ms milliseconds
+const delay = ms => new Promise(res => setTimeout(res, ms));
+const crtHour = () => moment().format("HH[h]mm[:]ss");
+
 exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
+exports.delay = delay;
+exports.crtHour = crtHour;
