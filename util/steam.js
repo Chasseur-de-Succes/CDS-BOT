@@ -47,14 +47,16 @@ module.exports = client => {
     *        ...
     *    ]
     */
-    client.getAppList = async () => {
+    client.getAppList = async (lastappid = 0) => {
         const response = await superagent.get('https://api.steampowered.com/IStoreService/GetAppList/v1/?')
                 .query({
                     key: STEAM_API_KEY,
-                    include_dlc: false,
-                    include_software: false,
-                    include_videos: false,
-                    include_hardware: false,
+                    include_games: 1,
+                    include_dlc: 0,
+                    include_software: 0,
+                    include_videos: 0,
+                    include_hardware: 0,
+                    last_appid: lastappid,
                     max_results: 50000
                 });
         /* const response = await superagent.get('https://api.steampowered.com/ISteamApps/GetAppList/v2/?')

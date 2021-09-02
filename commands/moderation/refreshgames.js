@@ -15,6 +15,8 @@ module.exports.run = async (client, message, args) => {
 
     let msgProgress = await message.channel.send(`Ok c'est parti ! Récupération de tous les jeux..`);
 
+    // recupe depuis l'appid XXX
+    //client.getAppList(XXX)
     client.getAppList()
     .then(async appList => {
         let games = appList.body.response.apps;
@@ -23,7 +25,7 @@ module.exports.run = async (client, message, args) => {
         /* for (let i = 0; i < 10; i++) { // test 10 1er jeu
             let game = games[i]; */
         
-        // TODO filtrer directement ceux déjà présent en base pour avoir un array plus petit ?
+        // TODO filtrer directement ceux déjà présent en base pour avoir un array plus petit et être + rapide?
 
         for (const game of games) {
             if (crtIdx % 250 === 0) {
@@ -75,9 +77,11 @@ module.exports.run = async (client, message, args) => {
             crtIdx++;
         }
 
-        console.log(`\x1b[34m[INFO]\x1b[0m .. Fin refresh games en [${startTime.toNow(true)}], ${cptGame} jeux ajoutés`);
+        console.log(`\x1b[34m[INFO]\x1b[0m .. Fin refresh games en [${startTime.toNow()}], ${cptGame} jeux ajoutés`);
         message.react(check_mark);
-        await msgProgress.edit(`[${crtHour()}] - ${cptGame} jeux ajoutés (en ${startTime.toNow(true)}) ! 👏`);
+        await msgProgress.edit(`${cptGame} jeux ajoutés (en ${startTime.toNow()}) ! 👏`);
+        // TODO embed
+        message.author.send(`Import des jeux terminés : ${cptGame} jeux ajoutés (${startTime.toNow()}) ! 👏`)
     }).catch(err => {
         msgProgress.delete();
         message.react(cross_mark);
