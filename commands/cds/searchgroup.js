@@ -1,4 +1,4 @@
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX } = require('../../config.js');
 
@@ -288,55 +288,48 @@ module.exports.run = async (client, message, args) => {
             console.log(`\x1b[34m[INFO]\x1b[0m .. ${games.length} jeu(x) trouvé(s)`);
             if (!games) throw 'Erreur lors de la recherche du jeu';
             if (games.length === 0) throw `Pas de résultat trouvé pour **${gameName}** !`;
-            // MAX 5 row, MAX 5 btn par row = 25 boutons
-            if (games.length > 25) throw `Trop de résultat trouvés pour **${gameName}** !`;
 
-            let gameId, realGameName;
-            if (games.length === 1) {
-                gameId = games[0].appid.toString();
-                realGameName = games[0].name;
-            }
-            else {
-                let rows = [];
-                for (let i = 0; i < games.length; i += 5) {
-                    // creation action row
-                    let row = new MessageActionRow();
-                    for (let j = i; j < i + 5; j++) {
-                        // creation message button
-                        let crtGame = games[j];
-                        if (crtGame) {
-                            row.addComponents(
-                                new MessageButton()
-                                    //.setCustomId(crtGame.steam_appid.toString())
-                                    .setCustomId(crtGame.appid.toString())
-                                    .setLabel(crtGame.name)
-                                    .setStyle('PRIMARY')
-                            );
-                        }
-                    }
-                    rows.unshift(row);
+            // values pour Select Menu
+            let items = [];
+            for (let i = 0; i < games.length; i++) {
+                let crtGame = games[i];
+                if (crtGame) {
+                    items.unshift({
+                        label: crtGame.name,
+                        // description: 'Description',
+                        value: crtGame.appid + '_' + crtGame.name
+                    });
                 }
-                
-                const embed = new MessageEmbed()
-                    .setColor(night)
-                    .setTitle(`J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`)
-                    .setDescription(`Lequel est celui que tu cherchais ?`);
-
-                let msgEmbed = await message.channel.send({embeds: [embed], components: rows });
-                
-                // attend une interaction bouton de l'auteur de la commande
-                const filter = i => {return i.user.id === message.author.id}
-                let interaction = await msgEmbed.awaitMessageComponent({
-                    filter,
-                    componentType: 'BUTTON',
-                    // time: 10000
-                });
-
-                console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app id ${interaction.customId} choisi`);
-                gameId = interaction.customId;
-                realGameName = interaction.component.label;
-                msgEmbed.delete();
             }
+
+            // row contenant le Select menu
+            const row = new MessageActionRow()
+                .addComponents(
+                    new MessageSelectMenu()
+                        .setCustomId('select-games-' + message.author)
+                        .setPlaceholder('Sélectionner le jeu..')
+                        .addOptions(items)
+                );
+
+            const embed = new MessageEmbed()
+                .setColor(night)
+                .setTitle(`J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`)
+                .setDescription(`Lequel est celui que tu cherchais ?`);
+
+            let msgEmbed = await message.channel.send({embeds: [embed], components: [row] });
+
+            // attend une interaction bouton de l'auteur de la commande
+            const filter = i => {return i.user.id === message.author.id}
+            let interaction = await msgEmbed.awaitMessageComponent({
+                filter,
+                componentType: 'SELECT_MENU',
+                // time: 10000
+            });
+            
+            console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${interaction.values[0]} choisi`);
+            // on recupere le custom id "APPID_GAME"
+            const [gameId, realGameName] = interaction.values[0].split('_');
+            msgEmbed.delete();
 
             // creation groupe
             let newGrp = {
