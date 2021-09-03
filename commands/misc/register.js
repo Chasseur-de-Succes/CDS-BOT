@@ -39,7 +39,8 @@ module.exports.run = async (client, message, args) => {
         const embedVerif = new MessageEmbed()
             .setColor(green)
             .setTitle('Vérification')
-            .setDescription(`Confirmez-vous être l'utilisateur : ${userSteam.body.response.players[0].personaname}`);
+            .setDescription(`Confirmez-vous être l'utilisateur : **${userSteam.body.response.players[0].personaname}**`)
+            .setThumbnail(userSteam.body.response.players[0].avatarmedium); // .avatarfull -> pour plus grande image
 
         let msgEmbed = await message.channel.send({embeds: [embedVerif], components: rows});
 
@@ -82,33 +83,6 @@ module.exports.run = async (client, message, args) => {
 
             message.channel.send({embeds: [embed]});
         });
-
-        // console.log(`\x1b[34m[INFO]\x1b[0m .. ${interaction.customId} choisi`);
-        // const btnId = interaction.customId;
-        // msgEmbed.delete();
-        
-        // if(btnId === 'confirm') { // Si ok
-        //     await client.createUser({
-        //         userId: message.member.id,
-        //         username: message.member.user.tag,
-        //         steamId: steamId,
-        //     });
-
-        //     const embed = new MessageEmbed()
-        //         .setColor(green)
-        //         .setTitle(`${check_mark} Vous êtes désormais inscrit`)
-
-        //     message.channel.send({embeds: [embed]});
-        // } else {
-        //     const embed = new MessageEmbed()
-        //         .setColor(dark_red)
-        //         .setTitle(`${cross_mark} Annulation de l'inscription...`)
-
-        //     message.channel.send({embeds: [embed]});
-        // }
-
-        
-
     } catch (err) {
         const embedError = new MessageEmbed()
             .setColor(dark_red)
