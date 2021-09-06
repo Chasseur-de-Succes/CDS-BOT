@@ -297,7 +297,7 @@ module.exports.run = async (client, message, args) => {
                     items.unshift({
                         label: crtGame.name,
                         // description: 'Description',
-                        value: crtGame.appid + '_' + crtGame.name
+                        value: '' + crtGame.appid
                     });
                 }
             }
@@ -326,9 +326,10 @@ module.exports.run = async (client, message, args) => {
                 // time: 10000
             });
             
-            console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${interaction.values[0]} choisi`);
+            const gameId = interaction.values[0];
+            console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
             // on recupere le custom id "APPID_GAME"
-            const [gameId, realGameName] = interaction.values[0].split('_');
+            const game = await client.findGameByAppid(gameId);
             msgEmbed.delete();
 
             // creation groupe
@@ -337,17 +338,14 @@ module.exports.run = async (client, message, args) => {
                 nbMax: nbMaxMember,
                 captain: userDB._id,
                 members: [userDB._id],
-                game: {
-                    id: gameId,
-                    name: realGameName
-                }
+                game: game[0]
             };
             await client.createGroup(newGrp);
 
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Le groupe **${nameGrp}** a bien été créé !`)
                 .addFields(
-                    { name: 'Jeu', value: `${realGameName}`, inline: true },
+                    { name: 'Jeu', value: `${game[0].name}`, inline: true },
                     { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
                     { name: 'Capitaine', value: `${captain}` },
                 );

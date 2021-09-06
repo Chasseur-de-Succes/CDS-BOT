@@ -15,10 +15,7 @@ const grpSchema = mongoose.Schema({
         type: Number,
         default: 1
     },
-    game: {
-        id: Number,
-        name: String
-    },
+    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
     dateCreated : {
         type: Date,
         default: Date.now

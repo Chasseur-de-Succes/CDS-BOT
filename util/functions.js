@@ -61,32 +61,45 @@ module.exports = client => {
                 { captain: userDB },
                 { members: userDB },
             ]})
-            .populate('captain members');
+            .populate('captain members game');
         if (data) return data;
         else return;
     };
 
     client.findGroupByName = async name => {
         const data = await Group.findOne({ name: name })
-            .populate('captain members');
+            .populate('captain members game');
         if (data) return data;
         else return;
     };
 
     client.findGroupByGameName = async name => {
-        const data = await Group.find({ 'game.name': { $regex: name} })
-            .populate('captain members');
+        const games = await client.findGamesByName(name);
+        // recup array _id
+        var ids = games.map(function(g) { return g._id; });
+
+        // cherche parmis les _id
+        const data = await Group.find({game: {$in: ids}});
+        //const data = await Group.find({ 'game.name': { $regex: name} })
+        //    .populate('captain members');
         if (data) return data;
         else return;
     };
     
     client.findGroupNotFullByGameName = async name => {
+        const games = await client.findGamesByName(name);
+        // recup array _id
+        var ids = games.map(function(g) { return g._id; });
+
+        // cherche parmis les _id & groupe non rempli
         const data = await Group.find({
             $and: [
-                { 'game.name': new RegExp(name, "i") },
+                { game: {$in: ids} },
                 { $expr: { $lt: [ "$size", "$nbMax" ]} },
             ]})
-            .populate('captain members');
+            .populate('captain')
+            .populate('members')
+            .populate('game');
         /* let data = await Group.aggregate([{ 
             $match: { 
                 expr: { 
