@@ -8,5 +8,5 @@ module.exports = async (client, member) => {
     .setDescription(`<@${member.id}>`)
     .addField("ID", member.id);
 
-    client.channels.cache.get('879825669243170847').send({embeds: [embed]});
+    client.channels.cache.get('879395583390003281').send({embeds: [embed]});
 }
