@@ -97,6 +97,16 @@ async function editMsgHub(client, group) {
     await msg.edit({embeds: [createEmbedGroupInfo(members, group, false)]});
 }
 
+/**
+ * Supprime un message
+ * @param {*} client 
+ * @param {*} group 
+ */
+async function deleteMsgHub(client, group) {
+    const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
+    await msg.delete();
+}
+
 module.exports.run = async (client, message, args) => {
     if(!args[0]) {
         return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.SEARCHGROUP.name} help\``);
@@ -471,6 +481,9 @@ module.exports.run = async (client, message, args) => {
             
             mentionsUsers += ` : le groupe ${grpName} a été dissout.`
             message.channel.send(mentionsUsers);
+
+            // update msg
+            await deleteMsgHub(client, grp);
         } catch (err) {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
@@ -516,6 +529,9 @@ module.exports.run = async (client, message, args) => {
                 captain: newCaptainDB,
                 dateUpdated: Date.now()
             })
+
+            // update msg
+            await editMsgHub(client, grp);
             console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
