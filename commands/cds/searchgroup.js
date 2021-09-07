@@ -1,36 +1,95 @@
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { MESSAGES, NB_MAX } = require('../../util/constants');
-const { PREFIX } = require('../../config.js');
+const { PREFIX, GUILD_ID, CHANNEL } = require('../../config.js');
 
-const { night, dark_red } = require("../../data/colors.json");
+const { night, dark_red, green, yellow } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 
-function sendEmbedGroupInfo(message, group, toDM = false) {
-    const memberCaptain = message.guild.members.cache.get(group.captain.userId);
-    let isAuthorCaptain = message.author === memberCaptain.user;
-
+/**
+ * Retourne les @ des membres faisant partie du groupe
+ * @param {*} group Groupe (DB)
+ * @param {*} members Collection de Members
+ * @returns String, chaque @ suivi d'un saut de ligne
+ */
+function getMembersList(group, members) {
+    const memberCaptain = members.get(group.captain.userId);
     let membersStr = ``;
+    // récupère les @ des membres
     for (const member of group.members) {
-        const crtMember = message.guild.members.cache.get(member.userId);
+        const crtMember = members.get(member.userId);
         if (crtMember !== memberCaptain)
             membersStr += `${crtMember.user}\n`;
     }
-    membersStr = membersStr ? membersStr : '*Personne 😔*';
+    return membersStr ? membersStr : '*Personne 😔*';
+}
+
+/**
+ * Créer un message embed contenant les infos d'un group
+ * @param {*} members Collection de tous les membres
+ * @param {*} group Groupe (DB)
+ * @param {*} isAuthorCaptain est-ce que l'auteur du msg qui a appelé cette méthode est le capitaine
+ * @returns un msg embed
+ */
+function createEmbedGroupInfo(members, group, isAuthorCaptain) {
+    const memberCaptain = members.get(group.captain.userId);
+    const membersStr = getMembersList(group, members);
+    let color = '';
+    if (group.size === 1) color = green;
+    else if (group.size === group.nbMax) color = dark_red;
+    else color = yellow;
 
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
+        .setColor(color)
         .addFields(
             { name: 'Jeu', value: `${group.game.name}`, inline: true },
             { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
             { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}` },
         );
+    return newMsgEmbed;
+}
+
+/**
+ * Envoie un msg embed en DM ou sur le channel du message
+ */
+function sendEmbedGroupInfo(message, group, toDM = false) {
+    const members = message.guild.members.cache;
+    const memberCaptain = members.get(group.captain.userId);
+    let isAuthorCaptain = message.author === memberCaptain.user;
+    const newMsgEmbed = createEmbedGroupInfo(members, group, isAuthorCaptain);
 
     // envoie en MP
     if (toDM)
         message.author.send({ embeds: [newMsgEmbed] });
     else 
         message.channel.send({ embeds: [newMsgEmbed] });
+}
+
+/**
+ * Crée un nouveau msg embed dans le channel spécifique
+ * et le sauvegarde en DB
+ * @param {*} client 
+ * @param {*} group Groupe (DB)
+ */
+async function sendMsgHub(client, group) {
+    const members = client.guilds.cache.get(GUILD_ID).members.cache;
+    const newMsgEmbed = createEmbedGroupInfo(members, group, false);
+
+    // recuperation id message pour pouvoir l'editer par la suite
+    let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
+    await client.updateGroup(group, { idMsg: msg.id })
+}
+
+/**
+ * Update un msg embed du channel spécifique
+ * @param {*} client 
+ * @param {*} group Groupe (DB)
+ */
+async function editMsgHub(client, group) {
+    const members = client.guilds.cache.get(GUILD_ID).members.cache;
+    const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
+    await msg.edit({embeds: [createEmbedGroupInfo(members, group, false)]});
 }
 
 module.exports.run = async (client, message, args) => {
@@ -165,6 +224,9 @@ module.exports.run = async (client, message, args) => {
                 size: grp.size,
                 dateUpdated: Date.now()
             })
+
+            // update msg
+            await editMsgHub(client, grp);
             console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de rejoindre groupe : ${grpName}`);
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
@@ -206,7 +268,7 @@ module.exports.run = async (client, message, args) => {
             // et s'il est capitaine => sg dissolve ou sg transfert
             if (grp.captain._id.equals(userDB._id))
                 throw `Tu es capitaine du groupe ${grpName}, utilise plutôt searchgroup transfert ou searchgroup dissolve.`;
-            
+
             // update du groupe : size -1, remove de l'user dans members
             var indexMember = grp.members.indexOf(memberGrp);
             grp.members.splice(indexMember, 1);
@@ -216,6 +278,9 @@ module.exports.run = async (client, message, args) => {
                 size: grp.size,
                 dateUpdated: Date.now()
             })
+            
+            // update msg
+            await editMsgHub(client, grp);
             console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de quitter groupe : ${grpName}`);
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Tu as bien quitté le groupe **${grpName}** !`);
@@ -340,7 +405,10 @@ module.exports.run = async (client, message, args) => {
                 members: [userDB._id],
                 game: game[0]
             };
-            await client.createGroup(newGrp);
+            let grpDB = await client.createGroup(newGrp);
+
+            // creation msg channel
+            sendMsgHub(client, grpDB);
 
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Le groupe **${nameGrp}** a bien été créé !`)

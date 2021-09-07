@@ -34,7 +34,10 @@ module.exports = client => {
     client.createGroup = async group => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, group);
         const createGroup = await new Group(merged);
-        createGroup.save().then(grp => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau groupe : ${grp.name}`));
+        let grp = await createGroup.save()
+        await grp.populate('captain members').execPopulate()
+        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau groupe : ${grp.name}`);
+        return grp;
     };
 
     client.deleteGroup = async group => {
@@ -74,14 +77,12 @@ module.exports = client => {
     };
 
     client.findGroupByGameName = async name => {
+        // "join"
         const games = await client.findGamesByName(name);
         // recup array _id
         var ids = games.map(function(g) { return g._id; });
-
         // cherche parmis les _id
         const data = await Group.find({game: {$in: ids}});
-        //const data = await Group.find({ 'game.name': { $regex: name} })
-        //    .populate('captain members');
         if (data) return data;
         else return;
     };
@@ -100,14 +101,6 @@ module.exports = client => {
             .populate('captain')
             .populate('members')
             .populate('game');
-        /* let data = await Group.aggregate([{ 
-            $match: { 
-                expr: { 
-                    $lt: [ {$size: "$members"}, "$nbMax" ] 
-                } 
-            }
-        }])
-        data = await Group.populate(data, 'captain members'); */
         if (data) return data;
         else return;
     };
