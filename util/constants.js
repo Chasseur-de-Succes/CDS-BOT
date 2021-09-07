@@ -95,6 +95,15 @@ const MESSAGES = {
                 //permission: true,
                 description: "Force un membre à quitter un groupe",
                 usage: ""
+            },
+            BLACKLISTUSER: {
+                name: "blacklistuser",
+                aliases: [""],
+                category: "admin",
+                cooldown: 3,
+                //permission: true,
+                description: "Blackliste un utilisateur. L'empêche de rejoindre ",
+                usage: ""
             }
         },
         CDS: {
