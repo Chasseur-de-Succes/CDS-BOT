@@ -2,7 +2,7 @@ const colors = require('../../data/colors.json');
 const { MESSAGES } = require('../../util/constants');
 const { Permissions } = require('discord.js');
 
-module.exports.run = (client, message, args) => {
+module.exports.run = async (client, message, args) => {
     // -- test si user a le droit de ban
     if (!message.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) return message.reply("Tu n'as pas le droit de ban !")
 
@@ -25,25 +25,21 @@ module.exports.run = (client, message, args) => {
         .then(m => module.exports.ban(client, message, m))
         .catch(err => message.reply('> ' + memberToBanId + ' n\'existe pas ou n\'est pas sur le serveur !'));
     }
+
+    // TODO le faire quitter de tous les groupes / evenements ?
 }
 
-module.exports.ban = (client, message, member) => {
+module.exports.ban = async (client, message, member) => {
     if (!member.bannable) return message.reply('> Impossible de ban ' + member.displayName + ' !');
 
     member.ban()
-    .then(m => {
+    .then(async m => {
         console.log(`\x1b[34m[INFO] \x1b[0mBan ${member.displayName}`);
         message.channel.send(`> 👋 ${m.displayName} a été **banni** ! ⛔`);
 
         // maj attribut 'banned'
-        let user = client.getUser(member.user);
-        if (user) {
-            user.then(u => client.updateUser(member.user, {banned: true}))
-            .catch(err => {
-                console.log(`\x1b[31m[ERROR] \x1b[0mErreur sauvegarde ban : ` + err);
-                message.reply('> Erreur de sauvegarde du ban !');
-            });
-        }
+        let user = await client.getUser(member.user);
+        await client.updateUser(user, {banned: true});
     })
     .catch(err => {
         console.log(`\x1b[31m[ERROR] \x1b[0mErreur ban : ` + err);

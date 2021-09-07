@@ -42,7 +42,7 @@ module.exports.run = async (client, message, args) => {
 
         // update msg
         await editMsgHubGroup(client, grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${memberToLeave.user.tag} a été kick du groupe : ${grpName}`);
+        console.log(`\x1b[34m[INFO]\x1b[0m ${memberToLeave.user.tag ?? memberToLeaveId} a été kick du groupe : ${grpName}`);
         message.react(check_mark)
     } catch (err) {
         const embedError = new MessageEmbed()
