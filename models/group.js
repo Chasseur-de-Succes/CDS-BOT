@@ -4,6 +4,7 @@ const grpSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     name: String,
     idMsg: String,
+    desc: String,
     nbMax: {
         "type": Number,
         "default": 2

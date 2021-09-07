@@ -44,9 +44,14 @@ function createEmbedGroupInfo(members, group, isAuthorCaptain) {
         .addFields(
             { name: 'Jeu', value: `${group.game.name}`, inline: true },
             { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
-            { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}` },
+            { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}`, inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },
         );
+
+    if (group.desc)
+        newMsgEmbed.setDescription(`*${group.desc}*`);
     return newMsgEmbed;
 }
 
@@ -104,7 +109,7 @@ module.exports.run = async (client, message, args) => {
                 \n- ${PREFIX}searchgroup list : affiche la liste des groupes rejoint
                 \n- ${PREFIX}searchgroup join <name group> : rejoindre le groupe
                 \n- ${PREFIX}searchgroup leave <name group> : quitter le groupe
-                \n- ${PREFIX}searchgroup create <name group> <nb max> <game name> : créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné
+                \n- ${PREFIX}searchgroup create <name group> <nb max> <game name> ["<description>"] : créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, avec petite description facultative
                 \n- ${PREFIX}searchgroup dissolve <name group> : dissout le groupe mentionné (capitaine du groupe uniquement)
                 \n- ${PREFIX}searchgroup transfert <name group> <mention user> : transfert le statut capitaine du groupe à la personne mentionné`)
             .addField('Règles du nom de groupe', `- Ne peut contenir que des lettres [a ➔ z], des chiffres [0 ➔ 9] ou des caractères spéciaux : "-", "_", "&"
@@ -301,9 +306,10 @@ module.exports.run = async (client, message, args) => {
         const captain = message.author;
         const nameGrp = args[1];
         const nbMaxMember = !!parseInt(args[2]) ? parseInt(args[2]) : null;
-        // recup le reste des arguments : nom du jeu
-        const gameName = args.slice(3).join(' ');
-        // TODO description
+        // recup le reste des arguments : nom du jeu [+ "description"]
+        const lastArgs = args.slice(3).join(' ');
+        const gameName = lastArgs.split('"')[0].trim();
+        const description = lastArgs.split('"')[1];
         
         try {            
             if (!nameGrp || !nbMaxMember || !gameName) 
@@ -403,7 +409,8 @@ module.exports.run = async (client, message, args) => {
                 nbMax: nbMaxMember,
                 captain: userDB._id,
                 members: [userDB._id],
-                game: game[0]
+                game: game[0],
+                desc: description
             };
             let grpDB = await client.createGroup(newGrp);
 
@@ -417,6 +424,10 @@ module.exports.run = async (client, message, args) => {
                     { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
                     { name: 'Capitaine', value: `${captain}` },
                 );
+            
+            if (description)
+                newMsgEmbed.setDescription(`*${description}*`);
+
             message.channel.send({ embeds: [newMsgEmbed] });
         } catch (err) {
             const embedError = new MessageEmbed()
