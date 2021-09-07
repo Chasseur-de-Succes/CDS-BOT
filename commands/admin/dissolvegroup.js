@@ -3,7 +3,7 @@ const { MessageEmbed, Permissions } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
 const { cross_mark } = require('../../data/emojis.json');
 const { dark_red} = require("../../data/colors.json");
-const { deleteMsgHub } = require('../../util/msgUtils');
+const { deleteMsgHubGroup } = require('../../util/msg/group');
 
 module.exports.run = async (client, message, args) => {
     // TODO similaire a searchgroup dissolve, a voir si possible de refactor ?
@@ -36,7 +36,7 @@ module.exports.run = async (client, message, args) => {
         message.channel.send(mentionsUsers);
 
         // update msg
-        await deleteMsgHub(client, grp);
+        await deleteMsgHubGroup(client, grp);
     } catch (err) {
         const embedError = new MessageEmbed()
             .setColor(dark_red)

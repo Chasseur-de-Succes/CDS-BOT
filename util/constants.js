@@ -86,6 +86,15 @@ const MESSAGES = {
                 //permission: true,
                 description: "Dissout un groupe",
                 usage: ""
+            },
+            LEAVEGROUP: {
+                name: "leavegroup",
+                aliases: [""],
+                category: "admin",
+                cooldown: 3,
+                //permission: true,
+                description: "Force un membre à quitter un groupe",
+                usage: ""
             }
         },
         CDS: {
