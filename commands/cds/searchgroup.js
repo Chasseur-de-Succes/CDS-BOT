@@ -1,60 +1,10 @@
 const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js');
 const { MESSAGES, NB_MAX } = require('../../util/constants');
-const { PREFIX, GUILD_ID, CHANNEL } = require('../../config.js');
+const { PREFIX } = require('../../config.js');
 
-const { night, dark_red, green, yellow } = require("../../data/colors.json");
+const { night, dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
-const { editMsgHub, deleteMsgHub } = require('../../util/msgUtils');
-
-/**
- * Retourne les @ des membres faisant partie du groupe
- * @param {*} group Groupe (DB)
- * @param {*} members Collection de Members
- * @returns String, chaque @ suivi d'un saut de ligne
- */
-function getMembersList(group, members) {
-    const memberCaptain = members.get(group.captain.userId);
-    let membersStr = ``;
-    // récupère les @ des membres
-    for (const member of group.members) {
-        const crtMember = members.get(member.userId);
-        if (crtMember !== memberCaptain)
-            membersStr += `${crtMember.user}\n`;
-    }
-    return membersStr ? membersStr : '*Personne 😔*';
-}
-
-/**
- * Créer un message embed contenant les infos d'un group
- * @param {*} members Collection de tous les membres
- * @param {*} group Groupe (DB)
- * @param {*} isAuthorCaptain est-ce que l'auteur du msg qui a appelé cette méthode est le capitaine
- * @returns un msg embed
- */
-function createEmbedGroupInfo(members, group, isAuthorCaptain) {
-    const memberCaptain = members.get(group.captain.userId);
-    const membersStr = getMembersList(group, members);
-    let color = '';
-    if (group.size === 1) color = green;
-    else if (group.size === group.nbMax) color = dark_red;
-    else color = yellow;
-
-    const newMsgEmbed = new MessageEmbed()
-        .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
-        .setColor(color)
-        .addFields(
-            { name: 'Jeu', value: `${group.game.name}`, inline: true },
-            { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
-            { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
-            { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
-            { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}`, inline: true },
-            { name: '\u200B', value: '\u200B', inline: true },
-        );
-
-    if (group.desc)
-        newMsgEmbed.setDescription(`*${group.desc}*`);
-    return newMsgEmbed;
-}
+const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup } = require('../../util/msg/group');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
@@ -70,21 +20,6 @@ function sendEmbedGroupInfo(message, group, toDM = false) {
         message.author.send({ embeds: [newMsgEmbed] });
     else 
         message.channel.send({ embeds: [newMsgEmbed] });
-}
-
-/**
- * Crée un nouveau msg embed dans le channel spécifique
- * et le sauvegarde en DB
- * @param {*} client 
- * @param {*} group Groupe (DB)
- */
-async function sendMsgHub(client, group) {
-    const members = client.guilds.cache.get(GUILD_ID).members.cache;
-    const newMsgEmbed = createEmbedGroupInfo(members, group, false);
-
-    // recuperation id message pour pouvoir l'editer par la suite
-    let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
-    await client.updateGroup(group, { idMsg: msg.id })
 }
 
 module.exports.run = async (client, message, args) => {
@@ -221,7 +156,7 @@ module.exports.run = async (client, message, args) => {
             })
 
             // update msg
-            await editMsgHub(client, grp);
+            await editMsgHubGroup(client, grp);
             console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de rejoindre groupe : ${grpName}`);
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
@@ -275,7 +210,7 @@ module.exports.run = async (client, message, args) => {
             })
             
             // update msg
-            await editMsgHub(client, grp);
+            await editMsgHubGroup(client, grp);
             console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de quitter groupe : ${grpName}`);
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Tu as bien quitté le groupe **${grpName}** !`);
@@ -405,7 +340,7 @@ module.exports.run = async (client, message, args) => {
             let grpDB = await client.createGroup(newGrp);
 
             // creation msg channel
-            sendMsgHub(client, grpDB);
+            sendMsgHubGroup(client, grpDB);
 
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Le groupe **${nameGrp}** a bien été créé !`)
@@ -463,7 +398,7 @@ module.exports.run = async (client, message, args) => {
             message.channel.send(mentionsUsers);
 
             // update msg
-            await deleteMsgHub(client, grp);
+            await deleteMsgHubGroup(client, grp);
         } catch (err) {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
@@ -511,7 +446,7 @@ module.exports.run = async (client, message, args) => {
             })
 
             // update msg
-            await editMsgHub(client, grp);
+            await editMsgHubGroup(client, grp);
             console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
