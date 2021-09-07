@@ -77,6 +77,15 @@ const MESSAGES = {
                 //permission: true,
                 description: "Renvoie un code javascript testé",
                 usage: ""
+            },
+            DISSOLVEGROUP: {
+                name: "dissolvegroup",
+                aliases: ["disolvegroup"],
+                category: "admin",
+                cooldown: 3,
+                //permission: true,
+                description: "Dissout un groupe",
+                usage: ""
             }
         },
         CDS: {

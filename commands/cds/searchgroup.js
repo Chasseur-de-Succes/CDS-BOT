@@ -1,9 +1,10 @@
-const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js');
 const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX, GUILD_ID, CHANNEL } = require('../../config.js');
 
 const { night, dark_red, green, yellow } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
+const { editMsgHub, deleteMsgHub } = require('../../util/msgUtils');
 
 /**
  * Retourne les @ des membres faisant partie du groupe
@@ -84,27 +85,6 @@ async function sendMsgHub(client, group) {
     // recuperation id message pour pouvoir l'editer par la suite
     let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
     await client.updateGroup(group, { idMsg: msg.id })
-}
-
-/**
- * Update un msg embed du channel spécifique
- * @param {*} client 
- * @param {*} group Groupe (DB)
- */
-async function editMsgHub(client, group) {
-    const members = client.guilds.cache.get(GUILD_ID).members.cache;
-    const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
-    await msg.edit({embeds: [createEmbedGroupInfo(members, group, false)]});
-}
-
-/**
- * Supprime un message
- * @param {*} client 
- * @param {*} group 
- */
-async function deleteMsgHub(client, group) {
-    const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
-    await msg.delete();
 }
 
 module.exports.run = async (client, message, args) => {
