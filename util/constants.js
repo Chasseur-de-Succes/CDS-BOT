@@ -79,7 +79,7 @@ const MESSAGES = {
         ADMIN: {
             EVAL: {
                 name: "eval",
-                aliases: [""],
+                aliases: [],
                 category: "admin",
                 cooldown: 3,
                 //permission: true,
@@ -97,7 +97,7 @@ const MESSAGES = {
             },
             LEAVEGROUP: {
                 name: "leavegroup",
-                aliases: [""],
+                aliases: [],
                 category: "admin",
                 cooldown: 3,
                 //permission: true,
@@ -106,7 +106,7 @@ const MESSAGES = {
             },
             BLACKLISTUSER: {
                 name: "blacklistuser",
-                aliases: [""],
+                aliases: [],
                 category: "admin",
                 cooldown: 3,
                 //permission: true,
