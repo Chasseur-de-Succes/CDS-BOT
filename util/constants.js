@@ -27,6 +27,14 @@ const MESSAGES = {
                 description: "Pong!",
                 usage: ""
             },
+            PROFILE: {
+                name: "profile",
+                aliases: ["profil"],
+                category: "misc",
+                cooldown: 3,
+                description: "Affiche votre profile ou le profile d'un utilisateur",
+                usage: "[<user mention | user id>]"
+            },
             SERVERINFO: {
                 name: "serverinfo",
                 aliases: ["si"],
