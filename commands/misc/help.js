@@ -52,7 +52,7 @@ module.exports.run = (client, message, args) => {
                 aliases = "Pas d'aliases";
             } 
             else {
-                aliases = command.help.aliases;
+                aliases = `${command.help.aliases}`;
             }
 
             if(command.help.usage) {
