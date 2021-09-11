@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { TAGS } = require('../util/constants');
 
 const gameSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,

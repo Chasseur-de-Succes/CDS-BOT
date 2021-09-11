@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game } = require("../models/index");
+const { User, Group, Game, Event } = require("../models/index");
 
 module.exports = client => {
     /* User */
@@ -57,8 +57,16 @@ module.exports = client => {
         return data.updateOne(settings);
     };
 
+    client.findGroup = async query => {
+        const data = await Group.find(query)
+        // .populate('');
+        if (data) return data;
+        else return;
+    }
+
     client.findGroupById = async id => {
-        // TODO
+        return Group.findById(id)
+            .populate('captain members game');
     };
 
     client.findGroupByUser = async userDB => {
@@ -129,4 +137,12 @@ module.exports = client => {
         if (data) return data;
         else return;
     };
+
+    /* EVENTS */
+    client.createEvent = async event => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, event);
+        const createEvent = await new Event(merged);
+        createEvent.save().then(event => console.debug(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau event : ${event.titre}`));
+    };
+
 }
