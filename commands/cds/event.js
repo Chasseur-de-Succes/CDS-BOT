@@ -76,6 +76,16 @@ module.exports.run = async (client, message, args) => {
 
                 const grpId = interaction.values[0];
                 const groupe = await client.findGroupById(grpId);
+                const gameAppid = groupe.game.appid;
+                
+                const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
+                const completionistLink = `[Completionist](https://completionist.me/steam/app/${gameAppid})`;
+                const steamGuidesLink = `[Steam Guides](https://steamcommunity.com/app/${gameAppid}/guides/?browsefilter=trend&requiredtags[]=Achievements#scrollTop=0)`;
+                const links = `${astatLink} | ${completionistLink} | ${steamGuidesLink}`;
+
+                // TODO icon plutot que l'image ? -> recup via API..
+                const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
+
                 console.log(`\x1b[34m[INFO]\x1b[0m .. groupe ${grpId} ${groupe.name} choisi`);
                 msgEmbed.delete();
 
@@ -83,8 +93,9 @@ module.exports.run = async (client, message, args) => {
                 recap = new MessageEmbed()
                     .setColor(night)
                     .setTitle(`Nouvel évènement ! ${nom} `)
+                    .setThumbnail(gameUrlHeader)
                     .addFields( { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                { name: 'Jeu', value: `${groupe.game.name}`, inline: true },
+                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
                                 { name: '\u200B', value: '\u200B', inline: true })                      // 'vide' pour remplir le 3eme field et passé à la ligne
                 msgRecap.edit({embeds: [recap] });
 
@@ -95,7 +106,7 @@ module.exports.run = async (client, message, args) => {
                 embed = new MessageEmbed()
                     .setColor(night)
                     .setTitle(`👑 Ok, va pour le groupe ${groupe.name}. Mais quand ?`)
-                    .setDescription(`J'attends une réponse au format jj/mm/aaaa stp.`);
+                    .setDescription(`J'attends une réponse au format jj/mm/aaaa HH:MM stp.`);
                 msgEmbed = await message.channel.send({embeds: [embed] });
 
                 // attend une reponse, du même auteur, dans meme channel
@@ -103,11 +114,11 @@ module.exports.run = async (client, message, args) => {
                 let response = await message.channel.awaitMessages({ filter, max:1 });
 
                 // test si date bon format
-                if (!moment(response.first().content, "DD/MM/YY", true).isValid())
+                if (!moment(response.first().content, "DD/MM/YY HH:mm", true).isValid())
                     throw `${response.first().content} n'est pas une date valide.`;
                 
                 // parse string to Moment (date)
-                let dateEvent = moment(response.first().content, 'DD/MM/YY');
+                let dateEvent = moment(response.first().content, 'DD/MM/YY HH:mm');
                 response.first().delete();
                 msgEmbed.delete();
                 console.log(`\x1b[34m[INFO]\x1b[0m .. date ${dateEvent} choisi`);
@@ -115,10 +126,11 @@ module.exports.run = async (client, message, args) => {
                 recap = new MessageEmbed()
                 .setColor(night)
                 .setTitle(`Nouvel évènement ! ${nom} `)
+                .setThumbnail(gameUrlHeader)
                 .addFields( { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                            { name: 'Jeu', value: `${groupe.game.name}`, inline: true },
+                            { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
                             { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
-                            { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM")}`, inline: true })
+                            { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true })
                 msgRecap.edit({embeds: [recap] });
 
                 /** CHOIX ACHIEVEMENTS **/
@@ -156,8 +168,9 @@ module.exports.run = async (client, message, args) => {
                 embed = new MessageEmbed()
                     .setColor(night)
                     .setTitle(`👑 Ok, l'event *${nom}* a été créé ! Petit récap : `)
+                    .setThumbnail(gameUrlHeader)
                     .addFields( { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                { name: 'Jeu', value: `${groupe.game.name}`, inline: true },
+                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
                                 { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
                                 { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM")}`, inline: true },
                                 { name: 'Desc.', value: `${desc}`, inline: true },
