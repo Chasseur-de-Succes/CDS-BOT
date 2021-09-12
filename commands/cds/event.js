@@ -3,10 +3,20 @@ const { MESSAGES } = require('../../util/constants');
 const { PREFIX } = require('../../config.js');
 const moment = require('moment');
 
-const { night, dark_red } = require("../../data/colors.json");
+const { night, yellow, green, dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 
 module.exports.run = async (client, message, args) => {
+    function createRecap(nom, gameUrlHeader, isCreated = false, ...fields) {
+        const title = isCreated ? `👑 Ok, l'event *${nom}* a été créé ! Petit récap : ` : `Nouvel évènement ! ${nom} `;
+        const color = isCreated ? green : yellow
+        return new MessageEmbed()
+                    .setColor(color)
+                    .setTitle(title)
+                    .setThumbnail(gameUrlHeader)
+                    .addFields(fields)
+    }
+
     if(!args[0]) {
         return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.EVENT.name} help\``);
     }
@@ -31,9 +41,7 @@ module.exports.run = async (client, message, args) => {
             if (groupes?.length === 0) 
                 throw `Tu n'es pas capitaine d'un groupe.`;
             else {
-                let recap = new MessageEmbed()
-                    .setColor(night)
-                    .setTitle(`Nouvel évènement ! ${nom} `);
+                let recap = createRecap(nom);
                 let msgRecap = await message.channel.send({embeds: [recap] });
                 // TODO timer sur certaines 'attentes'
 
@@ -89,18 +97,12 @@ module.exports.run = async (client, message, args) => {
                 console.log(`\x1b[34m[INFO]\x1b[0m .. groupe ${grpId} ${groupe.name} choisi`);
                 msgEmbed.delete();
 
-                
-                recap = new MessageEmbed()
-                    .setColor(night)
-                    .setTitle(`Nouvel évènement ! ${nom} `)
-                    .setThumbnail(gameUrlHeader)
-                    .addFields( { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
-                                { name: '\u200B', value: '\u200B', inline: true })                      // 'vide' pour remplir le 3eme field et passé à la ligne
+                recap = createRecap(nom, gameUrlHeader, false, { name: 'Groupe', value: `${groupe.name}`, inline: true },
+                                                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
+                                                                { name: '\u200B', value: '\u200B', inline: true });
                 msgRecap.edit({embeds: [recap] });
 
                 /** CHOIX DATE **/
-                // TODO horaire HH:mm
                 // let dateOk = false;
 
                 embed = new MessageEmbed()
@@ -123,14 +125,10 @@ module.exports.run = async (client, message, args) => {
                 msgEmbed.delete();
                 console.log(`\x1b[34m[INFO]\x1b[0m .. date ${dateEvent} choisi`);
 
-                recap = new MessageEmbed()
-                .setColor(night)
-                .setTitle(`Nouvel évènement ! ${nom} `)
-                .setThumbnail(gameUrlHeader)
-                .addFields( { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                            { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
-                            { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
-                            { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true })
+                recap = createRecap(nom, gameUrlHeader, false, { name: 'Groupe', value: `${groupe.name}`, inline: true },
+                                                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
+                                                                { name: '\u200B', value: '\u200B', inline: true },
+                                                                { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true });
                 msgRecap.edit({embeds: [recap] });
 
                 /** CHOIX ACHIEVEMENTS **/
@@ -165,16 +163,12 @@ module.exports.run = async (client, message, args) => {
 
                 msgRecap.delete();
                 // TODO send msg sur channel specifique ?
-                embed = new MessageEmbed()
-                    .setColor(night)
-                    .setTitle(`👑 Ok, l'event *${nom}* a été créé ! Petit récap : `)
-                    .setThumbnail(gameUrlHeader)
-                    .addFields( { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
-                                { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
-                                { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM")}`, inline: true },
-                                { name: 'Desc.', value: `${desc}`, inline: true },
-                                { name: '\u200B', value: '\u200B', inline: true },)
+                embed = createRecap(nom, gameUrlHeader, true, { name: 'Groupe', value: `${groupe.name}`, inline: true },
+                                                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
+                                                                { name: '\u200B', value: '\u200B', inline: true },
+                                                                { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true },
+                                                                { name: 'Desc.', value: `${desc}`, inline: true },
+                                                                { name: '\u200B', value: '\u200B', inline: true },);
                 msgEmbed = await message.channel.send({embeds: [embed] });
             }
             
