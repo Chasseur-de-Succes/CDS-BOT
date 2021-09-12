@@ -103,8 +103,6 @@ module.exports.run = async (client, message, args) => {
                 msgRecap.edit({embeds: [recap] });
 
                 /** CHOIX DATE **/
-                // let dateOk = false;
-
                 embed = new MessageEmbed()
                     .setColor(night)
                     .setTitle(`👑 Ok, va pour le groupe ${groupe.name}. Mais quand ?`)

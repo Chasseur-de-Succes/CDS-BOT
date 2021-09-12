@@ -81,31 +81,10 @@ module.exports.run = async (client, message, args) => {
             if (groups?.length > 0) {
                 author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
                 for (const group of groups) {
-                    const memberCaptain = message.guild.members.cache.get(group.captain.userId);
-                    let isAuthorCaptain = author === memberCaptain.user;
+                    sendEmbedGroupInfo(message, group, true);
 
-                    let membersStr = ``;
-                    for (const member of group.members) {
-                        const crtMember = message.guild.members.cache.get(member.userId);
-                        if (crtMember !== memberCaptain)
-                            membersStr += `${crtMember.user}\n`;
-                    }
-                    membersStr = membersStr ? membersStr : '*Personne :(*';
-
-                    const newMsgEmbed = new MessageEmbed()
-                        .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
-                        .addFields(
-                            { name: 'Jeu', value: `${group.game.name}`, inline: true },
-                            { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
-                            { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
-                            { name: 'Membres', value: `${membersStr}` },
-                        );
-                    
-                    // envoie en MP
-                    author.send({ embeds: [newMsgEmbed] });
                     // petite reaction sur le message original pour dire que c'est ok
                     message.react(check_mark);
-                    //message.channel.send({ embeds: [newMsgEmbed] });
                 }
             } else 
                 throw `Tu n'appartiens à aucun groupe.`

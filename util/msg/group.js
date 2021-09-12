@@ -35,11 +35,21 @@ const { dark_red, green, yellow } = require("../../data/colors.json");
     else if (group.size === group.nbMax) color = dark_red;
     else color = yellow;
 
+    const gameAppid = group.game.appid;
+    const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
+    const completionistLink = `[Completionist](https://completionist.me/steam/app/${gameAppid})`;
+    const steamGuidesLink = `[Steam Guides](https://steamcommunity.com/app/${gameAppid}/guides/?browsefilter=trend&requiredtags[]=Achievements#scrollTop=0)`;
+    const links = `${astatLink} | ${completionistLink} | ${steamGuidesLink}`;
+
+    // TODO icon plutot que l'image ? -> recup via API..
+    const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
+
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
         .setColor(color)
+        .setThumbnail(gameUrlHeader)
         .addFields(
-            { name: 'Jeu', value: `${group.game.name}`, inline: true },
+            { name: 'Jeu', value: `${group.game.name}\n${links}`, inline: true },
             { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
             { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
