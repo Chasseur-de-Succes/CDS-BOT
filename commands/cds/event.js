@@ -1,20 +1,54 @@
 const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js');
 const { MESSAGES } = require('../../util/constants');
-const { PREFIX } = require('../../config.js');
+const { PREFIX, CHANNEL } = require('../../config.js');
 const moment = require('moment');
 
+const { getAllMembers } = require('../../util/msg/group');
 const { night, yellow, green, dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 
 module.exports.run = async (client, message, args) => {
-    function createRecap(nom, gameUrlHeader, isCreated = false, ...fields) {
+    function createRecap(nom, isCreated = false, group, dateEvent, desc) {
         const title = isCreated ? `👑 Ok, l'event *${nom}* a été créé ! Petit récap : ` : `Nouvel évènement ! ${nom} `;
-        const color = isCreated ? green : yellow
-        return new MessageEmbed()
-                    .setColor(color)
-                    .setTitle(title)
-                    .setThumbnail(gameUrlHeader)
-                    .addFields(fields)
+        const color = isCreated ? green : yellow;
+
+        const msgEmbed = new MessageEmbed()
+                                .setColor(color)
+                                .setTitle(title);
+
+        if (group) {
+            // recup info jeu (liens, image)
+            const gameAppid = group.game.appid;
+                
+            // TODO creer function pour recup en une fois ?
+            const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
+            const completionistLink = `[Completionist](https://completionist.me/steam/app/${gameAppid})`;
+            const steamGuidesLink = `[Steam Guides](https://steamcommunity.com/app/${gameAppid}/guides/?browsefilter=trend&requiredtags[]=Achievements#scrollTop=0)`;
+            const links = `${astatLink} | ${completionistLink} | ${steamGuidesLink}`;
+
+            // TODO icon plutot que l'image ? -> recup via API..
+            const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
+
+            // TODO recup capitaine
+            const membersStr = getAllMembers(group, message.guild.members.cache);
+
+            // ajout field sur le groupe & jeu
+            msgEmbed.setThumbnail(gameUrlHeader);
+            msgEmbed.addFields({ name: 'Groupe', value: `${group.name}\n${membersStr}`, inline: true },
+                                { name: 'Jeu', value: `${group.game.name}\n${links}`, inline: true },
+                                { name: '\u200B', value: '\u200B', inline: true });
+        }
+
+        if (dateEvent) {
+            msgEmbed.addFields({ name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true })
+        }
+
+        if (desc) {
+            msgEmbed.addFields({ name: 'Desc.', value: `${desc}`, inline: true },
+                                { name: '\u200B', value: '\u200B', inline: true })
+        }
+
+        return msgEmbed;
     }
 
     if(!args[0]) {
@@ -84,22 +118,11 @@ module.exports.run = async (client, message, args) => {
 
                 const grpId = interaction.values[0];
                 const groupe = await client.findGroupById(grpId);
-                const gameAppid = groupe.game.appid;
-                
-                const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
-                const completionistLink = `[Completionist](https://completionist.me/steam/app/${gameAppid})`;
-                const steamGuidesLink = `[Steam Guides](https://steamcommunity.com/app/${gameAppid}/guides/?browsefilter=trend&requiredtags[]=Achievements#scrollTop=0)`;
-                const links = `${astatLink} | ${completionistLink} | ${steamGuidesLink}`;
-
-                // TODO icon plutot que l'image ? -> recup via API..
-                const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
 
                 console.log(`\x1b[34m[INFO]\x1b[0m .. groupe ${grpId} ${groupe.name} choisi`);
                 msgEmbed.delete();
 
-                recap = createRecap(nom, gameUrlHeader, false, { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
-                                                                { name: '\u200B', value: '\u200B', inline: true });
+                recap = createRecap(nom, false, groupe);
                 msgRecap.edit({embeds: [recap] });
 
                 /** CHOIX DATE **/
@@ -110,7 +133,7 @@ module.exports.run = async (client, message, args) => {
                 msgEmbed = await message.channel.send({embeds: [embed] });
 
                 // attend une reponse, du même auteur, dans meme channel
-                filter = m => {return m.author.id === message.author.id}
+                filter = m => { return m.author.id === message.author.id }
                 let response = await message.channel.awaitMessages({ filter, max:1 });
 
                 // test si date bon format
@@ -123,10 +146,7 @@ module.exports.run = async (client, message, args) => {
                 msgEmbed.delete();
                 console.log(`\x1b[34m[INFO]\x1b[0m .. date ${dateEvent} choisi`);
 
-                recap = createRecap(nom, gameUrlHeader, false, { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
-                                                                { name: '\u200B', value: '\u200B', inline: true },
-                                                                { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true });
+                recap = createRecap(nom, false, groupe, dateEvent);
                 msgRecap.edit({embeds: [recap] });
 
                 /** CHOIX ACHIEVEMENTS **/
@@ -161,13 +181,10 @@ module.exports.run = async (client, message, args) => {
 
                 msgRecap.delete();
                 // TODO send msg sur channel specifique ?
-                embed = createRecap(nom, gameUrlHeader, true, { name: 'Groupe', value: `${groupe.name}`, inline: true },
-                                                                { name: 'Jeu', value: `${groupe.game.name}\n${links}`, inline: true },
-                                                                { name: '\u200B', value: '\u200B', inline: true },
-                                                                { name: 'Quand ?', value: `${moment(dateEvent).format("ddd Do MMM HH:mm")}`, inline: true },
-                                                                { name: 'Desc.', value: `${desc}`, inline: true },
-                                                                { name: '\u200B', value: '\u200B', inline: true },);
+                embed = createRecap(nom, true, groupe, dateEvent, desc);
                 msgEmbed = await message.channel.send({embeds: [embed] });
+                // TODO sauvegarde id msg pour edit ?
+                let msg = await client.channels.cache.get(CHANNEL.LIST_EVENT).send({embeds: [embed]});
             }
             
         } catch (err) {

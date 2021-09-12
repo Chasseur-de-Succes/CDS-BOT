@@ -3,7 +3,7 @@ const { GUILD_ID, CHANNEL } = require("../../config");
 const { dark_red, green, yellow } = require("../../data/colors.json");
 
 /**
- * Retourne les @ des membres faisant partie du groupe
+ * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
  * @param {*} group Groupe (DB)
  * @param {*} members Collection de Members
  * @returns String, chaque @ suivi d'un saut de ligne
@@ -16,6 +16,18 @@ const { dark_red, green, yellow } = require("../../data/colors.json");
         const crtMember = members.get(member.userId);
         if (crtMember !== memberCaptain)
             membersStr += `${crtMember.user}\n`;
+    }
+    return membersStr ? membersStr : '*Personne 😔*';
+}
+
+function getAllMembers(group, members) {
+    const memberCaptain = members.get(group.captain.userId);
+    let membersStr = ``;
+    // récupère les @ des membres
+    for (const member of group.members) {
+        const crtMember = members.get(member.userId);
+        if (crtMember === memberCaptain) membersStr += `👑`;
+        membersStr += `${crtMember.user}\n`;
     }
     return membersStr ? membersStr : '*Personne 😔*';
 }
@@ -99,6 +111,8 @@ const { dark_red, green, yellow } = require("../../data/colors.json");
     await msg.delete();
 }
 
+exports.getAllMembers = getAllMembers
+exports.getMembersList = getMembersList
 exports.createEmbedGroupInfo = createEmbedGroupInfo
 exports.sendMsgHubGroup = sendMsgHubGroup
 exports.editMsgHubGroup = editMsgHubGroup
