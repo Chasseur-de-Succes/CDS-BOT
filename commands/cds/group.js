@@ -24,25 +24,25 @@ function sendEmbedGroupInfo(message, group, toDM = false) {
 
 module.exports.run = async (client, message, args) => {
     if(!args[0]) {
-        return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.SEARCHGROUP.name} help\``);
+        return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
     }
     else if(args[0] == "help") { // HELP
         const embed = new MessageEmbed()
             .setColor(night)
             .setDescription(`Permet de rechercher et de rejoindre (ou quitter) un groupe pour un jeu multijoueur`)
-            .addField("Commandes", `- ${PREFIX}searchgroup search <game name> : cherche un groupe pour le jeu souhaité
-                \n- ${PREFIX}searchgroup list : affiche la liste des groupes rejoint
-                \n- ${PREFIX}searchgroup join <name group> : rejoindre le groupe
-                \n- ${PREFIX}searchgroup leave <name group> : quitter le groupe
-                \n- ${PREFIX}searchgroup create <name group> <nb max> <game name> ["<description>"] : créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, avec petite description facultative
-                \n- ${PREFIX}searchgroup dissolve <name group> : dissout le groupe mentionné (capitaine du groupe uniquement)
-                \n- ${PREFIX}searchgroup transfert <name group> <mention user> : transfert le statut capitaine du groupe à la personne mentionné`)
+            .addField("Commandes", `- ${PREFIX}group search <game name> : cherche un groupe pour le jeu souhaité
+                \n- ${PREFIX}group list : affiche la liste des groupes rejoint
+                \n- ${PREFIX}group join <name group> : rejoindre le groupe
+                \n- ${PREFIX}group leave <name group> : quitter le groupe
+                \n- ${PREFIX}group create <name group> <nb max> <game name> ["<description>"] : créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, avec petite description facultative
+                \n- ${PREFIX}group dissolve <name group> : dissout le groupe mentionné (capitaine du groupe uniquement)
+                \n- ${PREFIX}group transfert <name group> <mention user> : transfert le statut capitaine du groupe à la personne mentionné`)
             .addField('Règles du nom de groupe', `- Ne peut contenir que des lettres [a ➔ z], des chiffres [0 ➔ 9] ou des caractères spéciaux : "-", "_", "&"
                 - Le nom possède minimum 3 caractères et au maximum 15 caractères`);
 
         return message.channel.send({embeds: [embed]});
     }
-    else if (args[0] == "search") {
+    else if(args[0] == "search") {
         // CHERCHER UN GROUPE SUR UN NOM DE JEU DONNE
         // recup le reste des arguments : nom du jeu
         const gameName = args.slice(1).join(' ');
@@ -64,7 +64,7 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         }
     }
@@ -92,7 +92,7 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return author.send({ embeds: [embedError] });
         }
     }
@@ -148,7 +148,7 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         }
     }
@@ -176,7 +176,7 @@ module.exports.run = async (client, message, args) => {
             
             // et s'il est capitaine => sg dissolve ou sg transfert
             if (grp.captain._id.equals(userDB._id))
-                throw `Tu es capitaine du groupe ${grpName}, utilise plutôt searchgroup transfert ou searchgroup dissolve.`;
+                throw `Tu es capitaine du groupe ${grpName}, utilise plutôt group transfert ou group dissolve.`;
 
             // update du groupe : size -1, remove de l'user dans members
             var indexMember = grp.members.indexOf(memberGrp);
@@ -202,7 +202,7 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         }
     }
@@ -217,7 +217,7 @@ module.exports.run = async (client, message, args) => {
         
         try {            
             if (!nameGrp || !nbMaxMember || !gameName) 
-                throw `${PREFIX}searchgroup create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
+                throw `${PREFIX}group create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`;
             
             // test si captain est register
             let userDB = await client.getUser(captain);
@@ -338,7 +338,7 @@ module.exports.run = async (client, message, args) => {
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} Impossible de créer le groupe.`)
                 .setDescription(`${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         };
     }
@@ -382,7 +382,7 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         }
     }
@@ -394,7 +394,7 @@ module.exports.run = async (client, message, args) => {
         try {
             // test args
             if (!grpName || !newCaptain) 
-                throw `${PREFIX}searchgroup transfert **<name group>** **<mention membre>**\n*transfert le statut capitaine du groupe à la personne mentionné*`;
+                throw `${PREFIX}group transfert **<name group>** **<mention membre>**\n*transfert le statut capitaine du groupe à la personne mentionné*`;
 
             // test si user register
             let userDB = await client.getUser(message.author);
@@ -434,13 +434,13 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(dark_red)
                 .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur searchgroup ${args[0]} : ${err}`);
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         }
     }
     else {
-        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.SEARCHGROUP.name} help\``);
+        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
     }
 }
 
-module.exports.help = MESSAGES.COMMANDS.CDS.SEARCHGROUP;
+module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;
