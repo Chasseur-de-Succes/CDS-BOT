@@ -1,6 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 const { GUILD_ID, CHANNEL } = require("../../config");
 const { dark_red, green, yellow } = require("../../data/colors.json");
+const moment = require('moment');
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -46,6 +47,7 @@ function getAllMembers(group, members) {
     if (group.size === 1) color = green;
     else if (group.size === group.nbMax) color = dark_red;
     else color = yellow;
+    const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
 
     const gameAppid = group.game.appid;
     const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
@@ -62,11 +64,12 @@ function getAllMembers(group, members) {
         .setThumbnail(gameUrlHeader)
         .addFields(
             { name: 'Jeu', value: `${group.game.name}\n${links}`, inline: true },
-            { name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
-            { name: '\u200B', value: '\u200B', inline: true },                      // 'vide' pour remplir le 3eme field et passé à la ligne
+            //{ name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
+            { name: 'Quand ?', value: `${dateEvent}`, inline: true },                      
+            { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
             { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}`, inline: true },
-            { name: '\u200B', value: '\u200B', inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
         );
 
     if (group.desc)
@@ -86,7 +89,7 @@ function getAllMembers(group, members) {
 
     // recuperation id message pour pouvoir l'editer par la suite
     let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
-    await client.updateGroup(group, { idMsg: msg.id })
+    await client.updateGroup(group, { idMsg: msg.id });
 }
 
 
@@ -98,7 +101,10 @@ function getAllMembers(group, members) {
  async function editMsgHubGroup(client, group) {
     const members = client.guilds.cache.get(GUILD_ID).members.cache;
     const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
-    await msg.edit({embeds: [createEmbedGroupInfo(members, group, false)]});
+    const editMsgEmbed = createEmbedGroupInfo(members, group, false);
+    editMsgEmbed.setFooter(`Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`);
+
+    await msg.edit({embeds: [editMsgEmbed]});
 }
 
 /**

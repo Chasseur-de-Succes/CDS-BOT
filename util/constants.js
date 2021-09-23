@@ -122,14 +122,6 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "",
                 usage: "help"
-            }, 
-            EVENT: {
-                name: "event",
-                aliases: ["event"],
-                category: "cds",
-                cooldown: 0,
-                description: "",
-                usage: "help"
             }
         },
         ECONOMY: {
