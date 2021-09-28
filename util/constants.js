@@ -112,6 +112,24 @@ const MESSAGES = {
                 //permission: true,
                 description: "Blackliste un utilisateur. L'empêche de rejoindre ",
                 usage: ""
+            },
+            WHITELISTCHANNEL: {
+                name: "whitelistchannel",
+                aliases: [],
+                category: "admin",
+                cooldown: 3,
+                //permission: true,
+                description: "Whitelist un channel pour permettre d'y effectuer des commandes ou le retire de la whitelist",
+                usage: "<add | remove | list> [<#mention-channel>]"
+            },
+            GIVEMONEY: {
+                name: "givemoney",
+                aliases: [],
+                category: "admin",
+                cooldown: 5,
+                //permission: true,
+                description: "Donne à l'utilisateur mentionné un montant d'argent",
+                usage: "<user mention> <montant>"
             }
         },
         CDS: {
