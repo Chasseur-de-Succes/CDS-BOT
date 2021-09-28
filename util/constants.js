@@ -133,17 +133,9 @@ const MESSAGES = {
             }
         },
         CDS: {
-            SEARCHGROUP: {
-                name: "searchgroup",
-                aliases: ["sg"],
-                category: "cds",
-                cooldown: 0,
-                description: "",
-                usage: "help"
-            }, 
-            EVENT: {
-                name: "event",
-                aliases: ["event"],
+            GROUP: {
+                name: "group",
+                aliases: [],
                 category: "cds",
                 cooldown: 0,
                 description: "",

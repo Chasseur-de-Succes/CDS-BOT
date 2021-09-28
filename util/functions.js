@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Event } = require("../models/index");
+const { User, Group, Game } = require("../models/index");
 
 module.exports = client => {
     /* User */
@@ -137,12 +137,4 @@ module.exports = client => {
         if (data) return data;
         else return;
     };
-
-    /* EVENTS */
-    client.createEvent = async event => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, event);
-        const createEvent = await new Event(merged);
-        createEvent.save().then(event => console.debug(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau event : ${event.titre}`));
-    };
-
 }
