@@ -31,15 +31,25 @@ module.exports.run = async (client, message, args) => {
         const embed = new MessageEmbed()
             .setColor(night)
             .setDescription(`Permet de rechercher et de rejoindre (ou quitter) un groupe pour un jeu multijoueur`)
-            .addField("Commandes", `- ${PREFIX}group search <game name> : cherche un groupe pour le jeu souhaité
-                \n- ${PREFIX}group list : affiche la liste des groupes rejoint
-                \n- ${PREFIX}group join <name group> : rejoindre le groupe
-                \n- ${PREFIX}group leave <name group> : quitter le groupe
-                \n- ${PREFIX}group create <name group> <nb max> <game name> : créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, une description facultative sera demandée
-                \n- ${PREFIX}group dissolve <name group> : dissout le groupe mentionné (capitaine du groupe uniquement)
-                \n- ${PREFIX}group transfert <name group> <mention user> : transfert le statut capitaine du groupe à la personne mentionné`)
-            .addField('Règles du nom de groupe', `- Ne peut contenir que des lettres [a ➔ z], des chiffres [0 ➔ 9] ou des caractères spéciaux : "-", "_", "&"
-                - Le nom possède minimum 3 caractères et au maximum 15 caractères`);
+            .addField("Commandes", `
+                🔎 **${PREFIX}group search <game name>**
+                > *Cherche un groupe pour le jeu souhaité*\n
+                📃 **${PREFIX}group list**
+                > *Affiche la liste des groupes rejoint*\n
+                ▶️ **${PREFIX}group join <name group>**
+                > *Rejoindre le groupe*\n
+                ◀️ **${PREFIX}group leave <name group>**
+                > *Quitter le groupe*\n
+                🆕 **${PREFIX}group create <name group> <nb max> <game name>**
+                > *Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, une description facultative sera demandée*\n
+                📆 **${PREFIX}group schedule <name group> <date>***
+                > *Planifie une date pour chasser sur le groupe donné, au format jj/mm/yy HH:MM*\n
+                💣 **${PREFIX}group dissolve <name group>**
+                > *Dissout le groupe mentionné (capitaine du groupe uniquement)*\n
+                👑 **${PREFIX}group transfert <name group> <mention user>**
+                > *Transfert le statut capitaine du groupe à la personne mentionné*`)
+            .addField('Règles du nom de groupe', `- *Ne peut contenir que des lettres [a ➔ z], des chiffres [0 ➔ 9] ou des caractères spéciaux : "-", "_", "&"*
+                - *Le nom possède minimum 3 caractères et au maximum 15 caractères*`);
 
         return message.channel.send({embeds: [embed]});
     }
