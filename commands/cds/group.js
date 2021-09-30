@@ -128,7 +128,7 @@ module.exports.run = async (client, message, args) => {
 
             // update du groupe : size +1, ajout de l'user dans members
             joinGroup(grp, userDB);
-            
+
             const newMsgEmbed = new MessageEmbed()
                 .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
                 /* .addFields(
@@ -285,7 +285,6 @@ module.exports.run = async (client, message, args) => {
         const game = await client.findGameByAppid(gameId);
         msgEmbed.delete();
 
-        // TODO gérer description
         /** DESCRIPTION **/
         embed = new MessageEmbed()
             .setColor(night)
@@ -326,10 +325,17 @@ module.exports.run = async (client, message, args) => {
             if (!u.bot && r.emoji.name === 'check') {
                 client.getUser(u)
                 .then(userDBJoined => {
-                    // si u est capitaine, on ne fait rien
-                    if (u.id === grpDB.captain.userId) console.log(`capitaine tente de s'ajouter à son propre groupe`);
-                    else if (userDBJoined) joinGroup(grpDB, userDBJoined)
-                    // TODO sinon user pas enregistré
+                    // si u est enregistré, non blacklisté, non capitaine, il peut join le group
+                    if (userDBJoined && u.id !== grpDB.captain.userId && !userDBJoined.blacklisted) {
+                        joinGroup(grpDB, userDBJoined);
+                    } else {
+                        // send mp explication
+                        let raison = 'Tu ne peux rejoindre le groupe car ';
+                        if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande ${PREFIX}register <steamid>`;
+                        else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
+                        u.send(`${cross_mark} ${raison}`);
+                        r.users.remove(u.id);
+                    }
                 });
             }
         });
@@ -338,9 +344,8 @@ module.exports.run = async (client, message, args) => {
                 client.getUser(u)
                 .then(userDBLeaved => {
                     // si u est capitaine, on remet? la reaction
-                    if (u.id === grpDB.captain.userId) console.log(`capitaine tente de leave son propre groupe`);
-                    else if (userDBLeaved) leaveGroup(grpDB, userDBLeaved)
-                    // TODO sinon user pas enregistré
+                    if (u.id !== grpDB.captain.userId && userDBLeaved) 
+                        leaveGroup(grpDB, userDBLeaved);
                 });
             }
         });
