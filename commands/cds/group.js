@@ -6,6 +6,7 @@ const moment = require('moment');
 const { night, dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup } = require('../../util/msg/group');
+const { createRappelJob } = require('../../util/batch/batch');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
@@ -42,7 +43,7 @@ module.exports.run = async (client, message, args) => {
                 > *Quitter le groupe*\n
                 🆕 **${PREFIX}group create <name group> <nb max> <game name>**
                 > *Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, une description facultative sera demandée*\n
-                📆 **${PREFIX}group schedule <name group> <date>***
+                📆 **${PREFIX}group schedule <name group> <date> <heure>**
                 > *Planifie une date pour chasser sur le groupe donné, au format jj/mm/yy HH:MM*\n
                 💣 **${PREFIX}group dissolve <name group>**
                 > *Dissout le groupe mentionné (capitaine du groupe uniquement)*\n
@@ -387,7 +388,7 @@ module.exports.run = async (client, message, args) => {
 
         // test si date bon format
         if (!moment(dateVoulue + ' ' + heureVoulue, "DD/MM/YY HH:mm", true).isValid())
-            return sendError(`${dateVoulue + ' ' + heureVoulue} n'est pas une date valide.`);
+            return sendError(`${dateVoulue + ' ' + heureVoulue} n'est pas une date valide. Format accepté : jj/mm/yy HH:MM*`);
 
         // parse string to Moment (date)
         let dateEvent = moment(dateVoulue + ' ' + heureVoulue, 'DD/MM/YY HH:mm');
@@ -395,7 +396,12 @@ module.exports.run = async (client, message, args) => {
         await client.updateGroup(grp, {
             dateEvent: dateEvent,
             dateUpdated: Date.now()
-        })
+        });
+
+        // créer rappel
+        // TODO garder job qquepart pour l'annuler si on modifie la date
+        // -- job.cancel();
+        createRappelJob(client, [grp]);
 
         // update msg
         await editMsgHubGroup(client, grp);

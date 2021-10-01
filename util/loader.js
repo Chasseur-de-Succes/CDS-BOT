@@ -1,4 +1,5 @@
 const { readdirSync } = require('fs');
+const { createRappelJob } = require('./batch/batch');
 
 const loadCommands = (client, dir = "./commands/") => {
     readdirSync(dir).forEach(dirs => {
@@ -25,7 +26,23 @@ const loadEvents = (client, dir = "./events/") => {
     });
 };
 
+const loadBatch = async (client) => {
+    // TODO utiliser dir comme pour les autres load ?
+    // TODO garder job qquepart ?
+
+    // -- batch rappel
+    // recuperer tous les groupes à partir d'auj, TODO param ?
+    let today = new Date();
+    // let tomorrow = new Date();
+    // tomorrow.setDate(today.getDate() + 1);
+
+    const groupes = await client.findGroup({'dateEvent': {$gte: today.toISOString()}});
+    console.log(`\x1b[34m[INFO]\x1b[0m Encore ${groupes?.length} groupe(s) trouvé(s) après ${today} ..`);
+    createRappelJob(client, groupes);
+}
+
 module.exports = {
     loadCommands,
     loadEvents,
+    loadBatch,
 }

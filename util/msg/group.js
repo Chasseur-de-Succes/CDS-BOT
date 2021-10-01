@@ -9,7 +9,7 @@ const moment = require('moment');
  * @param {*} members Collection de Members
  * @returns String, chaque @ suivi d'un saut de ligne
  */
- function getMembersList(group, members) {
+function getMembersList(group, members) {
     const memberCaptain = members.get(group.captain.userId);
     let membersStr = ``;
     // récupère les @ des membres

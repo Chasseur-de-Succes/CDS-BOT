@@ -59,7 +59,7 @@ module.exports = client => {
 
     client.findGroup = async query => {
         const data = await Group.find(query)
-        // .populate('');
+                                .populate('captain members game');
         if (data) return data;
         else return;
     }

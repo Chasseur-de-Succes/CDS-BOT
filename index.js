@@ -1,6 +1,6 @@
 const { Client, Intents, Collection } = require('discord.js');
 const {TOKEN, PREFIX} = require('./config.js');
-const { loadCommands, loadEvents } = require('./util/loader');
+const { loadCommands, loadEvents, loadBatch } = require('./util/loader');
 const axios = require('axios');
 require('date.format');
 
@@ -37,4 +37,6 @@ client.mongoose.init();
 client.on('error', console.error);
 client.on('warn', console.warn);
 
-client.login(TOKEN);
+client.login(TOKEN).then(c => {
+    loadBatch(client);
+})
