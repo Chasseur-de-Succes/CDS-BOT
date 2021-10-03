@@ -1,5 +1,6 @@
 const { scheduleJob } = require("node-schedule");
 const { GUILD_ID } = require("../../config");
+const { createEmbedGroupInfo } = require("../msg/group");
 
 function createRappelJob(client, groupes) {
     console.log('hey', groupes);
@@ -15,11 +16,14 @@ function createRappelJob(client, groupes) {
             console.log(`\x1b[34m[INFO]\x1b[0m -- Création rappel le ${dateRappel} pour groupe ${groupe.name}..`);
             //scheduleJob("*/10 * * * * *", function() {
             scheduleJob(dateRappel, function(){
-                console.log(`\x1b[34m[INFO]\x1b[0m Rappel pour groupe ${groupe.name}!`);
+                console.log(`\x1b[34m[INFO]\x1b[0m Envoi MP rappel pour groupe ${groupe.name}!`);
                 // va MP tous les joueurs présents dans le groupe
                 for (const member of groupe.members) {
                     const crtUser = membersGuild.get(member.userId);
-                    if (crtUser) crtUser.send('ayooo');
+                    if (crtUser) {
+                        const rappelEmbed = createEmbedGroupInfo(membersGuild, groupe, false);
+                        crtUser.send({content: `**⏰ RAPPEL** dans 1 jour, tu participes à un évènement : `, embeds: [rappelEmbed]});
+                    }
                 }
             });
         }
