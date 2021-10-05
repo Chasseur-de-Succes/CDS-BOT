@@ -125,11 +125,11 @@ module.exports = client => {
 
     client.findGameByAppid = async appid => {
         return await client.findGames({ appid: appid });
-    }
+    };
 
     client.findGamesByName = async name => {
         return await client.findGames({ 'name': new RegExp(name, "i") });
-    }
+    };
 
     client.findGames = async query => {
         const data = await Game.find(query)
@@ -137,4 +137,11 @@ module.exports = client => {
         if (data) return data;
         else return;
     };
+
+    /* GUILD CONFIG */
+    client.findGuildById = async guildId => {
+        const data = await Guild.findOne({guildId: id});
+        if (data) return data;
+        else return;
+    }
 }
