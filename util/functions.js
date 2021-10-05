@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game } = require("../models/index");
+const { User, Group, Game, Job } = require("../models/index");
 
 module.exports = client => {
     /* User */
@@ -144,4 +144,29 @@ module.exports = client => {
         if (data) return data;
         else return;
     }
+
+    /* JOB */
+    client.createJob = async job => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, job);
+        const createJob = await new Job(merged);
+        const j = await createJob.save();
+        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau job..`)
+        return j;
+    };
+
+    client.findJob = async query => {
+        const data = await Job.find(query)
+        // .populate('');
+        if (data) return data;
+        else return;
+    };
+
+    client.updateJob = async (job, settings) => {
+        let data = job;
+        if (typeof data !== "object") data = {};
+        for (const key in settings) {
+            if(data[key] !== settings[key]) data[key] = settings[key];
+        }
+        return data.updateOne(settings);
+    };
 }

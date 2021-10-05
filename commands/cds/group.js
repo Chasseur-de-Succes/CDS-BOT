@@ -399,7 +399,6 @@ module.exports.run = async (client, message, args) => {
         });
 
         // créer rappel
-        // TODO garder job qquepart pour l'annuler si on modifie la date
         // -- job.cancel();
         createRappelJob(client, [grp]);
 
