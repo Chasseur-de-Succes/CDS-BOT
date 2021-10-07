@@ -154,6 +154,11 @@ module.exports = client => {
         return j;
     };
 
+    client.deleteJob = async job => {
+        // TODO return ? callback ?
+        Job.deleteOne({ _id: job._id }).then(j => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Delete job : ${job.name}`));
+    }
+
     client.findJob = async query => {
         const data = await Job.find(query)
         // .populate('');

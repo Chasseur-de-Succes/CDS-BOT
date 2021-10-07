@@ -6,7 +6,7 @@ const moment = require('moment');
 const { night, dark_red } = require("../../data/colors.json");
 const { check_mark, cross_mark } = require('../../data/emojis.json');
 const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup } = require('../../util/msg/group');
-const { createRappelJob } = require('../../util/batch/batch');
+const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
@@ -360,7 +360,7 @@ module.exports.run = async (client, message, args) => {
                 });
             }
         });
-        collector.on('end', collected => msgHub.clearReactions());
+        // collector.on('end', collected => msgChannel.clearReactions());
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${check_mark} Le groupe **${nameGrp}** a bien été créé !`)
@@ -440,6 +440,9 @@ module.exports.run = async (client, message, args) => {
             if (!grp.captain._id.equals(userDB._id))
                 throw `Tu n'es pas capitaine du groupe ${grpName} !`;
             
+            // créer/update rappel
+            deleteRappelJob(client, grp);
+
             // suppr groupe
             // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
             await client.deleteGroup(grp);

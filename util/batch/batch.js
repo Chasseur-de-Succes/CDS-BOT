@@ -3,7 +3,7 @@ const { GUILD_ID } = require("../../config");
 const { createEmbedGroupInfo } = require("../msg/group");
 
 module.exports = {
-    createRappelJob(client, groupes) {        
+    createRappelJob(client, groupes) {
         // créer scheduleJob, pour chaque groupe, qui s'exécute un jour avant la date de l'event (param ?)
         for (const groupe of groupes) {
             let dateEvent = groupe.dateEvent;
@@ -56,6 +56,24 @@ module.exports = {
                 })
             }
         }
+    },
+
+    deleteRappelJob(client, groupe) {
+        const jobName = `rappel_${groupe.name}`;
+
+        // cancel ancien job si existe
+        if (scheduledJobs[jobName])
+            scheduledJobs[jobName].cancel();
+
+        // si job existe -> update date, sinon créé
+        client.findJob({name: jobName})
+        .then(jobs => {
+            if (jobs.length > 0) {
+                let jobDB = jobs[0];
+                console.log(`\x1b[34m[INFO]\x1b[0m -- Suppression ${jobDB.name} pour groupe ${groupe.name}..`);
+                client.deleteJob(jobDB);
+            }
+        })
     },
 
     loadJobs(client) {
