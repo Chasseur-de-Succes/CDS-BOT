@@ -1,6 +1,5 @@
-const { scheduleJob } = require("node-schedule");
+const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { GUILD_ID } = require("../../config");
-const { Job } = require("../../models");
 const { createEmbedGroupInfo } = require("../msg/group");
 
 module.exports = {
@@ -11,26 +10,50 @@ module.exports = {
             if (dateEvent) {
                 let dateRappel = new Date(dateEvent.getTime());
                 dateRappel.setDate(dateEvent.getDate() - 1);
+                const jobName = `rappel_${groupe.name}`;
                 
                 let job = {
+                    name: jobName,
                     when: dateRappel,
                     what: 'envoiMpRappel',
                     args: [groupe._id],
                 };
-                
-                // save job
-                client.createJob(job)
-                .then(jobDB => {
-                    console.log(`\x1b[34m[INFO]\x1b[0m -- Création rappel le ${dateRappel} pour groupe ${groupe.name}..`);
-                    //scheduleJob("*/10 * * * * *", function() {
-                    scheduleJob(dateRappel, function(){
-                        module.exports.envoiMpRappel(client, groupe);
+
+                // si job existe -> update date, sinon créé
+                client.findJob({name: jobName})
+                .then(jobs => {
+                    if (jobs.length == 0) {
+                        // save job
+                        client.createJob(job)
+                        .then(jobDB => {
+                            console.log(`\x1b[34m[INFO]\x1b[0m -- Création rappel le ${dateRappel} pour groupe ${groupe.name}..`);
+                            //scheduleJob("*/10 * * * * *", function() {
+                            scheduleJob(jobName, dateRappel, function(){
+                                module.exports.envoiMpRappel(client, groupe);
+                                // update job
+                                jobDB.pending = false;
+                                client.updateJob(jobDB, {pending: false});
+                            });
+                        })
+                    } else {
+                        let jobDB = jobs[0];
+                        console.log(`\x1b[34m[INFO]\x1b[0m -- Update ${jobDB.name} pour groupe ${groupe.name}..`);
                         // update job
-                        jobDB.pending = false;
-                        client.updateJob(jobDB);
-                    });
+                        client.updateJob(jobDB, {when: dateRappel});
+
+                        // cancel ancien job si existe
+                        if (scheduledJobs[jobName])
+                            scheduledJobs[jobName].cancel();
+                        
+                        // pour le relancer
+                        scheduleJob(jobName, dateRappel, function(){
+                            module.exports.envoiMpRappel(client, groupe);
+                            // update job
+                            jobDB.pending = false;
+                            client.updateJob(jobDB, {pending: false});
+                        });
+                    }
                 })
-                
             }
         }
     },
@@ -42,7 +65,7 @@ module.exports = {
             console.log(`\x1b[34m[INFO]\x1b[0m -- Chargement ${jobs.length} job ..`);
             // lancement jobs
             for (const job of jobs) {
-                scheduleJob(job.when, function() {
+                scheduleJob(job.name, job.when, function() {
                     require('./batch')[job.what](client, job.args[0]);
                 });
             }

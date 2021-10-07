@@ -385,6 +385,15 @@ module.exports.run = async (client, message, args) => {
         let grp = await client.findGroupByName(nameGrp);
         if (!grp) 
             return sendError(`Le groupe ${nameGrp} n'existe pas !`);
+        
+        // test si user register
+        let userDB = await client.getUser(message.author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+
+        // si l'author n'est pas capitaine 
+        if (!grp.captain._id.equals(userDB._id))
+            return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
 
         // test si date bon format
         if (!moment(dateVoulue + ' ' + heureVoulue, "DD/MM/YY HH:mm", true).isValid())
@@ -398,8 +407,7 @@ module.exports.run = async (client, message, args) => {
             dateUpdated: Date.now()
         });
 
-        // créer rappel
-        // -- job.cancel();
+        // créer/update rappel
         createRappelJob(client, [grp]);
 
         // update msg
