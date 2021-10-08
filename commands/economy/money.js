@@ -49,7 +49,7 @@ module.exports.run = async (client, message, args) => {
 
             if(dbUser){ //Si il possède un compte
                 const userMoney = dbUser.money;
-                message.channel.send(`${member.tag} possède ${userMoney}${MONEY}`);
+                message.channel.send(`${member.tag} possède ${userMoney} ${MONEY}`);
             } else {
                 const embedError = new MessageEmbed()
                     .setColor(dark_red)
