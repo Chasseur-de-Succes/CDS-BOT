@@ -71,29 +71,27 @@ module.exports = client => {
 
     client.findGroupByUser = async userDB => {
         const data = await Group.find({
-            $or: [
-                { captain: userDB },
-                { members: userDB },
-            ]})
+            $and: [
+                { validated: false },
+                { $or: [
+                    { captain: userDB },
+                    { members: userDB },
+                ] }
+            ]
+        })
             .populate('captain members game');
         if (data) return data;
         else return;
     };
 
     client.findGroupByName = async name => {
-        const data = await Group.findOne({ name: name })
+        const data = await Group.findOne({
+            $and: [
+                { validated: false },
+                { name: name }
+            ]
+        })
             .populate('captain members game');
-        if (data) return data;
-        else return;
-    };
-
-    client.findGroupByGameName = async name => {
-        // "join"
-        const games = await client.findGamesByName(name);
-        // recup array _id
-        var ids = games.map(function(g) { return g._id; });
-        // cherche parmis les _id
-        const data = await Group.find({game: {$in: ids}});
         if (data) return data;
         else return;
     };
@@ -106,6 +104,7 @@ module.exports = client => {
         // cherche parmis les _id & groupe non rempli
         const data = await Group.find({
             $and: [
+                { validated: false },
                 { game: {$in: ids} },
                 { $expr: { $lt: [ "$size", "$nbMax" ]} },
             ]})

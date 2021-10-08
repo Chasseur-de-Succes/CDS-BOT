@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const { GUILD_ID, CHANNEL } = require("../../config");
-const { dark_red, green, yellow } = require("../../data/colors.json");
+const { dark_red, green, yellow, night } = require("../../data/colors.json");
 const moment = require('moment');
 
 /**
@@ -44,7 +44,8 @@ function getAllMembers(group, members) {
     const memberCaptain = members.get(group.captain.userId);
     const membersStr = getMembersList(group, members);
     let color = '';
-    if (group.size === 1) color = green;
+    if (group.validated) color = night;
+    else if (group.size === 1) color = green;
     else if (group.size === group.nbMax) color = dark_red;
     else color = yellow;
     const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
@@ -59,7 +60,7 @@ function getAllMembers(group, members) {
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
 
     const newMsgEmbed = new MessageEmbed()
-        .setTitle(`${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
+        .setTitle(`${group.validated ? '🏁' : ''}${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
         .setColor(color)
         .setThumbnail(gameUrlHeader)
         .addFields(
@@ -102,7 +103,8 @@ function getAllMembers(group, members) {
     const members = client.guilds.cache.get(GUILD_ID).members.cache;
     const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
     const editMsgEmbed = createEmbedGroupInfo(members, group, false);
-    editMsgEmbed.setFooter(`Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`);
+    
+    editMsgEmbed.setFooter(`${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`);
 
     await msg.edit({embeds: [editMsgEmbed]});
 }

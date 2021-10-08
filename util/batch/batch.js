@@ -94,13 +94,16 @@ module.exports = {
         const membersGuild = client.guilds.cache.get(GUILD_ID).members.cache;
         client.findGroupById(groupeId)
         .then(groupe => {
-            console.log(`\x1b[34m[INFO]\x1b[0m Envoi MP rappel pour groupe ${groupe.name}!`);
-            // va MP tous les joueurs présents dans le groupe
-            for (const member of groupe.members) {
-                const crtUser = membersGuild.get(member.userId);
-                if (crtUser) {
-                    const rappelEmbed = createEmbedGroupInfo(membersGuild, groupe, false);
-                    crtUser.send({content: `**⏰ RAPPEL** dans 1 jour, tu participes à un évènement : `, embeds: [rappelEmbed]});
+            // TODO a filtrer depuis findGroupe
+            if (!groupe.validated) {
+                console.log(`\x1b[34m[INFO]\x1b[0m Envoi MP rappel pour groupe ${groupe.name}!`);
+                // va MP tous les joueurs présents dans le groupe
+                for (const member of groupe.members) {
+                    const crtUser = membersGuild.get(member.userId);
+                    if (crtUser) {
+                        const rappelEmbed = createEmbedGroupInfo(membersGuild, groupe, false);
+                        crtUser.send({content: `**⏰ RAPPEL** dans 1 jour, tu participes à un évènement : `, embeds: [rappelEmbed]});
+                    }
                 }
             }
         });

@@ -21,7 +21,11 @@ const grpSchema = mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    dateUpdated : Date
+    dateUpdated : Date,
+    validated : {
+        type: Boolean,
+        default: false
+    },
 })
 
 module.exports = mongoose.model("Group", grpSchema);

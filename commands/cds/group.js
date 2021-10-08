@@ -38,13 +38,15 @@ module.exports.run = async (client, message, args) => {
                 📃 **${PREFIX}group list**
                 > *Affiche la liste des groupes rejoint*\n
                 ▶️ **${PREFIX}group join <name group>**
-                > *Rejoindre le groupe*\n
+                > *Rejoins le groupe*\n
                 ◀️ **${PREFIX}group leave <name group>**
-                > *Quitter le groupe*\n
+                > *Quitte le groupe*\n
                 🆕 **${PREFIX}group create <name group> <nb max> <game name>**
                 > *Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné, une description facultative sera demandée*\n
                 📆 **${PREFIX}group schedule <name group> <date> <heure>**
                 > *Planifie une date pour chasser sur le groupe donné, au format jj/mm/yy HH:MM*\n
+                🔚 **${PREFIX}group end <name group>**
+                > *Clos le groupe après avoir terminé la chasse pour le valider*\n
                 💣 **${PREFIX}group dissolve <name group>**
                 > *Dissout le groupe mentionné (capitaine du groupe uniquement)*\n
                 👑 **${PREFIX}group transfert <name group> <mention user>**
@@ -60,12 +62,11 @@ module.exports.run = async (client, message, args) => {
         const gameName = args.slice(1).join(' ');
         try {
             if (!gameName) 
-                throw `Il manque le nom du jeu !`;
+                return sendError(`Il manque le nom du jeu !`);
             let groupes = await client.findGroupNotFullByGameName(gameName);
-            //let groupes = await client.findGroupByGameName(gameName);
             
             if (groupes?.length === 0) 
-                throw `Aucun groupe n'est disponible pour ce jeu`;
+                return sendError(`Aucun groupe n'est disponible pour ce jeu`);
             else {
                 for (const group of groupes) {
                     sendEmbedGroupInfo(message, group)
@@ -83,120 +84,97 @@ module.exports.run = async (client, message, args) => {
     else if(args[0] == "list") { // LIST
         // afficher liste des groupes rejoints (+ préciser quand capitaine du groupe)
         let author = message.author;
-        try {
-            let userDB = await client.getUser(author);
-            if (!userDB)
-                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+        
+        let userDB = await client.getUser(author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
 
-            let groups = await client.findGroupByUser(userDB);
+        let groups = await client.findGroupByUser(userDB);
 
-            if (groups?.length > 0) {
-                author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
-                for (const group of groups) {
-                    sendEmbedGroupInfo(message, group, true);
+        if (groups?.length > 0) {
+            author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
+            for (const group of groups) {
+                sendEmbedGroupInfo(message, group, true);
 
-                    // petite reaction sur le message original pour dire que c'est ok
-                    message.react(check_mark);
-                }
-            } else 
-                throw `Tu n'appartiens à aucun groupe.`
-        } catch (err) {
-            const embedError = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
-            return author.send({ embeds: [embedError] });
-        }
+                // petite reaction sur le message original pour dire que c'est ok
+                message.react(check_mark);
+            }
+        } else 
+            return sendError(`Tu n'appartiens à aucun groupe.`);
     }
     else if(args[0] == "join") { // args : nom du group
         //REJOINT LE GROUPE SI IL RESTE ENCORE UNE PLACE
         const grpName = args[1];
 
-        try {
-            if (!grpName) 
-                throw `Il manque le nom du groupe !`;
-            
-            // recup le groupe
-            let grp = await client.findGroupByName(grpName);
-            if (!grp) 
-                throw `Le groupe ${grpName} n'existe pas !`;
-            
-            // test si grp complet
-            if (grp.size === grp.nbMax)
-                throw `Le groupe ${grpName} est déjà plein !`;
-            
-            // recup l'userDB pour test si le joueur est déjà dans le groupe
-            let userDB = await client.getUser(message.author);
-            if (!userDB)
-                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
-            
-            if (grp.members.some(u => u._id.equals(userDB._id))) {
-                if (grp.captain._id.equals(userDB._id))
-                    throw `Tu fais déjà parti du groupe ${grpName}, tu es le capitaine..`;
-                else
-                    throw `Tu fais déjà parti du groupe ${grpName} !`;
-            }
-
-            // update du groupe : size +1, ajout de l'user dans members
-            joinGroup(grp, userDB);
-
-            const newMsgEmbed = new MessageEmbed()
-                .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
-                /* .addFields(
-                    { name: 'Jeu', value: `${grp.game.name}`, inline: true },
-                    { name: 'Capitaine', value: `${captain}` },
-                );*/
-            message.channel.send({ embeds: [newMsgEmbed] });
-        } catch(err) {
-            const embedError = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
-            return message.channel.send({ embeds: [embedError] });
+        if (!grpName) 
+            return sendError(`Il manque le nom du groupe !`);
+        
+        // recup le groupe
+        let grp = await client.findGroupByName(grpName);
+        if (!grp) 
+            return sendError(`Le groupe ${grpName} n'existe pas !`);
+        
+        // test si grp complet
+        if (grp.size === grp.nbMax)
+            return sendError(`Le groupe ${grpName} est déjà plein !`);
+        
+        // recup l'userDB pour test si le joueur est déjà dans le groupe
+        let userDB = await client.getUser(message.author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+        
+        if (grp.members.some(u => u._id.equals(userDB._id))) {
+            if (grp.captain._id.equals(userDB._id))
+                return sendError(`Tu fais déjà parti du groupe ${grpName}, tu es le capitaine..`);
+            else
+                return sendError(`Tu fais déjà parti du groupe ${grpName} !`);
         }
+
+        // update du groupe : size +1, ajout de l'user dans members
+        joinGroup(grp, userDB);
+
+        const newMsgEmbed = new MessageEmbed()
+            .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
+            /* .addFields(
+                { name: 'Jeu', value: `${grp.game.name}`, inline: true },
+                { name: 'Capitaine', value: `${captain}` },
+            );*/
+        message.channel.send({ embeds: [newMsgEmbed] });
     }
     else if(args[0] == "leave") { // LEAVE
         //QUITTE LE GROUPE
         const grpName = args[1];
 
-        try {
-            if (!grpName) 
-                throw `Il manque le nom du groupe !`;
-            
-            // recup le groupe
-            let grp = await client.findGroupByName(grpName);
-            if (!grp) 
-                throw `Le groupe ${grpName} n'existe pas !`;
-            
-            // recup l'userDB pour test si le joueur est bien dans le groupe
-            let userDB = await client.getUser(message.author);
-            if (!userDB)
-                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+        if (!grpName) 
+            return sendError(`Il manque le nom du groupe !`);
+        
+        // recup le groupe
+        let grp = await client.findGroupByName(grpName);
+        if (!grp) 
+            return sendError(`Le groupe ${grpName} n'existe pas !`);
+        
+        // recup l'userDB pour test si le joueur est bien dans le groupe
+        let userDB = await client.getUser(message.author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
 
-            let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
-            if (!memberGrp)
-                throw `Tu ne fais pas parti du groupe ${grpName} !`;
-            
-            // et s'il est capitaine => sg dissolve ou sg transfert
-            if (grp.captain._id.equals(userDB._id))
-                throw `Tu es capitaine du groupe ${grpName}, utilise plutôt group transfert ou group dissolve.`;
+        let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
+        if (!memberGrp)
+            return sendError(`Tu ne fais pas parti du groupe ${grpName} !`);
+        
+        // et s'il est capitaine => sg dissolve ou sg transfert
+        if (grp.captain._id.equals(userDB._id))
+            return sendError(`Tu es capitaine du groupe ${grpName}, utilise plutôt group transfert ou group dissolve.`);
 
-            leaveGroup(grp, userDB);
-            
-            const newMsgEmbed = new MessageEmbed()
-                .setTitle(`${check_mark} Tu as bien quitté le groupe **${grpName}** !`);
-                /* .addFields(
-                    { name: 'Jeu', value: `${grp.game.name}`, inline: true },
-                    { name: 'Capitaine', value: `${captain}` },
-                );*/
-            message.channel.send({ embeds: [newMsgEmbed] });
-        } catch (err) {
-            const embedError = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
-            return message.channel.send({ embeds: [embedError] });
-        }
+        leaveGroup(grp, userDB);
+        
+        const newMsgEmbed = new MessageEmbed()
+            .setTitle(`${check_mark} Tu as bien quitté le groupe **${grpName}** !`);
+            /* .addFields(
+                { name: 'Jeu', value: `${grp.game.name}`, inline: true },
+                { name: 'Capitaine', value: `${captain}` },
+            );*/
+        message.channel.send({ embeds: [newMsgEmbed] });
     }
     else if(args[0] == "create") { // Créer groupe
         const captain = message.author;
@@ -422,100 +400,116 @@ module.exports.run = async (client, message, args) => {
         //DISSOUT LE GROUPE SI IL EST CAPITAINE
         const grpName = args[1];
 
-        try {
-            if (!grpName) 
-                throw `Il manque le nom du groupe !`;
-            
-            // test si user register
-            let userDB = await client.getUser(message.author);
-            if (!userDB)
-                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+        if (!grpName) 
+            return sendError(`Il manque le nom du groupe !`);
+        
+        // test si user register
+        let userDB = await client.getUser(message.author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
 
-            // recup le groupe
-            let grp = await client.findGroupByName(grpName);
-            if (!grp) 
-                throw `Le groupe ${grpName} n'existe pas !`;
+        // recup le groupe
+        let grp = await client.findGroupByName(grpName);
+        if (!grp) 
+            return sendError(`Le groupe ${grpName} n'existe pas !`);
 
-            // si l'author n'est pas capitaine 
-            if (!grp.captain._id.equals(userDB._id))
-                throw `Tu n'es pas capitaine du groupe ${grpName} !`;
-            
-            // créer/update rappel
-            deleteRappelJob(client, grp);
+        // si l'author n'est pas capitaine 
+        if (!grp.captain._id.equals(userDB._id))
+            return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
+        
+        // créer/update rappel
+        deleteRappelJob(client, grp);
 
-            // suppr groupe
-            // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
-            await client.deleteGroup(grp);
-            console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a dissout le groupe ${grpName}`);
+        // suppr groupe
+        // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
+        await client.deleteGroup(grp);
+        console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a dissout le groupe ${grpName}`);
 
-            let mentionsUsers = '';
-            for (const member of grp.members)
-                mentionsUsers += `<@${member.userId}> `
-            
-            mentionsUsers += ` : le groupe ${grpName} a été dissout.`
-            message.channel.send(mentionsUsers);
+        let mentionsUsers = '';
+        for (const member of grp.members)
+            mentionsUsers += `<@${member.userId}> `
+        
+        mentionsUsers += ` : le groupe ${grpName} a été dissout.`
+        message.channel.send(mentionsUsers);
 
-            // update msg
-            await deleteMsgHubGroup(client, grp);
-        } catch (err) {
-            const embedError = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
-            return message.channel.send({ embeds: [embedError] });
-        }
+        // update msg
+        await deleteMsgHubGroup(client, grp);
     }
     else if(args[0] == "transfert") { // Transfert le statut capitaine à un autre membre du groupe
         //TRANSFERT LE STATUT CAPITAINE A UN AUTRE MEMBRE DU GROUPE (VERIFIER S'IL EST CAPITAINE)
         const grpName = args[1];
         const newCaptain = message.mentions.members.first();
 
-        try {
-            // test args
-            if (!grpName || !newCaptain) 
-                throw `${PREFIX}group transfert **<name group>** **<mention membre>**\n*transfert le statut capitaine du groupe à la personne mentionné*`;
+        // test args
+        if (!grpName || !newCaptain) 
+            return sendError(`${PREFIX}group transfert **<name group>** **<mention membre>**\n*transfert le statut capitaine du groupe à la personne mentionné*`);
 
-            // test si user register
-            let userDB = await client.getUser(message.author);
-            if (!userDB)
-                throw `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
-            let newCaptainDB = await client.getUser(newCaptain);
-            if (!newCaptainDB)
-                throw `${newCaptain.user.tag} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``;
+        // test si user register
+        let userDB = await client.getUser(message.author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+        let newCaptainDB = await client.getUser(newCaptain);
+        if (!newCaptainDB)
+            return sendError(`${newCaptain.user.tag} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
 
-            // recup le groupe
-            let grp = await client.findGroupByName(grpName);
-            if (!grp) 
-                throw `Le groupe ${grpName} n'existe pas !`;
-            
-            // si l'author n'est pas capitaine 
-            if (!grp.captain._id.equals(userDB._id))
-                throw `Tu n'es pas capitaine du groupe ${grpName} !`;
-            
-            // si le nouveau capitaine fait parti du groupe
-            let memberGrp = grp.members.find(u => u._id.equals(newCaptainDB._id));
-            if (!memberGrp)
-                throw `${newCaptain.user.tag} ne fait pas parti du groupe ${grpName} !`;
+        // recup le groupe
+        let grp = await client.findGroupByName(grpName);
+        if (!grp) 
+            return sendError(`Le groupe ${grpName} n'existe pas !`);
+        
+        // si l'author n'est pas capitaine 
+        if (!grp.captain._id.equals(userDB._id))
+            return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
+        
+        // si le nouveau capitaine fait parti du groupe
+        let memberGrp = grp.members.find(u => u._id.equals(newCaptainDB._id));
+        if (!memberGrp)
+            return sendError(`${newCaptain.user.tag} ne fait pas parti du groupe ${grpName} !`);
 
-            // update du groupe : captain
-            await client.updateGroup(grp, {
-                captain: newCaptainDB,
-                dateUpdated: Date.now()
-            })
+        // update du groupe : captain
+        await client.updateGroup(grp, {
+            captain: newCaptainDB,
+            dateUpdated: Date.now()
+        })
 
-            // update msg
-            await editMsgHubGroup(client, grp);
-            console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
-            const newMsgEmbed = new MessageEmbed()
-                .setTitle(`${check_mark} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
-            message.channel.send({ embeds: [newMsgEmbed] });
-        } catch (err) {
-            const embedError = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
-            return message.channel.send({ embeds: [embedError] });
-        }
+        // update msg
+        await editMsgHubGroup(client, grp);
+        console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
+        const newMsgEmbed = new MessageEmbed()
+            .setTitle(`${check_mark} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
+        message.channel.send({ embeds: [newMsgEmbed] });
+    }
+    else if (args[0] == "end") {
+        const grpName = args[1];
+        if (!grpName) 
+            return sendError(`Il manque le nom du groupe !`);
+        
+        // test si user register
+        let userDB = await client.getUser(message.author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+
+        // recup le groupe
+        let grp = await client.findGroupByName(grpName);
+        if (!grp) 
+            return sendError(`Le groupe ${grpName} n'existe pas !`);
+
+        // si l'author n'est pas capitaine 
+        if (!grp.captain._id.equals(userDB._id))
+            return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
+        
+        await client.updateGroup(grp, { validated: true });
+
+        console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a validé le groupe ${grpName}`);
+        const newMsgEmbed = new MessageEmbed()
+            .setTitle(`${check_mark} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
+        message.channel.send({ embeds: [newMsgEmbed] });
+
+        // update msg
+        await editMsgHubGroup(client, grp);
+
+        const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
+        msgChannel.reactions.removeAll();
     }
     else {
         return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
