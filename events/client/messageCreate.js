@@ -21,8 +21,8 @@ module.exports = async (client, msg) => {
     if(whitelistList.length != 0) {
         const category = command.help.category;
         if (!(category == 'admin' || category == 'moderation')) {
-            console.log(await client.findGuildConfig({ whitelistChannel: msg.channelId }).length === 0); // TEMP
-            if(await client.findGuildConfig({ whitelistChannel: msg.channelId }).length === 0) {
+            const guildConf = await client.findGuildConfig({ whitelistChannel: msg.channelId });
+            if(guildConf.length === 0) {
                 return msg.react(cross_mark);
             }
         }
