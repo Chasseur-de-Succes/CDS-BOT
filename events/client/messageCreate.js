@@ -1,7 +1,7 @@
 const {PREFIX} = require('../../config.js');
 const { cross_mark } = require('../../data/emojis.json');
 
-module.exports = (client, msg) => {
+module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
     // if (msg.mentions.has(client.user.id)) {
     //     return msg.reply(`Tu as besoin d'aide ? Mon préfixe est \`${PREFIX}\``);
@@ -16,13 +16,17 @@ module.exports = (client, msg) => {
     if(!command) return;
 
     // Vérification du channel
-    const category = command.help.category;
-    // récup whitelist const whitelist;
-
-    if (!(category == 'admin' || category == 'moderation')) {
-        if(false) { //check whitelist + si wl est vide autorisé partout
-            return msg.react(cross_mark);
+    const dbGuild = await client.findGuildById(msg.guildId);
+    const whitelistList = dbGuild.whitelistChannel;
+    if(whitelistList.length != 0) {
+        const category = command.help.category;
+        if (!(category == 'admin' || category == 'moderation')) {
+            console.log(await client.findGuildConfig({ whitelistChannel: msg.channelId }).length === 0); // TEMP
+            if(await client.findGuildConfig({ whitelistChannel: msg.channelId }).length === 0) {
+                return msg.react(cross_mark);
+            }
         }
     }
+
     command.run(client, msg, args);
 }

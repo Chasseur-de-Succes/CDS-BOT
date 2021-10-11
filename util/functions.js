@@ -1,13 +1,22 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Job } = require("../models/index");
+const { User, Group, Game, Job, GuildConfig } = require("../models/index");
 
 module.exports = client => {
+    /* General */
+    client.update = async (data, settings) => {
+        if (typeof data !== "object") data = {};
+        for (const key in settings) {
+            if(data[key] !== settings[key]) data[key] = settings[key];
+        }
+        return data.updateOne(settings);
+    };
+    
     /* User */
     client.createUser = async user => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, user);
         const createUser = await new User(merged);
         const usr = await createUser.save();
-        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouvel utilisateur : ${usr.username}`)
+        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouvel utilisateur : ${usr.username}`);
         return usr;
     };
     
@@ -139,10 +148,24 @@ module.exports = client => {
 
     /* GUILD CONFIG */
     client.findGuildById = async guildId => {
-        const data = await Guild.findOne({guildId: id});
+        const data = await GuildConfig.findOne({guildId: guildId});
         if (data) return data;
         else return;
-    }
+    };
+
+    client.createGuild = async guild => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, guild);
+        const createGuild = await new GuildConfig(merged);
+        const gld = await createGuild.save();
+        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouvelle guild : ${gld.guildId}`);
+        return gld;
+    };
+
+    client.findGuildConfig = async query => {
+        const data = await GuildConfig.find(query)
+        if (data) return data;
+        else return;
+      };
 
     /* JOB */
     client.createJob = async job => {
