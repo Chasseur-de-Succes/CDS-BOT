@@ -6,22 +6,22 @@ const { dark_red, green } = require("../../data/colors.json");
 const { PREFIX, MONEY } = require('../../config');
 
 module.exports.run = async (client, message, args) => {
-    if(!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) embedError(`Vous n'avez pas la permission pour exécuter cette commande !`) ;
+    if(!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) error(`Vous n'avez pas la permission pour exécuter cette commande !`) ;
 
-    if(!message.mentions.users.first()) return embedError(`Merci de mentionner l'utilisateur. Commande attendue : \`${PREFIX}givemoney <user mention> <montant>\``);
+    if(!message.mentions.users.first()) return error(`Merci de mentionner l'utilisateur. Commande attendue : \`${PREFIX}givemoney <user mention> <montant>\``);
     const user = message.mentions.users.first();
     const member = message.guild.members.cache.get(user.id);
-    if(!member || !args[1]) return embedError(`Mauvais arguments. Commande attendue : \`${PREFIX}givemoney <user mention> <montant>\`\nRappel: le montant peut être positif comme négatif et uniquement un entier.`);
+    if(!member || !args[1]) return error(`Mauvais arguments. Commande attendue : \`${PREFIX}givemoney <user mention> <montant>\`\nRappel: le montant peut être positif comme négatif et uniquement un entier.`);
 
     let montant;
     if(Number(args[1])) {
         montant = Number(args[1]);
     } else {
-        return embedError(`L'argent rentré : "${args[1]}" n'est pas valide ! Le montant doit être un entier positif ou négatif.`)
+        return error(`L'argent rentré : "${args[1]}" n'est pas valide ! Le montant doit être un entier positif ou négatif.`)
     }
 
     const dbUser = await client.getUser(member);
-    if(!dbUser) return embedError(`Cette utilisateur n'est pas inscrit !`);
+    if(!dbUser) return error(`Cette utilisateur n'est pas inscrit !`);
     
     let money = dbUser.money;
     money += montant;
@@ -40,7 +40,7 @@ module.exports.run = async (client, message, args) => {
 
     // TODO : APPELER EVENT CUSTOM POUR ENVOYER LOG
 
-    function embedError(err) {
+    function error(err) {
         const embedError = new MessageEmbed()
             .setColor(dark_red)
             .setTitle(`${cross_mark} | ${err}`);
