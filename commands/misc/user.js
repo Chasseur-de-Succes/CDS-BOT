@@ -35,8 +35,10 @@ module.exports.run = (client, message, args) => {
             //{name: `> Joue à`, value: game, inline: true},
             {name: `> Humain ?`, value: bot[user.bot], inline: true},
             {name: '\u200B', value: '\u200B', inline: true},
-            {name: `> Compte créé le`, value: moment(user.createdAt).format('LLL'), inline: true},
-            {name: `> À rejoint le`, value: moment(member.joinedAt).format('llll'), inline: true},
+            //{name: `> Compte créé le`, value: moment(user.createdAt).format('LLL'), inline: true},
+            //{name: `> À rejoint le`, value: moment(member.joinedAt).format('llll'), inline: true},
+            {name: `> Compte créé le`, value: `<t:${Math.floor(user.createdTimestamp / 1000)}:f>`, inline: true},
+            {name: `> À rejoint le`, value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`, inline: true},
         )
         .setTimestamp();
 
