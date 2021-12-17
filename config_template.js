@@ -15,6 +15,7 @@ module.exports = {
         welcomeMessage: "welcome"
     },
     CHANNEL: {
+        WELCOME: 'id_channel', // channel de bienvenue, affiche les nouveaux arrivants
         LIST_GROUP: 'id_channel' // channel qui affichera tous les groupes
     }
 }

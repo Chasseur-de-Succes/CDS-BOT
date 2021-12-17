@@ -1,5 +1,6 @@
 const { CORNFLOWER_BLUE} = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
+const { CHANNEL } = require('../../config');
 
 module.exports = async (client, member) => {
     const embed = new MessageEmbed()
@@ -8,5 +9,5 @@ module.exports = async (client, member) => {
     .setDescription(`<@${member.id}>`)
     .addField("ID", member.id);
 
-    client.channels.cache.get('879395583390003281').send({embeds: [embed]});
+    client.channels.cache.get(CHANNEL.WELCOME).send({embeds: [embed]});
 }
