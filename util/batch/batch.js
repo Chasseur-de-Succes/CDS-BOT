@@ -1,61 +1,85 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { GUILD_ID } = require("../../config");
+const { update } = require("../../models/user");
 const { createEmbedGroupInfo } = require("../msg/group");
 
 module.exports = {
     createRappelJob(client, groupes) {
-        // créer scheduleJob, pour chaque groupe, qui s'exécute un jour avant la date de l'event (param ?)
+        // créer scheduleJob, pour chaque groupe, qui s'exécute un jour avant et 1h avant la date de l'event 
         for (const groupe of groupes) {
             let dateEvent = groupe.dateEvent;
             if (dateEvent) {
-                let dateRappel = new Date(dateEvent.getTime());
-                dateRappel.setDate(dateEvent.getDate() - 1);
-                const jobName = `rappel_${groupe.name}`;
+                // 1j avant
+                let dateRappel1j = new Date(dateEvent.getTime());
+                dateRappel1j.setDate(dateEvent.getDate() - 1);
                 
-                let job = {
+                let jobName = `rappel_1d_${groupe.name}`;
+                
+                let job1j = {
                     name: jobName,
-                    when: dateRappel,
+                    when: dateRappel1j,
                     what: 'envoiMpRappel',
-                    args: [groupe._id],
+                    args: [groupe._id, 'jour'],
+                };
+                
+                module.exports.updateOrCreateRappelJob(client, job1j, groupe);
+                
+                // TODO regrouper car similaire a au dessus ? 
+                // ou attendre que la methode soit fini et faire la suite
+                // 1h avant
+                let dateRappel1h = new Date(dateEvent.getTime());
+                dateRappel1h.setHours(dateEvent.getHours() - 1);
+
+                jobName = `rappel_1h_${groupe.name}`;
+                
+                let job1h = {
+                    name: jobName,
+                    when: dateRappel1h,
+                    what: 'envoiMpRappel',
+                    args: [groupe._id, 'heure'],
                 };
 
-                // si job existe -> update date, sinon créé
-                client.findJob({name: jobName})
-                .then(jobs => {
-                    if (jobs.length == 0) {
-                        // save job
-                        client.createJob(job)
-                        .then(jobDB => {
-                            console.log(`\x1b[34m[INFO]\x1b[0m -- Création rappel le ${dateRappel} pour groupe ${groupe.name}..`);
-                            //scheduleJob("*/10 * * * * *", function() {
-                            scheduleJob(jobName, dateRappel, function(){
-                                module.exports.envoiMpRappel(client, groupe);
-                                // update job
-                                jobDB.pending = false;
-                                client.updateJob(jobDB, {pending: false});
-                            });
-                        })
-                    } else {
-                        let jobDB = jobs[0];
-                        console.log(`\x1b[34m[INFO]\x1b[0m -- Update ${jobDB.name} pour groupe ${groupe.name}..`);
-                        // update job
-                        client.updateJob(jobDB, {when: dateRappel});
-
-                        // cancel ancien job si existe
-                        if (scheduledJobs[jobName])
-                            scheduledJobs[jobName].cancel();
-                        
-                        // pour le relancer
-                        scheduleJob(jobName, dateRappel, function(){
-                            module.exports.envoiMpRappel(client, groupe);
-                            // update job
-                            jobDB.pending = false;
-                            client.updateJob(jobDB, {pending: false});
-                        });
-                    }
-                })
+                module.exports.updateOrCreateRappelJob(client, job1h, groupe);
             }
         }
+    },
+
+    updateOrCreateRappelJob(client, job, groupe) {
+        // si job existe -> update date, sinon créé
+        client.findJob({name: job.name})
+        .then(jobs => {
+            if (jobs.length == 0) {
+                // save job
+                client.createJob(job)
+                .then(jobDB => {
+                    console.log(`\x1b[34m[INFO]\x1b[0m -- Création rappel le ${job.when} pour groupe ${groupe.name}..`);
+                    //scheduleJob("*/10 * * * * *", function() {
+                    scheduleJob(job.name, job.when, function(){
+                        module.exports.envoiMpRappel(client, groupe, job.args[1]);
+                        // update job
+                        jobDB.pending = false;
+                        client.updateJob(jobDB, {pending: false});
+                    });
+                })
+            } else {
+                let jobDB = jobs[0];
+                console.log(`\x1b[34m[INFO]\x1b[0m -- Update ${jobDB.name} pour groupe ${groupe.name}..`);
+                // update job
+                client.updateJob(jobDB, {when: job.when});
+
+                // cancel ancien job si existe
+                if (scheduledJobs[job.name])
+                    scheduledJobs[job.name].cancel();
+                
+                // pour le relancer
+                scheduleJob(job.name, job.when, function(){
+                    module.exports.envoiMpRappel(client, groupe, job.args[1]);
+                    // update job
+                    jobDB.pending = false;
+                    client.updateJob(jobDB, {pending: false});
+                });
+            }
+        })
     },
 
     deleteRappelJob(client, groupe) {
@@ -90,7 +114,7 @@ module.exports = {
         });
     },
 
-    envoiMpRappel: function(client, groupeId) {
+    envoiMpRappel: function(client, groupeId, typeHoraire) {
         const membersGuild = client.guilds.cache.get(GUILD_ID).members.cache;
         client.findGroupById(groupeId)
         .then(groupe => {
@@ -102,7 +126,7 @@ module.exports = {
                     const crtUser = membersGuild.get(member.userId);
                     if (crtUser) {
                         const rappelEmbed = createEmbedGroupInfo(membersGuild, groupe, false);
-                        crtUser.send({content: `**⏰ RAPPEL** dans 1 jour, tu participes à un évènement : `, embeds: [rappelEmbed]});
+                        crtUser.send({content: `**⏰ RAPPEL** dans 1 ${typeHoraire}, tu participes à un évènement : `, embeds: [rappelEmbed]});
                     }
                 }
             }

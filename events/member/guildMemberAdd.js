@@ -1,7 +1,6 @@
 const { CORNFLOWER_BLUE } = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
 const { CHANNEL } = require('../../config');
-const moment = require('moment');
 
 module.exports = async (client, member) => {
     const user = client.users.cache.get(member.id);
