@@ -1,6 +1,6 @@
 const { Client, Intents, Collection } = require('discord.js');
 const {TOKEN, PREFIX} = require('./config.js');
-const { loadCommands, loadEvents, loadBatch } = require('./util/loader');
+const { loadCommands, loadEvents, loadBatch, loadReactionGroup } = require('./util/loader');
 const axios = require('axios');
 require('date.format');
 
@@ -38,5 +38,12 @@ client.on('error', console.error);
 client.on('warn', console.warn);
 
 client.login(TOKEN).then(c => {
-    loadBatch(client);
+    //loadBatch(client);
+    //loadReactionGroup(client);
 })
+
+client.on('ready', () => {
+    console.log("LETS DO DIS");
+    loadBatch(client);
+    loadReactionGroup(client);
+});

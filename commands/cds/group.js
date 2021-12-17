@@ -5,7 +5,7 @@ const moment = require('moment');
 
 const { NIGHT, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
-const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup } = require('../../util/msg/group');
+const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 
 /**
@@ -307,37 +307,7 @@ module.exports.run = async (client, message, args) => {
         msgChannel.react(CHECK_MARK);
 
         // filtre reaction sur emoji
-        // TOOD a revoir quand capitaine fait reaction
-        const collector = await msgChannel.createReactionCollector({ dispose: true });
-        collector.on('collect', (r, u) => {
-            if (!u.bot && r.emoji.name === 'check') {
-                client.getUser(u)
-                .then(userDBJoined => {
-                    // si u est enregistré, non blacklisté, non capitaine, il peut join le group
-                    if (userDBJoined && u.id !== grpDB.captain.userId && !userDBJoined.blacklisted) {
-                        joinGroup(grpDB, userDBJoined);
-                    } else {
-                        // send mp explication
-                        let raison = 'Tu ne peux rejoindre le groupe car ';
-                        if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande ${PREFIX}register <steamid>`;
-                        else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
-                        u.send(`${CROSS_MARK} ${raison}`);
-                        r.users.remove(u.id);
-                    }
-                });
-            }
-        });
-        collector.on('remove', (r, u) => {
-            if (!u.bot && r.emoji.name === 'check') {
-                client.getUser(u)
-                .then(userDBLeaved => {
-                    // si u est capitaine, on remet? la reaction
-                    if (u.id !== grpDB.captain.userId && userDBLeaved) 
-                        leaveGroup(grpDB, userDBLeaved);
-                });
-            }
-        });
-        // collector.on('end', collected => msgChannel.clearReactions());
+        await createReactionCollectorGroup(client, msgChannel, grpDB);
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)

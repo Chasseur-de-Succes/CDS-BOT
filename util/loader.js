@@ -1,5 +1,7 @@
 const { readdirSync } = require('fs');
+const { CHANNEL } = require('../config');
 const { loadJobs } = require('./batch/batch');
+const { createReactionCollectorGroup } = require('./msg/group');
 
 const loadCommands = (client, dir = "./commands/") => {
     readdirSync(dir).forEach(dirs => {
@@ -31,8 +33,33 @@ const loadBatch = async (client) => {
     loadJobs(client);
 }
 
+const loadReactionGroup = async (client) => {
+    // recupere TOUS les messages du channel de listage des groupes
+    //console.log('test', client.channels.cache.get(CHANNEL.LIST_GROUP));
+    client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch()
+        .then(msgs => {
+            msgs.forEach(msg => {
+                // filtre les msgs du BOT
+                if (msg.author.bot) {
+                    // recup le group associé au message (unique)
+                    client.findGroup({ idMsg: msg.id })
+                    .then(grps => {
+                        // filtre group encore en cours
+                        if (grps[0] && !grps[0].validated) {
+                            createReactionCollectorGroup(client, msg, grps[0]);
+                        }
+                    })
+                }
+            });
+        })
+        .catch(err => {
+            console.log(`\x1b[31m[ERROR] \x1b[0mErreur load listener reaction groupes ${err}`);
+        });
+}
+
 module.exports = {
     loadCommands,
     loadEvents,
     loadBatch,
+    loadReactionGroup,
 }
