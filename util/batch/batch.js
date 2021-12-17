@@ -1,4 +1,4 @@
-const { scheduleJob, scheduledJobs } = require("node-schedule");
+const { scheduleJob, scheduledJobs, RecurrenceRule } = require("node-schedule");
 const { GUILD_ID } = require("../../config");
 const { update } = require("../../models/user");
 const { createEmbedGroupInfo } = require("../msg/group");
@@ -22,7 +22,8 @@ module.exports = {
                     args: [groupe._id, 'jour'],
                 };
                 
-                module.exports.updateOrCreateRappelJob(client, job1j, groupe);
+                if (dateRappel1j > new Date())
+                    module.exports.updateOrCreateRappelJob(client, job1j, groupe);
                 
                 // TODO regrouper car similaire a au dessus ? 
                 // ou attendre que la methode soit fini et faire la suite
@@ -38,8 +39,9 @@ module.exports = {
                     what: 'envoiMpRappel',
                     args: [groupe._id, 'heure'],
                 };
-
-                module.exports.updateOrCreateRappelJob(client, job1h, groupe);
+                
+                if (dateRappel1h > new Date())
+                    module.exports.updateOrCreateRappelJob(client, job1h, groupe);
             }
         }
     },
@@ -111,6 +113,21 @@ module.exports = {
                     require('./batch')[job.what](client, job.args[0]);
                 });
             }
+        });
+
+        // clean ceux qui sont terminés ou qui ont dates dépassées, à minuit
+        scheduleJob({hour: 0, minute: 0}, function() {
+            client.findJob({ $or: [{pending: false}, {when: { $lte: new Date() }} ]})
+            .then(jobs => {
+                console.log(`\x1b[34m[INFO]\x1b[0m -- Suppression ${jobs.length} job ..`);
+                // lancement jobs
+                for (const job of jobs) {
+                    // cancel ancien job si existe
+                    if (scheduledJobs[job.name])
+                        scheduledJobs[job.name].cancel();
+                    client.deleteJob(job);
+                }
+            });
         });
     },
 

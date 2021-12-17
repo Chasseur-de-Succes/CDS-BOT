@@ -386,7 +386,7 @@ module.exports.run = async (client, message, args) => {
         if (!grp.captain._id.equals(userDB._id))
             return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
         
-        // créer/update rappel
+        // delete rappel
         deleteRappelJob(client, grp);
 
         // suppr groupe
@@ -476,6 +476,9 @@ module.exports.run = async (client, message, args) => {
 
         // update msg
         await editMsgHubGroup(client, grp);
+
+        // remove job
+        deleteRappelJob(client, grp);
 
         const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
         msgChannel.reactions.removeAll();

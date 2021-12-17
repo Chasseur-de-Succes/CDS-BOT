@@ -35,7 +35,7 @@ const loadBatch = async (client) => {
 
 const loadReactionGroup = async (client) => {
     // recupere TOUS les messages du channel de listage des groupes
-    //console.log('test', client.channels.cache.get(CHANNEL.LIST_GROUP));
+    // TODO filtrer ?
     client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch()
         .then(msgs => {
             msgs.forEach(msg => {
