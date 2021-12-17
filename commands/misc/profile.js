@@ -1,7 +1,7 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
 const { PREFIX, MONEY } = require("../../config");
-const { very_pale_blue, dark_red, crimson } = require('../../data/colors.json');
-const { cross_mark, steam } = require('../../data/emojis.json');
+const { VERY_PALE_BLUE, DARK_RED, CRIMSON } = require('../../data/colors.json');
+const { CROSS_MARK, STEAM } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
 const Canvas = require('canvas');
 const path = require('path');
@@ -43,7 +43,7 @@ module.exports.run = async (client, message, args) => {
 
     //console.log(dbUser);
     const msg = `> **Profil** de ${member.user.tag}`;
-    const colorEmbed = (dbUser.banned || dbUser.blacklisted) ? crimson : very_pale_blue; //si banni ou blacklisté -> couleur en rouge
+    const colorEmbed = (dbUser.banned || dbUser.blacklisted) ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
     const banned = dbUser.banned ? "[banni]" : "";
     const blacklisted = dbUser.blacklisted ? "[blacklisté]" : "";
     const embed = new MessageEmbed()
@@ -53,7 +53,7 @@ module.exports.run = async (client, message, args) => {
         .addFields(
             {name: `:flame: Niveau`, value: `${dbUser.level} (XP: ${dbUser.experience})`},
             {name: `:moneybag: Money`, value: `${dbUser.money} ${MONEY}`},
-            {name: `${steam} Compte Steam`, value: `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})\nSteamID64: ${dbUser.steamId}`, inline: true},
+            {name: `${STEAM} Compte Steam`, value: `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})\nSteamID64: ${dbUser.steamId}`, inline: true},
             {name: `Site tracking succès`, value: `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId}) | [Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`, inline: true},
         );
 
@@ -82,8 +82,8 @@ module.exports.run = async (client, message, args) => {
 
     function embedError(msgError) {
         const embedError = new MessageEmbed()
-            .setColor(dark_red)
-            .setDescription(`${cross_mark} • ${msgError}`);
+            .setColor(DARK_RED)
+            .setDescription(`${CROSS_MARK} • ${msgError}`);
         return embedError;
     }
 }

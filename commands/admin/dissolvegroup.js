@@ -1,8 +1,8 @@
 const { MessageEmbed, Permissions } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
-const { cross_mark } = require('../../data/emojis.json');
-const { dark_red} = require("../../data/colors.json");
+const { CROSS_MARK } = require('../../data/emojis.json');
+const { DARK_RED} = require("../../data/colors.json");
 const { deleteMsgHubGroup } = require('../../util/msg/group');
 
 module.exports.run = async (client, message, args) => {
@@ -39,8 +39,8 @@ module.exports.run = async (client, message, args) => {
         await deleteMsgHubGroup(client, grp);
     } catch (err) {
         const embedError = new MessageEmbed()
-            .setColor(dark_red)
-            .setTitle(`${cross_mark} ${err}`);
+            .setColor(DARK_RED)
+            .setTitle(`${CROSS_MARK} ${err}`);
         console.log(`\x1b[31m[ERROR] \x1b[0mErreur dissolvegroup ${args[0]} : ${err}`);
         return message.channel.send({ embeds: [embedError] });
     }

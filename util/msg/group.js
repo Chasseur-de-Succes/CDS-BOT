@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const { GUILD_ID, CHANNEL } = require("../../config");
-const { dark_red, green, yellow, night } = require("../../data/colors.json");
+const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const moment = require('moment');
 
 /**
@@ -44,10 +44,10 @@ function getAllMembers(group, members) {
     const memberCaptain = members.get(group.captain.userId);
     const membersStr = getMembersList(group, members);
     let color = '';
-    if (group.validated) color = night;
-    else if (group.size === 1) color = green;
-    else if (group.size === group.nbMax) color = dark_red;
-    else color = yellow;
+    if (group.validated) color = NIGHT;
+    else if (group.size === 1) color = GREEN;
+    else if (group.size === group.nbMax) color = DARK_RED;
+    else color = YELLOW;
     const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
 
     const gameAppid = group.game.appid;

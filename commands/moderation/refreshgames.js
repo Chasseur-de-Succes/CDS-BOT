@@ -1,6 +1,6 @@
 const { MESSAGES, TAGS, delay, crtHour } = require('../../util/constants');
 const { Permissions } = require('discord.js');
-const { check_mark, cross_mark } = require('../../data/emojis.json');
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require("moment");
 
 module.exports.run = async (client, message, args) => {
@@ -78,13 +78,13 @@ module.exports.run = async (client, message, args) => {
         }
 
         console.log(`\x1b[34m[INFO]\x1b[0m .. Fin refresh games en [${startTime.toNow()}], ${cptGame} jeux ajoutés`);
-        message.react(check_mark);
+        message.react(CHECK_MARK);
         await msgProgress.edit(`${cptGame} jeux ajoutés (en ${startTime.toNow()}) ! 👏`);
         // TODO embed
         message.author.send(`Import des jeux terminés : ${cptGame} jeux ajoutés (${startTime.toNow()}) ! 👏`)
     }).catch(err => {
         msgProgress.delete();
-        message.react(cross_mark);
+        message.react(CROSS_MARK);
         console.log(`\x1b[31m[ERROR] \x1b[0mErreur refresh games : ${err}`);
         return;
     });

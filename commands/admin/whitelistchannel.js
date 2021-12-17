@@ -2,13 +2,13 @@ const { MessageEmbed, Permissions } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
 const { PREFIX } = require("../../config");
-const { check_mark, cross_mark } = require('../../data/emojis.json');
-const { dark_red, night, green } = require("../../data/colors.json");
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
+const { DARK_RED, NIGHT, GREEN } = require("../../data/colors.json");
 
 module.exports.run = async (client, message, args) => {
-    if(!message.member.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) return error(`${cross_mark} Vous n'avez pas la permission requise !`);
+    if(!message.member.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) return error(`${CROSS_MARK} Vous n'avez pas la permission requise !`);
 
-    if(!args) return error(`${cross_mark} Merci de préciser un argument : \`${PREFIX}whitelistchannel <add | remove | list> [<mention mention>]\``);
+    if(!args) return error(`${CROSS_MARK} Merci de préciser un argument : \`${PREFIX}whitelistchannel <add | remove | list> [<mention mention>]\``);
     
     const guildId = message.guildId;
     const dbGuild = await client.findGuildById(guildId);
@@ -25,29 +25,29 @@ module.exports.run = async (client, message, args) => {
             whitelistList = "Aucun channel dans la whitelist ! Les commandes sont donc acceptées dans tous les channels.";
         }
         embed = new MessageEmbed()
-            .setColor(night)
+            .setColor(NIGHT)
             .setTitle("Liste des channels whitelisté")
             .setDescription(whitelistList);
         
     } else if(args[0] == "add") {
-        if(!message.mentions.channels.first()) return error(`${cross_mark} Merci de mentionner un channel : \`${PREFIX}whitelistchannel add <mention channel>\``);
+        if(!message.mentions.channels.first()) return error(`${CROSS_MARK} Merci de mentionner un channel : \`${PREFIX}whitelistchannel add <mention channel>\``);
             let whitelist = message.mentions.channels.first();
             await client.update(dbGuild, { "$addToSet": {whitelistChannel: whitelist } });
             embed = new MessageEmbed()
-                .setColor(green)
+                .setColor(GREEN)
                 .setDescription(`Le channel : ${whitelist} a été ajouté à la whitelist par ${message.author}`);
 
     } else if(args[0] == "remove") {
-        if(!message.mentions.channels.first()) return error(`${cross_mark} Merci de mentionner un channel : \`${PREFIX}whitelistchannel remove <mention channel>\``);
+        if(!message.mentions.channels.first()) return error(`${CROSS_MARK} Merci de mentionner un channel : \`${PREFIX}whitelistchannel remove <mention channel>\``);
             let whitelist = message.mentions.channels.first();
             
             await client.update(dbGuild, { "$pull": {whitelistChannel: whitelist } });
             embed = new MessageEmbed()
-                .setColor(green)
+                .setColor(GREEN)
                 .setDescription(`Le channel : ${whitelist} a été supprimé à la whitelist par ${message.author}`);
 
     } else {
-        if(!args[1]) return error(`${cross_mark} Mauvaise utilisation de la commande ! Utilisation attendue : \`${PREFIX}whitelistchannel <add | remove | list> [<mention channel>]\``);
+        if(!args[1]) return error(`${CROSS_MARK} Mauvaise utilisation de la commande ! Utilisation attendue : \`${PREFIX}whitelistchannel <add | remove | list> [<mention channel>]\``);
     }
 
     console.log(`\x1b[31m[WARN] \x1b[0m ${message.author.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.WHITELISTCHANNEL.name}`);
@@ -55,7 +55,7 @@ module.exports.run = async (client, message, args) => {
 
     function error(err) {
         const embedError = new MessageEmbed()
-            .setColor(dark_red)
+            .setColor(DARK_RED)
             .setTitle(`${err}`);
     
         return message.channel.send({embeds: [embedError]});

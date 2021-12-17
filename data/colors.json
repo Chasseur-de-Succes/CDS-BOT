@@ -1,10 +1,10 @@
 {
-    "test": "#f7f0ff",
-    "dark_red": "#cc0000",
-    "crimson": "#DC143C",
-    "green": "#4CA64C",
-    "yellow": "#e9da16",
-    "very_pale_blue": "#dfdfff",
-    "cornflower_blue": "#6495ed",
-    "night": "#00061c"
+    "DARK_RED": "#cc0000",
+    "CRIMSON": "#DC143C",
+    "GREEN": "#4CA64C",
+    "YELLOW": "#e9da16",
+    "VERY_PALE_VIOLET": "#f7f0ff",
+    "VERY_PALE_BLUE": "#dfdfff",
+    "CORNFLOWER_BLUE": "#6495ed",
+    "NIGHT": "#00061c"
 }

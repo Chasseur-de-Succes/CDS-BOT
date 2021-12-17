@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const colors = require('../../data/colors.json');
+const { VERY_PALE_VIOLET } = require('../../data/colors.json');
 
 const moment = require('moment');
 const { MESSAGES } = require('../../util/constants');
@@ -14,16 +14,16 @@ module.exports.run = (client, message, args) => {
         "true": "🤖 Bot"
     };
     const status = {
-        online: "<:online_status:879826752392814662> En ligne",
-        idle: "<:idle_status:879826914452324403> Absent",
-        dnd: "<:dnd_status:879826688480010241> Ne pas déranger",
-        offline: "<:offline_status:879826734181138514> Hors ligne"
+        online: "<:ONLINE_STATUS:879826752392814662> En ligne",
+        idle: "<:IDLE_STATUS:879826914452324403> Absent",
+        dnd: "<:DND_STATUS:879826688480010241> Ne pas déranger",
+        offline: "<:OFFLINE_STATUS:879826734181138514> Hors ligne"
     };
     //const game = user.presence.game ? user.presence.game : 'Rien'; // !!! Not functional
     const nickname = member.nickname != null ? member.nickname : "Aucun";
 
     const embed = new MessageEmbed()
-        .setColor(colors.test)
+        .setColor(VERY_PALE_VIOLET)
         .setAuthor(`Informations sur ${user.tag}`, user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'}))
         //.setDescription(`aucune idée de description :eyes:`)
         .setThumbnail(user.displayAvatarURL({dynamic : true, size: 4096, format: 'png'}))

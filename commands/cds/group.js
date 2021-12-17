@@ -3,8 +3,8 @@ const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX, CHANNEL } = require('../../config.js');
 const moment = require('moment');
 
-const { night, dark_red } = require("../../data/colors.json");
-const { check_mark, cross_mark } = require('../../data/emojis.json');
+const { NIGHT, DARK_RED } = require("../../data/colors.json");
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 
@@ -30,7 +30,7 @@ module.exports.run = async (client, message, args) => {
     }
     else if(args[0] == "help") { // HELP
         const embed = new MessageEmbed()
-            .setColor(night)
+            .setColor(NIGHT)
             .setDescription(`Permet de rechercher et de rejoindre (ou quitter) un groupe pour un jeu multijoueur`)
             .addField("Commandes", `🔎 **${PREFIX}group search <game>**
                 > *Cherche un groupe pour le jeu souhaité*\n
@@ -74,8 +74,8 @@ module.exports.run = async (client, message, args) => {
             
         } catch (err) {
             const embedError = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} ${err}`);
+                .setColor(DARK_RED)
+                .setTitle(`${CROSS_MARK} ${err}`);
             console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
             return message.channel.send({ embeds: [embedError] });
         }
@@ -96,7 +96,7 @@ module.exports.run = async (client, message, args) => {
                 sendEmbedGroupInfo(message, group, true);
 
                 // petite reaction sur le message original pour dire que c'est ok
-                message.react(check_mark);
+                message.react(CHECK_MARK);
             }
         } else 
             return sendError(`Tu n'appartiens à aucun groupe.`);
@@ -133,7 +133,7 @@ module.exports.run = async (client, message, args) => {
         joinGroup(grp, userDB);
 
         const newMsgEmbed = new MessageEmbed()
-            .setTitle(`${check_mark} Tu as bien rejoint le groupe **${grpName}** !`);
+            .setTitle(`${CHECK_MARK} Tu as bien rejoint le groupe **${grpName}** !`);
             /* .addFields(
                 { name: 'Jeu', value: `${grp.game.name}`, inline: true },
                 { name: 'Capitaine', value: `${captain}` },
@@ -168,7 +168,7 @@ module.exports.run = async (client, message, args) => {
         leaveGroup(grp, userDB);
         
         const newMsgEmbed = new MessageEmbed()
-            .setTitle(`${check_mark} Tu as bien quitté le groupe **${grpName}** !`);
+            .setTitle(`${CHECK_MARK} Tu as bien quitté le groupe **${grpName}** !`);
             /* .addFields(
                 { name: 'Jeu', value: `${grp.game.name}`, inline: true },
                 { name: 'Capitaine', value: `${captain}` },
@@ -253,7 +253,7 @@ module.exports.run = async (client, message, args) => {
             );
 
         let embed = new MessageEmbed()
-            .setColor(night)
+            .setColor(NIGHT)
             .setTitle(`J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`)
             .setDescription(`Lequel est celui que tu cherchais ?`);
 
@@ -275,7 +275,7 @@ module.exports.run = async (client, message, args) => {
 
         /** DESCRIPTION **/
         embed = new MessageEmbed()
-            .setColor(night)
+            .setColor(NIGHT)
             .setTitle(`👑 Ok, une petite description ?`)
             .setDescription(`J'attends une réponse, elle sera enregistrée en tant que description de l'event.
                             \n*(succès à chasser, spécificités, etc)*`);
@@ -304,7 +304,7 @@ module.exports.run = async (client, message, args) => {
         await sendMsgHubGroup(client, grpDB);
         
         const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
-        msgChannel.react(check_mark);
+        msgChannel.react(CHECK_MARK);
 
         // filtre reaction sur emoji
         // TOOD a revoir quand capitaine fait reaction
@@ -321,7 +321,7 @@ module.exports.run = async (client, message, args) => {
                         let raison = 'Tu ne peux rejoindre le groupe car ';
                         if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande ${PREFIX}register <steamid>`;
                         else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
-                        u.send(`${cross_mark} ${raison}`);
+                        u.send(`${CROSS_MARK} ${raison}`);
                         r.users.remove(u.id);
                     }
                 });
@@ -340,7 +340,7 @@ module.exports.run = async (client, message, args) => {
         // collector.on('end', collected => msgChannel.clearReactions());
 
         const newMsgEmbed = new MessageEmbed()
-            .setTitle(`${check_mark} Le groupe **${nameGrp}** a bien été créé !`)
+            .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
             .addFields(
                 { name: 'Jeu', value: `${game[0].name}`, inline: true },
                 { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
@@ -392,7 +392,7 @@ module.exports.run = async (client, message, args) => {
 
         console.log(`\x1b[34m[INFO]\x1b[0m .. date ${dateEvent} choisi`);
         const newMsgEmbed = new MessageEmbed()
-            .setTitle(`${check_mark} RdV le **${dateVoulue + ' ' + heureVoulue}** !`);
+            .setTitle(`${CHECK_MARK} RdV le **${dateVoulue + ' ' + heureVoulue}** !`);
         message.channel.send({ embeds: [newMsgEmbed] });
     }
     else if(args[0] == "dissolve" || args[0] == "disolve") { // Dissout groupe
@@ -475,7 +475,7 @@ module.exports.run = async (client, message, args) => {
         await editMsgHubGroup(client, grp);
         console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
         const newMsgEmbed = new MessageEmbed()
-            .setTitle(`${check_mark} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
+            .setTitle(`${CHECK_MARK} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
         message.channel.send({ embeds: [newMsgEmbed] });
     }
     else if (args[0] == "end") {
@@ -501,7 +501,7 @@ module.exports.run = async (client, message, args) => {
 
         console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a validé le groupe ${grpName}`);
         const newMsgEmbed = new MessageEmbed()
-            .setTitle(`${check_mark} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
+            .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
         message.channel.send({ embeds: [newMsgEmbed] });
 
         // update msg
@@ -547,8 +547,8 @@ module.exports.run = async (client, message, args) => {
 
     function sendError(msgError) {
         let embedError = new MessageEmbed()
-            .setColor(dark_red)
-            .setDescription(`${cross_mark} • ${msgError}`);
+            .setColor(DARK_RED)
+            .setDescription(`${CROSS_MARK} • ${msgError}`);
         console.log(`\x1b[31m[ERROR] \x1b[0mErreur group : ${msgError}`);
         return message.channel.send({ embeds: [embedError] });
     }

@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const { PREFIX } = require('../../config.js');
-const colors = require('../../data/colors.json');
+const { VERY_PALE_VIOLET } = require('../../data/colors.json');
 const superagent = require('superagent');
 const { MESSAGES } = require('../../util/constants.js');
 
@@ -43,7 +43,7 @@ module.exports.run = async (client, message, args) => {
             
     // MESSAGE
     const steamEmbed = new Discord.MessageEmbed()
-    .setColor(colors.white)
+    .setColor(VERY_PALE_VIOLET)
     .setTitle(data.name)
     .setURL(`https://store.steampowered.com/app/${data.steam_appid}`)
     .addField('Type', "appType")

@@ -1,11 +1,11 @@
 const { MESSAGES } = require("../../util/constants");
-const { stream, amongus_running } = require("../../data/emojis.json");
+const { STREAMING, AMONGUS_RUNNING } = require("../../data/emojis.json");
 
 module.exports.run = (client, message, args) => {
     let customMsg = [
-        `_Ma latance est suffisament faible pour jouer à Among Us_ ${amongus_running}`,
+        `_Ma latance est suffisament faible pour jouer à Among Us_ ${AMONGUS_RUNNING}`,
         `_Ma latance est suffisament faible pour jouer à TF2_ `,
-        `_Je n'ai pas de lag, je peux regarder mon stream_ ${stream}`
+        `_Je n'ai pas de lag, je peux regarder mon stream_ ${STREAMING}`
     ];
     let customMsgNumber = Math.floor(Math.random() * customMsg.length);
 

@@ -1,6 +1,6 @@
 const { MESSAGES } = require("../../util/constants");
 const { DEV, PREFIX } = require('../../config');
-const { cross_mark } = require('../../data/emojis.json');
+const { CROSS_MARK } = require('../../data/emojis.json');
 const { codeBlock } = require('@discordjs/builders');
 
 module.exports.run = async (client, message, args) => {
@@ -30,11 +30,11 @@ module.exports.run = async (client, message, args) => {
             const msgCode = codeBlock('js', cleanCode);
             message.channel.send({content: msgCode});
         } catch (error) {
-            message.channel.send(`${cross_mark} | Erreur : code non valide ! \n${error}`);
+            message.channel.send(`${CROSS_MARK} | Erreur : code non valide ! \n${error}`);
         }
         
     } else {
-        message.react(cross_mark);
+        message.react(CROSS_MARK);
     }
     
 

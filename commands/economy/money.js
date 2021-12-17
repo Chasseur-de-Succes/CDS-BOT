@@ -1,8 +1,8 @@
 const { MessageEmbed } = require("discord.js");
 const { MESSAGES } = require("../../util/constants");
 const { PREFIX, MONEY } = require("../../config");
-const { dark_red } = require("../../data/colors.json");
-const {cross_mark} = require("../../data/emojis.json");
+const { DARK_RED } = require("../../data/colors.json");
+const {CROSS_MARK} = require("../../data/emojis.json");
 
 module.exports.run = async (client, message, args) => {
     let userMoney = 0;
@@ -16,8 +16,8 @@ module.exports.run = async (client, message, args) => {
             message.channel.send(`Vous avez ${userMoney}${MONEY}`);
         } else {
             const embedError = new MessageEmbed()
-            .setColor(dark_red)
-            .setTitle(`${cross_mark} Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+            .setColor(DARK_RED)
+            .setTitle(`${CROSS_MARK} Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
             
             return message.channel.send({embeds: [embedError]});
         }
@@ -32,9 +32,9 @@ module.exports.run = async (client, message, args) => {
             message.channel.send(`${member.user.tag} possède ${userMoney}${MONEY}`);
         } else {
             const embedError = new MessageEmbed()
-            .setColor(dark_red)
-            //.setTitle(`${cross_mark} ${member.user.tag} n'a pas de compte !`); // tag
-            .setDescription(`${cross_mark} ${member.user} n'a pas de compte !`); // "mention"
+            .setColor(DARK_RED)
+            //.setTitle(`${CROSS_MARK} ${member.user.tag} n'a pas de compte !`); // tag
+            .setDescription(`${CROSS_MARK} ${member.user} n'a pas de compte !`); // "mention"
 
             return message.channel.send({embeds: [embedError]});
         }
@@ -52,15 +52,15 @@ module.exports.run = async (client, message, args) => {
                 message.channel.send(`${member.tag} possède ${userMoney} ${MONEY}`);
             } else {
                 const embedError = new MessageEmbed()
-                    .setColor(dark_red)
-                    .setDescription(`${cross_mark} ${member.user} n'a pas de compte !`);
+                    .setColor(DARK_RED)
+                    .setDescription(`${CROSS_MARK} ${member.user} n'a pas de compte !`);
         
                 return message.channel.send({embeds: [embedError]});
             }
         } else {
             const embedError = new MessageEmbed()
-            .setColor(dark_red)
-            .setDescription(`${cross_mark} L'utilisateur : ${userId} n'a pas été trouvé ! (Options de recherche pris en charge : mentions ou id)`);
+            .setColor(DARK_RED)
+            .setDescription(`${CROSS_MARK} L'utilisateur : ${userId} n'a pas été trouvé ! (Options de recherche pris en charge : mentions ou id)`);
 
             return message.channel.send({embeds: [embedError]});
         }

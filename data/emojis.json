@@ -1,12 +1,12 @@
 {
-    "online_status": "<:online_status:879826752392814662>",
-    "offline_status": "<:offline_status:879826734181138514>",
-    "idle_status": "<:idle_status:879826914452324403>",
-    "dnd_status": "<:dnd_status:879826688480010241>",
-    "warning": "<:warning2:879843712073621515>",
-    "check_mark": "<:check:880558609392619570>",
-    "cross_mark": "<:uncheck:880558756604313641>",
-    "steam": "<:steam:887390058808762418>",
-    "stream": "<:streaming:921121826350964796>",
-    "amongus_running": "<a:amongus_running:921121657979011192>"
+    "ONLINE_STATUS": "<:online_status:879826752392814662>",
+    "OFFLINE_STATUS": "<:offline_status:879826734181138514>",
+    "IDLE_STATUS": "<:idle_status:879826914452324403>",
+    "DND_STATUS": "<:dnd_status:879826688480010241>",
+    "WARNING": "<:warning2:879843712073621515>",
+    "CHECK_MARK": "<:check:880558609392619570>",
+    "CROSS_MARK": "<:uncheck:880558756604313641>",
+    "STEAM": "<:steam:887390058808762418>",
+    "STREAMING": "<:streaming:921121826350964796>",
+    "AMONGUS_RUNNING": "<a:amongus_running:921121657979011192>"
 }

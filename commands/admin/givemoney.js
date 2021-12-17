@@ -1,8 +1,8 @@
 const { MessageEmbed, Permissions } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
-const { cross_mark } = require('../../data/emojis.json');
-const { dark_red, green } = require("../../data/colors.json");
+const { CROSS_MARK } = require('../../data/emojis.json');
+const { DARK_RED, GREEN } = require("../../data/colors.json");
 const { PREFIX, MONEY } = require('../../config');
 
 module.exports.run = async (client, message, args) => {
@@ -34,7 +34,7 @@ module.exports.run = async (client, message, args) => {
     await client.updateUser(dbUser, { money: money });
     console.log(`\x1b[31m[WARN] \x1b[0m ${message.author.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name}`);
     const embed = new MessageEmbed()
-        .setColor(green)
+        .setColor(GREEN)
         .setDescription(`${message.author} ${msgCustom} **${montant}** ${MONEY} à ${member.user}\nSon argent est désormais de : ${money} ${MONEY}`);
     message.channel.send({embeds: [embed]});
 
@@ -42,8 +42,8 @@ module.exports.run = async (client, message, args) => {
 
     function error(err) {
         const embedError = new MessageEmbed()
-            .setColor(dark_red)
-            .setTitle(`${cross_mark} | ${err}`);
+            .setColor(DARK_RED)
+            .setTitle(`${CROSS_MARK} | ${err}`);
     
         return message.channel.send({embeds: [embedError]});
     }

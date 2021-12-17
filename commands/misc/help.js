@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const colors = require('../../data/colors.json');
+const { DARK_RED, VERY_PALE_BLUE, CORNFLOWER_BLUE} = require('../../data/colors.json');
 const { PREFIX } = require('../../config.js');
 const { readdirSync } = require('fs');
 const { MESSAGES } = require('../../util/constants');
@@ -8,7 +8,7 @@ const categoryList = readdirSync('./commands');
 module.exports.run = (client, message, args) => {
     if(!args[0]) {
         let embed = new MessageEmbed()
-        .setColor(colors.cornflower_blue)
+        .setColor(CORNFLOWER_BLUE)
         .setAuthor(client.user.username, client.user.displayAvatarURL())
         .setTimestamp()
         .setDescription(`Voici la liste des commandes disponibles :\nPréfixe: \`${PREFIX}\`\n:books: _Faites \`${PREFIX}info\` pour en apprendre plus sur moi._`)
@@ -65,7 +65,7 @@ module.exports.run = (client, message, args) => {
             //if() check si moderator ou owner
             
             let embedCommand = new MessageEmbed()
-            .setColor(colors.very_pale_blue)
+            .setColor(VERY_PALE_BLUE)
             .setDescription(`**Commande: \`${command.help.name}\`**`)
             .addField('**Description**', `${command.help.description || "Pas de description"}`)
             .addField('**Utilisation**', usage)
@@ -75,7 +75,7 @@ module.exports.run = (client, message, args) => {
             return message.channel.send({embeds: [embedCommand]});
         } else {
             let errorEmbed = new MessageEmbed()
-            .setColor(colors.dark_red)
+            .setColor(DARK_RED)
             .setTitle(`:x: **Cette commande n'existe pas !**`);
 
             return message.channel.send({embeds: [errorEmbed]});

@@ -25,7 +25,7 @@ module.exports.run = async (client, message, args) => {
     const owner = await client.users.fetch(message.guild.ownerId);
 
     const embed = new Discord.MessageEmbed()
-    .setColor(colors.night)
+    .setColor(colors.NIGHT)
     .setTitle(message.guild.name)
     .setDescription(`ID: ` + message.guildId)
     .setThumbnail(message.guild.iconURL())

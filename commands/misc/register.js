@@ -1,7 +1,7 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { PREFIX } = require("../../config");
-const {green, dark_red} = require('../../data/colors.json');
-const { check_mark, cross_mark } = require('../../data/emojis.json');
+const {GREEN, DARK_RED} = require('../../data/colors.json');
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
 
 module.exports.run = async (client, message, args) => {
@@ -25,18 +25,18 @@ module.exports.run = async (client, message, args) => {
         new MessageButton()
             .setCustomId("confirm")
             .setLabel('Confirmer')
-            .setEmoji(check_mark)
+            .setEmoji(CHECK_MARK)
             .setStyle('SUCCESS'),
         new MessageButton()
             .setCustomId("cancel")
             .setLabel('Annuler')
-            .setEmoji(cross_mark)
+            .setEmoji(CROSS_MARK)
             .setStyle('DANGER')
     );
     rows.unshift(row);
 
     const embedVerif = new MessageEmbed()
-        .setColor(green)
+        .setColor(GREEN)
         .setTitle('Vérification')
         .setDescription(`Confirmez-vous être l'utilisateur : **${userSteam.body.response.players[0].personaname}**`)
         .setThumbnail(userSteam.body.response.players[0].avatarmedium); // .avatarfull -> pour plus grande image
@@ -62,14 +62,14 @@ module.exports.run = async (client, message, args) => {
             });
 
             const embed = new MessageEmbed()
-                .setColor(green)
-                .setTitle(`${check_mark} Vous êtes désormais inscrit`)
+                .setColor(GREEN)
+                .setTitle(`${CHECK_MARK} Vous êtes désormais inscrit`)
 
             message.channel.send({embeds: [embed]});
         } else {
             const embed = new MessageEmbed()
-                .setColor(dark_red)
-                .setTitle(`${cross_mark} Annulation de l'inscription...`)
+                .setColor(DARK_RED)
+                .setTitle(`${CROSS_MARK} Annulation de l'inscription...`)
 
             message.channel.send({embeds: [embed]});
         }
@@ -77,16 +77,16 @@ module.exports.run = async (client, message, args) => {
     .catch(error => {
         msgEmbed.delete();
         const embed = new MessageEmbed()
-            .setColor(dark_red)
-            .setTitle(`${cross_mark} Temps écoulé ! Annulation de l'inscription...`)
+            .setColor(DARK_RED)
+            .setTitle(`${CROSS_MARK} Temps écoulé ! Annulation de l'inscription...`)
 
         message.channel.send({embeds: [embed]});
     });
 
     function error(err) {
         const errorEmbed = new MessageEmbed()
-            .setColor(dark_red)
-            .setTitle(`${cross_mark} | ${err}`);
+            .setColor(DARK_RED)
+            .setTitle(`${CROSS_MARK} | ${err}`);
     
         return message.channel.send({embeds: [errorEmbed]});
     }

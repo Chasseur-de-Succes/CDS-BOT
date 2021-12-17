@@ -1,5 +1,5 @@
 const {PREFIX} = require('../../config.js');
-const { cross_mark } = require('../../data/emojis.json');
+const { CROSS_MARK } = require('../../data/emojis.json');
 
 module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
@@ -23,7 +23,7 @@ module.exports = async (client, msg) => {
         if (!(category == 'admin' || category == 'moderation')) {
             const guildConf = await client.findGuildConfig({ whitelistChannel: msg.channelId });
             if(guildConf.length === 0) {
-                return msg.react(cross_mark);
+                return msg.react(CROSS_MARK);
             }
         }
     }
