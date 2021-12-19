@@ -4,4 +4,5 @@ module.exports = {
     Game: require('./game'),
     GuildConfig: require('./guildConfig'),
     Job: require('./jobs/job'),
+    ShopItem: require('./shop/shopItem'),
 }

@@ -196,4 +196,6 @@ module.exports = client => {
         }
         return data.updateOne(settings);
     };
+
+    /* SHOP */
 }
