@@ -54,7 +54,7 @@ module.exports = {
                 // save job
                 client.createJob(job)
                 .then(jobDB => {
-                    console.log(`\x1b[34m[INFO]\x1b[0m -- Création rappel le ${job.when} pour groupe ${groupe.name}..`);
+                    logger.info("-- Création rappel le "+job.when+" pour groupe "+groupe.name+"..");
                     //scheduleJob("*/10 * * * * *", function() {
                     scheduleJob(job.name, job.when, function(){
                         module.exports.envoiMpRappel(client, groupe, job.args[1]);
@@ -65,7 +65,7 @@ module.exports = {
                 })
             } else {
                 let jobDB = jobs[0];
-                console.log(`\x1b[34m[INFO]\x1b[0m -- Update ${jobDB.name} pour groupe ${groupe.name}..`);
+                logger.info("-- Update "+jobDB.name+" pour groupe "+groupe.name+"..");
                 // update job
                 client.updateJob(jobDB, {when: job.when});
 
@@ -96,7 +96,7 @@ module.exports = {
         .then(jobs => {
             if (jobs.length > 0) {
                 let jobDB = jobs[0];
-                console.log(`\x1b[34m[INFO]\x1b[0m -- Suppression ${jobDB.name} pour groupe ${groupe.name}..`);
+                logger.info("-- Suppression "+jobDB.name+" pour groupe "+groupe.name+"..");
                 client.deleteJob(jobDB);
             }
         })
@@ -106,7 +106,7 @@ module.exports = {
         // récupére les job de la DB non terminé
         client.findJob({pending: true})
         .then(jobs => {
-            console.log(`\x1b[34m[INFO]\x1b[0m -- Chargement ${jobs.length} job ..`);
+            logger.info("-- Chargement de "+jobs.length+" jobs..");
             // lancement jobs
             for (const job of jobs) {
                 scheduleJob(job.name, job.when, function() {
@@ -119,7 +119,7 @@ module.exports = {
         scheduleJob({hour: 0, minute: 0}, function() {
             client.findJob({ $or: [{pending: false}, {when: { $lte: new Date() }} ]})
             .then(jobs => {
-                console.log(`\x1b[34m[INFO]\x1b[0m -- Suppression ${jobs.length} job ..`);
+                logger.info("-- Suppression de "+jobs.length+" jobs..");
                 // lancement jobs
                 for (const job of jobs) {
                     // cancel ancien job si existe
@@ -137,7 +137,7 @@ module.exports = {
         .then(groupe => {
             // TODO a filtrer depuis findGroupe
             if (!groupe.validated) {
-                console.log(`\x1b[34m[INFO]\x1b[0m Envoi MP rappel pour groupe ${groupe.name}!`);
+                logger.info("Envoi MP rappel pour groupe "+groupe.name+" !");
                 // va MP tous les joueurs présents dans le groupe
                 for (const member of groupe.members) {
                     const crtUser = membersGuild.get(member.userId);

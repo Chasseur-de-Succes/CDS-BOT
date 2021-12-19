@@ -2,6 +2,7 @@ const { Client, Intents, Collection } = require('discord.js');
 const {TOKEN, PREFIX} = require('./config.js');
 const { loadCommands, loadEvents, loadBatch, loadReactionGroup } = require('./util/loader');
 const axios = require('axios');
+global.logger = require("signale-logger");
 require('date.format');
 
 const myIntents = new Intents();
