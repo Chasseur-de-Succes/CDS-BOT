@@ -3,6 +3,7 @@ const { CHANNEL } = require('../config');
 const { loadJobs } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 
+// Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
     readdirSync(dir).forEach(dirs => {
         const commands = readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"));
@@ -15,6 +16,7 @@ const loadCommands = (client, dir = "./commands/") => {
     });
 };
 
+// Charge les événements
 const loadEvents = (client, dir = "./events/") => {
     readdirSync(dir).forEach(dirs => {
         const events = readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"));
@@ -28,11 +30,13 @@ const loadEvents = (client, dir = "./events/") => {
     });
 };
 
+// Charge les 'batch'
 const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
     loadJobs(client);
 }
 
+// Charge les réactions des messages des groupes
 const loadReactionGroup = async (client) => {
     // recupere TOUS les messages du channel de listage des groupes
     // TODO filtrer ?

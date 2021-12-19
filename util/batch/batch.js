@@ -1,11 +1,14 @@
-const { scheduleJob, scheduledJobs, RecurrenceRule } = require("node-schedule");
+const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { GUILD_ID } = require("../../config");
-const { update } = require("../../models/user");
 const { createEmbedGroupInfo } = require("../msg/group");
 
 module.exports = {
+    /**
+     * Créer rappel, pour chaque groupe, qui s'exécute un jour avant et 1h avant la date de l'event 
+     * @param {*} client le client
+     * @param {*} groupes les groupes à rappeler
+     */
     createRappelJob(client, groupes) {
-        // créer scheduleJob, pour chaque groupe, qui s'exécute un jour avant et 1h avant la date de l'event 
         for (const groupe of groupes) {
             let dateEvent = groupe.dateEvent;
             if (dateEvent) {
@@ -46,6 +49,12 @@ module.exports = {
         }
     },
 
+    /**
+     * Créer ou maj le {@link Job}
+     * @param {*} client le client
+     * @param {*} job le Job à créer ou maj
+     * @param {*} groupe le groupe lié au job
+     */
     updateOrCreateRappelJob(client, job, groupe) {
         // si job existe -> update date, sinon créé
         client.findJob({name: job.name})
@@ -84,6 +93,11 @@ module.exports = {
         })
     },
 
+    /**
+     * Supprimer un rappel et désactive le job lié à ce rappel
+     * @param {*} client 
+     * @param {*} groupe 
+     */
     deleteRappelJob(client, groupe) {
         const jobName = `rappel_${groupe.name}`;
 
@@ -102,6 +116,10 @@ module.exports = {
         })
     },
 
+    /**
+     * Charge les différents jobs (rappels, ...)
+     * @param {*} client 
+     */
     loadJobs(client) {
         // récupére les job de la DB non terminé
         client.findJob({pending: true})
@@ -131,6 +149,12 @@ module.exports = {
         });
     },
 
+    /**
+     * Envoie un MP de rappel
+     * @param {*} client le client
+     * @param {*} groupeId l'id du groupe 
+     * @param {*} typeHoraire le type d'horaire (jours/heures)
+     */
     envoiMpRappel: function(client, groupeId, typeHoraire) {
         const membersGuild = client.guilds.cache.get(GUILD_ID).members.cache;
         client.findGroupById(groupeId)

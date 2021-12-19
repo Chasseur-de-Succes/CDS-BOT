@@ -24,7 +24,7 @@ module.exports = client => {
     /* User */
     /**
      * Créer un nouvel {@link User} et le sauvegarde en base
-     * @param {User} user Utilisateur à sauvegarder
+     * @param {Object} user Utilisateur à sauvegarder
      * @returns 
      */
     client.createUser = async user => {
@@ -60,7 +60,7 @@ module.exports = client => {
     /* Group */
     /**
      * Créer un nouveau {@link Group} et le sauvegarde en base
-     * @param {Group} group Groupe à sauvegarder
+     * @param {Object} group Groupe à sauvegarder
      * @returns 
      */
     client.createGroup = async group => {
@@ -74,7 +74,7 @@ module.exports = client => {
 
     /**
      * Supprime un groupe
-     * @param {Group} group 
+     * @param {Object} group 
      */
     client.deleteGroup = async group => {
         // TODO return ? callback ?
@@ -173,7 +173,7 @@ module.exports = client => {
     /* GAMES */
     /**
      * Créer un nouveau {@link Game} et le sauvegarde en base
-     * @param {Game} game Groupe à sauvegarder
+     * @param {Object} game Groupe à sauvegarder
      * @returns 
      */
     client.createGame = async game => {
@@ -226,7 +226,7 @@ module.exports = client => {
 
     /**
      * Créer un nouveau {@link GuildConfig} et le sauvegarde en base
-     * @param {GuildConfig} guild Config serveur à sauvegarder
+     * @param {Object} guild Config serveur à sauvegarder
      * @returns 
      */
     client.createGuild = async guild => {
@@ -249,6 +249,11 @@ module.exports = client => {
       };
 
     /* JOB */
+    /**
+     * Créer un nouveau {@link Job} et le sauvegarde en base
+     * @param {Object} job Job à sauvegarder
+     * @returns 
+     */
     client.createJob = async job => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, job);
         const createJob = await new Job(merged);
@@ -257,11 +262,20 @@ module.exports = client => {
         return j;
     };
 
+    /**
+     * Supprime un groupe
+     * @param {Object} group 
+     */
     client.deleteJob = async job => {
         // TODO return ? callback ?
         Job.deleteOne({ _id: job._id }).then(j => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Delete job : ${job.name}`));
     }
 
+    /**
+     * Cherche et retourne un tableau de {@link Job} en fonction d'une requête Mongodb
+     * @param {Object} query Requête
+     * @returns undefined si non trouvé, tableau {@link Job} sinon
+     */
     client.findJob = async query => {
         const data = await Job.find(query)
         // .populate('');

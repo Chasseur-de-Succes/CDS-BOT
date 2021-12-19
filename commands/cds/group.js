@@ -7,9 +7,14 @@ const { NIGHT, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
+const { listenerCount } = require('npmlog');
+const { create } = require('../../models/user');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
+ * @param {*} message Contenu du message
+ * @param {*} group Groupe
+ * @param {*} toDM 'true' si a envoyé par DM, false dans le channel
  */
 function sendEmbedGroupInfo(message, group, toDM = false) {
     const members = message.guild.members.cache;
@@ -29,36 +34,90 @@ module.exports.run = async (client, message, args) => {
         return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
     }
     else if(args[0] == "help") { // HELP
+        help();
+    }
+    else if(args[0] == "search") { // CHERCHER UN GROUPE SUR UN NOM DE JEU DONNE
+        search(args.slice(1).join(' '))
+    }
+    else if(args[0] == "list") { // LIST
+        list(message.author);
+    }
+    else if(args[0] == "join") { // REJOINT LE GROUPE SI IL RESTE ENCORE UNE PLACE
+        join(args[1]);
+    }
+    else if(args[0] == "leave") { // QUITTE LE GROUPE
+        leave(args[1])
+    }
+    else if(args[0] == "create") { // Créer groupe
+        const captain = message.author;
+        const nameGrp = args[1];
+        const nbMaxMember = !!parseInt(args[2]) ? parseInt(args[2]) : null;
+        // recup le reste des arguments : nom du jeu
+        const gameName = args.slice(3).join(' ');
+        create(captain, nameGrp, nbMaxMember, gameName);
+    }
+    else if(args[0] == "schedule" || args[0] == "planifie") { // PREVOIT DATE
+        const nameGrp = args[1];
+        const dateVoulue = args[2];
+        const heureVoulue = args[3];
+        schedule(nameGrp, dateVoulue, heureVoulue);
+    }
+    else if(args[0] == "dissolve" || args[0] == "disolve") { // DISSOUT LE GROUPE SI IL EST CAPITAINE
+        const grpName = args[1];
+        dissolve(grpName);
+    }
+    else if(args[0] == "transfert") { // TRANSFERT LE STATUT CAPITAINE A UN AUTRE MEMBRE DU GROUPE (VERIFIER S'IL EST CAPITAINE)
+        const grpName = args[1];
+        const newCaptain = message.mentions.members.first();
+        transfert(grpName, newCaptain)
+    }
+    else if (args[0] == "end") {
+        const grpName = args[1];
+        end(grpName)
+    }
+    else {
+        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
+    }
+
+    /**
+     * Affiche la liste des arguments existants pour la commange group
+     * @returns 
+     */
+    function help() {
         const embed = new MessageEmbed()
             .setColor(NIGHT)
             .setDescription(`Permet de rechercher et de rejoindre (ou quitter) un groupe pour un jeu multijoueur`)
             .addField("Commandes", `🔎 **${PREFIX}group search <game>**
-                > *Cherche un groupe pour le jeu souhaité*\n
+                > *Cherche un groupe pour le jeu souhaité*
                 📃 **${PREFIX}group list**
-                > *Affiche la liste des groupes rejoint*\n
+                > *Affiche la liste des groupes rejoint*
                 ▶️ **${PREFIX}group join <group>**
-                > *Rejoins le groupe*\n
+                > *Rejoins le groupe*
                 ◀️ **${PREFIX}group leave <group>**
-                > *Quitte le groupe*\n
+                > *Quitte le groupe*
                 🆕 **${PREFIX}group create <group> <nb max> <game>**
-                > *Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*\n
+                > *Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*
                 📆 **${PREFIX}group schedule <group> <date> <heure>**
-                > *Planifie une date pour chasser sur le groupe donné, au format jj/mm/yy HH:MM*\n
+                > *Planifie une date pour chasser sur le groupe donné, au format jj/mm/yy HH:MM*
                 🔚 **${PREFIX}group end <group>**
-                > *Clos le groupe pour le valider*\n
+                > *Clos le groupe pour le valider*
                 💣 **${PREFIX}group dissolve <group>**
-                > *Dissout le groupe mentionné (👑 only)*\n
+                > *Dissout le groupe mentionné (👑 only)*
                 👑 **${PREFIX}group transfert <group> <mention user>**
                 > *Transfert le statut capitaine du groupe à la personne mentionné*`)
             .addField('Règles du nom de groupe', `- *Seulement lettres [a ➔ z], chiffres [0 ➔ 9] ou caractères spéciaux : "-", "_", "&"*
                 - *Minimum 3 caractères et maximum 15 caractères*`);
-
+    
         return message.channel.send({embeds: [embed]});
     }
-    else if(args[0] == "search") {
-        // CHERCHER UN GROUPE SUR UN NOM DE JEU DONNE
+
+    /**
+     * Cherche les groupes par nom de jeu, et les affiches
+     * @param {*} gameName Nom du jeu (pas forcément mot pour mot)
+     * @returns 
+     */
+    async function search(gameName) {
         // recup le reste des arguments : nom du jeu
-        const gameName = args.slice(1).join(' ');
         try {
             if (!gameName) 
                 return sendError(`Il manque le nom du jeu !`);
@@ -68,6 +127,7 @@ module.exports.run = async (client, message, args) => {
                 return sendError(`Aucun groupe n'est disponible pour ce jeu`);
             else {
                 for (const group of groupes) {
+                    // TODO envoyer plutot le lien des messages ?
                     sendEmbedGroupInfo(message, group)
                 }
             }
@@ -80,10 +140,14 @@ module.exports.run = async (client, message, args) => {
             return message.channel.send({ embeds: [embedError] });
         }
     }
-    else if(args[0] == "list") { // LIST
+
+    /**
+     * Liste les groupes dont l'user fait partie et envoie en MP
+     * @param {*} author 
+     * @returns 
+     */
+    async function list(author) {
         // afficher liste des groupes rejoints (+ préciser quand capitaine du groupe)
-        let author = message.author;
-        
         let userDB = await client.getUser(author);
         if (!userDB)
             return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
@@ -101,10 +165,13 @@ module.exports.run = async (client, message, args) => {
         } else 
             return sendError(`Tu n'appartiens à aucun groupe.`);
     }
-    else if(args[0] == "join") { // args : nom du group
-        //REJOINT LE GROUPE SI IL RESTE ENCORE UNE PLACE
-        const grpName = args[1];
 
+    /**
+     * Rajoute l'auteur du message dans le groupe correspondant, si non complet
+     * @param {*} grpName Nom du groupe
+     * @returns 
+     */
+    async function join(grpName) {
         if (!grpName) 
             return sendError(`Il manque le nom du groupe !`);
         
@@ -140,10 +207,13 @@ module.exports.run = async (client, message, args) => {
             );*/
         message.channel.send({ embeds: [newMsgEmbed] });
     }
-    else if(args[0] == "leave") { // LEAVE
-        //QUITTE LE GROUPE
-        const grpName = args[1];
 
+    /**
+     * Enlève l'auteur du message du groupe correspondant
+     * @param {*} grpName Nom du groupe
+     * @returns 
+     */
+    async function leave(grpName) {
         if (!grpName) 
             return sendError(`Il manque le nom du groupe !`);
         
@@ -175,13 +245,16 @@ module.exports.run = async (client, message, args) => {
             );*/
         message.channel.send({ embeds: [newMsgEmbed] });
     }
-    else if(args[0] == "create") { // Créer groupe
-        const captain = message.author;
-        const nameGrp = args[1];
-        const nbMaxMember = !!parseInt(args[2]) ? parseInt(args[2]) : null;
-        // recup le reste des arguments : nom du jeu
-        const gameName = args.slice(3).join(' ');
-        
+
+    /**
+     * Créer un nouveau groupe
+     * @param {*} captain Capitaine du groupe
+     * @param {*} nameGrp Nom du groupe
+     * @param {*} nbMaxMember Nb max de membres
+     * @param {*} gameName Nom du jeu
+     * @returns 
+     */
+    async function create(captain, nameGrp, nbMaxMember, gameName) {
         if (!nameGrp || !nbMaxMember || !gameName) 
             return sendError(`${PREFIX}group create **<name group>** **<nb max>** **<game name>**\n*Créé un groupe de nb max joueurs (2 à 15) pour le jeu mentionné*`);
         
@@ -319,12 +392,16 @@ module.exports.run = async (client, message, args) => {
 
         message.channel.send({ embeds: [newMsgEmbed] });
     }
-    else if(args[0] == "schedule" || args[0] == "planifie") {
+
+    /**
+     * Planifie une date pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant
+     * @param {*} nameGrp Nom du groupe
+     * @param {*} dateVoulue Date voulue, au format DD/MM/YY
+     * @param {*} heureVoulue Heure voulue, au format HH:mm
+     * @returns 
+     */
+    async function schedule(nameGrp, dateVoulue, heureVoulue) {
         // prevoit une date pour un groupe donné, pour chasser les succes
-        const nameGrp = args[1];
-        const dateVoulue = args[2];
-        const heureVoulue = args[3];
-        
         if (!nameGrp || !dateVoulue || !heureVoulue) 
             return sendError(`${PREFIX}group schedule **<name group>** **<date>**\n*Planifie une date pour chasser sur le groupe donné, au format jj/mm/yy HH:MM*`);
         
@@ -365,10 +442,14 @@ module.exports.run = async (client, message, args) => {
             .setTitle(`${CHECK_MARK} RdV le **${dateVoulue + ' ' + heureVoulue}** !`);
         message.channel.send({ embeds: [newMsgEmbed] });
     }
-    else if(args[0] == "dissolve" || args[0] == "disolve") { // Dissout groupe
-        //DISSOUT LE GROUPE SI IL EST CAPITAINE
-        const grpName = args[1];
 
+    /**
+     * Dissoud un groupe, en prévenant tous les membres
+     * Seul le capitaine peut dissoudre son groupe
+     * @param {*} grpName Nom du groupe
+     * @returns 
+     */
+    async function dissolve(grpName) {
         if (!grpName) 
             return sendError(`Il manque le nom du groupe !`);
         
@@ -404,11 +485,15 @@ module.exports.run = async (client, message, args) => {
         // update msg
         await deleteMsgHubGroup(client, grp);
     }
-    else if(args[0] == "transfert") { // Transfert le statut capitaine à un autre membre du groupe
-        //TRANSFERT LE STATUT CAPITAINE A UN AUTRE MEMBRE DU GROUPE (VERIFIER S'IL EST CAPITAINE)
-        const grpName = args[1];
-        const newCaptain = message.mentions.members.first();
 
+    /**
+     * Transfert le role de capitaine de groupe à un autre membre de ce même groupe
+     * Seul le capitaine peut transférer le rôle
+     * @param {*} grpName Nom du groupe
+     * @param {*} newCaptain nouveau capitaine
+     * @returns 
+     */
+    async function transfert(grpName, newCaptain) {
         // test args
         if (!grpName || !newCaptain) 
             return sendError(`${PREFIX}group transfert **<name group>** **<mention membre>**\n*transfert le statut capitaine du groupe à la personne mentionné*`);
@@ -448,8 +533,14 @@ module.exports.run = async (client, message, args) => {
             .setTitle(`${CHECK_MARK} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
         message.channel.send({ embeds: [newMsgEmbed] });
     }
-    else if (args[0] == "end") {
-        const grpName = args[1];
+
+    /**
+     * Valide et termine un groupe
+     * Seul le capitaine peut terminer un groupe
+     * @param {*} grpName Nom du groupe
+     * @returns 
+     */
+    async function end(grpName) {
         if (!grpName) 
             return sendError(`Il manque le nom du groupe !`);
         
@@ -483,10 +574,13 @@ module.exports.run = async (client, message, args) => {
         const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
         msgChannel.reactions.removeAll();
     }
-    else {
-        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
-    }
 
+    /* Methodes utils */
+    /**
+     * Enlève un utilisateur d'un groupe
+     * @param {*} grp Le groupe
+     * @param {*} userDB L'utilisateur a enlever
+     */
     async function leaveGroup(grp, userDB) {
         // update du groupe : size -1, remove de l'user dans members
         let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
@@ -504,6 +598,11 @@ module.exports.run = async (client, message, args) => {
         console.log(`\x1b[34m[INFO]\x1b[0m ${userDB.username} vient de quitter groupe : ${grp.name}`);
     }
 
+    /**
+     * Ajouter un utilisateur dans un groupe
+     * @param {*} grp Le groupe
+     * @param {*} userDB L'utilisateur
+     */
     async function joinGroup(grp, userDB) {
         grp.members.push(userDB);
         grp.size++;
@@ -518,6 +617,11 @@ module.exports.run = async (client, message, args) => {
         console.log(`\x1b[34m[INFO]\x1b[0m ${userDB.username} vient de rejoindre groupe : ${grp.name}`);
     }
 
+    /**
+     * Envoie un message d'erreur
+     * @param {*} msgError le message
+     * @returns 
+     */
     function sendError(msgError) {
         let embedError = new MessageEmbed()
             .setColor(DARK_RED)

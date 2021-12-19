@@ -22,18 +22,6 @@ function getMembersList(group, members) {
     return membersStr ? membersStr : '*Personne 😔*';
 }
 
-function getAllMembers(group, members) {
-    const memberCaptain = members.get(group.captain.userId);
-    let membersStr = ``;
-    // récupère les @ des membres
-    for (const member of group.members) {
-        const crtMember = members.get(member.userId);
-        if (crtMember === memberCaptain) membersStr += `👑`;
-        membersStr += `${crtMember.user}\n`;
-    }
-    return membersStr ? membersStr : '*Personne 😔*';
-}
-
 /**
  * Créer un message embed contenant les infos d'un group
  * @param {*} members Collection de tous les membres
@@ -163,7 +151,6 @@ function getAllMembers(group, members) {
     // collector.on('end', collected => msgChannel.clearReactions());
 }
 
-exports.getAllMembers = getAllMembers
 exports.getMembersList = getMembersList
 exports.createEmbedGroupInfo = createEmbedGroupInfo
 exports.sendMsgHubGroup = sendMsgHubGroup
