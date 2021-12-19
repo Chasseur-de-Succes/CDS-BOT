@@ -30,7 +30,7 @@ module.exports.run = async (client, message, args) => {
             });
         }
 
-        await client.updateUser(user, { blacklisted: true });
+        await client.update(user, { blacklisted: true });
 
         // TODO le kick de tous les groupes ?
         // TODO et s'il est capitaine ?

@@ -39,7 +39,7 @@ module.exports.ban = async (client, message, member) => {
 
         // maj attribut 'banned'
         let user = await client.getUser(member.user);
-        await client.updateUser(user, {banned: true});
+        await client.update(user, {banned: true});
     })
     .catch(err => {
         console.log(`\x1b[31m[ERROR] \x1b[0mErreur ban : ` + err);

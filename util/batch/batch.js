@@ -60,14 +60,14 @@ module.exports = {
                         module.exports.envoiMpRappel(client, groupe, job.args[1]);
                         // update job
                         jobDB.pending = false;
-                        client.updateJob(jobDB, {pending: false});
+                        client.update(jobDB, {pending: false});
                     });
                 })
             } else {
                 let jobDB = jobs[0];
                 console.log(`\x1b[34m[INFO]\x1b[0m -- Update ${jobDB.name} pour groupe ${groupe.name}..`);
                 // update job
-                client.updateJob(jobDB, {when: job.when});
+                client.update(jobDB, {when: job.when});
 
                 // cancel ancien job si existe
                 if (scheduledJobs[job.name])
@@ -78,7 +78,7 @@ module.exports = {
                     module.exports.envoiMpRappel(client, groupe, job.args[1]);
                     // update job
                     jobDB.pending = false;
-                    client.updateJob(jobDB, {pending: false});
+                    client.update(jobDB, {pending: false});
                 });
             }
         })

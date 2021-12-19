@@ -349,7 +349,7 @@ module.exports.run = async (client, message, args) => {
         // parse string to Moment (date)
         let dateEvent = moment(dateVoulue + ' ' + heureVoulue, 'DD/MM/YY HH:mm');
 
-        await client.updateGroup(grp, {
+        await client.update(grp, {
             dateEvent: dateEvent,
             dateUpdated: Date.now()
         });
@@ -436,7 +436,7 @@ module.exports.run = async (client, message, args) => {
             return sendError(`${newCaptain.user.tag} ne fait pas parti du groupe ${grpName} !`);
 
         // update du groupe : captain
-        await client.updateGroup(grp, {
+        await client.update(grp, {
             captain: newCaptainDB,
             dateUpdated: Date.now()
         })
@@ -467,7 +467,7 @@ module.exports.run = async (client, message, args) => {
         if (!grp.captain._id.equals(userDB._id))
             return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
         
-        await client.updateGroup(grp, { validated: true });
+        await client.update(grp, { validated: true });
 
         console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a validé le groupe ${grpName}`);
         const newMsgEmbed = new MessageEmbed()
@@ -493,7 +493,7 @@ module.exports.run = async (client, message, args) => {
         var indexMember = grp.members.indexOf(memberGrp);
         grp.members.splice(indexMember, 1);
         grp.size--;
-        await client.updateGroup(grp, {
+        await client.update(grp, {
             members: grp.members,
             size: grp.size,
             dateUpdated: Date.now()
@@ -507,7 +507,7 @@ module.exports.run = async (client, message, args) => {
     async function joinGroup(grp, userDB) {
         grp.members.push(userDB);
         grp.size++;
-        await client.updateGroup(grp, {
+        await client.update(grp, {
             members: grp.members,
             size: grp.size,
             dateUpdated: Date.now()

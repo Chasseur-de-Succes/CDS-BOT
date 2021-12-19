@@ -91,7 +91,7 @@ function getAllMembers(group, members) {
 
     // recuperation id message pour pouvoir l'editer par la suite
     let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
-    await client.updateGroup(group, { idMsg: msg.id });
+    await client.update(group, { idMsg: msg.id });
 }
 
 

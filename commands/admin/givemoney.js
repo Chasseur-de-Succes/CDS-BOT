@@ -31,7 +31,7 @@ module.exports.run = async (client, message, args) => {
     }
     let msgCustom = montant > 0 ? `à donné` : `à retiré`;
 
-    await client.updateUser(dbUser, { money: money });
+    await client.update(dbUser, { money: money });
     console.log(`\x1b[31m[WARN] \x1b[0m ${message.author.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name}`);
     const embed = new MessageEmbed()
         .setColor(GREEN)
