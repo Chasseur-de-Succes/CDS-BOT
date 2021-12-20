@@ -17,7 +17,7 @@ module.exports.run = (client, message, args) => {
 
     cpuStat.usagePercent(function (err, percent, second){
         if(err) {
-            console.log(err);
+            logger.error(err);
         }
         let Tobi = client.users.cache.get("229312422043713537");
         let Kekwel = client.users.cache.get("283681024360054785");

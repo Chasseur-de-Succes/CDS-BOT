@@ -76,7 +76,7 @@ module.exports.run = async (client, message, args) => {
             const embedError = new MessageEmbed()
                 .setColor(DARK_RED)
                 .setTitle(`${CROSS_MARK} ${err}`);
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur group ${args[0]} : ${err}`);
+            logger.error("Erreur group "+args[0]+" : "+err);
             return message.channel.send({ embeds: [embedError] });
         }
     }
@@ -212,7 +212,7 @@ module.exports.run = async (client, message, args) => {
             return sendError(`Le nom du groupe existe déjà. Veuillez en choisir un autre.`);
 
         // création de la regex sur le nom du jeu
-        console.log(`\x1b[34m[INFO]\x1b[0m Recherche jeu Steam par nom : ${gameName}..`);
+        logger.info("Recherche jeu Steam par nom : "+gameName+"..");
         let regGame = new RegExp(gameName, "i");
 
         let msgLoading = await message.channel.send(`Je suis en train de chercher le jeu..`);
@@ -226,7 +226,7 @@ module.exports.run = async (client, message, args) => {
         });
         msgLoading.delete();
 
-        console.log(`\x1b[34m[INFO]\x1b[0m .. ${games.length} jeu(x) trouvé(s)`);
+        logger.info(".. "+games.length+" jeu(x) trouvé(s)");
         if (!games) return sendError('Erreur lors de la recherche du jeu');
         if (games.length === 0) return sendError(`Pas de résultat trouvé pour **${gameName}** !`);
 
@@ -268,7 +268,7 @@ module.exports.run = async (client, message, args) => {
         });
         
         const gameId = interaction.values[0];
-        console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
+        logger.info(".. Steam app "+gameId+" choisi");
         // on recupere le custom id "APPID_GAME"
         const game = await client.findGameByAppid(gameId);
         msgEmbed.delete();
@@ -360,7 +360,7 @@ module.exports.run = async (client, message, args) => {
         // update msg
         await editMsgHubGroup(client, grp);
 
-        console.log(`\x1b[34m[INFO]\x1b[0m .. date ${dateEvent} choisi`);
+        logger.info(".. date "+dateEvent+" choisi");
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} RdV le **${dateVoulue + ' ' + heureVoulue}** !`);
         message.channel.send({ embeds: [newMsgEmbed] });
@@ -392,7 +392,7 @@ module.exports.run = async (client, message, args) => {
         // suppr groupe
         // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
         await client.deleteGroup(grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a dissout le groupe ${grpName}`);
+        logger.info(message.author.tag+" a dissout le groupe "+grpName);
 
         let mentionsUsers = '';
         for (const member of grp.members)
@@ -443,7 +443,7 @@ module.exports.run = async (client, message, args) => {
 
         // update msg
         await editMsgHubGroup(client, grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe : ${grpName}`);
+        logger.info(message.author.tag+" vient de nommer "+newCaptain.user.tag+" capitaine du groupe "+grpName);
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
         message.channel.send({ embeds: [newMsgEmbed] });
@@ -469,7 +469,7 @@ module.exports.run = async (client, message, args) => {
         
         await client.updateGroup(grp, { validated: true });
 
-        console.log(`\x1b[34m[INFO]\x1b[0m ${message.author.tag} a validé le groupe ${grpName}`);
+        logger.info(message.author.tag+" a validé le groupe "+grpName);
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
         message.channel.send({ embeds: [newMsgEmbed] });
@@ -501,7 +501,7 @@ module.exports.run = async (client, message, args) => {
         
         // update msg
         await editMsgHubGroup(client, grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${userDB.username} vient de quitter groupe : ${grp.name}`);
+        logger.info(userDB.username+" vient de quitter groupe "+grp.name);
     }
 
     async function joinGroup(grp, userDB) {
@@ -515,14 +515,14 @@ module.exports.run = async (client, message, args) => {
 
         // update msg
         await editMsgHubGroup(client, grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${userDB.username} vient de rejoindre groupe : ${grp.name}`);
+        logger.info(userDB.username+" vient de rejoindre groupe "+grp.name);
     }
 
     function sendError(msgError) {
         let embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setDescription(`${CROSS_MARK} • ${msgError}`);
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur group : ${msgError}`);
+        logger.error("Erreur group : "+msgError);
         return message.channel.send({ embeds: [embedError] });
     }
 }

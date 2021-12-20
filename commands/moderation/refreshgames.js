@@ -9,7 +9,7 @@ module.exports.run = async (client, message, args) => {
         return message.reply("Tu n'as pas le droit de refresh !")
     
     moment.updateLocale('fr', {relativeTime : Object});
-    console.log(`\x1b[34m[INFO]\x1b[0m Début refresh games ..`);
+    logger.info("Début refresh games ..");
     let startTime = moment();
     let crtIdx = 1, cptGame = 0;
 
@@ -29,7 +29,7 @@ module.exports.run = async (client, message, args) => {
 
         for (const game of games) {
             if (crtIdx % 250 === 0) {
-                console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${crtIdx}/${games.length} ..`);
+                logger.info("[" + crtHour() + "] - " + (crtIdx/games.length) + " ..");
                 await msgProgress.edit(`[${crtIdx}/${games.length}] - Traitement des jeux ${".".repeat(((crtIdx/250) % 3) + 1)}`);
             }
 
@@ -37,7 +37,7 @@ module.exports.run = async (client, message, args) => {
                 let gameDB = await client.findGameByAppid(game.appid);
                 // si game existe déjà en base, on skip // TODO a enlever car ~50K game..
                 if (gameDB?.length > 0) {
-                    console.debug(`GAME ${game.appid} trouvé !`);
+                    logger.debug("GAME " + game.appid + " trouvé !");
                 } else {
                     // on recup les tags du jeu courant
                     try {
@@ -63,7 +63,7 @@ module.exports.run = async (client, message, args) => {
                         cptGame++;
                     } catch (err) {
                         if (err.status === 429) {
-                            console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${err}, on attend 5 min ..`);
+                            logger.info("\x1b[34m[INFO]\x1b[0m ["+crtHour()+"] - "+err+", on attend 5 min ..");
                             await msgProgress.edit(`${crtIdx}/${games.length} - Trop de requêtes vers l'API Steam ! On attends 5 min ⏳`);
                             // att 5 min
                             await delay(300000);
@@ -71,13 +71,13 @@ module.exports.run = async (client, message, args) => {
                     }
                 }
             } else {
-                console.warn(`\x1b[33m[WARN] \x1b[0mJeu ${game} n'a pas d'appid ou n'existe pas.`);
+                logger.warn("Jeu "+game+" n'a pas d'appid ou n'existe pas.");
             }
             
             crtIdx++;
         }
 
-        console.log(`\x1b[34m[INFO]\x1b[0m .. Fin refresh games en [${startTime.toNow()}], ${cptGame} jeux ajoutés`);
+        logger.info(".. Fin refresh games en ["+startTime.toNow()+"], "+cptGame+" jeux ajoutés");
         message.react(CHECK_MARK);
         await msgProgress.edit(`${cptGame} jeux ajoutés (en ${startTime.toNow()}) ! 👏`);
         // TODO embed
@@ -85,7 +85,7 @@ module.exports.run = async (client, message, args) => {
     }).catch(err => {
         msgProgress.delete();
         message.react(CROSS_MARK);
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur refresh games : ${err}`);
+        logger.error("Erreur refresh games : " + err);
         return;
     });
 }

@@ -42,13 +42,13 @@ module.exports.run = async (client, message, args) => {
 
         // update msg
         await editMsgHubGroup(client, grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${memberToLeave.user.tag ?? memberToLeaveId} a été kick du groupe : ${grpName}`);
+        logger.info((memberToLeave.user.tag ?? memberToLeaveId)+" a été kick du groupe : "+grpName);
         message.react(CHECK_MARK)
     } catch (err) {
         const embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setTitle(`${CROSS_MARK} ${err}`);
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur leavegroup ${args[0]} : ${err}`);
+        logger.error("Erreur leavegroupe "+ args[0]+ " : "+ err);
         return message.channel.send({ embeds: [embedError] });
     }
 }

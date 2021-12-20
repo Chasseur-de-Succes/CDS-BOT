@@ -50,7 +50,7 @@ module.exports.run = async (client, message, args) => {
         if(!args[1]) return error(`${CROSS_MARK} Mauvaise utilisation de la commande ! Utilisation attendue : \`${PREFIX}whitelistchannel <add | remove | list> [<mention channel>]\``);
     }
 
-    console.log(`\x1b[31m[WARN] \x1b[0m ${message.author.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.WHITELISTCHANNEL.name}`);
+    logger.warn(message.author.tag + "a effectué la commande admin : " + MESSAGES.COMMANDS.ADMIN.WHITELISTCHANNEL.name);
     message.channel.send({embeds: [embed]});
 
     function error(err) {

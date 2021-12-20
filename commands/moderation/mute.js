@@ -31,16 +31,16 @@ module.exports.mute = (message, member) => {
     member.roles.add(roleMuet)
     .then(m => {
         message.channel.send(`> 🔇 ${m.displayName} a été **mute** ! `);
-        console.log(`\x1b[34m[INFO] \x1b[0mMute ${member.displayName}`);
+        logger.info("Mute " + member.displayName);
     })
     .catch(err => {
         message.reply('> Erreur, impossible de mute ' + member.displayName + ' ! ');
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur mute : ` + err);
+        logger.error("Erreur mute : " + err);
     });
 
     // vocal    
     member.voice.setMute(true).catch(err => {
-        console.log(`\x1b[33m[WARN] \x1b[0mL'utilisateur ${member.displayName} n'est connecté à aucun channel vocal.`);
+        logger.warn("L'utilisateur " + member.displayName + " n'est connecté à aucun channel vocal.");
     });
 }
 

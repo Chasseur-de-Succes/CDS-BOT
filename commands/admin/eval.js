@@ -19,7 +19,7 @@ module.exports.run = async (client, message, args) => {
     }
 
     if (devId === message.author.id) {
-        console.log(`\x1b[31m[WARN] \x1b[0m ${message.author.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.EVAL.name}`)
+        logger.warn(message.author.tag+" a effectué la commande admin : "+MESSAGES.COMMANDS.ADMIN.EVAL.name)
         
         try {
             if(!args[0]) throw `Pas d'argument détecté ! Syntaxe correcte : \`${PREFIX}eval <code à exécuter>\``;
