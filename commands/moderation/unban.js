@@ -22,7 +22,7 @@ module.exports.run = (client, message, args) => {
 
                 // maj attribut 'banned'
                 let userBD = await client.getUser(user);
-                await client.updateUser(userBD, {banned: false})
+                await client.update(userBD, {banned: false})
             })
             .catch(err => {
                 logger.error("Erreur unban " + err);

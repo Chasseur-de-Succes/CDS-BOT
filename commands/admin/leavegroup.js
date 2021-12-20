@@ -34,7 +34,7 @@ module.exports.run = async (client, message, args) => {
         var indexMember = grp.members.indexOf(memberGrp);
         grp.members.splice(indexMember, 1);
         grp.size--;
-        await client.updateGroup(grp, {
+        await client.update(grp, {
             members: grp.members,
             size: grp.size,
             dateUpdated: Date.now()
