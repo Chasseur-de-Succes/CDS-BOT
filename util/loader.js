@@ -11,7 +11,7 @@ const loadCommands = (client, dir = "./commands/") => {
         for (const file of commands) {
             const getFileName = require(`../${dir}/${dirs}/${file}`);
             client.commands.set(getFileName.help.name, getFileName);
-            console.log(`\x1b[34m[INFO] \x1b[0mCommande chargée ${getFileName.help.name}`);
+            logger.info("Commande chargée " + getFileName.help.name);
         };
     });
 };
@@ -25,7 +25,7 @@ const loadEvents = (client, dir = "./events/") => {
             const evt = require(`../${dir}/${dirs}/${event}`);
             const evtName = event.split('.')[0];
             client.on(evtName, evt.bind(null, client));
-            console.log(`\x1b[34m[INFO] \x1b[0mÉvènement chargé ${evtName}`);
+            logger.info("Évènement chargé " + evtName);
         };
     });
 };
@@ -57,7 +57,7 @@ const loadReactionGroup = async (client) => {
             });
         })
         .catch(err => {
-            console.log(`\x1b[31m[ERROR] \x1b[0mErreur load listener reaction groupes ${err}`);
+            logger.error("Erreur load listener reaction groupes " + err);
         });
 }
 

@@ -25,7 +25,7 @@ module.exports.run = async (client, message, args) => {
         // suppr groupe
         // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
         await client.deleteGroup(grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ADMIN ${message.author.tag} a dissout le groupe ${grpName}`);
+        logger.info("ADMIN "+message.author.tag+" a dissout le groupe "+grpName);
 
         let mentionsUsers = '';
         for (const member of grp.members)
@@ -41,7 +41,7 @@ module.exports.run = async (client, message, args) => {
         const embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setTitle(`${CROSS_MARK} ${err}`);
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur dissolvegroup ${args[0]} : ${err}`);
+        logger.erro("Erreur dissolvegroup "+args[0]+" : "+err);
         return message.channel.send({ embeds: [embedError] });
     }
 }

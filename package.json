@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "TobiBiotex",
-  "license": "MIT",
+  "license": "GPL3",
   "dependencies": {
     "axios": "^0.21.1",
     "canvas": "^2.8.0",
@@ -17,6 +17,8 @@
     "moment": "^2.29.1",
     "mongoose": "^5.13.4",
     "node-schedule": "^2.0.0",
-    "superagent": "^6.1.0"
+    "signale-logger": "^1.5.1",
+    "superagent": "^6.1.0",
+    "winston": "^3.3.3"
   }
 }

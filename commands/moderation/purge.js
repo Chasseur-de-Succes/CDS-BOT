@@ -16,8 +16,8 @@ module.exports.run = (client, message, args) => {
     message.channel.messages.fetch({ limit: nbMsgToPurge + 1 })
     .then(msgs => {
         message.channel.bulkDelete(msgs)
-        .then(() => console.log(`\x1b[34m[INFO] \x1b[0mPurge ${nbMsgToPurge} messages de ${message.channel.name}`))
-        .catch(err => console.log(`\x1b[31m[ERROR] \x1b[0mErreur purge : ` + err));
+        .then(() => logger.info("Purge "+nbMsgToPurge+" messages de "+message.channel.name))
+        .catch(err => logger.error("Erreur purge : " + err));
     })
     .catch(console.error)
 }

@@ -17,7 +17,7 @@ module.exports.run = (client, message, args) => {
             // on le retire des bannis
             message.guild.members.unban(userToUnbanId)
             .then(async user => {
-                console.log(`\x1b[34m[INFO] \x1b[0mUnban ${user.username}`);
+                logger.info("Unban " + user.username);
                 message.reply(`> Utilisateur ${user.username} unban ! ☑️ `);
 
                 // maj attribut 'banned'
@@ -25,7 +25,7 @@ module.exports.run = (client, message, args) => {
                 await client.update(userBD, {banned: false})
             })
             .catch(err => {
-                console.log(`\x1b[31m[ERROR] \x1b[0mErreur unban : ` + err);
+                logger.error("Erreur unban " + err);
                 message.reply('> Erreur lors de l\'unban.')
             });
         })

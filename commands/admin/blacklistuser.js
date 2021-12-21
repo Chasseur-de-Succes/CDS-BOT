@@ -22,7 +22,7 @@ module.exports.run = async (client, message, args) => {
         let user = await client.findUserById(memberToBlacklistId);
         if (!user) {
             // TODO on créé l'user pour pouvoir le blacklisté
-            console.log(`\x1b[33m[WARN]\x1b[0m .. utilisateur non enregistré, on l'enregistre pour pouvoir le blacklister`);
+            logger.warn(".. utilisateur non enregistré, on l'enregistre pour pouvoir le blacklister");
             
             user = await client.createUser({
                 userId: memberToBlacklistId,
@@ -38,13 +38,13 @@ module.exports.run = async (client, message, args) => {
 
         // update msg TODO
         // await editMsgHubGroup(client, grp);
-        console.log(`\x1b[34m[INFO]\x1b[0m ${memberToBlacklist.user.tag} a été blacklisté`);
+        logger.info(memberToBlacklist.user.tag + "a été blacklisté");
         message.react(CHECK_MARK)
     } catch (err) {
         const embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setTitle(`${CROSS_MARK} ${err}`);
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur leavegroup ${args[0]} : ${err}`);
+        logger.error("Erreur leavegroup " + args[0] + ":" + err);
         return message.channel.send({ embeds: [embedError] });
     }
 }

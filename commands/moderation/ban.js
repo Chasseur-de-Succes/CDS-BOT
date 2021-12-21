@@ -34,7 +34,7 @@ module.exports.ban = async (client, message, member) => {
 
     member.ban()
     .then(async m => {
-        console.log(`\x1b[34m[INFO] \x1b[0mBan ${member.displayName}`);
+        logger.info("Ban "+member.displayName);
         message.channel.send(`> 👋 ${m.displayName} a été **banni** ! ⛔`);
 
         // maj attribut 'banned'
@@ -42,7 +42,7 @@ module.exports.ban = async (client, message, member) => {
         await client.update(user, {banned: true});
     })
     .catch(err => {
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur ban : ` + err);
+        logger.error("Erreur ban : " + err);
         message.reply('> Erreur, impossible de ban ' + member.displayName + ' !');
     });
 }

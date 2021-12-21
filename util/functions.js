@@ -31,7 +31,7 @@ module.exports = client => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, user);
         const createUser = await new User(merged);
         const usr = await createUser.save();
-        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouvel utilisateur : ${usr.username}`);
+        logger.info({prefix:"[DB]", message:"Nouvel utilisateur : " + usr.username});
         return usr;
     };
     
@@ -68,7 +68,7 @@ module.exports = client => {
         const createGroup = await new Group(merged);
         let grp = await createGroup.save()
         await grp.populate('captain members').execPopulate()
-        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau groupe : ${grp.name}`);
+        logger.info({prefix:"[DB]", message:"Nouvel groupe : " + grp.name});
         return grp;
     };
 
@@ -78,7 +78,7 @@ module.exports = client => {
      */
     client.deleteGroup = async group => {
         // TODO return ? callback ?
-        Group.deleteOne({ _id: group._id }).then(grp => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Delete groupe : ${group.name}`));
+        Group.deleteOne({ _id: group._id }).then(grp => logger.info({prefix:"[DB]", message:"Delete groupe : " + groupe.name}));
     }
 
     /**
@@ -179,7 +179,7 @@ module.exports = client => {
     client.createGame = async game => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, game);
         const createGame = await new Game(merged);
-        createGame.save().then(game => console.debug(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau game : ${game.name}`));
+        createGame.save().then(game => logger.info({prefix:"[DB]", message:"Nouvel game : " + game.name}));
     };
 
     /**
@@ -233,7 +233,7 @@ module.exports = client => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, guild);
         const createGuild = await new GuildConfig(merged);
         const gld = await createGuild.save();
-        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouvelle guild : ${gld.guildId}`);
+        logger.info({prefix:"[DB]", message:"Nouvelle guild : " + gld.guildId});
         return gld;
     };
 
@@ -258,7 +258,7 @@ module.exports = client => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, job);
         const createJob = await new Job(merged);
         const j = await createJob.save();
-        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau job..`)
+        logger.info({prefix:"[DB]", message:"Nouveau job.."});
         return j;
     };
 
@@ -268,7 +268,7 @@ module.exports = client => {
      */
     client.deleteJob = async job => {
         // TODO return ? callback ?
-        Job.deleteOne({ _id: job._id }).then(j => console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Delete job : ${job.name}`));
+        Job.deleteOne({ _id: job._id }).then(j => logger.info({prefix:"[DB]", message:"Delete job : " + job.name}));
     }
 
     /**
