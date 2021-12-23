@@ -13,5 +13,5 @@ module.exports = async (client, member) => {
             {name: "ID", value: `${member.id}`},
         );
 
-    client.channels.cache.get(CHANNEL.WELCOME).send({embeds: [embed]});
+    client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});
 }

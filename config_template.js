@@ -16,6 +16,7 @@ module.exports = {
     },
     CHANNEL: {
         WELCOME: 'id_channel', // channel de bienvenue, affiche les nouveaux arrivants
-        LIST_GROUP: 'id_channel' // channel qui affichera tous les groupes
+        LIST_GROUP: 'id_channel', // channel qui affichera tous les groupes
+        LOGS: 'id_channel' // channel de logs (discord: join, leave, modification surnom,...)
     }
 }
