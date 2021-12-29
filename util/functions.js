@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Job, GuildConfig } = require("../models/index");
+const { User, Group, Game, Job, GuildConfig, GameItem } = require("../models/index");
 
 module.exports = client => {
     /* General */
@@ -198,4 +198,55 @@ module.exports = client => {
     };
 
     /* SHOP */
+    client.findGameItemShop = async query => {
+        const data = await GameItem.find(query)
+                                    .populate('game seller buyer');
+        if (data) return data;
+        else return;
+    };
+
+    client.findGameItemShopByGame = async query => {
+        const agg = [
+            {
+                // select GameItem
+                $match: { itemtype: 'GameItem' }
+            }, {
+                // jeux pas encore vendu
+                $match: { buyer: { '$exists': false } }
+            }, {
+                // recup info Game
+                $lookup: {
+                    from: 'games', 
+                    localField: 'game', 
+                    foreignField: '_id', 
+                    as: 'game'
+                }
+            }, {
+                // recup info vendeur
+                $lookup: {
+                    from: 'users', 
+                    localField: 'seller', 
+                    foreignField: '_id', 
+                    as: 'seller'
+                }
+            }, {
+                // transforme array en Game
+                $unwind: { path: '$game' }
+            }, {
+                // transforme array en User
+                $unwind: { path: '$seller' }
+            }, {
+                // regroupe par jeu
+                $group: {
+                    _id: '$game', 
+                    items: {
+                        '$push': '$$ROOT'
+                    }
+                }
+            }
+        ];
+        const data = await GameItem.aggregate(agg);
+        if (data) return data;
+        else return;
+    }
 }
