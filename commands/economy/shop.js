@@ -165,22 +165,26 @@ module.exports.run = async (client, message, args) => {
                 .setFooter(`Vous avez ${0} ${MONEY} | Page ${currentIndex + 1}/${filtre.items.length}`);
             
             let nbItem = 0;
+            const nbMax = 3;
             for (const item of items) {
                 const vendeur = message.guild.members.cache.get(item.seller.userId);
                 // on limite le nb de jeu affichable (car embed à limite caracteres)
-                if (nbItem < 1) {
+                if (nbItem < nbMax) {
                     embed.addFields(
                         { name: 'Prix', value: `${item.montant} ${MONEY}`, inline: true },
                         { name: 'Vendeur', value: `${vendeur}`, inline: true },
                         { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
                     );
                     nbItem++;
-                } else {
-                    embed.addFields(
-                        { name: 'Nb jeux en vente restants', value: `${items.length - nbItem}`}              // 'vide' pour remplir le 3eme field et passé à la ligne
-                    );
                 }
             }
+            // si nbmax atteint, on affiche le nb de jeux restants
+            if (nbItem == nbMax) {
+                embed.addFields(
+                    { name: 'Nb jeux restants', value: `${items.length - nbItem}`}
+                );
+            }
+
         } else if (filtre.type == 1) { // TUNNNG
             embed.setDescription(`***🚧 En construction 🚧***`)
         }
