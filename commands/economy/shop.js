@@ -82,10 +82,10 @@ module.exports.run = async (client, message, args) => {
         if (btnId === '0') { // Si JEUX
             filtre.soustitre = 'JEUX';
             filtre.type = 0;
-            // TODO filtre buyer null
-            filtre.items = await client.findGameItemShopByGame();
+            // recupere array d'info sur jeux à vendre
             // [0]._id -> Game
             // [0].items -> GameItemShop
+            filtre.items = await client.findGameItemShopByGame();
         } else if (btnId === '1') { // Si CUSTOM
             filtre.soustitre = 'TUNNING';
             filtre.type = 1;
@@ -119,9 +119,6 @@ module.exports.run = async (client, message, args) => {
 
         // on edit, enleve boutons et ajoute le menu + boutons acheter
         // TODO msg différent pour jeux / custom ?
-        // TODO image
-        // TODO footer page X
-        // TODO regrouper par jeux
         let shopEmbed = createEmbedShop(filtre);
         msgEmbed = await msgEmbed.edit({embeds: [shopEmbed], components: rows});
         
@@ -139,7 +136,7 @@ module.exports.run = async (client, message, args) => {
                 const max = filtre.items.length;
                 // disable si 1ere page
                 prevBtn.setDisabled(currentIndex == 0)
-                // TODO disable next si derniere page
+                // disable next si derniere page
                 nextBtn.setDisabled(currentIndex + 1 == max)
                 // TODO disable buy si pas assez argent ?
     
@@ -157,23 +154,32 @@ module.exports.run = async (client, message, args) => {
     function createEmbedShop(filtre, index, currentIndex = 0) {
         let embed = new MessageEmbed()
             .setTitle(`💰 BOUTIQUE - ${filtre.soustitre} 💰`)
-            // JEUX
-            if (filtre.type == 0) {
-                const game = filtre.items[currentIndex]._id;
-                const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
-                const items = filtre.items[currentIndex].items
-                // TODO recup info jeu, lien astats/steam/etc
+        // JEUX
+        if (filtre.type == 0) {
+            const game = filtre.items[currentIndex]._id;
+            const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
+            const items = filtre.items[currentIndex].items
+            // TODO recup info jeu, lien astats/steam/etc
             embed.setThumbnail(gameUrlHeader)
                 .setDescription(`**${game.name}**`)
                 .setFooter(`Vous avez ${0} ${MONEY} | Page ${currentIndex + 1}/${filtre.items.length}`);
             
+            let nbItem = 0;
             for (const item of items) {
                 const vendeur = message.guild.members.cache.get(item.seller.userId);
-                embed.addFields(
-                    { name: 'Prix', value: `${item.montant} ${MONEY}`, inline: true },
-                    { name: 'Vendeur', value: `${vendeur}`, inline: true },
-                    { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
-                );
+                // on limite le nb de jeu affichable (car embed à limite caracteres)
+                if (nbItem < 1) {
+                    embed.addFields(
+                        { name: 'Prix', value: `${item.montant} ${MONEY}`, inline: true },
+                        { name: 'Vendeur', value: `${vendeur}`, inline: true },
+                        { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
+                    );
+                    nbItem++;
+                } else {
+                    embed.addFields(
+                        { name: 'Nb jeux en vente restants', value: `${items.length - nbItem}`}              // 'vide' pour remplir le 3eme field et passé à la ligne
+                    );
+                }
             }
         } else if (filtre.type == 1) { // TUNNNG
             embed.setDescription(`***🚧 En construction 🚧***`)
