@@ -7,8 +7,10 @@ const { Game, GameItem } = require('../../models');
 const mongoose = require("mongoose");
 
 module.exports.run = async (client, message, args) => {
+    // TODO log apres merge pour utiliser ce que Rick a fait
     // TODO ajouter dans Game, un rang défini par admin ?
     // TODO gestion admin !
+
     // regex pour test si arg0 est un entier
     let isArgNum = /^\d+$/.test(args[0]);
     if (!args[0]) { // 0 args : shop
@@ -247,24 +249,29 @@ module.exports.run = async (client, message, args) => {
 
         // on limite le nb de jeu affichable (car embed à une limite de caracteres)
         // de 0 à 10, puis de 10 à 20, etc
-        // on garde l'index courant (page du shop) et le nom du jeu
-        let pages = [], jeux = [];
+        // on garde l'index courant (page du shop), le nom du jeu et le prix min
+        let pages = [], jeux = [], prixMin = [];
         for (let i = 0 + (currentIndex * 10); i < 10 + (currentIndex * 10); i++) {
             const item = items[i];
             if (item) {
                 // TODO revoir affichage item (couleur ?)
                 pages.push(`**[${i + 1}]**`);
                 jeux.push(`*${item._id.name}*`)
+
+                // recupere montant minimum
+                // prixMin.push(item.items.reduce((min, p) => p.montant < min ? p.montant : min).montant + ` ${MONEY}`);
+                prixMin.push(item.items.reduce((min, p) => p.montant < min ? p.montant : min).montant);
             }
         }
 
-        // TODO 3 ou 2eme colonne, lien ? prix min ? nb copie ?
+        // TODO 3 ou 2eme colonne, lien ? nb copie ?
         embed.setDescription(`Jeux disponibles à l'achat :`);
-        // pour les afficher et aligner : 1ere colonne : pages, 2eme : nom du jeu
+        // pour les afficher et aligner : 1ere colonne : pages, 2eme : prix min 3eme : nom du jeu
         embed.addFields(
             { name: 'Page', value: pages.join('\n'), inline: true },
+            { name: 'Prix min', value: prixMin.join('\n'), inline: true },
             { name: 'Jeu', value: jeux.join('\n'), inline: true },
-            { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
+            //{ name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
         );
 
         return embed;
