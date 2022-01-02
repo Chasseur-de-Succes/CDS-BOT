@@ -1,5 +1,6 @@
 const { MESSAGES } = require('../../util/constants');
 const { YELLOW, DARK_RED } = require("../../data/colors.json");
+const { CROSS_MARK } = require('../../data/emojis.json');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { MONEY } = require('../../config.js');
 const { Game, GameItem } = require('../../models');
@@ -8,13 +9,13 @@ const mongoose = require("mongoose");
 module.exports.run = async (client, message, args) => {
     // TODO ajouter dans Game, un rang défini par admin ?
     // TODO gestion admin !
-    // TODO [LIST] accéder à un jeu directement 
-    // TODO [LIST] liste "simplifiée" qui affiche que les jeux dispo ?
-    
+    // regex pour test si arg0 est un entier
+    let isArgNum = /^\d+$/.test(args[0]);
     if (!args[0]) { // 0 args : shop
         list()
-    } else if(Number.isInteger(args[0])) { // si 1er arg est un entier
-        list(args[0])
+    } else if(isArgNum) { // si 1er arg est un entier
+        // parse puis -1 car index commence à 0, et page commence à 1
+        list(Number.parseInt(args[0]) - 1, true)
     } else if(args[0] == "list") { // liste "simplifiée" qui affiche que les jeux dispo ?
         listGames()
     } else if(args[0] == "buy") { // BUY (?)
@@ -105,7 +106,7 @@ module.exports.run = async (client, message, args) => {
         })
     }
 
-    async function list() {
+    async function list(nbPage = 0, showGame = false) {
         let author = message.author;
         let userDB = await client.getUser(author);
         if (!userDB)
@@ -133,25 +134,33 @@ module.exports.run = async (client, message, args) => {
                 .setStyle('SECONDARY')
         );
         rows.unshift(row);
-
+        
         /* 
         BOUTIQUE
         [Jeux (ID 0)] [Personnalisation (ID 1)] [Autres (ID 2)]
         */
-        let msgEmbed = await message.channel.send({embeds: [embed], components: rows});
+        // si on veut afficher direct les jeux, pas besoin d'evnoyer le 1er message
+        let btnId = '';
+        if (!showGame) {
+            let msgEmbed = await message.channel.send({embeds: [embed], components: rows});
+            
+            const filter = i => {return i.user.id === message.author.id}
+            const itr = await msgEmbed.awaitMessageComponent({
+                filter,
+                componentType: 'BUTTON',
+                time: 30000
+            })
+            itr.deferUpdate();
+            btnId = itr.customId;
 
-        const filter = i => {return i.user.id === message.author.id}
-        const itr = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: 'BUTTON',
-            time: 30000
-        })
-        itr.deferUpdate();
-        const btnId = itr.customId;
+            msgEmbed.delete();
+        } else {
+            btnId = '0';
+        }
         let infos = {};
         infos.money = userDB.money;
         rows = [];
-
+        
         if (btnId === '0') { // Si JEUX
             infos.soustitre = 'JEUX';
             infos.type = 0;
@@ -164,6 +173,11 @@ module.exports.run = async (client, message, args) => {
             infos.type = 1;
             // TODO définir fonction à appeler lorsqu'on achete ? similaire à Job
         }
+        
+        const max = infos.items.length;
+        // TODO tester si index nbPages existe
+        if (nbPage < 0 || nbPage > max)
+            return sendError(message, `Oh la, il n'y a pas autant de pages que ça !`);
 
         // row pagination
         const prevBtn = new MessageButton()
@@ -171,12 +185,13 @@ module.exports.run = async (client, message, args) => {
             .setLabel('Préc.')
             .setEmoji('⬅️')
             .setStyle('SECONDARY')
-            .setDisabled(true);
+            .setDisabled(nbPage == 0);
         const nextBtn = new MessageButton()
             .setCustomId("next")
             .setLabel('Suiv.')
             .setEmoji('➡️')
-            .setStyle('SECONDARY');
+            .setStyle('SECONDARY')
+            .setDisabled(nbPage == infos.items.length);
         const buyBtn = new MessageButton()
             .setCustomId("buy")
             .setLabel('Acheter')
@@ -190,22 +205,21 @@ module.exports.run = async (client, message, args) => {
             );
         rows.unshift(rowBuyButton);
 
-        // on edit, enleve boutons et ajoute le menu + boutons acheter
+        // on envoie créer et envoie le message du shop
         // TODO msg différent pour jeux / custom ?
-        let shopEmbed = createEmbedShop(infos);
-        msgEmbed = await msgEmbed.edit({embeds: [shopEmbed], components: rows});
+        let shopEmbed = createEmbedShop(infos, nbPage);
+        let msgShopEmbed = await message.channel.send({embeds: [shopEmbed], components: rows});
         
         // Collect button interactions
-        const collector = msgEmbed.createMessageComponentCollector({
+        const collector = msgShopEmbed.createMessageComponentCollector({
             filter: ({user}) => user.id === message.author.id
         })
         
-        let currentIndex = 0
+        let currentIndex = nbPage;
         collector.on('collect', async interaction => {
             // si bouton 'prev' ou 'next' (donc pas 'buy')
             if (interaction.customId !== 'buy') {
                 interaction.customId === 'prev' ? (currentIndex -= 1) : (currentIndex += 1)
-                const max = infos.items.length;
                 // disable si 1ere page
                 prevBtn.setDisabled(currentIndex == 0)
                 // disable next si derniere page
@@ -214,7 +228,7 @@ module.exports.run = async (client, message, args) => {
     
                 // Respond to interaction by updating message with new embed
                 await interaction.update({
-                    embeds: [await createEmbedShop(infos, interaction.customId, currentIndex)],
+                    embeds: [await createEmbedShop(infos, currentIndex)],
                     components: [new MessageActionRow( { components: [prevBtn, nextBtn, buyBtn] } )]
                 })
             } else {
@@ -244,7 +258,7 @@ module.exports.run = async (client, message, args) => {
             }
         }
 
-        // TODO 3eme colonne, lien ?
+        // TODO 3 ou 2eme colonne, lien ? prix min ? nb copie ?
         embed.setDescription(`Jeux disponibles à l'achat :`);
         // pour les afficher et aligner : 1ere colonne : pages, 2eme : nom du jeu
         embed.addFields(
@@ -256,8 +270,9 @@ module.exports.run = async (client, message, args) => {
         return embed;
     }
 
-    function createEmbedShop(infos, index, currentIndex = 0) {
+    function createEmbedShop(infos, currentIndex = 0) {
         let embed = new MessageEmbed()
+            .setColor(YELLOW)
             .setTitle(`💰 BOUTIQUE - ${infos.soustitre} 💰`)
         // JEUX
         if (infos.type == 0) {
