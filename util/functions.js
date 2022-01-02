@@ -243,6 +243,11 @@ module.exports = client => {
                         '$push': '$$ROOT'
                     }
                 }
+            }, { // TODO obligé de sort pour avoir le meme ordre, pour pouvoir acceder à la bonne page
+                // sort par appid
+                $sort: {
+                    '_id.appid': 1
+                }
             }
         ];
         const data = await GameItem.aggregate(agg);

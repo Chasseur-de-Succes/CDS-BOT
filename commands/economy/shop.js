@@ -40,6 +40,11 @@ module.exports.run = async (client, message, args) => {
     const NB_PAR_PAGES = 10;
 
     async function listGames() {
+        let author = message.author;
+        let userDB = await client.getUser(author);
+        if (!userDB)
+            return sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+        
         const items = await client.findGameItemShopByGame();
         let embed = new MessageEmbed()
             .setColor(YELLOW)
@@ -69,12 +74,12 @@ module.exports.run = async (client, message, args) => {
         rows.unshift(rowBuyButton);
         
         /* 1ere page liste */
-        embed = createListGame(items, 0);
+        embed = createListGame(items, userDB.money);
         let msgListEmbed = await message.channel.send({embeds: [embed], components: rows});
 
         // Collect button interactions
         const collector = msgListEmbed.createMessageComponentCollector({
-            filter: ({user}) => user.id === message.author.id
+            filter: ({user}) => user.id === author.id
         })
         let currentIndex = 0
         collector.on('collect', async interaction => {
@@ -91,7 +96,7 @@ module.exports.run = async (client, message, args) => {
     
                 // Respond to interaction by updating message with new embed
                 await interaction.update({
-                    embeds: [await createListGame(items, currentIndex)],
+                    embeds: [await createListGame(items, userDB.money, currentIndex)],
                     components: [new MessageActionRow( { components: [prevBtn, nextBtn] } )]
                 })
             }
@@ -216,13 +221,13 @@ module.exports.run = async (client, message, args) => {
         })
     }
 
-    function createListGame(items, currentIndex = 0) {
+    function createListGame(items, money, currentIndex = 0) {
         // TODO dire que commande XX permet d'ouvrir le shop sur tel jeu ?
         let embed = new MessageEmbed()
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             //.setDescription(`Liste des jeux disponibles à l'achat.`)
-            .setFooter(`Vous avez ${0} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}`)
+            .setFooter(`Vous avez ${money} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}`)
 
         // on limite le nb de jeu affichable (car embed à une limite de caracteres)
         // de 0 à 10, puis de 10 à 20, etc
