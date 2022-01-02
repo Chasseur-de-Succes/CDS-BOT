@@ -13,6 +13,8 @@ module.exports.run = async (client, message, args) => {
     
     if (!args[0]) { // 0 args : shop
         list()
+    } else if(Number.isInteger(args[0])) { // si 1er arg est un entier
+        list(args[0])
     } else if(args[0] == "list") { // liste "simplifiée" qui affiche que les jeux dispo ?
         listGames()
     } else if(args[0] == "buy") { // BUY (?)
@@ -231,18 +233,25 @@ module.exports.run = async (client, message, args) => {
 
         // on limite le nb de jeu affichable (car embed à une limite de caracteres)
         // de 0 à 10, puis de 10 à 20, etc
-        let desc = `Jeux disponibles à l'achat :\n`;
+        // on garde l'index courant (page du shop) et le nom du jeu
+        let pages = [], jeux = [];
         for (let i = 0 + (currentIndex * 10); i < 10 + (currentIndex * 10); i++) {
             const item = items[i];
             if (item) {
-                //console.log(i, item);
-                desc += `- **${item._id.name}**\n`;
-                /* embed.addFields(
-                    { name: 'Jeu', value: `${item._id.name}` },
-                ); */
+                // TODO revoir affichage item (couleur ?)
+                pages.push(`**[${i + 1}]**`);
+                jeux.push(`*${item._id.name}*`)
             }
         }
-        embed.setDescription(desc);
+
+        // TODO 3eme colonne, lien ?
+        embed.setDescription(`Jeux disponibles à l'achat :`);
+        // pour les afficher et aligner : 1ere colonne : pages, 2eme : nom du jeu
+        embed.addFields(
+            { name: 'Page', value: pages.join('\n'), inline: true },
+            { name: 'Jeu', value: jeux.join('\n'), inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
+        );
 
         return embed;
     }
