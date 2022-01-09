@@ -1,6 +1,6 @@
 const { MESSAGES } = require('../../util/constants');
 const { YELLOW, DARK_RED } = require("../../data/colors.json");
-const { CROSS_MARK } = require('../../data/emojis.json');
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { MONEY } = require('../../config.js');
 const { Game, GameItem } = require('../../models');
@@ -176,7 +176,7 @@ module.exports.run = async (client, message, args) => {
             // TODO définir fonction à appeler lorsqu'on achete ? similaire à Job
         }
         
-        const max = infos.items.length;
+        const max = infos.items?.length ?? 0;
         // TODO tester si index nbPages existe
         if (nbPage < 0 || nbPage > max)
             return sendError(message, `Oh la, il n'y a pas autant de pages que ça !`);
@@ -193,7 +193,7 @@ module.exports.run = async (client, message, args) => {
             .setLabel('Suiv.')
             .setEmoji('➡️')
             .setStyle('SECONDARY')
-            .setDisabled(nbPage == infos.items.length);
+            .setDisabled(nbPage == max);
         const buyBtn = new MessageButton()
             .setCustomId("buy")
             .setLabel('Acheter')
@@ -209,7 +209,7 @@ module.exports.run = async (client, message, args) => {
 
         // on envoie créer et envoie le message du shop
         // TODO msg différent pour jeux / custom ?
-        let shopEmbed = createEmbedShop(infos, nbPage);
+        let shopEmbed = createShop(infos, nbPage);
         let msgShopEmbed = await message.channel.send({embeds: [shopEmbed], components: rows});
         
         // Collect button interactions
@@ -230,11 +230,33 @@ module.exports.run = async (client, message, args) => {
     
                 // Respond to interaction by updating message with new embed
                 await interaction.update({
-                    embeds: [await createEmbedShop(infos, currentIndex)],
+                    embeds: [createShop(infos, currentIndex)],
                     components: [new MessageActionRow( { components: [prevBtn, nextBtn, buyBtn] } )]
                 })
             } else {
-                // TODO acheter
+                // achete item courant
+                if (infos.type == 0) {
+                    const items = infos.items[currentIndex]
+                    const vendeur = message.guild.members.cache.get(items.items[0].seller.userId);
+
+                    buyGame(userDB, vendeur, items);
+
+                    let recapEmbed = new MessageEmbed()
+                        .setColor(YELLOW)
+                        .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
+                        .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${MONEY}
+                            ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
+
+                            *En cas de problème, n'hésitez pas à contacter un **admin***.`)
+                        .setFooter(`Vous avez maintenant ${userDB.money} ${MONEY}`);
+                    
+                    await interaction.update({ 
+                        embeds: [recapEmbed],
+                        components: [] 
+                    })
+                } else if (infos.type == 0) {
+
+                }
             }
         })
     }
@@ -277,7 +299,7 @@ module.exports.run = async (client, message, args) => {
         return embed;
     }
 
-    function createEmbedShop(infos, currentIndex = 0) {
+    function createShop(infos, currentIndex = 0) {
         let embed = new MessageEmbed()
             .setColor(YELLOW)
             .setTitle(`💰 BOUTIQUE - ${infos.soustitre} 💰`)
@@ -317,6 +339,128 @@ module.exports.run = async (client, message, args) => {
             embed.setDescription(`***🚧 En construction 🚧***`)
         }
         return embed;
+    }
+
+    async function buyGame(acheteurDB, vendeur, info) {
+        // TODO empechant l'achat de son propre jeu
+        // TODO si user a déjà acheté une clé il y a - de 4j : nope
+
+        // recup objet DB du vendeur
+        const vendeurDB = await client.findUserById(info.items[0].seller.userId);
+        
+        const game = info._id;
+        const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
+        console.log('achat jeu', game.name, 'par', acheteurDB.username, acheteurDB.money);
+
+        // recup dans la BD pour pouvoir le maj
+        let item = await client.findGameItemShop({ _id: info.items[0]._id }); // le 1er est le - cher
+        item = item[0];
+
+        // retire le montant du jeu au "porte-monnaie" de l'acheteur + date dernier achat
+        await client.update(acheteurDB, { 
+            money: acheteurDB.money - item.montant,
+            lastBuy: Date.now()
+        });
+
+        // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
+        await client.update(item, { 
+            buyer: acheteurDB,
+            state: 'pending'
+        });
+        // TODO envoie sur channel log (voir avec Tobi)
+
+        // envoie DM au vendeur 
+        console.log('envoi DM à ', vendeur.user.username);
+        let MPembed = new MessageEmbed()
+            .setThumbnail(gameUrlHeader)
+            .setColor(YELLOW)
+            .setTitle('💰 BOUTIQUE - VENTE 💰')
+            .setDescription(`${message.author} a acheté ***${game.name}*** que vous aviez mis en vente !
+
+                Pour recevoir vos ${item.montant} ${MONEY}, il faut :
+                ▶️ me répondre en envoyant la clé du jeu
+                ▶️ attendre la confirmation de l'acheteur
+                ▶️ ???
+                ▶️ PROFIT !
+                
+                En cas de problème, contactez un admin !`);
+                
+        // envoi vendeur
+        let msgMPEmbed = await vendeur.user.send({ embeds: [MPembed] });
+        
+        // maj state
+        await client.update(item, { state: 'pending - key demandée' });
+
+        // attend une reponse, du même auteur, en DM
+        // TODO et si vendeur interdit DM ?
+        // filtre sur vendeur
+        let filter = m => { return m.author.id === vendeur.user.id }
+        let response = await msgMPEmbed.channel.awaitMessages({ filter, max: 1 });
+        // TODO regex ? AAAAA-BBBBB-CCCCC[-DDDDD-EEEEE] ? autres clés ?
+        const daKey = response.first().content;
+
+        // maj state
+        await client.update(item, { state: 'pending - key recup' });
+        
+        // DM envoyé à l'acheteur
+        let KDOembed = new MessageEmbed()
+            .setThumbnail(gameUrlHeader)
+            .setColor(YELLOW)
+            .setTitle('💰 BOUTIQUE - VENTE 💰')
+            .setDescription(`${vendeur} t'envoie la clé pour le jeu ***${game.name}***.
+
+                Si tu veux avoir accès à la clé, il suffit de **confirmer** en cliquant juste en dessous !
+                
+                En cas de problème, contactez un admin !`);
+        
+        const confBtn = new MessageButton()
+            .setCustomId("confBuy")
+            .setLabel('Confirmer')
+            .setEmoji(CHECK_MARK)
+            .setStyle('SUCCESS')
+        let msgKDOEmbed = await message.author.send({ 
+            embeds: [KDOembed],
+            components: [new MessageActionRow( { components: [confBtn] } )] 
+        });
+
+        // maj state
+        await client.update(item, { state: 'pending - key envoyée' });
+
+        filter = m => { return m.user.id === message.author.id }
+        const itr = await msgKDOEmbed.awaitMessageComponent({
+            filter,
+            componentType: 'BUTTON',
+            // time: 30000
+        })
+
+        KDOembed.setTitle('💰 BOUTIQUE - LA CLÉ 💰')
+        KDOembed.setDescription(`${vendeur} t'envoie la clé pour le jeu ***${game.name}*** :
+
+            ⬇️⬇️⬇️
+            **${daKey}**
+            ⬆️⬆️⬆️
+
+            🙏 Merci d'avoir utilisé CDS Boutique !
+            N'hésitez pas de nouveau à claquer votre pognon dans **2 jours** ! 🤑
+            
+            En cas de problème, contactez un admin !`)
+        await itr.update({ 
+            embeds: [KDOembed],
+            components: [] 
+        });
+        
+        // maj state
+        await client.update(item, { state: 'done' });
+
+        // ajoute montant du jeu au porte-monnaie du vendeur
+        await client.update(vendeurDB, { money: vendeurDB.money + item.montant });
+    }
+
+    function sellGame() {
+        // shop sell <montant> <nom du jeu>
+        // TODO divers test : si user register, si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
+        // TODO recherche du jeu
+        // TODO recap et demande de confirmation
     }
 
     function sendError(message, msgError) {
