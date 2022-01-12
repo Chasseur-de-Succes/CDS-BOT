@@ -5,6 +5,7 @@ const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { MONEY } = require('../../config.js');
 const { Game, GameItem } = require('../../models');
 const mongoose = require("mongoose");
+const moment = require('moment');
 
 module.exports.run = async (client, message, args) => {
     // TODO log apres merge pour utiliser ce que Rick a fait
@@ -48,7 +49,7 @@ module.exports.run = async (client, message, args) => {
         let author = message.author;
         let userDB = await client.getUser(author);
         if (!userDB)
-            return sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
         
         const items = await client.findGameItemShopByGame();
         let embed = new MessageEmbed()
@@ -91,7 +92,7 @@ module.exports.run = async (client, message, args) => {
             // si bouton 'prev' ou 'next' (donc pas 'buy')
             if (interaction.customId === 'prev' || interaction.customId === 'next') {
                 interaction.customId === 'prev' ? (currentIndex -= 1) : (currentIndex += 1)
-                // TODO
+
                 const max = items.length;
                 // disable si 1ere page
                 prevBtn.setDisabled(currentIndex == 0)
@@ -112,7 +113,7 @@ module.exports.run = async (client, message, args) => {
         let author = message.author;
         let userDB = await client.getUser(author);
         if (!userDB)
-            return sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
 
         // choix parmis type item 
         let embed = new MessageEmbed()
@@ -139,26 +140,34 @@ module.exports.run = async (client, message, args) => {
         
         /* 
         BOUTIQUE
-        [Jeux (ID 0)] [Personnalisation (ID 1)] [Autres (ID 2)]
+        [Jeux (ID 0)] [Personnalisation (ID 1)] [Autres (ID 2)] ?
         */
         // si on veut afficher direct les jeux, pas besoin d'evnoyer le 1er message
         let btnId = '';
         if (!showGame) {
             let msgEmbed = await message.channel.send({embeds: [embed], components: rows});
             
-            const filter = i => {return i.user.id === message.author.id}
-            const itr = await msgEmbed.awaitMessageComponent({
-                filter,
-                componentType: 'BUTTON',
-                time: 30000
-            })
-            itr.deferUpdate();
-            btnId = itr.customId;
+            // try catch pour enlever boutons lors main shop "fermé" (timeout)
+            try {
+                const filter = i => { return i.user.id === message.author.id }
+                const itr = await msgEmbed.awaitMessageComponent({
+                    filter,
+                    componentType: 'BUTTON',
+                    time: 300000 // 5min
+                })
 
-            msgEmbed.delete();
+                itr.deferUpdate();
+                btnId = itr.customId;
+    
+                msgEmbed.delete();
+            } catch (error) {
+                msgEmbed.edit({ components: [] })
+                return;
+            }
         } else {
             btnId = '0';
         }
+
         let infos = {};
         infos.money = userDB.money;
         rows = [];
@@ -179,7 +188,7 @@ module.exports.run = async (client, message, args) => {
         const max = infos.items?.length ?? 0;
         // TODO tester si index nbPages existe
         if (nbPage < 0 || nbPage > max)
-            return sendError(message, `Oh la, il n'y a pas autant de pages que ça !`);
+            return sendError(`Oh la, il n'y a pas autant de pages que ça !`);
 
         // row pagination
         const prevBtn = new MessageButton()
@@ -188,6 +197,7 @@ module.exports.run = async (client, message, args) => {
             .setEmoji('⬅️')
             .setStyle('SECONDARY')
             .setDisabled(nbPage == 0);
+        // TODO bug si on va direct sur derniere page ?
         const nextBtn = new MessageButton()
             .setCustomId("next")
             .setLabel('Suiv.')
@@ -199,6 +209,8 @@ module.exports.run = async (client, message, args) => {
             .setLabel('Acheter')
             .setEmoji('💸')
             .setStyle('DANGER')
+            // TODO a supprimer une fois boutique custom faite
+            .setDisabled(infos.type == 1)
         const rowBuyButton = new MessageActionRow()
             .addComponents(
                 prevBtn,
@@ -214,7 +226,8 @@ module.exports.run = async (client, message, args) => {
         
         // Collect button interactions
         const collector = msgShopEmbed.createMessageComponentCollector({
-            filter: ({user}) => user.id === message.author.id
+            filter: ({ user }) => user.id === message.author.id,
+            time: 300000 // 5min
         })
         
         let currentIndex = nbPage;
@@ -239,8 +252,24 @@ module.exports.run = async (client, message, args) => {
                     const items = infos.items[currentIndex]
                     const vendeur = message.guild.members.cache.get(items.items[0].seller.userId);
 
+                    // empeche l'achat de son propre jeu
+                    if (items.items[0].seller.userId === userDB.userId) {
+                        interaction.deferUpdate();
+                        return sendError(`Tu ne peux pas acheter ton propre jeu !`);
+                    }
+
+                    // empeche l'achat si - de 2j
+                    const nbDiffDays = Math.abs(moment(userDB.lastBuy).diff(moment(), 'days'));
+                    if (userDB.lastBuy && nbDiffDays <= 2) {
+                        interaction.deferUpdate();
+                        collector.stop();
+                        return sendError(`Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !`);
+                    }
+
+                    // ACHETE !
                     buyGame(userDB, vendeur, items);
 
+                    // message recap
                     let recapEmbed = new MessageEmbed()
                         .setColor(YELLOW)
                         .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
@@ -248,17 +277,26 @@ module.exports.run = async (client, message, args) => {
                             ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
 
                             *En cas de problème, n'hésitez pas à contacter un **admin***.`)
-                        .setFooter(`Vous avez maintenant ${userDB.money} ${MONEY}`);
+                        .setFooter(`Vous avez maintenant ${userDB.money - items.items[0].montant} ${MONEY}`);
                     
+                    // maj du msg, en enlevant boutons actions
                     await interaction.update({ 
                         embeds: [recapEmbed],
                         components: [] 
                     })
-                } else if (infos.type == 0) {
-
+                } else if (infos.type == 1) {
+                    // achat custom
                 }
             }
         })
+
+        // apres 5 min, on "ferme" la boutique
+        collector.on('end', collected => {
+            msgShopEmbed.edit({
+                embeds: [createShop(infos, currentIndex)],
+                components: []
+            })
+        });
     }
 
     function createListGame(items, money, currentIndex = 0) {
@@ -342,11 +380,8 @@ module.exports.run = async (client, message, args) => {
     }
 
     async function buyGame(acheteurDB, vendeur, info) {
-        // TODO empechant l'achat de son propre jeu
-        // TODO si user a déjà acheté une clé il y a - de 4j : nope
-
         // recup objet DB du vendeur
-        const vendeurDB = await client.findUserById(info.items[0].seller.userId);
+        let vendeurDB = await client.findUserById(info.items[0].seller.userId);
         
         const game = info._id;
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
@@ -356,18 +391,18 @@ module.exports.run = async (client, message, args) => {
         let item = await client.findGameItemShop({ _id: info.items[0]._id }); // le 1er est le - cher
         item = item[0];
 
-        // retire le montant du jeu au "porte-monnaie" de l'acheteur + date dernier achat
+        // STEP 1 : retire le montant du jeu au "porte-monnaie" de l'acheteur + date dernier achat
         await client.update(acheteurDB, { 
             money: acheteurDB.money - item.montant,
             lastBuy: Date.now()
         });
+        // TODO envoie sur channel log 'Acheteur perd montant MONEY a cause vente' (voir avec Tobi)
 
         // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
         await client.update(item, { 
             buyer: acheteurDB,
             state: 'pending'
         });
-        // TODO envoie sur channel log (voir avec Tobi)
 
         // envoie DM au vendeur 
         console.log('envoi DM à ', vendeur.user.username);
@@ -375,33 +410,77 @@ module.exports.run = async (client, message, args) => {
             .setThumbnail(gameUrlHeader)
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - VENTE 💰')
-            .setDescription(`${message.author} a acheté ***${game.name}*** que vous aviez mis en vente !
+            .setDescription(`${message.author} vous a acheté ***${game.name}*** !
 
                 Pour recevoir vos ${item.montant} ${MONEY}, il faut :
-                ▶️ me répondre en envoyant la clé du jeu
-                ▶️ attendre la confirmation de l'acheteur
-                ▶️ ???
-                ▶️ PROFIT !
+                ▶️ **appuyer sur la réaction ${CHECK_MARK} pour commencer**
                 
-                En cas de problème, contactez un admin !`);
+                *En cas de problème, contactez un admin !*`);
                 
         // envoi vendeur
-        let msgMPEmbed = await vendeur.user.send({ embeds: [MPembed] });
-        
+        const confBtn = new MessageButton()
+                    .setCustomId("confBuy")
+                    .setLabel('Confirmer')
+                    .setEmoji(CHECK_MARK)
+                    .setStyle('SUCCESS')
+        // let msgMPEmbed = await vendeur.user.send({ embeds: [MPembed] });
+        let msgMPEmbed = await vendeur.user.send({ 
+            embeds: [MPembed],
+            components: [new MessageActionRow( { components: [confBtn] } )] 
+        });
+        // msgMPEmbed.react(CHECK_MARK);
+
         // maj state
         await client.update(item, { state: 'pending - key demandée' });
+        // TODO envoie sur channel log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' (voir avec Tobi)
+
+        // - attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
+        let filter = m => { return m.user.id === vendeur.user.id }
+        const itrConf = await msgMPEmbed.awaitMessageComponent({
+            filter,
+            componentType: 'BUTTON',
+            // time: 30000
+        });
+        itrConf.deferUpdate();
+        
+        MPembed.setDescription(`${message.author} vous a acheté ***${game.name}*** !
+
+            Pour recevoir vos ${item.montant} ${MONEY}, il faut :
+            ▶️ ~~appuyer sur la réaction ${CHECK_MARK} pour commencer~~
+            ▶️ **me répondre en envoyant la clé du jeu**
+            
+            *En cas de problème, contactez un admin !*`)
+        
+        await msgMPEmbed.edit({ 
+            embeds: [MPembed],
+            components: [] 
+        });
 
         // attend une reponse, du même auteur, en DM
         // TODO et si vendeur interdit DM ?
         // filtre sur vendeur
-        let filter = m => { return m.author.id === vendeur.user.id }
+        filter = m => { return m.author.id === vendeur.user.id }
         let response = await msgMPEmbed.channel.awaitMessages({ filter, max: 1 });
         // TODO regex ? AAAAA-BBBBB-CCCCC[-DDDDD-EEEEE] ? autres clés ?
         const daKey = response.first().content;
 
         // maj state
         await client.update(item, { state: 'pending - key recup' });
-        
+        // TODO envoie sur channel log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur' (voir avec Tobi)
+
+        MPembed.setDescription(`${message.author} vous a acheté ***${game.name}*** !
+            
+            Pour recevoir vos ${item.montant} ${MONEY}, il faut :
+            ▶️ ~~appuyer sur la réaction ${CHECK_MARK} pour commencer~~
+            ▶️ ~~me répondre en envoyant la clé du jeu~~
+            ▶️ **attendre la confirmation de l'acheteur**
+            ▶️ ???
+            ▶️ PROFIT !
+            
+            *En cas de problème, contactez un admin !*`);
+        await vendeur.user.send({ embeds: [MPembed] });
+
+        // --- ENVOI CLE A ACHETEUR ---
         // DM envoyé à l'acheteur
         let KDOembed = new MessageEmbed()
             .setThumbnail(gameUrlHeader)
@@ -411,13 +490,8 @@ module.exports.run = async (client, message, args) => {
 
                 Si tu veux avoir accès à la clé, il suffit de **confirmer** en cliquant juste en dessous !
                 
-                En cas de problème, contactez un admin !`);
+                *En cas de problème, contactez un admin !*`);
         
-        const confBtn = new MessageButton()
-            .setCustomId("confBuy")
-            .setLabel('Confirmer')
-            .setEmoji(CHECK_MARK)
-            .setStyle('SUCCESS')
         let msgKDOEmbed = await message.author.send({ 
             embeds: [KDOembed],
             components: [new MessageActionRow( { components: [confBtn] } )] 
@@ -443,7 +517,7 @@ module.exports.run = async (client, message, args) => {
             🙏 Merci d'avoir utilisé CDS Boutique !
             N'hésitez pas de nouveau à claquer votre pognon dans **2 jours** ! 🤑
             
-            En cas de problème, contactez un admin !`)
+            *En cas de problème, contactez un admin !*`)
         await itr.update({ 
             embeds: [KDOembed],
             components: [] 
@@ -451,9 +525,22 @@ module.exports.run = async (client, message, args) => {
         
         // maj state
         await client.update(item, { state: 'done' });
+        // TODO envoie sur channel log 'Acheteur a confirmé et à reçu la clé JEU en MP - done' (voir avec Tobi)
 
         // ajoute montant du jeu au porte-monnaie du vendeur
-        await client.update(vendeurDB, { money: vendeurDB.money + item.montant });
+        vendeurDB.money += item.montant;
+        await client.update(vendeurDB, { money: vendeurDB.money });
+        // TODO envoie sur channel log 'Vendeur reçoit montant MONEY grâce vente' (voir avec Tobi)
+
+        // msg pour vendeur 
+        MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
+            .setDescription(`${message.author} a reçu et confirmé l'achat du jeu ***${game.name}*** que vous aviez mis en vente !
+
+                Vous avez bien reçu vos ${item.montant} ${MONEY}, ce qui vous fait un total de ...
+                💰 ${vendeurDB.money} ${MONEY} !
+                
+                *En cas de problème, contactez un admin !*`);
+        await vendeur.user.send({ embeds: [MPembed] });
     }
 
     function sellGame() {
@@ -463,7 +550,7 @@ module.exports.run = async (client, message, args) => {
         // TODO recap et demande de confirmation
     }
 
-    function sendError(message, msgError) {
+    function sendError(msgError) {
         let embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setDescription(`${CROSS_MARK} • ${msgError}`);
