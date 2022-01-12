@@ -1,8 +1,8 @@
 const { MESSAGES } = require('../../util/constants');
-const { YELLOW, DARK_RED } = require("../../data/colors.json");
+const { YELLOW, DARK_RED, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
-const { MONEY } = require('../../config.js');
+const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
+const { PREFIX, MONEY } = require('../../config.js');
 const { Game, GameItem } = require('../../models');
 const mongoose = require("mongoose");
 const moment = require('moment');
@@ -21,24 +21,13 @@ module.exports.run = async (client, message, args) => {
         list(Number.parseInt(args[0]) - 1, true)
     } else if(args[0] == "list") { // liste "simplifiée" qui affiche que les jeux dispo ?
         listGames()
-    } else if(args[0] == "buy") { // BUY (?)
-        message.channel.send('[boutique en construction] buy');
+    //} else if(args[0] == "buy") { // BUY (?)
+    //    message.channel.send('[boutique en construction] buy');
     } else if (args[0] == "sell") {
-        message.channel.send('[boutique en construction] sell');
-
-        // test save
-        /* let item = {
-            name: 'mon 1er test',
-            montant: 420,
-            game: await Game.findOne({ appid: 221910 }),
-            seller: await client.getUser(message.author)
-        }
-        
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
-        const createItem = await new GameItem(merged);
-        const usr = await createItem.save();
-        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouvel item : ${usr}`); */
-
+        const montant = !!parseInt(args[1]) ? parseInt(args[1]) : null;
+        // recup le reste des arguments : nom du jeu
+        const gameName = args.slice(2).join(' ');
+        sellGame(montant, gameName);
     } else { // argument non valide
         message.channel.send('[boutique en construction] utilisation erronée');
     }
@@ -404,7 +393,7 @@ module.exports.run = async (client, message, args) => {
             state: 'pending'
         });
 
-        // envoie DM au vendeur 
+        // STEP 2 : envoie DM au vendeur 
         console.log('envoi DM à ', vendeur.user.username);
         let MPembed = new MessageEmbed()
             .setThumbnail(gameUrlHeader)
@@ -434,7 +423,7 @@ module.exports.run = async (client, message, args) => {
         await client.update(item, { state: 'pending - key demandée' });
         // TODO envoie sur channel log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' (voir avec Tobi)
 
-        // - attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
+        // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
         let filter = m => { return m.user.id === vendeur.user.id }
         const itrConf = await msgMPEmbed.awaitMessageComponent({
             filter,
@@ -480,7 +469,7 @@ module.exports.run = async (client, message, args) => {
             *En cas de problème, contactez un admin !*`);
         await vendeur.user.send({ embeds: [MPembed] });
 
-        // --- ENVOI CLE A ACHETEUR ---
+        // STEP 4 : --- ENVOI CLE A ACHETEUR ---
         // DM envoyé à l'acheteur
         let KDOembed = new MessageEmbed()
             .setThumbnail(gameUrlHeader)
@@ -543,11 +532,92 @@ module.exports.run = async (client, message, args) => {
         await vendeur.user.send({ embeds: [MPembed] });
     }
 
-    function sellGame() {
-        // shop sell <montant> <nom du jeu>
-        // TODO divers test : si user register, si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
+    // shop sell <montant> <nom du jeu>
+    async function sellGame(montant, gameName) {
+        let author = message.author;
+        let userDB = await client.getUser(author);
+        if (!userDB)
+            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+
+        if (!montant || !gameName)
+            return sendError(`\`${PREFIX}shop sell <montant> <nom du jeu>\``);
+
+        if (montant < 0)
+            return sendError(`\`${PREFIX}shop sell <montant> <nom du jeu>\``);
+        // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
+
         // TODO recherche du jeu
-        // TODO recap et demande de confirmation
+        // création de la regex sur le nom du jeu
+        console.log(`\x1b[34m[INFO]\x1b[0m Recherche jeu Steam par nom : ${gameName}..`);
+        let regGame = new RegExp(gameName, "i");
+
+        let msgLoading = await message.channel.send(`Je suis en train de chercher le jeu..`);
+        message.channel.sendTyping();
+
+        // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
+        let games = await client.findGames({
+            name: regGame
+        });
+        msgLoading.delete();
+
+        console.log(`\x1b[34m[INFO]\x1b[0m .. ${games.length} jeu(x) trouvé(s)`);
+        if (!games) return sendError('Erreur lors de la recherche du jeu');
+        if (games.length === 0) return sendError(`Pas de résultat trouvé pour **${gameName}** !`);
+
+        // values pour Select Menu
+        let items = [];
+        for (let i = 0; i < games.length; i++) {
+            let crtGame = games[i];
+            if (crtGame) {
+                items.unshift({
+                    label: crtGame.name,
+                    // description: 'Description',
+                    value: '' + crtGame.appid
+                });
+            }
+        }
+
+        // row contenant le Select menu
+        const row = new MessageActionRow()
+            .addComponents(
+                new MessageSelectMenu()
+                    .setCustomId('select-games-' + message.author)
+                    .setPlaceholder('Sélectionner le jeu..')
+                    .addOptions(items)
+            );
+
+        let embed = new MessageEmbed()
+            .setColor(YELLOW)
+            .setTitle(`💰 BOUTIQUE - VENTE - J'ai trouvé ${games.length} jeux ! 💰`)
+            .setDescription(`Quel jeu veux-tu vendre ?`);
+
+        let msgEmbed = await message.channel.send({embeds: [embed], components: [row] });
+
+        // attend une interaction bouton de l'auteur de la commande
+        let filter = i => {return i.user.id === message.author.id}
+        let interaction = await msgEmbed.awaitMessageComponent({
+            filter,
+            componentType: 'SELECT_MENU',
+        });
+        
+        const gameId = interaction.values[0];
+        console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
+        // on recupere le custom id "APPID_GAME"
+        let game = await client.findGameByAppid(gameId);
+        game = game[0]; // car retourne un array
+
+        let item = {
+            montant: montant,
+            game: game,
+            seller: userDB
+        }
+        
+        client.createGameItemShop(item);
+        
+        embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
+            .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
+            ${game.name} à ${montant} ${MONEY}`)
+        msgEmbed.edit({ embeds: [embed], components: [] })
     }
 
     function sendError(msgError) {

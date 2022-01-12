@@ -198,6 +198,14 @@ module.exports = client => {
     };
 
     /* SHOP */
+    client.createGameItemShop = async item => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+        const createGameItem = await new GameItem(merged);
+        const g = await createGameItem.save();
+        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau game item..`)
+        return g;
+    };
+
     client.findGameItemShop = async query => {
         const data = await GameItem.find(query)
                                     .populate('game seller buyer');
