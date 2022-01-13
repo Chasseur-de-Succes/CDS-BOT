@@ -343,21 +343,27 @@ module.exports.run = async (client, message, args) => {
                 .setFooter(`Vous avez ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`);
             
             let nbItem = 0;
-            const nbMax = 3;
+            const nbMax = 5;
+            let prix = [], vendeurStr = [];
             for (const item of items) {
                 const vendeur = message.guild.members.cache.get(item.seller.userId);
                 // on limite le nb de jeu affichable (car embed à une limite de caracteres)
                 if (nbItem < nbMax) {
-                    embed.addFields(
-                        { name: 'Prix', value: `${item.montant} ${MONEY}`, inline: true },
-                        { name: 'Vendeur', value: `${vendeur}`, inline: true },
-                        { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
-                    );
+                    prix.push(`${item.montant} ${MONEY}`);
+                    vendeurStr.push(vendeur)
+                    
                     nbItem++;
                 }
             }
+
+            embed.addFields(
+                { name: 'Prix', value: prix.join('\n'), inline: true },
+                { name: 'Vendeur', value: vendeurStr.join('\n'), inline: true },
+                { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
+            );
+
             // si nbmax atteint, on affiche le nb de jeux restants
-            if (nbItem == nbMax) {
+            if (nbItem > nbMax) {
                 embed.addFields(
                     { name: 'Nb copies restantes', value: `${items.length - nbItem}`}
                 );

@@ -243,6 +243,11 @@ module.exports = client => {
             }, {
                 // transforme array en User
                 $unwind: { path: '$seller' }
+            }, { 
+                // sort par montant
+                $sort: {
+                    'montant': 1
+                }
             }, {
                 // regroupe par jeu
                 $group: {
