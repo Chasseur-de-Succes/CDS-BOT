@@ -596,35 +596,36 @@ module.exports.run = async (client, message, args) => {
         let msgEmbed = await message.channel.send({embeds: [embed], components: [row] });
 
         // attend une interaction bouton de l'auteur de la commande
+        let filter, interaction;
         try {
-            let filter = i => {return i.user.id === message.author.id}
-            let interaction = await msgEmbed.awaitMessageComponent({
+            filter = i => {return i.user.id === message.author.id}
+            interaction = await msgEmbed.awaitMessageComponent({
                 filter,
                 componentType: 'SELECT_MENU',
                 time: 30000 // 5min
             });
-            
-            const gameId = interaction.values[0];
-            console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
-            // on recupere le custom id "APPID_GAME"
-            let game = await client.findGameByAppid(gameId);
-            game = game[0]; // car retourne un array
-
-            let item = {
-                montant: montant,
-                game: game,
-                seller: userDB
-            }
-            client.createGameItemShop(item);
-
-            embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
-                .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
-                ${game.name} à ${montant} ${MONEY}`)
-            msgEmbed.edit({ embeds: [embed], components: [] })
         } catch (error) {
             msgEmbed.edit({ components: [] })
             return;
         }
+            
+        const gameId = interaction.values[0];
+        console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
+        // on recupere le custom id "APPID_GAME"
+        let game = await client.findGameByAppid(gameId);
+        game = game[0]; // car retourne un array
+
+        let item = {
+            montant: montant,
+            game: game,
+            seller: userDB
+        }
+        client.createGameItemShop(item);
+
+        embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
+            .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
+            ${game.name} à ${montant} ${MONEY}`)
+        msgEmbed.edit({ embeds: [embed], components: [] })
     }
 
     function sendError(msgError) {

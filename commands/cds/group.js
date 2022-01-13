@@ -242,6 +242,8 @@ module.exports.run = async (client, message, args) => {
                 });
             }
         }
+        // SELECT n'accepte que 25 max
+        if (items.length > 25) return sendError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`);
 
         // row contenant le Select menu
         const row = new MessageActionRow()
@@ -260,12 +262,18 @@ module.exports.run = async (client, message, args) => {
         let msgEmbed = await message.channel.send({embeds: [embed], components: [row] });
 
         // attend une interaction bouton de l'auteur de la commande
-        let filter = i => {return i.user.id === message.author.id}
-        let interaction = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: 'SELECT_MENU',
-            // time: 10000
-        });
+        let filter, interaction;
+        try {
+            filter = i => {return i.user.id === message.author.id}
+            interaction = await msgEmbed.awaitMessageComponent({
+                filter,
+                componentType: 'SELECT_MENU',
+                time: 30000 // 5min
+            });
+        } catch (error) {
+            msgEmbed.edit({ components: [] })
+            return;
+        }
         
         const gameId = interaction.values[0];
         console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
