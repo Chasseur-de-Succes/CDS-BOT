@@ -1,6 +1,6 @@
 const { MESSAGES } = require('../../util/constants');
-const { YELLOW, DARK_RED, NIGHT } = require("../../data/colors.json");
-const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
+const { YELLOW, DARK_RED } = require("../../data/colors.json");
+const { CHECK_MARK, CROSS_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { PREFIX, MONEY } = require('../../config.js');
 const { Game, GameItem } = require('../../models');
@@ -87,7 +87,6 @@ module.exports.run = async (client, message, args) => {
                 prevBtn.setDisabled(currentIndex == 0)
                 // disable next si derniere page
                 nextBtn.setDisabled((currentIndex + 1) * NB_PAR_PAGES > max)
-                // TODO disable buy si pas assez argent ?
     
                 // Respond to interaction by updating message with new embed
                 await interaction.update({
@@ -175,7 +174,7 @@ module.exports.run = async (client, message, args) => {
         }
         
         const max = infos.items?.length ?? 0;
-        // TODO tester si index nbPages existe
+        // teste si index nbPages existe
         if (nbPage < 0 || nbPage > max)
             return sendError(`Oh la, il n'y a pas autant de pages que ça !`);
         let currentIndex = nbPage;
@@ -187,19 +186,18 @@ module.exports.run = async (client, message, args) => {
             .setEmoji('⬅️')
             .setStyle('SECONDARY')
             .setDisabled(nbPage == 0);
-        // TODO bug si on va direct sur derniere page ?
         const nextBtn = new MessageButton()
             .setCustomId("next")
             .setLabel('Suiv.')
             .setEmoji('➡️')
             .setStyle('SECONDARY')
-            .setDisabled(nbPage == max);
+            .setDisabled(nbPage + 1 == max);
         const buyBtn = new MessageButton()
             .setCustomId("buy")
             .setLabel('Acheter')
             .setEmoji('💸')
             .setStyle('DANGER')
-            // TODO a supprimer une fois boutique custom faite
+            // TODO a modifier une fois boutique custom faite
             .setDisabled(infos.type == 1 || userDB.money < infos.items[currentIndex].items[0].montant)
         const rowBuyButton = new MessageActionRow()
             .addComponents(
@@ -290,7 +288,6 @@ module.exports.run = async (client, message, args) => {
     }
 
     function createListGame(items, money, currentIndex = 0) {
-        // TODO dire que commande XX permet d'ouvrir le shop sur tel jeu ?
         let embed = new MessageEmbed()
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
@@ -309,19 +306,17 @@ module.exports.run = async (client, message, args) => {
                 jeux.push(`*${item._id.name}*`)
 
                 // recupere montant minimum
-                // prixMin.push(item.items.reduce((min, p) => p.montant < min ? p.montant : min).montant + ` ${MONEY}`);
                 prixMin.push(item.items.reduce((min, p) => p.montant < min ? p.montant : min).montant);
             }
         }
 
-        // TODO 3 ou 2eme colonne, lien ? nb copie ?
-        embed.setDescription(`Jeux disponibles à l'achat :`);
+        embed.setDescription(`*Pour accéder à la page du shop du jeu concerné : \`${PREFIX}shop <n° page>\`*
+                                Jeux disponibles à l'achat :`);
         // pour les afficher et aligner : 1ere colonne : pages, 2eme : prix min 3eme : nom du jeu
         embed.addFields(
             { name: 'Page', value: pages.join('\n'), inline: true },
             { name: 'Prix min', value: prixMin.join('\n'), inline: true },
             { name: 'Jeu', value: jeux.join('\n'), inline: true },
-            //{ name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
         );
 
         return embed;
@@ -336,10 +331,15 @@ module.exports.run = async (client, message, args) => {
             const game = infos.items[currentIndex]._id;
             const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
             const items = infos.items[currentIndex].items
-            // TODO recup info jeu, lien astats/steam/etc
+            
+            const steamLink = `[Steam](https://steamcommunity.com/app/${game.appid})`;
+            const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${game.appid})`;
+            const succesIcon = game.hasAchievements ? '🏆' : NO_SUCCES 
+            const links = `${succesIcon} | ${steamLink} | ${astatLink} `;
 
             embed.setThumbnail(gameUrlHeader)
-                .setDescription(`**${game.name}**`)
+                .setDescription(`**${game.name}**
+                                ${links}`)
                 .setFooter(`Vous avez ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`);
             
             let nbItem = 0;
@@ -633,6 +633,7 @@ module.exports.run = async (client, message, args) => {
             .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
             ${game.name} à ${montant} ${MONEY}`)
         msgEmbed.edit({ embeds: [embed], components: [] })
+        // TODO envoie sur channel log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
     }
 
     function sendError(msgError) {
