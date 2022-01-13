@@ -546,7 +546,7 @@ module.exports.run = async (client, message, args) => {
             return sendError(`\`${PREFIX}shop sell <montant> <nom du jeu>\``);
         // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
-        // TODO recherche du jeu
+        // - recherche du jeu
         // création de la regex sur le nom du jeu
         console.log(`\x1b[34m[INFO]\x1b[0m Recherche jeu Steam par nom : ${gameName}..`);
         let regGame = new RegExp(gameName, "i");
@@ -576,6 +576,8 @@ module.exports.run = async (client, message, args) => {
                 });
             }
         }
+        // SELECT n'accepte que 25 max
+        if (items.length > 25) return sendError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`);
 
         // row contenant le Select menu
         const row = new MessageActionRow()
@@ -594,30 +596,35 @@ module.exports.run = async (client, message, args) => {
         let msgEmbed = await message.channel.send({embeds: [embed], components: [row] });
 
         // attend une interaction bouton de l'auteur de la commande
-        let filter = i => {return i.user.id === message.author.id}
-        let interaction = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: 'SELECT_MENU',
-        });
-        
-        const gameId = interaction.values[0];
-        console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
-        // on recupere le custom id "APPID_GAME"
-        let game = await client.findGameByAppid(gameId);
-        game = game[0]; // car retourne un array
+        try {
+            let filter = i => {return i.user.id === message.author.id}
+            let interaction = await msgEmbed.awaitMessageComponent({
+                filter,
+                componentType: 'SELECT_MENU',
+                time: 30000 // 5min
+            });
+            
+            const gameId = interaction.values[0];
+            console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
+            // on recupere le custom id "APPID_GAME"
+            let game = await client.findGameByAppid(gameId);
+            game = game[0]; // car retourne un array
 
-        let item = {
-            montant: montant,
-            game: game,
-            seller: userDB
+            let item = {
+                montant: montant,
+                game: game,
+                seller: userDB
+            }
+            client.createGameItemShop(item);
+
+            embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
+                .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
+                ${game.name} à ${montant} ${MONEY}`)
+            msgEmbed.edit({ embeds: [embed], components: [] })
+        } catch (error) {
+            msgEmbed.edit({ components: [] })
+            return;
         }
-        
-        client.createGameItemShop(item);
-        
-        embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
-            .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
-            ${game.name} à ${montant} ${MONEY}`)
-        msgEmbed.edit({ embeds: [embed], components: [] })
     }
 
     function sendError(msgError) {
