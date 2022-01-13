@@ -178,6 +178,7 @@ module.exports.run = async (client, message, args) => {
         // TODO tester si index nbPages existe
         if (nbPage < 0 || nbPage > max)
             return sendError(`Oh la, il n'y a pas autant de pages que ça !`);
+        let currentIndex = nbPage;
 
         // row pagination
         const prevBtn = new MessageButton()
@@ -199,7 +200,7 @@ module.exports.run = async (client, message, args) => {
             .setEmoji('💸')
             .setStyle('DANGER')
             // TODO a supprimer une fois boutique custom faite
-            .setDisabled(infos.type == 1)
+            .setDisabled(infos.type == 1 || userDB.money < infos.items[currentIndex].items[0].montant)
         const rowBuyButton = new MessageActionRow()
             .addComponents(
                 prevBtn,
@@ -219,7 +220,6 @@ module.exports.run = async (client, message, args) => {
             time: 300000 // 5min
         })
         
-        let currentIndex = nbPage;
         collector.on('collect', async interaction => {
             // si bouton 'prev' ou 'next' (donc pas 'buy')
             if (interaction.customId !== 'buy') {
@@ -228,7 +228,8 @@ module.exports.run = async (client, message, args) => {
                 prevBtn.setDisabled(currentIndex == 0)
                 // disable next si derniere page
                 nextBtn.setDisabled(currentIndex + 1 == max)
-                // TODO disable buy si pas assez argent ?
+                // disable buy si pas assez argent
+                buyBtn.setDisabled(userDB.money < infos.items[currentIndex].items[0].montant)
     
                 // Respond to interaction by updating message with new embed
                 await interaction.update({
