@@ -620,7 +620,6 @@ module.exports.run = async (client, message, args) => {
         console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
         // on recupere le custom id "APPID_GAME"
         let game = await client.findGameByAppid(gameId);
-        game = game[0]; // car retourne un array
 
         let item = {
             montant: montant,

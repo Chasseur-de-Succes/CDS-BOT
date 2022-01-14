@@ -304,7 +304,7 @@ module.exports.run = async (client, message, args) => {
             nbMax: nbMaxMember,
             captain: userDB._id,
             members: [userDB._id],
-            game: game[0]
+            game: game
         };
         let grpDB = await client.createGroup(newGrp);
 
@@ -320,7 +320,7 @@ module.exports.run = async (client, message, args) => {
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
             .addFields(
-                { name: 'Jeu', value: `${game[0].name}`, inline: true },
+                { name: 'Jeu', value: `${game.name}`, inline: true },
                 { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
                 { name: 'Capitaine', value: `${captain}`, inline: true },
             );

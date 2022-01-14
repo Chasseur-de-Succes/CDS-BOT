@@ -208,14 +208,6 @@ const MESSAGES = {
                 cooldown: 0,
                 description: "Purge un channel de ses X derniers messages.",
                 usage: ""
-            },
-            REFRESHGAMES: {
-                name: "refreshgames",
-                aliases: ["rg"],
-                category: "moderation",
-                cooldown: 0,
-                description: "",
-                usage: "refreshGames"
             }
         }
     }

@@ -132,7 +132,14 @@ module.exports = client => {
     };
 
     client.findGameByAppid = async appid => {
-        return await client.findGames({ appid: appid });
+        const data = await Game.findOne({ appid: appid });
+        if (data) return data;
+        else return;
+    };
+    client.findMaxAppId = async () => {
+        const data = await Game.find({ }).sort({ appid: -1 }).limit(1).then(game => game[0].appid);
+        if (data) return data;
+        else return;
     };
 
     client.findGamesByName = async name => {
