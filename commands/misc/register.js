@@ -50,7 +50,6 @@ module.exports.run = async (client, message, args) => {
         time: 30000
     })
     .then(async interaction => {
-        //console.log(`\x1b[34m[INFO]\x1b[0m .. ${interaction.customId} choisi`);
         const btnId = interaction.customId;
         msgEmbed.delete();
         

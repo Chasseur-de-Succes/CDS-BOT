@@ -177,12 +177,12 @@ module.exports = {
     },
 
     searchNewGamesJob(client) {
-        console.log(`\x1b[34m[INFO]\x1b[0m -- Mise en place job search new games..`);
+        logger.info(`-- Mise en place job search new games`);
 
         // refresh games tous les soirs à 1h
         scheduleJob({ hour: 1, minute: 00 }, async function() {
             moment.updateLocale('fr', { relativeTime : Object });
-            console.log(`\x1b[34m[INFO]\x1b[0m Début refresh games ..`);
+            logger.info(`Début refresh games ..`);
             let startTime = moment();
             let crtIdx = 1, cptGame = 0;
     
@@ -195,7 +195,7 @@ module.exports = {
         
                 for (const game of games) {
                     if (crtIdx % 250 === 0) {
-                        console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${crtIdx}/${games.length} ..`);
+                        logger.info(`[${crtHour()}] - ${crtIdx}/${games.length} ..`);
                     }
         
                     if (game?.appid) {
@@ -228,7 +228,7 @@ module.exports = {
                                 cptGame++;
                             } catch (err) {
                                 if (err.status === 429) {
-                                    console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${err}, on attend 5 min ..`);
+                                    logger.info(`[${crtHour()}] - ${err}, on attend 5 min ..`);
                                     // att 5 min
                                     await delay(300000);
                                 }
@@ -241,9 +241,9 @@ module.exports = {
                     crtIdx++;
                 }
         
-                console.log(`\x1b[34m[INFO]\x1b[0m .. Fin refresh games en [${startTime.toNow()}], ${cptGame} jeux ajoutés`);
+                logger.info(`.. Fin refresh games en [${startTime.toNow()}], ${cptGame} jeux ajoutés`);
             }).catch(err => {
-                console.log(`\x1b[31m[ERROR] \x1b[0mErreur refresh games : ${err}`);
+                logger.error(`Erreur refresh games ${err}`);
                 return;
             });
         });

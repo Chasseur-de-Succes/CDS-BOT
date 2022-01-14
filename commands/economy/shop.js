@@ -381,7 +381,7 @@ module.exports.run = async (client, message, args) => {
         
         const game = info._id;
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
-        console.log('achat jeu', game.name, 'par', acheteurDB.username, acheteurDB.money);
+        logger.info(`Achat jeu ${game.name} par ${acheteurDB.username} pour ${acheteurDB.money} ${MONEY}`)
 
         // recup dans la BD pour pouvoir le maj
         let item = await client.findGameItemShop({ _id: info.items[0]._id }); // le 1er est le - cher
@@ -401,7 +401,7 @@ module.exports.run = async (client, message, args) => {
         });
 
         // STEP 2 : envoie DM au vendeur 
-        console.log('envoi DM à ', vendeur.user.username);
+        logger.info(`Envoi DM au vendeur ${vendeur.user.username}`)
         let MPembed = new MessageEmbed()
             .setThumbnail(gameUrlHeader)
             .setColor(YELLOW)
@@ -554,8 +554,8 @@ module.exports.run = async (client, message, args) => {
         // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
         // - recherche du jeu
-        // création de la regex sur le nom du jeu
-        console.log(`\x1b[34m[INFO]\x1b[0m Recherche jeu Steam par nom : ${gameName}..`);
+        // création de la regex sur le nom du jeu        
+        logger.info(`Recherche jeu Steam par nom ${gameName}`)
         let regGame = new RegExp(gameName, "i");
 
         let msgLoading = await message.channel.send(`Je suis en train de chercher le jeu..`);
@@ -567,7 +567,7 @@ module.exports.run = async (client, message, args) => {
         });
         msgLoading.delete();
 
-        console.log(`\x1b[34m[INFO]\x1b[0m .. ${games.length} jeu(x) trouvé(s)`);
+        logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
         if (!games) return sendError('Erreur lors de la recherche du jeu');
         if (games.length === 0) return sendError(`Pas de résultat trouvé pour **${gameName}** !`);
 
@@ -617,7 +617,7 @@ module.exports.run = async (client, message, args) => {
         }
             
         const gameId = interaction.values[0];
-        console.log(`\x1b[34m[INFO]\x1b[0m .. Steam app ${gameId} choisi`);
+        logger.info(`.. Steam app ${gameId} choisi`);
         // on recupere le custom id "APPID_GAME"
         let game = await client.findGameByAppid(gameId);
 
@@ -639,7 +639,7 @@ module.exports.run = async (client, message, args) => {
         let embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setDescription(`${CROSS_MARK} • ${msgError}`);
-        console.log(`\x1b[31m[ERROR] \x1b[0mErreur group : ${msgError}`);
+        logger.error(`Erreur shop ${msgError}`);
         return message.channel.send({ embeds: [embedError] });
     }
 }

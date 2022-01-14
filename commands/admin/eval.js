@@ -12,7 +12,7 @@ module.exports.run = async (client, message, args) => {
 
     for (const i of DEV ) {
         //console.log(i.name + " : " + i.id);
-        if(message.author.id == i.id) {
+        if (message.author.id == i.id) {
             devId = i.id;
             break;
         }

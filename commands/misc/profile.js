@@ -41,7 +41,6 @@ module.exports.run = async (client, message, args) => {
         } 
     }
 
-    //console.log(dbUser);
     const msg = `> **Profil** de ${member.user.tag}`;
     const colorEmbed = (dbUser.banned || dbUser.blacklisted) ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
     const banned = dbUser.banned ? "[banni]" : "";
