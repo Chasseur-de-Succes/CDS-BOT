@@ -16,17 +16,13 @@ module.exports.run = async (client, message, args) => {
     let msgProgress = await message.channel.send(`Ok c'est parti ! Récupération de tous les jeux..`);
 
     // recupe depuis l'appid XXX
-    //client.getAppList(XXX)
-    client.getAppList()
+    const maxAppid = await client.findMaxAppId();
+    client.getAppList(maxAppid)
     .then(async appList => {
         let games = appList.body.response.apps;
         msgProgress.edit(`[${crtIdx}/${games.length}] - Traitement des jeux .`);
-        // parcours de tous les jeux
-        /* for (let i = 0; i < 10; i++) { // test 10 1er jeu
-            let game = games[i]; */
         
-        // TODO filtrer directement ceux déjà présent en base pour avoir un array plus petit et être + rapide?
-
+        // parcours de tous les jeux
         for (const game of games) {
             if (crtIdx % 250 === 0) {
                 logger.info("[" + crtHour() + "] - " + (crtIdx/games.length) + " ..");

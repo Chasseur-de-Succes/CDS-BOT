@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Job, GuildConfig } = require("../models/index");
+const { User, Group, Game, Job, GuildConfig, GameItem } = require("../models/index");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
@@ -188,7 +188,14 @@ module.exports = client => {
      * @returns undefined si non trouvé, tableau de {@link Game} sinon
      */
     client.findGameByAppid = async appid => {
-        return await client.findGames({ appid: appid });
+        const data = await Game.findOne({ appid: appid });
+        if (data) return data;
+        else return;
+    };
+    client.findMaxAppId = async () => {
+        const data = await Game.find({ }).sort({ appid: -1 }).limit(1).then(game => game[0].appid);
+        if (data) return data;
+        else return;
     };
 
     /**
@@ -282,4 +289,84 @@ module.exports = client => {
         if (data) return data;
         else return;
     };
+
+    client.updateJob = async (job, settings) => {
+        let data = job;
+        if (typeof data !== "object") data = {};
+        for (const key in settings) {
+            if(data[key] !== settings[key]) data[key] = settings[key];
+        }
+        return data.updateOne(settings);
+    };
+
+    /* SHOP */
+    client.createGameItemShop = async item => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+        const createGameItem = await new GameItem(merged);
+        const g = await createGameItem.save();
+        console.log(`\x1b[34m[INFO]\x1b[35m[DB]\x1b[0m Nouveau game item..`)
+        return g;
+    };
+
+    client.findGameItemShop = async query => {
+        const data = await GameItem.find(query)
+                                    .populate('game seller buyer');
+        if (data) return data;
+        else return;
+    };
+
+    client.findGameItemShopByGame = async query => {
+        const agg = [
+            {
+                // select GameItem
+                $match: { itemtype: 'GameItem' }
+            }, {
+                // jeux pas encore vendu
+                $match: { buyer: { '$exists': false } }
+            }, {
+                // recup info Game
+                $lookup: {
+                    from: 'games', 
+                    localField: 'game', 
+                    foreignField: '_id', 
+                    as: 'game'
+                }
+            }, {
+                // recup info vendeur
+                $lookup: {
+                    from: 'users', 
+                    localField: 'seller', 
+                    foreignField: '_id', 
+                    as: 'seller'
+                }
+            }, {
+                // transforme array en Game
+                $unwind: { path: '$game' }
+            }, {
+                // transforme array en User
+                $unwind: { path: '$seller' }
+            }, { 
+                // sort par montant
+                $sort: {
+                    'montant': 1
+                }
+            }, {
+                // regroupe par jeu
+                $group: {
+                    _id: '$game', 
+                    items: {
+                        '$push': '$$ROOT'
+                    }
+                }
+            }, { // TODO obligé de sort pour avoir le meme ordre, pour pouvoir acceder à la bonne page
+                // sort par appid
+                $sort: {
+                    '_id.appid': 1
+                }
+            }
+        ];
+        const data = await GameItem.aggregate(agg);
+        if (data) return data;
+        else return;
+    }
 }

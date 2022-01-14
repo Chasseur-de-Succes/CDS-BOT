@@ -1,6 +1,6 @@
 const { readdirSync } = require('fs');
 const { CHANNEL } = require('../config');
-const { loadJobs } = require('./batch/batch');
+const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 
 // Charge les commandes
@@ -34,6 +34,8 @@ const loadEvents = (client, dir = "./events/") => {
 const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
     loadJobs(client);
+
+    searchNewGamesJob(client);
 }
 
 // Charge les réactions des messages des groupes

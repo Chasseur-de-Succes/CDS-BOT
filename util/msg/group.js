@@ -55,7 +55,7 @@ function getMembersList(group, members) {
         .addFields(
             { name: 'Jeu', value: `${group.game.name}\n${links}`, inline: true },
             //{ name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
-            { name: 'Quand ?', value: `${dateEvent}`, inline: true },                      
+            { name: 'Quand ?', value: `${dateEvent}`, inline: true },
             { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
             { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}`, inline: true },

@@ -24,7 +24,8 @@ const userSchema = mongoose.Schema({
     blacklisted: {
         "type": Boolean,
         "default": false
-    }
+    },
+    lastBuy: Date
 })
 
 module.exports = mongoose.model("User", userSchema);
