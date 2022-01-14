@@ -172,7 +172,6 @@ module.exports = {
                 for (const game of games) {
                     if (crtIdx % 250 === 0) {
                         console.log(`\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${crtIdx}/${games.length} ..`);
-                        //await msgProgress.edit(`[${crtIdx}/${games.length}] - Traitement des jeux ${".".repeat(((crtIdx/250) % 3) + 1)}`);
                     }
         
                     if (game?.appid) {
