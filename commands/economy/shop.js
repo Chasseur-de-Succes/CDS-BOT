@@ -2,13 +2,12 @@ const { MESSAGES } = require('../../util/constants');
 const { YELLOW, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
-const { PREFIX, MONEY } = require('../../config.js');
+const { PREFIX, MONEY, CHANNEL } = require('../../config.js');
 const { Game, GameItem } = require('../../models');
 const mongoose = require("mongoose");
 const moment = require('moment');
 
 module.exports.run = async (client, message, args) => {
-    // TODO log apres merge pour utiliser ce que Rick a fait
     // TODO ajouter dans Game, un rang défini par admin ?
     // TODO gestion admin !
 
@@ -392,7 +391,8 @@ module.exports.run = async (client, message, args) => {
             money: acheteurDB.money - item.montant,
             lastBuy: Date.now()
         });
-        // TODO envoie sur channel log 'Acheteur perd montant MONEY a cause vente' (voir avec Tobi)
+        // log 'Acheteur perd montant MONEY a cause vente'
+        sendLogs(`Argent perdu`, `${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**`);
 
         // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
         await client.update(item, { 
@@ -428,7 +428,9 @@ module.exports.run = async (client, message, args) => {
 
         // maj state
         await client.update(item, { state: 'pending - key demandée' });
-        // TODO envoie sur channel log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' (voir avec Tobi)
+        // log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' 
+        sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+                                            2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`);
 
         // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
         let filter = m => { return m.user.id === vendeur.user.id }
@@ -462,7 +464,10 @@ module.exports.run = async (client, message, args) => {
 
         // maj state
         await client.update(item, { state: 'pending - key recup' });
-        // TODO envoie sur channel log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur' (voir avec Tobi)
+        // log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur'
+        sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+                                            ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
+                                             3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`);
 
         MPembed.setDescription(`${message.author} vous a acheté ***${game.name}*** !
             
@@ -521,19 +526,24 @@ module.exports.run = async (client, message, args) => {
         
         // maj state
         await client.update(item, { state: 'done' });
-        // TODO envoie sur channel log 'Acheteur a confirmé et à reçu la clé JEU en MP - done' (voir avec Tobi)
+        // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
+        sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+                                            ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
+                                            ~~3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation~~
+                                            4️⃣ ${message.author} a confirmé la réception ! C'est terminé !`);
 
         // ajoute montant du jeu au porte-monnaie du vendeur
         vendeurDB.money += item.montant;
         await client.update(vendeurDB, { money: vendeurDB.money });
-        // TODO envoie sur channel log 'Vendeur reçoit montant MONEY grâce vente' (voir avec Tobi)
+        // log 'Vendeur reçoit montant MONEY grâce vente'
+        sendLogs(`Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`);
 
         // msg pour vendeur 
         MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
             .setDescription(`${message.author} a reçu et confirmé l'achat du jeu ***${game.name}*** que vous aviez mis en vente !
 
-                Vous avez bien reçu vos ${item.montant} ${MONEY}, ce qui vous fait un total de ...
-                💰 ${vendeurDB.money} ${MONEY} !
+                Vous avez bien reçu vos ***${item.montant} ${MONEY}***, ce qui vous fait un total de ...
+                💰 **${vendeurDB.money} ${MONEY}** !
                 
                 *En cas de problème, contactez un admin !*`);
         await vendeur.user.send({ embeds: [MPembed] });
@@ -632,7 +642,9 @@ module.exports.run = async (client, message, args) => {
             .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
             ${game.name} à ${montant} ${MONEY}`)
         msgEmbed.edit({ embeds: [embed], components: [] })
-        // TODO envoie sur channel log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
+
+        // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
+        sendLogs(`Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`);
     }
 
     function sendError(msgError) {
@@ -641,6 +653,15 @@ module.exports.run = async (client, message, args) => {
             .setDescription(`${CROSS_MARK} • ${msgError}`);
         logger.error(`Erreur shop ${msgError}`);
         return message.channel.send({ embeds: [embedError] });
+    }
+
+    function sendLogs(title, desc) {
+        const embedLog = new MessageEmbed()
+            .setColor(YELLOW)
+            .setTitle(`💰 ${title}`)
+            .setDescription(desc)
+            .setFooter(``);
+        client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
     }
 }
 

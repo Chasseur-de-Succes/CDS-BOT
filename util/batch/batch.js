@@ -177,6 +177,7 @@ module.exports = {
     },
 
     searchNewGamesJob(client) {
+        // TODO refactor pour que command refreshgames utilise meme methode mais avec envoi message
         logger.info(`-- Mise en place job search new games`);
 
         // refresh games tous les soirs à 1h
