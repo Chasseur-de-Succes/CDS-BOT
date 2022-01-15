@@ -179,7 +179,7 @@ module.exports = client => {
     client.createGame = async game => {
         const merged = Object.assign({_id: mongoose.Types.ObjectId()}, game);
         const createGame = await new Game(merged);
-        createGame.save().then(game => logger.info({prefix:"[DB]", message:"Nouvel game : " + game.name}));
+        createGame.save().then(game => logger.info({prefix:"[DB]", message:"Nouveau game : " + game.name}));
     };
 
     /**
