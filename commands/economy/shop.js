@@ -69,7 +69,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             .setDescription(`Liste des jeux disponibles à l'achat.`)
-            .setFooter(`💵 ${0} ${MONEY}`);
+            .setFooter(`💵 ${userDB.money} ${MONEY}`);
 
         if (items.length === 0) {
             embed.setDescription(`Liste des jeux disponibles à l'achat.
@@ -205,7 +205,7 @@ module.exports.run = async (client, message, args) => {
         
         const max = infos.items?.length ?? 0;
         // si 0 item dispo
-        if (max === 0) return sendError(`Désolé, aucun jeu n'est actuellement en vente !`);
+        if (btnId === '0' && max === 0) return sendError(`Désolé, aucun item n'est actuellement en vente !`);
         
         // teste si index nbPages existe
         if (nbPage < 0 || nbPage > max)
