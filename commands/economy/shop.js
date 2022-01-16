@@ -70,6 +70,12 @@ module.exports.run = async (client, message, args) => {
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             .setDescription(`Liste des jeux disponibles à l'achat.`)
             .setFooter(`💵 ${0} ${MONEY}`);
+
+        if (items.length === 0) {
+            embed.setDescription(`Liste des jeux disponibles à l'achat.
+                                    **A U N C U N**`);
+            return message.channel.send({embeds: [embed]});
+        }
         
         let rows = [];
         // row pagination
@@ -198,6 +204,9 @@ module.exports.run = async (client, message, args) => {
         }
         
         const max = infos.items?.length ?? 0;
+        // si 0 item dispo
+        if (max === 0) return sendError(`Désolé, aucun jeu n'est actuellement en vente !`);
+        
         // teste si index nbPages existe
         if (nbPage < 0 || nbPage > max)
             return sendError(`Oh la, il n'y a pas autant de pages que ça !`);
@@ -222,7 +231,7 @@ module.exports.run = async (client, message, args) => {
             .setEmoji('💸')
             .setStyle('DANGER')
             // TODO a modifier une fois boutique custom faite
-            .setDisabled(infos.type == 1 || userDB.money < infos.items[currentIndex].items[0].montant)
+            .setDisabled(infos.type == 1 || (userDB.money < infos.items[currentIndex].items[0].montant))
         const rowBuyButton = new MessageActionRow()
             .addComponents(
                 prevBtn,
