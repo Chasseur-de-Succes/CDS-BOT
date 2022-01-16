@@ -53,7 +53,7 @@ module.exports.run = async (client, message, args) => {
         return message.channel.send({ embeds: [embedHelp] });
         
     } else { // argument non valide
-        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.SHOP.name} help\``);
+        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.ECONOMY.SHOP.name} help\``);
     }
 
     const NB_PAR_PAGES = 10;
