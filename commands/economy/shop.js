@@ -3,9 +3,8 @@ const { YELLOW, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { PREFIX, MONEY, CHANNEL } = require('../../config.js');
-const { Game, GameItem } = require('../../models');
-const mongoose = require("mongoose");
 const moment = require('moment');
+const game = require('../../models/game');
 
 module.exports.run = async (client, message, args) => {
     // TODO ajouter dans Game, un rang défini par admin ?
@@ -15,19 +14,29 @@ module.exports.run = async (client, message, args) => {
     let isArgNum = /^\d+$/.test(args[0]);
     if (!args[0]) { // 0 args : shop
         list()
-    } else if(isArgNum) { // si 1er arg est un entier
+    } else if (isArgNum) { // si 1er arg est un entier, va à la page du shop
         // parse puis -1 car index commence à 0, et page commence à 1
         list(Number.parseInt(args[0]) - 1, true)
     } else if(args[0] == "list") { // liste "simplifiée" qui affiche que les jeux dispo ?
         listGames()
-    //} else if(args[0] == "buy") { // BUY (?)
-    //    message.channel.send('[boutique en construction] buy');
-    } else if (args[0] == "sell") {
+    } else if (args[0] == "sell") { // vente d'un jeu
         const montant = !!parseInt(args[1]) ? parseInt(args[1]) : null;
         // recup le reste des arguments : nom du jeu
         const gameName = args.slice(2).join(' ');
         sellGame(montant, gameName);
-    } else if (args[0] == "help") {
+    } else if (args[0] == 'admin') { // partie admin (annulation, remboursement, etc)
+        // remboursement (vente 'done', need id), annulation (need id), suppr (need id)
+        if (args[1] == 'cancel') {
+            // annule une transaction en cours
+            cancel(args[2]);
+        } else if (args[1] == 'refund') {
+            refund(args[2]);
+        } else if (args[1] == 'delete') {
+            deleteItem(args[2]);
+        } else {
+            return message.channel.send(`Argument non valide, \`cancel <id>\`, \`refund <id>\` ou \`delete <id>\``);
+        }
+    } else if (args[0] == "help") { // aide lol
         const embedHelp = new MessageEmbed()
             .setColor(YELLOW)
             .setTitle(`💰 BOUTIQUE - AIDE 💰`)
@@ -60,7 +69,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             .setDescription(`Liste des jeux disponibles à l'achat.`)
-            .setFooter(`Vous avez ${0} ${MONEY}`);
+            .setFooter(`💵 ${0} ${MONEY}`);
         
         let rows = [];
         // row pagination
@@ -123,7 +132,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE 💰')
             .setDescription(`Que souhaitez-vous acheter ${message.author} ?`)
-            .setFooter(`Vous avez ${userDB.money} ${MONEY}`);
+            .setFooter(`💵 ${userDB.money} ${MONEY}`);
 
         let rows = [];
         let row = new MessageActionRow();
@@ -280,7 +289,7 @@ module.exports.run = async (client, message, args) => {
                             ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
 
                             *En cas de problème, n'hésitez pas à contacter un **admin***.`)
-                        .setFooter(`Vous avez maintenant ${userDB.money - items.items[0].montant} ${MONEY}`);
+                        .setFooter(`💵 ${userDB.money - items.items[0].montant} ${MONEY}`);
                     
                     // maj du msg, en enlevant boutons actions
                     await interaction.update({ 
@@ -307,7 +316,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             //.setDescription(`Liste des jeux disponibles à l'achat.`)
-            .setFooter(`Vous avez ${money} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}`)
+            .setFooter(`💵 ${money} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}`)
 
         // on limite le nb de jeu affichable (car embed à une limite de caracteres)
         // de 0 à 10, puis de 10 à 20, etc
@@ -355,7 +364,7 @@ module.exports.run = async (client, message, args) => {
             embed.setThumbnail(gameUrlHeader)
                 .setDescription(`**${game.name}**
                                 ${links}`)
-                .setFooter(`Vous avez ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`);
+                .setFooter(`💵 ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length} | `);
             
             let nbItem = 0;
             const nbMax = 5;
@@ -408,7 +417,7 @@ module.exports.run = async (client, message, args) => {
             lastBuy: Date.now()
         });
         // log 'Acheteur perd montant MONEY a cause vente'
-        sendLogs(`Argent perdu`, `${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**`);
+        sendLogs(`Argent perdu`, `${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**`, `ID vente : ${item._id}`);
 
         // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
         await client.update(item, { 
@@ -446,7 +455,7 @@ module.exports.run = async (client, message, args) => {
         await client.update(item, { state: 'pending - key demandée' });
         // log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' 
         sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
-                                            2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`);
+                                            2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`, `ID vente : ${item._id}`);
 
         // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
         let filter = m => { return m.user.id === vendeur.user.id }
@@ -483,7 +492,7 @@ module.exports.run = async (client, message, args) => {
         // log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur'
         sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                             ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
-                                             3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`);
+                                             3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`, `ID vente : ${item._id}`);
 
         MPembed.setDescription(`${message.author} vous a acheté ***${game.name}*** !
             
@@ -546,13 +555,13 @@ module.exports.run = async (client, message, args) => {
         sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                             ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
                                             ~~3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation~~
-                                            4️⃣ ${message.author} a confirmé la réception ! C'est terminé !`);
+                                            4️⃣ ${message.author} a confirmé la réception ! C'est terminé !`, `ID vente : ${item._id}`);
 
         // ajoute montant du jeu au porte-monnaie du vendeur
         vendeurDB.money += item.montant;
         await client.update(vendeurDB, { money: vendeurDB.money });
         // log 'Vendeur reçoit montant MONEY grâce vente'
-        sendLogs(`Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`);
+        sendLogs(`Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`);
 
         // msg pour vendeur 
         MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
@@ -652,7 +661,7 @@ module.exports.run = async (client, message, args) => {
             game: game,
             seller: userDB
         }
-        client.createGameItemShop(item);
+        let itemDB = await client.createGameItemShop(item);
 
         embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
             .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
@@ -660,7 +669,96 @@ module.exports.run = async (client, message, args) => {
         msgEmbed.edit({ embeds: [embed], components: [] })
 
         // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
-        sendLogs(`Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`);
+        sendLogs(`Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`);
+    }
+
+    /* ADMIN */
+    async function cancel(id) {
+        if (!id) sendError(`Commande non valide, veuillez renseigner l'id de la vente à annulé (cf #logs), \`cancel <id>\``);
+
+        let gameItem;
+        try {
+            gameItem = await client.findGameItemShop({ _id: id });
+            if (gameItem.length === 0) throw `Non trouvée`;
+        } catch (error) {
+            return sendError(`Vente non trouvée`);
+        }
+        // on recup [0] car findGameItemShop retourne un array..
+        gameItem = gameItem[0];
+
+        // teste si state existe et si != 'done'
+        if (!gameItem.state) return sendError(`La vente n'a pas encore **commencée** ! Utiliser \`${PREFIX}shop admin delete <id>\``);
+        if (gameItem.state === 'done') return sendError(`La vente est déjà **terminée** ! Utiliser \`${PREFIX}shop admin refund <id>\``);
+
+        await client.update(gameItem, { $unset : { state : 1} } )
+        logger.info(`Annulation vente id ${id}`);
+        message.react(CHECK_MARK);
+        sendLogs(`Annulation vente`, `${message.author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`);
+    }
+
+    async function refund(id) {
+        if (!id) sendError(`Commande non valide, veuillez renseigner l'id de la vente à rembourser (cf #logs), \`refund <id>\``);
+        
+        let gameItem;
+        try {
+            gameItem = await client.findGameItemShop({ _id: id });
+            if (gameItem.length === 0) throw `Non trouvée`;
+        } catch (error) {
+            return sendError(`Vente non trouvée`);
+        }
+        // on recup [0] car findGameItemShop retourne un array..
+        gameItem = gameItem[0];
+
+        // teste si state existe et si == 'done'
+        if (!gameItem.state) return sendError(`La vente n'a pas encore **commencée** ! Utiliser \`${PREFIX}shop admin delete <id>\``);
+        if (gameItem.state !== 'done') return sendError(`La vente n'est pas encore **terminée** ! Utiliser \`${PREFIX}shop admin cancel <id>\``);
+
+        // maj statut item
+        await client.update(gameItem, { $unset : { state : 1, buyer: 1 } } )
+        // rembourse acheteur
+        try {
+            await client.update(gameItem.buyer, { money: gameItem.buyer.money + gameItem.montant })
+        } catch (error) {
+            return sendError(`Acheteur non trouvé ! Impossible de le rembourser.`);
+        }
+        // reprend argent au vendeur
+        try {
+            await client.update(gameItem.seller, { money: gameItem.seller.money - gameItem.montant })
+        } catch (error) {
+            return sendError(`Vendeur non trouvé ! Impossible de lui reprendre l'argent.`);
+        }
+
+        logger.info(`Remboursement vente id ${id}`);
+        message.react(CHECK_MARK);
+        sendLogs(`Annulation vente`, `${message.author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`);
+    }
+
+    async function deleteItem(id) {
+        if (!id) sendError(`Commande non valide, veuillez renseigner l'id de l'item à supprimer (cf #logs), \`delete <id>\``);
+        
+        let gameItem;
+        try {
+            gameItem = await client.findGameItemShop({ _id: id });
+            if (gameItem.length === 0) throw `Non trouvée`;
+        } catch (error) {
+            return sendError(`Vente non trouvée`);
+        }
+        // on recup [0] car findGameItemShop retourne un array..
+        gameItem = gameItem[0];
+        
+        // teste si state n'existe pas
+        if (gameItem.state) return sendError(`La vente ne doit pas être encore **commencée** ! Utiliser \`${PREFIX}shop admin cancel <id>\` ou \`${PREFIX}shop admin refund <id>\``);
+
+        // suppr item boutique
+        try {
+            await client.deleteGameItem(gameItem);
+        } catch (error) {
+            return sendError(`Item du shop non trouvé !`);
+        }
+
+        logger.info(`Suppression vente id ${id}`);
+        message.react(CHECK_MARK);
+        sendLogs(`Suppression vente`, `${message.author} a supprimé la vente de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`);
     }
 
     function sendError(msgError) {
@@ -671,12 +769,12 @@ module.exports.run = async (client, message, args) => {
         return message.channel.send({ embeds: [embedError] });
     }
 
-    function sendLogs(title, desc) {
+    function sendLogs(title, desc, footer = '') {
         const embedLog = new MessageEmbed()
             .setColor(YELLOW)
             .setTitle(`💰 ${title}`)
             .setDescription(desc)
-            .setFooter(``);
+            .setFooter(footer);
         client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
     }
 }

@@ -310,6 +310,16 @@ module.exports = client => {
         return g;
     };
 
+    /**
+     * Supprime un jeu du shop
+     * @param {Object} gameItem 
+     */
+     client.deleteGameItem = async gameItem => {
+        // TODO return ? callback ?
+        let item = await GameItem.deleteOne({ _id: gameItem._id })
+        logger.info({prefix:"[DB]", message:"Delete game item"});
+    }
+
     client.findGameItemShop = async query => {
         const data = await GameItem.find(query)
                                     .populate('game seller buyer');
