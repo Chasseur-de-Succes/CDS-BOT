@@ -27,8 +27,24 @@ module.exports.run = async (client, message, args) => {
         // recup le reste des arguments : nom du jeu
         const gameName = args.slice(2).join(' ');
         sellGame(montant, gameName);
+    } else if (args[0] == "help") {
+        const embedHelp = new MessageEmbed()
+            .setColor(YELLOW)
+            .setTitle(`💰 BOUTIQUE - AIDE 💰`)
+            .setDescription(`Ouvre la boutique pour acheter des jeux ou autres, ou même de vendre des jeux.`)
+            .addField("Commandes", `💸 \`${PREFIX}shop\`
+                > *Ouvre la boutique*
+                📃 \`${PREFIX}shop <numero page X>\`
+                > *Ouvre la boutique **des jeux** à la page X, si elle existe*
+                🔢 \`${PREFIX}shop list\`
+                > *Liste tous les jeux actuellement en vente, avec leur numéro de page*
+                💰 \`${PREFIX}shop sell <montant> <jeu>\`
+                > *Met en vente un jeu, au prix du montant mentionné*`);
+    
+        return message.channel.send({ embeds: [embedHelp] });
+        
     } else { // argument non valide
-        message.channel.send('[boutique en construction] utilisation erronée');
+        return message.channel.send(`Commande non valide, référez-vous à la commande d'aide : \`${PREFIX}${MESSAGES.COMMANDS.CDS.SHOP.name} help\``);
     }
 
     const NB_PAR_PAGES = 10;

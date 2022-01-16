@@ -157,7 +157,7 @@ const MESSAGES = {
                 category: "economy",
                 cooldown: 0,
                 description: "Affiche la boutique",
-                usage: '[buy] [quantité] [item]'
+                usage: ""
             }
         },
         MODERATION: {
