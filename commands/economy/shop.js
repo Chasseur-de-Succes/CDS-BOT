@@ -5,6 +5,7 @@ const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = req
 const { PREFIX, MONEY, CHANNEL } = require('../../config.js');
 const moment = require('moment');
 const game = require('../../models/game');
+const { sendError } = require('../../util/error');
 
 module.exports.run = async (client, message, args) => {
     // TODO ajouter dans Game, un rang défini par admin ?
@@ -62,7 +63,7 @@ module.exports.run = async (client, message, args) => {
         let author = message.author;
         let userDB = await client.getUser(author);
         if (!userDB)
-            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+            return sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``, 'shop list');
         
         const items = await client.findGameItemShopByGame();
         let embed = new MessageEmbed()
@@ -131,7 +132,7 @@ module.exports.run = async (client, message, args) => {
         let author = message.author;
         let userDB = await client.getUser(author);
         if (!userDB)
-            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+            return sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``, 'shop');
 
         // choix parmis type item 
         let embed = new MessageEmbed()
@@ -205,11 +206,11 @@ module.exports.run = async (client, message, args) => {
         
         const max = infos.items?.length ?? 0;
         // si 0 item dispo
-        if (btnId === '0' && max === 0) return sendError(`Désolé, aucun item n'est actuellement en vente !`);
+        if (btnId === '0' && max === 0) return sendError(message, `Désolé, aucun item n'est actuellement en vente !`, 'shop');
         
         // teste si index nbPages existe
         if (nbPage < 0 || nbPage > max)
-            return sendError(`Oh la, il n'y a pas autant de pages que ça !`);
+            return sendError(message, `Oh la, il n'y a pas autant de pages que ça !`, 'shop');
         let currentIndex = nbPage;
 
         // row pagination
@@ -276,7 +277,7 @@ module.exports.run = async (client, message, args) => {
                     // empeche l'achat de son propre jeu
                     if (items.items[0].seller.userId === userDB.userId) {
                         interaction.deferUpdate();
-                        return sendError(`Tu ne peux pas acheter ton propre jeu !`);
+                        return sendError(message, `Tu ne peux pas acheter ton propre jeu !`, 'shop');
                     }
 
                     // empeche l'achat si - de 2j
@@ -284,7 +285,7 @@ module.exports.run = async (client, message, args) => {
                     if (userDB.lastBuy && nbDiffDays <= 2) {
                         interaction.deferUpdate();
                         collector.stop();
-                        return sendError(`Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !`);
+                        return sendError(message, `Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !`, 'shop');
                     }
 
                     // ACHETE !
@@ -588,13 +589,13 @@ module.exports.run = async (client, message, args) => {
         let author = message.author;
         let userDB = await client.getUser(author);
         if (!userDB)
-            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+            return sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``, 'shop sell');
 
         if (!montant || !gameName)
-            return sendError(`\`${PREFIX}shop sell <montant> <nom du jeu>\``);
+            return sendError(message, `\`${PREFIX}shop sell <montant> <nom du jeu>\``, 'shop sell');
 
         if (montant < 0)
-            return sendError(`\`${PREFIX}shop sell <montant> <nom du jeu>\``);
+            return sendError(message, `\`${PREFIX}shop sell <montant> <nom du jeu>\``, 'shop sell');
         // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
         // - recherche du jeu
@@ -612,8 +613,8 @@ module.exports.run = async (client, message, args) => {
         msgLoading.delete();
 
         logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-        if (!games) return sendError('Erreur lors de la recherche du jeu');
-        if (games.length === 0) return sendError(`Pas de résultat trouvé pour **${gameName}** !`);
+        if (!games) return sendError(message, 'Erreur lors de la recherche du jeu', 'shop sell');
+        if (games.length === 0) return sendError(message, `Pas de résultat trouvé pour **${gameName}** !`, 'shop sell');
 
         // values pour Select Menu
         let items = [];
@@ -628,7 +629,7 @@ module.exports.run = async (client, message, args) => {
             }
         }
         // SELECT n'accepte que 25 max
-        if (items.length > 25) return sendError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`);
+        if (items.length > 25) return sendError(message, `Trop de jeux trouvés ! Essaie d'être plus précis stp.`, 'shop sell');
 
         // row contenant le Select menu
         const row = new MessageActionRow()
@@ -683,21 +684,21 @@ module.exports.run = async (client, message, args) => {
 
     /* ADMIN */
     async function cancel(id) {
-        if (!id) sendError(`Commande non valide, veuillez renseigner l'id de la vente à annulé (cf #logs), \`cancel <id>\``);
+        if (!id) sendError(message, `Commande non valide, veuillez renseigner l'id de la vente à annulé (cf #logs), \`cancel <id>\``, 'shop admin cancel');
 
         let gameItem;
         try {
             gameItem = await client.findGameItemShop({ _id: id });
             if (gameItem.length === 0) throw `Non trouvée`;
         } catch (error) {
-            return sendError(`Vente non trouvée`);
+            return sendError(message, `Vente non trouvée`, 'shop admin cancel');
         }
         // on recup [0] car findGameItemShop retourne un array..
         gameItem = gameItem[0];
 
         // teste si state existe et si != 'done'
-        if (!gameItem.state) return sendError(`La vente n'a pas encore **commencée** ! Utiliser \`${PREFIX}shop admin delete <id>\``);
-        if (gameItem.state === 'done') return sendError(`La vente est déjà **terminée** ! Utiliser \`${PREFIX}shop admin refund <id>\``);
+        if (!gameItem.state) return sendError(message, `La vente n'a pas encore **commencée** ! Utiliser \`${PREFIX}shop admin delete <id>\``, 'shop admin cancel');
+        if (gameItem.state === 'done') return sendError(message, `La vente est déjà **terminée** ! Utiliser \`${PREFIX}shop admin refund <id>\``, 'shop admin cancel');
 
         await client.update(gameItem, { $unset : { state : 1} } )
         logger.info(`Annulation vente id ${id}`);
@@ -706,21 +707,21 @@ module.exports.run = async (client, message, args) => {
     }
 
     async function refund(id) {
-        if (!id) sendError(`Commande non valide, veuillez renseigner l'id de la vente à rembourser (cf #logs), \`refund <id>\``);
+        if (!id) sendError(message, `Commande non valide, veuillez renseigner l'id de la vente à rembourser (cf #logs), \`refund <id>\``, 'shop admin refund');
         
         let gameItem;
         try {
             gameItem = await client.findGameItemShop({ _id: id });
             if (gameItem.length === 0) throw `Non trouvée`;
         } catch (error) {
-            return sendError(`Vente non trouvée`);
+            return sendError(message, `Vente non trouvée`, 'shop admin refund');
         }
         // on recup [0] car findGameItemShop retourne un array..
         gameItem = gameItem[0];
 
         // teste si state existe et si == 'done'
-        if (!gameItem.state) return sendError(`La vente n'a pas encore **commencée** ! Utiliser \`${PREFIX}shop admin delete <id>\``);
-        if (gameItem.state !== 'done') return sendError(`La vente n'est pas encore **terminée** ! Utiliser \`${PREFIX}shop admin cancel <id>\``);
+        if (!gameItem.state) return sendError(message, `La vente n'a pas encore **commencée** ! Utiliser \`${PREFIX}shop admin delete <id>\``, 'shop admin refund');
+        if (gameItem.state !== 'done') return sendError(message, `La vente n'est pas encore **terminée** ! Utiliser \`${PREFIX}shop admin cancel <id>\``, 'shop admin refund');
 
         // maj statut item
         await client.update(gameItem, { $unset : { state : 1, buyer: 1 } } )
@@ -728,13 +729,13 @@ module.exports.run = async (client, message, args) => {
         try {
             await client.update(gameItem.buyer, { money: gameItem.buyer.money + gameItem.montant })
         } catch (error) {
-            return sendError(`Acheteur non trouvé ! Impossible de le rembourser.`);
+            return sendError(message, `Acheteur non trouvé ! Impossible de le rembourser.`, 'shop admin refund');
         }
         // reprend argent au vendeur
         try {
             await client.update(gameItem.seller, { money: gameItem.seller.money - gameItem.montant })
         } catch (error) {
-            return sendError(`Vendeur non trouvé ! Impossible de lui reprendre l'argent.`);
+            return sendError(message, `Vendeur non trouvé ! Impossible de lui reprendre l'argent.`, 'shop admin refund');
         }
 
         logger.info(`Remboursement vente id ${id}`);
@@ -743,39 +744,31 @@ module.exports.run = async (client, message, args) => {
     }
 
     async function deleteItem(id) {
-        if (!id) sendError(`Commande non valide, veuillez renseigner l'id de l'item à supprimer (cf #logs), \`delete <id>\``);
+        if (!id) sendError(message, `Commande non valide, veuillez renseigner l'id de l'item à supprimer (cf #logs), \`delete <id>\``, 'shop admin refund');
         
         let gameItem;
         try {
             gameItem = await client.findGameItemShop({ _id: id });
             if (gameItem.length === 0) throw `Non trouvée`;
         } catch (error) {
-            return sendError(`Vente non trouvée`);
+            return sendError(message, `Vente non trouvée`, 'shop admin refund');
         }
         // on recup [0] car findGameItemShop retourne un array..
         gameItem = gameItem[0];
         
         // teste si state n'existe pas
-        if (gameItem.state) return sendError(`La vente ne doit pas être encore **commencée** ! Utiliser \`${PREFIX}shop admin cancel <id>\` ou \`${PREFIX}shop admin refund <id>\``);
+        if (gameItem.state) return sendError(message, `La vente ne doit pas être encore **commencée** ! Utiliser \`${PREFIX}shop admin cancel <id>\` ou \`${PREFIX}shop admin refund <id>\``, 'shop admin refund');
 
         // suppr item boutique
         try {
             await client.deleteGameItem(gameItem);
         } catch (error) {
-            return sendError(`Item du shop non trouvé !`);
+            return sendError(message, `Item du shop non trouvé !`, 'shop admin refund');
         }
 
         logger.info(`Suppression vente id ${id}`);
         message.react(CHECK_MARK);
         sendLogs(`Suppression vente`, `${message.author} a supprimé la vente de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`);
-    }
-
-    function sendError(msgError) {
-        let embedError = new MessageEmbed()
-            .setColor(DARK_RED)
-            .setDescription(`${CROSS_MARK} • ${msgError}`);
-        logger.error(`Erreur shop ${msgError}`);
-        return message.channel.send({ embeds: [embedError] });
     }
 
     function sendLogs(title, desc, footer = '') {
