@@ -9,7 +9,7 @@ const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGrou
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 const { listenerCount } = require('npmlog');
 const { create } = require('../../models/user');
-const { sendError } = require('../../util/envoiMsg');
+const { sendError, sendLogs } = require('../../util/envoiMsg');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
@@ -623,12 +623,8 @@ module.exports.dissolve = async (client, message, grpName, isAdmin = false) => {
     await deleteMsgHubGroup(client, grp);
     
     // envoi dans channel log
-    const embedLog = new MessageEmbed()
-        .setColor(DARK_RED)
-        .setTitle(`${WARNING} Dissolution d'un groupe`)
-        .setDescription(`Le groupe **${grpName}** a été dissout.
-                        Membres concernés : ${mentionsUsers}`);
-    client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
+    sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
+                                                            Membres concernés : ${mentionsUsers}`);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;
