@@ -30,6 +30,29 @@ function sendEmbedGroupInfo(message, group, toDM = false) {
         message.channel.send({ embeds: [newMsgEmbed] });
 }
 
+async function sendListGroup(client, message, groupes, title) {
+    let urls = [], games = [], infos = []
+    for (const group of groupes) {
+        const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg)
+        const captain = await message.guild.members.fetch(group.captain.userId);
+        let isAuthorCaptain = message.author === captain.user;
+        const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
+        // TODO limite embed
+        urls.push(`[🔗 Message](${msg.url})`);
+        games.push(`${isAuthorCaptain ? '👑' : ''} ${group.name} - **${group.game.name}**`)
+        infos.push(`[${group.size}/${group.nbMax}] - ${dateEvent}`)
+    }
+
+    let embedSearch = new MessageEmbed()
+        .setTitle(title)
+        .addFields(
+            { name: 'Lien', value: urls.join('\n'), inline: true },
+            { name: 'Nom groupe - Jeux', value: games.join('\n'), inline: true },
+            { name: 'Membre(s) - Date prévue', value: infos.join('\n'), inline: true }
+        );
+    await message.channel.send({ embeds: [embedSearch] });
+}
+
 module.exports.run = async (client, message, args) => {
     if(!args[0]) {
         return message.channel.send(`Pour afficher l'aide de la commande: \`${PREFIX}${MESSAGES.COMMANDS.CDS.GROUP.name} help\``);
@@ -128,10 +151,7 @@ module.exports.run = async (client, message, args) => {
         if (groupes?.length === 0) 
             return sendError(message, `Aucun groupe n'est disponible pour ce jeu`, 'group search');
         else {
-            for (const group of groupes) {
-                // TODO envoyer plutot le lien des messages ?
-                sendEmbedGroupInfo(message, group)
-            }
+            sendListGroup(client, message, groupes, `Recherche pour *${gameName}*`);
         }
     }
 
@@ -149,13 +169,14 @@ module.exports.run = async (client, message, args) => {
         let groups = await client.findGroupByUser(userDB);
 
         if (groups?.length > 0) {
-            author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
+            sendListGroup(client, message, groups, `Liste groupes de *${author}*`);
+            /* author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
             for (const group of groups) {
                 sendEmbedGroupInfo(message, group, true);
 
                 // petite reaction sur le message original pour dire que c'est ok
                 message.react(CHECK_MARK);
-            }
+            } */
         } else 
             return sendError(message, `Tu n'appartiens à aucun groupe.`, 'group list');
     }
