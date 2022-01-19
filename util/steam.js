@@ -48,6 +48,8 @@ module.exports = client => {
     *    ]
     */
     client.getAppList = async (lastappid = 0) => {
+        // TODO passer à v2 https://stackoverflow.com/questions/46330864/steam-api-all-games 
+        // https://steamapi.xpaw.me/#IStoreService/GetAppList
         const response = await superagent.get('https://api.steampowered.com/IStoreService/GetAppList/v1/?')
                 .query({
                     key: STEAM_API_KEY,

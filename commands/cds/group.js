@@ -1,10 +1,10 @@
-const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageSelectMenu, Permissions } = require('discord.js');
 const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX, CHANNEL } = require('../../config.js');
 const moment = require('moment');
 
 const { NIGHT, DARK_RED } = require("../../data/colors.json");
-const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
+const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 const { listenerCount } = require('npmlog');
@@ -64,7 +64,7 @@ module.exports.run = async (client, message, args) => {
     }
     else if(args[0] == "dissolve" || args[0] == "disolve") { // DISSOUT LE GROUPE SI IL EST CAPITAINE
         const grpName = args[1];
-        dissolve(grpName);
+        this.dissolve(client, message, grpName);
     }
     else if(args[0] == "transfert") { // TRANSFERT LE STATUT CAPITAINE A UN AUTRE MEMBRE DU GROUPE (VERIFIER S'IL EST CAPITAINE)
         const grpName = args[1];
@@ -452,49 +452,6 @@ module.exports.run = async (client, message, args) => {
     }
 
     /**
-     * Dissoud un groupe, en prévenant tous les membres
-     * Seul le capitaine peut dissoudre son groupe
-     * @param {*} grpName Nom du groupe
-     * @returns 
-     */
-    async function dissolve(grpName) {
-        if (!grpName) 
-            return sendError(`Il manque le nom du groupe !`);
-        
-        // test si user register
-        let userDB = await client.getUser(message.author);
-        if (!userDB)
-            return sendError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
-
-        // recup le groupe
-        let grp = await client.findGroupByName(grpName);
-        if (!grp) 
-            return sendError(`Le groupe ${grpName} n'existe pas !`);
-
-        // si l'author n'est pas capitaine 
-        if (!grp.captain._id.equals(userDB._id))
-            return sendError(`Tu n'es pas capitaine du groupe ${grpName} !`);
-        
-        // delete rappel
-        deleteRappelJob(client, grp);
-
-        // suppr groupe
-        // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
-        await client.deleteGroup(grp);
-        logger.info(message.author.tag+" a dissout le groupe "+grpName);
-
-        let mentionsUsers = '';
-        for (const member of grp.members)
-            mentionsUsers += `<@${member.userId}> `
-        
-        mentionsUsers += ` : le groupe ${grpName} a été dissout.`
-        message.channel.send(mentionsUsers);
-
-        // update msg
-        await deleteMsgHubGroup(client, grp);
-    }
-
-    /**
      * Transfert le role de capitaine de groupe à un autre membre de ce même groupe
      * Seul le capitaine peut transférer le rôle
      * @param {*} grpName Nom du groupe
@@ -637,6 +594,67 @@ module.exports.run = async (client, message, args) => {
         logger.error("Erreur group : "+msgError);
         return message.channel.send({ embeds: [embedError] });
     }
+}
+
+module.exports.sendError = (message, text) => {
+    let embedError = new MessageEmbed()
+        .setColor(DARK_RED)
+        .setDescription(`${CROSS_MARK} • ${text}`);
+    logger.error("Erreur group : "+text);
+    return message.channel.send({ embeds: [embedError] });
+}
+/**
+ * Dissoud un groupe, en prévenant tous les membres
+ * Seul le capitaine peut dissoudre son groupe
+ * @param {*} grpName Nom du groupe
+ * @returns 
+ */
+module.exports.dissolve = async (client, message, grpName, isAdmin = false) => {
+    // -- test si user a le droit de gérer les messages (mode admin)
+    if (isAdmin && !message.member.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) 
+        return this.sendError(message, `Interdiction.`);
+
+    if (!grpName) 
+        return this.sendError(message, `Il manque le nom du groupe !`);
+    
+    // test si user register
+    let userDB = await client.getUser(message.author);
+    if (!userDB)
+        return this.sendError(message, `Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``);
+
+    // recup le groupe
+    let grp = await client.findGroupByName(grpName);
+    if (!grp) 
+        return this.sendError(message, `Le groupe **${grpName}** n'existe pas !`);
+
+    // si l'author n'est pas capitaine (mode non admin)
+    if (!isAdmin && !grp.captain._id.equals(userDB._id))
+        return this.sendError(message, `Tu n'es pas capitaine du groupe **${grpName}** !`);
+    
+    // delete rappel
+    deleteRappelJob(client, grp);
+
+    // suppr groupe
+    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
+    await client.deleteGroup(grp);
+    logger.info(message.author.tag+" a dissout le groupe "+grpName);
+
+    let mentionsUsers = '';
+    for (const member of grp.members)
+        mentionsUsers += `<@${member.userId}> `
+    
+    message.channel.send(mentionsUsers + ` : le groupe **${grpName}** a été dissout.`);
+
+    // update msg
+    await deleteMsgHubGroup(client, grp);
+    
+    // envoi dans channel log
+    const embedLog = new MessageEmbed()
+        .setColor(DARK_RED)
+        .setTitle(`${WARNING} Dissolution d'un groupe`)
+        .setDescription(`Le groupe **${grpName}** a été dissout.
+                        Membres concernés : ${mentionsUsers}`);
+    client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

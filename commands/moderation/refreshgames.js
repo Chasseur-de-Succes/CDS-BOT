@@ -15,9 +15,11 @@ module.exports.run = async (client, message, args) => {
 
     let msgProgress = await message.channel.send(`Ok c'est parti ! Récupération de tous les jeux..`);
 
+    // TODO certains jeux passe entre les mailles du filet (ceux qui ont un appid < au max)
     // TODO comment faire pour les jeux qui sont enlevés du store ?
     // recupe depuis l'appid XXX
-    const maxAppid = await client.findMaxAppId();
+    // 1158160
+    const maxAppid = !args[0] ? await client.findMaxAppId() : args[0];
     client.getAppList(maxAppid)
     .then(async appList => {
         let games = appList.body.response.apps;
@@ -35,8 +37,8 @@ module.exports.run = async (client, message, args) => {
                 if (game?.appid) {
                     let gameDB = await client.findGameByAppid(game.appid);
                     // si game existe déjà en base, on skip // TODO a enlever car ~50K game..
-                    if (gameDB?.length > 0) {
-                        logger.debug("GAME " + game.appid + " trouvé !");
+                    if (gameDB) {
+                        // logger.debug("GAME " + game.appid + " trouvé !");
                     } else {
                         // on recup les tags du jeu courant
                         try {

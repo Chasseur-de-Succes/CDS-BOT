@@ -78,7 +78,7 @@ module.exports = client => {
      */
     client.deleteGroup = async group => {
         // TODO return ? callback ?
-        Group.deleteOne({ _id: group._id }).then(grp => logger.info({prefix:"[DB]", message:"Delete groupe : " + groupe.name}));
+        Group.deleteOne({ _id: group._id }).then(grp => logger.info({prefix:"[DB]", message:"Delete groupe : " + group.name}));
     }
 
     /**

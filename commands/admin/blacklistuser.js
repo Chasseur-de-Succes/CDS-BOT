@@ -21,7 +21,7 @@ module.exports.run = async (client, message, args) => {
         // maj attribut blacklisted
         let user = await client.findUserById(memberToBlacklistId);
         if (!user) {
-            // TODO on créé l'user pour pouvoir le blacklisté
+            // on créé l'user pour pouvoir le blacklisté
             logger.warn(".. utilisateur non enregistré, on l'enregistre pour pouvoir le blacklister");
             
             user = await client.createUser({
@@ -44,7 +44,7 @@ module.exports.run = async (client, message, args) => {
         const embedError = new MessageEmbed()
             .setColor(DARK_RED)
             .setTitle(`${CROSS_MARK} ${err}`);
-        logger.error("Erreur leavegroup " + args[0] + ":" + err);
+        logger.error("Erreur blacklistuser " + args[0] + ":" + err);
         return message.channel.send({ embeds: [embedError] });
     }
 }
