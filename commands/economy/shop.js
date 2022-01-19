@@ -4,8 +4,7 @@ const { CHECK_MARK, CROSS_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { PREFIX, MONEY, CHANNEL } = require('../../config.js');
 const moment = require('moment');
-const game = require('../../models/game');
-const { sendError } = require('../../util/error');
+const { sendError, sendLogs } = require('../../util/envoiMsg');
 
 module.exports.run = async (client, message, args) => {
     // TODO ajouter dans Game, un rang défini par admin ?
@@ -209,7 +208,7 @@ module.exports.run = async (client, message, args) => {
         if (btnId === '0' && max === 0) return sendError(message, `Désolé, aucun item n'est actuellement en vente !`, 'shop');
         
         // teste si index nbPages existe
-        if (nbPage < 0 || nbPage > max)
+        if (nbPage < 0 || nbPage >= max)
             return sendError(message, `Oh la, il n'y a pas autant de pages que ça !`, 'shop');
         let currentIndex = nbPage;
 
@@ -374,7 +373,7 @@ module.exports.run = async (client, message, args) => {
             embed.setThumbnail(gameUrlHeader)
                 .setDescription(`**${game.name}**
                                 ${links}`)
-                .setFooter(`💵 ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length} | `);
+                .setFooter(`💵 ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`);
             
             let nbItem = 0;
             const nbMax = 5;
@@ -427,7 +426,7 @@ module.exports.run = async (client, message, args) => {
             lastBuy: Date.now()
         });
         // log 'Acheteur perd montant MONEY a cause vente'
-        sendLogs(`Argent perdu`, `${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**`, `ID vente : ${item._id}`);
+        sendLogs(client, `Argent perdu`, `${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**`, `ID vente : ${item._id}`, YELLOW);
 
         // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
         await client.update(item, { 
@@ -464,8 +463,8 @@ module.exports.run = async (client, message, args) => {
         // maj state
         await client.update(item, { state: 'pending - key demandée' });
         // log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' 
-        sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
-                                            2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`, `ID vente : ${item._id}`);
+        sendLogs(client, `Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+                                            2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`, `ID vente : ${item._id}`, YELLOW);
 
         // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
         let filter = m => { return m.user.id === vendeur.user.id }
@@ -500,9 +499,9 @@ module.exports.run = async (client, message, args) => {
         // maj state
         await client.update(item, { state: 'pending - key recup' });
         // log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur'
-        sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+        sendLogs(client, `Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                             ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
-                                             3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`, `ID vente : ${item._id}`);
+                                             3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`, `ID vente : ${item._id}`, YELLOW);
 
         MPembed.setDescription(`${message.author} vous a acheté ***${game.name}*** !
             
@@ -562,16 +561,16 @@ module.exports.run = async (client, message, args) => {
         // maj state
         await client.update(item, { state: 'done' });
         // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
-        sendLogs(`Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+        sendLogs(client, `Achat jeu dans le shop`, `~~1️⃣ ${message.author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                             ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
                                             ~~3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation~~
-                                            4️⃣ ${message.author} a confirmé la réception ! C'est terminé !`, `ID vente : ${item._id}`);
+                                            4️⃣ ${message.author} a confirmé la réception ! C'est terminé !`, `ID vente : ${item._id}`, YELLOW);
 
         // ajoute montant du jeu au porte-monnaie du vendeur
         vendeurDB.money += item.montant;
         await client.update(vendeurDB, { money: vendeurDB.money });
         // log 'Vendeur reçoit montant MONEY grâce vente'
-        sendLogs(`Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`);
+        sendLogs(client, `Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`, YELLOW);
 
         // msg pour vendeur 
         MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
@@ -679,7 +678,7 @@ module.exports.run = async (client, message, args) => {
         msgEmbed.edit({ embeds: [embed], components: [] })
 
         // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
-        sendLogs(`Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`);
+        sendLogs(client, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);
     }
 
     /* ADMIN */
@@ -703,7 +702,7 @@ module.exports.run = async (client, message, args) => {
         await client.update(gameItem, { $unset : { state : 1} } )
         logger.info(`Annulation vente id ${id}`);
         message.react(CHECK_MARK);
-        sendLogs(`Annulation vente`, `${message.author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`);
+        sendLogs(client, `Annulation vente`, `${message.author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
     }
 
     async function refund(id) {
@@ -740,7 +739,7 @@ module.exports.run = async (client, message, args) => {
 
         logger.info(`Remboursement vente id ${id}`);
         message.react(CHECK_MARK);
-        sendLogs(`Annulation vente`, `${message.author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`);
+        sendLogs(client, `Annulation vente`, `${message.author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
     }
 
     async function deleteItem(id) {
@@ -768,16 +767,7 @@ module.exports.run = async (client, message, args) => {
 
         logger.info(`Suppression vente id ${id}`);
         message.react(CHECK_MARK);
-        sendLogs(`Suppression vente`, `${message.author} a supprimé la vente de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`);
-    }
-
-    function sendLogs(title, desc, footer = '') {
-        const embedLog = new MessageEmbed()
-            .setColor(YELLOW)
-            .setTitle(`💰 ${title}`)
-            .setDescription(desc)
-            .setFooter(footer);
-        client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
+        sendLogs(client, `Suppression vente`, `${message.author} a supprimé la vente de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
     }
 }
 

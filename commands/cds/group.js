@@ -9,7 +9,7 @@ const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGrou
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 const { listenerCount } = require('npmlog');
 const { create } = require('../../models/user');
-const { sendError } = require('../../util/error');
+const { sendError } = require('../../util/envoiMsg');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
