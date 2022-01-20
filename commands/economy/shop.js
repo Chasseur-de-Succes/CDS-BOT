@@ -8,7 +8,6 @@ const { sendError, sendLogs } = require('../../util/envoiMsg');
 
 module.exports.run = async (client, message, args) => {
     // TODO ajouter dans Game, un rang défini par admin ?
-    // TODO gestion admin !
 
     // regex pour test si arg0 est un entier
     let isArgNum = /^\d+$/.test(args[0]);

@@ -18,7 +18,7 @@ module.exports = async (client, msg) => {
     // Vérification du channel
     const dbGuild = await client.findGuildById(msg.guildId);
     const whitelistList = dbGuild.whitelistChannel;
-    if(whitelistList.length != 0) {
+    if (whitelistList.length != 0) {
         const category = command.help.category;
         if (!(category == 'admin' || category == 'moderation')) {
             const guildConf = await client.findGuildConfig({ whitelistChannel: msg.channelId });

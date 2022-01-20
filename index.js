@@ -1,6 +1,6 @@
 const { Client, Intents, Collection } = require('discord.js');
 const {TOKEN, PREFIX} = require('./config.js');
-const { loadCommands, loadEvents, loadBatch, loadReactionGroup } = require('./util/loader');
+const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands } = require('./util/loader');
 const axios = require('axios');
 const winston = require("winston");
 global.logger = winston.createLogger({
@@ -56,6 +56,7 @@ client.login(TOKEN).then(c => {
 })
 
 client.on('ready', () => {
+  loadSlashCommands(client);
     console.log(`
   oooooooo8 ooooooooo    oooooooo8       oooooooooo    ooooooo   ooooooooooo 
 o888     88  888    88o 888               888    888 o888   888o 88  888  88 

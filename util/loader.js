@@ -1,5 +1,6 @@
+const { DiscordAPIError, Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { CHANNEL } = require('../config');
+const { CHANNEL, GUILD_ID } = require('../config');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 
@@ -15,6 +16,30 @@ const loadCommands = (client, dir = "./commands/") => {
         };
     });
 };
+
+const loadSlashCommands = async (client, dir = "./slash_commands/") => {
+    client.slashCommands = new Collection();
+    readdirSync(dir).forEach(dirs => {
+        const commands = readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"));
+
+        for (const file of commands) {
+            const getFileName = require(`../${dir}/${dirs}/${file}`);
+            client.slashCommands.set(getFileName.help.name, getFileName);
+            logger.info("Slash commande chargée " + getFileName.help.name);
+        };
+    });
+
+    // Add our slash commands
+    const data = client.slashCommands.map(c => ({
+      name: c.help.name,
+      description: c.help.description,
+      //options: c.args,
+      //defaultPermission: (!c.userperms || c.userperms?.length == 0),
+    }));
+    // Update the current list of commands for this guild
+    const guild = await client.guilds.fetch(GUILD_ID);
+    await guild.commands.set(data);
+}
 
 // Charge les événements
 const loadEvents = (client, dir = "./events/") => {
@@ -68,4 +93,5 @@ module.exports = {
     loadEvents,
     loadBatch,
     loadReactionGroup,
+    loadSlashCommands
 }

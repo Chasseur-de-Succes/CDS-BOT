@@ -16,6 +16,7 @@ module.exports.run = async (client, message, args) => {
     let msgProgress = await message.channel.send(`Ok c'est parti ! Récupération de tous les jeux..`);
 
     // TODO certains jeux passe entre les mailles du filet (ceux qui ont un appid < au max)
+    // => refaire depuis le début, avec pagination (une fois les 50000 fait, next page depuis le dernier id)
     // TODO comment faire pour les jeux qui sont enlevés du store ?
     // recupe depuis l'appid XXX
     // 1158160

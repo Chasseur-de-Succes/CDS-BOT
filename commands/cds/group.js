@@ -45,6 +45,7 @@ async function sendListGroup(client, message, groupes, title) {
 
     let embedSearch = new MessageEmbed()
         .setTitle(title)
+        .setDescription('*👑 : Tu es capitaine*')
         .addFields(
             { name: 'Lien', value: urls.join('\n'), inline: true },
             { name: 'Nom groupe - Jeux', value: games.join('\n'), inline: true },
@@ -169,14 +170,7 @@ module.exports.run = async (client, message, args) => {
         let groups = await client.findGroupByUser(userDB);
 
         if (groups?.length > 0) {
-            sendListGroup(client, message, groups, `Liste groupes de *${author}*`);
-            /* author.send(`Liste des groupes dont tu fais partie *(👑 = tu es capitaine)* :`);
-            for (const group of groups) {
-                sendEmbedGroupInfo(message, group, true);
-
-                // petite reaction sur le message original pour dire que c'est ok
-                message.react(CHECK_MARK);
-            } */
+            sendListGroup(client, message, groups, `Groupes de *${author.username}*`);
         } else 
             return sendError(message, `Tu n'appartiens à aucun groupe.`, 'group list');
     }
