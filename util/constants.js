@@ -64,8 +64,16 @@ const MESSAGES = {
                 aliases: ["userinfo"],
                 category: "misc",
                 cooldown: 0,
-                description: "Affiche des informations sur un utilisateur",
-                usage: '<user_mention | user_id>'
+                description: "Affiche des informations sur vous",
+                usage: '<user_mention | user_id>',
+                args: [
+                    { 
+                        name: 'user',
+                        type: 'USER',
+                        description: 'Affiche des informations sur un utilisateur',
+                        required: false,
+                    },
+                ]
             },
             STEAM: {
                 name: "steam",

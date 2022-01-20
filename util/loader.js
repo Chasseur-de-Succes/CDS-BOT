@@ -33,7 +33,7 @@ const loadSlashCommands = async (client, dir = "./slash_commands/") => {
     const data = client.slashCommands.map(c => ({
       name: c.help.name,
       description: c.help.description,
-      //options: c.args,
+      options: c.help.args,
       //defaultPermission: (!c.userperms || c.userperms?.length == 0),
     }));
     // Update the current list of commands for this guild
