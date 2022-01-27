@@ -6,7 +6,7 @@ const { MESSAGES } = require('../../util/constants');
 const categoryList = readdirSync('./commands');
 
 module.exports.run = (client, message, args) => {
-    if(!args[0]) {
+    if (!args[0]) {
         let embed = new MessageEmbed()
         .setColor(CORNFLOWER_BLUE)
         .setAuthor(client.user.username, client.user.displayAvatarURL())
