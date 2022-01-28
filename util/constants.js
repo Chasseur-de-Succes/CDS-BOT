@@ -56,8 +56,16 @@ const MESSAGES = {
                 aliases: [],
                 category: 'misc',
                 cooldown: 0,
-                description: "Création de son \"compte\" sur le bot",
-                usage: ""
+                description: "Création d'un compte CDS",
+                usage: "",
+                args: [
+                    { 
+                        name: 'id-steam-64',
+                        type: 'STRING',
+                        description: 'ID Steam 64 (trouvable ici steamid.xyz/)',
+                        required: true,
+                    },
+                ]
             },
             UPTIME: {
                 name: "uptime",
