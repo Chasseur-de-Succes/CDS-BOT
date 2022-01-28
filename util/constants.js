@@ -32,8 +32,16 @@ const MESSAGES = {
                 aliases: ["profil"],
                 category: "misc",
                 cooldown: 3,
-                description: "Affiche votre profile ou le profile d'un utilisateur",
-                usage: "[<user mention | user id>]"
+                description: "Affiche votre profil",
+                usage: "[<user mention | user id>]",
+                args: [
+                    { 
+                        name: 'user',
+                        type: 'USER',
+                        description: 'Affiche le profil d\'un utilisateur',
+                        required: false,
+                    },
+                ]
             },
             SERVERINFO: {
                 name: "serverinfo",
