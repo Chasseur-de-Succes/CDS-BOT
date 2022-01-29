@@ -90,14 +90,6 @@ const MESSAGES = {
                         required: false,
                     },
                 ]
-            },
-            STEAM: {
-                name: "steam",
-                aliases: [],
-                category: "misc",
-                cooldown: 0,
-                description: "",
-                usage: "steam <game name>"
             }
         },
         ADMIN: {
@@ -152,8 +144,21 @@ const MESSAGES = {
                 category: "admin",
                 cooldown: 5,
                 //permission: true,
-                description: "Donne à l'utilisateur mentionné un montant d'argent",
-                usage: "<user mention> <montant>"
+                description: "Donne ou retire à l'utilisateur mentionné, un montant d'argent",
+                usage: "<user> <montant>",
+                args: [
+                    { 
+                        name: 'user',
+                        type: 'USER',
+                        description: 'Utilisateur qui reçoit l\'argent',
+                        required: true,
+                    }, { 
+                        name: 'money',
+                        type: 'INTEGER',
+                        description: 'Montant à donner ou à retirer',
+                        required: true,
+                    },
+                ]
             }
         },
         CDS: {
