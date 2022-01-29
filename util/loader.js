@@ -25,7 +25,7 @@ const loadSlashCommands = async (client, dir = "./slash_commands/") => {
         for (const file of commands) {
             const getFileName = require(`../${dir}/${dirs}/${file}`);
             client.slashCommands.set(getFileName.help.name, getFileName);
-            logger.info("Slash commande chargée " + getFileName.help.name);
+            logger.info("/" + getFileName.help.name + " chargé");
         };
     });
 
@@ -34,11 +34,35 @@ const loadSlashCommands = async (client, dir = "./slash_commands/") => {
       name: c.help.name,
       description: c.help.description,
       options: c.help.args,
-      //defaultPermission: (!c.userperms || c.userperms?.length == 0),
+      defaultPermission: (!c.help.userperms || c.help.userperms?.length == 0),
     }));
     // Update the current list of commands for this guild
     const guild = await client.guilds.fetch(GUILD_ID);
     await guild.commands.set(data);
+
+    // update permissions
+    const restrictCmds = client.slashCommands.filter(c => c.help.userperms?.length > 0).map(c => {
+        const roleIDs = guild.roles.cache.filter(r => r.permissions.has(c.help.userperms)).map(r => r.id);
+        c.roleIDs = roleIDs;
+        return c;
+    });
+    
+    const fullPermissions = await guild.commands.cache.filter(c => restrictCmds.find(cmd => cmd.help.name === c.name)).map(c => {
+        const cmd = restrictCmds.find(cmd => cmd.help.name === c.name);
+
+        return {
+            id: c.id,
+            permissions: cmd.roleIDs.map(r => ({
+                id: r,
+                type: 'ROLE',
+                permission: true,
+            })),
+        };
+    });
+
+    // Update the permissions for these commands
+    await guild.commands.permissions.set({ fullPermissions });
+    logger.info(`-- Permissions slash commands à jour ! (${restrictCmds.length})`);
 }
 
 // Charge les événements

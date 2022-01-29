@@ -158,7 +158,8 @@ const MESSAGES = {
                         description: 'Montant à donner ou à retirer',
                         required: true,
                     },
-                ]
+                ],
+                userperms: ['ADMINISTRATOR']
             }
         },
         CDS: {

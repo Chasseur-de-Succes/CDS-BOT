@@ -12,8 +12,9 @@ module.exports.run = async (interaction) => {
     const id = interaction.options.get('user')?.value;
     const montant = interaction.options.get('money')?.value;
     const client = interaction.client;
-    let member = interaction.member;
+    const author = interaction.member;
     let user = interaction.user;
+    let member;
     
     if (id) {
         member = await interaction.guild.members.fetch(id).catch(e => {});
@@ -21,7 +22,7 @@ module.exports.run = async (interaction) => {
             const embed = new MessageEmbed().setColor('#e74c3c').setDescription('Invalide ID.');
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
-        user = member.user;
+        //user = member.user;
     }
     const dbUser = await client.getUser(member);
     if (!dbUser) { // Si pas dans la BDD
@@ -35,10 +36,10 @@ module.exports.run = async (interaction) => {
         montant -= money;
         money = 0;
     }
-    const msgCustom = `${member} ${(montant > 0 ? `à donné` : `à retiré`)} **${montant}** ${MONEY} à ${member.user}\nSon argent est désormais de : **${money}** ${MONEY}`;
+    const msgCustom = `${author} ${(montant > 0 ? `à donné` : `à retiré`)} **${montant}** ${MONEY} à ${member.user}\nSon argent est désormais de : **${money}** ${MONEY}`;
 
     await client.update(dbUser, { money: money });
-    logger.warn(`${user.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name}`);
+    logger.warn(`${user.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name} ${montant}`);
     sendLogs(client, `Modification ${MONEY}`, `${msgCustom}`, '', GREEN)
 
     const embed = new MessageEmbed()
