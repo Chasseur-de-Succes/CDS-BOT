@@ -157,7 +157,35 @@ const MESSAGES = {
                         type: 'INTEGER',
                         description: 'Montant à donner ou à retirer',
                         required: true,
-                    },
+                    }
+                ],
+                userperms: ['ADMINISTRATOR']
+            },
+            ROLE: {
+                name: "role",
+                aliases: [],
+                category: "admin",
+                cooldown: 5,
+                description: "Commande pour modifier un rôle",
+                args: [
+                    {
+                        name: 'create',
+                        type: 'SUB_COMMAND',
+                        description: 'Créer un nouveau rôle, avec un nouveau channel accessible via ce rôle',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du rôle',
+                                required: true,
+                            }, { 
+                                name: 'emoji',
+                                type: 'STRING',
+                                description: 'Emoji lié à ce rôle (sera utilisé dans le channel des rôles)',
+                                required: true,
+                            }
+                        ]
+                    }
                 ],
                 userperms: ['ADMINISTRATOR']
             }

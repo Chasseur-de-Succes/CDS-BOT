@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Job, GuildConfig, GameItem } = require("../models/index");
+const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel } = require("../models/index");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
@@ -381,4 +381,14 @@ module.exports = client => {
         if (data) return data;
         else return;
     }
+
+    /* ROLE CHANNEL */
+    client.createRoleChannel = async item => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+        const createRole = await new RolesChannel(merged);
+        const g = await createRole.save();
+        
+        logger.info({prefix:"[DB]", message:"Nouveau Role Channel : " + item.name});
+        return g;
+    };
 }

@@ -17,6 +17,7 @@ module.exports = {
     },
     CHANNEL: {
         WELCOME: 'id_channel', // channel de bienvenue, affiche les nouveaux arrivants
+        ROLE: 'role_channel', // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
         LIST_GROUP: 'id_channel', // channel qui affichera tous les groupes
         LOGS: 'id_channel' // channel de logs (discord: join, leave, modification surnom,...)
     }

@@ -1,6 +1,8 @@
 const { DiscordAPIError, Collection } = require('discord.js');
 const { readdirSync } = require('fs');
 const { CHANNEL, GUILD_ID } = require('../config');
+const { AMONGUS_RUNNING } = require('../data/emojis.json');
+const { RolesChannel } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 
@@ -112,10 +114,110 @@ const loadReactionGroup = async (client) => {
         });
 }
 
+// Créé ou charge les reactions sur le message donnant les rôles
+const loadRoleGiver = async (client, refresh = false) => {
+    // TODO cooldown
+
+    // recupere le channel, et l'unique message dedans (normalement)
+    const roleChannel = await client.channels.fetch(CHANNEL.ROLE);
+    const guild = roleChannel.guild;
+    if (!roleChannel) {
+        logger.error(`Le channel de rôle n'existe pas ! ID ${CHANNEL.ROLE}`);
+        return;
+    }
+    const msgs = await roleChannel.messages.fetch({ limit: 1 });
+
+    // si le message n'existe pas, le créer
+    let msg;
+    let content = `Sélectionne le rôle que tu souhaites afin d'accéder aux salons liés à ces jeux !\n`;
+    // recup dans bdd
+    const roles = await RolesChannel.find({});
+
+    content += roles.map((item) => { return item.emoji + " : \`" + item.name + "\`" }).join("\n")
+    
+    if (msgs.size === 0) {
+        logger.warn(`Le message des rôles n'existe pas, création de celui-ci...`);
+        
+        msg = await roleChannel.send({ content: content });
+        // ajout réactions
+        roles.forEach(item => {
+            // custom emoji
+            if (item.emoji.startsWith("<")) {
+                // regex emoji custom
+                const matches = item.emoji.match(/(<a?)?:\w+:((\d{18})>)?/)
+                if (matches)
+                    msg.react(client.emojis.cache.get(matches[3]));
+            }
+            else
+                msg.react(item.emoji);
+        })
+    } else if (msgs.size === 1 && msgs.first().author.bot) {
+        logger.warn(`Le message des rôles existe ! Maj de celui-ci...`);
+        // un seul, et celui du bot, on maj (?)
+        msg = await msgs.first().edit({ content: content })
+        // TODO quid des réactions ?
+    }
+
+    // si refresh, on "ghost" message afin de montrer qu'il y a du nouveau
+    if (refresh) {
+        const msgToDelete = await roleChannel.send({ content: 'Mise à jour...' });
+        await msgToDelete.delete();
+    }
+
+    // ajout réactions, au cas où nouvel emoji
+    roles.forEach(item => {
+        // custom emoji
+        if (item.emoji.startsWith("<")) {
+            // regex emoji custom
+            const matches = item.emoji.match(/(<a?)?:\w+:((\d{18})>)?/)
+            if (matches)
+                msg.react(client.emojis.cache.get(matches[3]));
+        }
+        else
+            msg.react(item.emoji);
+    })
+
+    // sinon collector sur reactions une seule fois, pour eviter X reactions
+    if (!refresh) {
+        const collector = await msg.createReactionCollector({ dispose: true });
+        // ajout rôle
+        collector.on('collect', async (r, u) => {
+            if (!u.bot) {
+                // unicode ou custom
+                const item = roles.find(item => item.emoji === r.emoji.name || item.emoji.includes(r.emoji.identifier))
+                if (item?.roleID) {
+                    // recup role
+                    const role = await guild.roles.fetch(item.roleID);
+                    // recup membre qui a cliqué
+                    const member = await guild.members.fetch(u.id);
+                    logger.info(`${u.tag} s'est ajouté le rôle ${role.name}`);
+                    member.roles.add(role);
+                }
+            }
+        });
+        // suppression rôle
+        collector.on('remove', async (r, u) => {
+            if (!u.bot) {
+                // unicode ou custom
+                const item = roles.find(item => item.emoji === r.emoji.name || item.emoji.includes(r.emoji.identifier))
+                if (item?.roleID) {
+                    // recup role
+                    const role = await guild.roles.fetch(item.roleID);
+                    // recup membre qui a cliqué
+                    const member = await guild.members.fetch(u.id);
+                    logger.info(`${u.tag} s'est retiré le rôle ${role.name}`);
+                    member.roles.remove(role);
+                }
+            }
+        });
+    }
+}
+
 module.exports = {
     loadCommands,
     loadEvents,
     loadBatch,
     loadReactionGroup,
-    loadSlashCommands
+    loadSlashCommands,
+    loadRoleGiver
 }
