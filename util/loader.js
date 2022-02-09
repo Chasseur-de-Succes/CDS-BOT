@@ -115,7 +115,7 @@ const loadReactionGroup = async (client) => {
 }
 
 // Créé ou charge les reactions sur le message donnant les rôles
-const loadRoleGiver = async (client, refresh = false, deleted = false) => {
+const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     // TODO cooldown
 
     // recupere le channel, et l'unique message dedans (normalement)
@@ -131,7 +131,7 @@ const loadRoleGiver = async (client, refresh = false, deleted = false) => {
     let msg;
     let content = `Sélectionne le rôle que tu souhaites afin d'accéder aux salons liés à ces jeux !\n`;
     // recup dans bdd
-    const roles = await RolesChannel.find({});
+    let roles = await RolesChannel.find({});
 
     content += roles.map((item) => { return item.emoji + " : \`" + item.name + "\`" }).join("\n")
     
@@ -152,22 +152,38 @@ const loadRoleGiver = async (client, refresh = false, deleted = false) => {
         await msgToDelete.delete();
     }
 
-    // on enleve tous les émojis (dans le cas ou il y a eu un delete)
-    if (deleted)
-        await msg.reactions.removeAll();
-    
     // ajout réactions, au cas où nouvel emoji
-    roles.forEach(item => {
+    roles.forEach(async item => {
         // custom emoji
         if (item.emoji.startsWith("<")) {
             // regex emoji custom
             const matches = item.emoji.match(/(<a?)?:\w+:((\d{18})>)?/)
             if (matches)
-                msg.react(client.emojis.cache.get(matches[3]));
+                await msg.react(client.emojis.cache.get(matches[3]));
         }
         else
-            msg.react(item.emoji);
+            await msg.react(item.emoji);
     })
+
+    // on enleve tous les émojis (dans le cas ou il y a eu un delete)
+    if (emojiDeleted) {
+        // recupere array des keys = emojis des reactions
+        let keys = [ ...msg.reactions.cache.keys()]
+        
+        // recupere l'id de l'emoji custom deleted
+        if (emojiDeleted.startsWith("<")) {
+            const matches = emojiDeleted.match(/(<a?)?:\w+:((\d{18})>)?/) 
+            emojiDeleted = matches[3]
+        }
+
+        const reactionsToDelete = keys.filter(x => x === emojiDeleted);
+
+        // et on supprime ces réactions !
+        reactionsToDelete.forEach(async element => {
+            logger.info(`.. suppression des réactions ${element}`)
+            await msg.reactions.cache.get(element).remove();
+        });
+    }
 
     // sinon collector sur reactions une seule fois, pour eviter X reactions
     if (!refresh) {
@@ -175,6 +191,8 @@ const loadRoleGiver = async (client, refresh = false, deleted = false) => {
         // ajout rôle
         collector.on('collect', async (r, u) => {
             if (!u.bot) {
+                // refresh roles
+                roles = await RolesChannel.find({});
                 // unicode ou custom
                 const item = roles.find(item => item.emoji === r.emoji.name || item.emoji.includes(r.emoji.identifier))
                 if (item?.roleID) {
@@ -190,6 +208,8 @@ const loadRoleGiver = async (client, refresh = false, deleted = false) => {
         // suppression rôle
         collector.on('remove', async (r, u) => {
             if (!u.bot) {
+                // referesh role
+                roles = await RolesChannel.find({});
                 // unicode ou custom
                 const item = roles.find(item => item.emoji === r.emoji.name || item.emoji.includes(r.emoji.identifier))
                 if (item?.roleID) {

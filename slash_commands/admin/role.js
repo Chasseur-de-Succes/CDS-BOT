@@ -77,9 +77,10 @@ const deleteRole = async (interaction, options) => {
         return interaction.reply({embeds: [createError(`Ce rôle ne peux être supprimé car non créé via commande !`)]})
 
     // suppression channel
-    guild.channels.fetch(rolesExist.channelID)
-    .then(channel => channel.delete(`Le salon n'est plus utilisé`))
-    .catch(err => logger.warn(`Le channel ${rolesExist.channelID} est déjà supprimé : ${err}`))
+    const channel = await guild.channels.fetch(rolesExist.channelID)
+    await channel.delete(`Le salon n'est plus utilisé`)
+    /* .then(channel => channel.delete(`Le salon n'est plus utilisé`))
+    .catch(err => logger.warn(`Le channel ${rolesExist.channelID} est déjà supprimé : ${err}`)) */
 
     // suppression role
     const roleGuild = await guild.roles.fetch(rolesExist.roleID);
@@ -92,12 +93,12 @@ const deleteRole = async (interaction, options) => {
     await RolesChannel.deleteOne({ roleID: role });
 
     // reload msg role + enlever emoji qui n'existe plus
-    loadRoleGiver(client, true, true);
+    loadRoleGiver(client, true, rolesExist.emoji);
 
     // log
-    sendLogs(client, `Suppression`, `Rôle ${roleGuild.name} & channel supprimé, réalisé par ${author}`, '', GREEN)
+    sendLogs(client, `Suppression`, `Rôle ${roleGuild.name} & channel ${channel.name} supprimé, réalisé par ${author}`, '', GREEN)
 
-    return interaction.reply(`Suppression du channel et le rôle ${roleGuild.name} associé !`);
+    return interaction.reply(`Suppression du channel ${channel.name} et le rôle ${roleGuild.name} associé !`);
 }
 
 module.exports.help = MESSAGES.COMMANDS.ADMIN.ROLE;
