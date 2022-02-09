@@ -185,6 +185,18 @@ const MESSAGES = {
                                 required: true,
                             }
                         ]
+                    }, {
+                        name: 'delete',
+                        type: 'SUB_COMMAND',
+                        description: 'Supprimer un rôle et le channel associé',
+                        options: [
+                            { 
+                                name: 'role',
+                                type: 'ROLE',
+                                description: 'Le rôle à supprimer (doit avoir été créé via la commande avant)',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
                 userperms: ['ADMINISTRATOR']

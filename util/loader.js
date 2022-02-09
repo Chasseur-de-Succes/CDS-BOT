@@ -115,7 +115,7 @@ const loadReactionGroup = async (client) => {
 }
 
 // Créé ou charge les reactions sur le message donnant les rôles
-const loadRoleGiver = async (client, refresh = false) => {
+const loadRoleGiver = async (client, refresh = false, deleted = false) => {
     // TODO cooldown
 
     // recupere le channel, et l'unique message dedans (normalement)
@@ -136,21 +136,9 @@ const loadRoleGiver = async (client, refresh = false) => {
     content += roles.map((item) => { return item.emoji + " : \`" + item.name + "\`" }).join("\n")
     
     if (msgs.size === 0) {
-        logger.warn(`Le message des rôles n'existe pas, création de celui-ci...`);
+        logger.warn(`Le message des rôles n'existe pas ! Création de celui-ci...`);
         
         msg = await roleChannel.send({ content: content });
-        // ajout réactions
-        roles.forEach(item => {
-            // custom emoji
-            if (item.emoji.startsWith("<")) {
-                // regex emoji custom
-                const matches = item.emoji.match(/(<a?)?:\w+:((\d{18})>)?/)
-                if (matches)
-                    msg.react(client.emojis.cache.get(matches[3]));
-            }
-            else
-                msg.react(item.emoji);
-        })
     } else if (msgs.size === 1 && msgs.first().author.bot) {
         logger.warn(`Le message des rôles existe ! Maj de celui-ci...`);
         // un seul, et celui du bot, on maj (?)
@@ -164,6 +152,10 @@ const loadRoleGiver = async (client, refresh = false) => {
         await msgToDelete.delete();
     }
 
+    // on enleve tous les émojis (dans le cas ou il y a eu un delete)
+    if (deleted)
+        await msg.reactions.removeAll();
+    
     // ajout réactions, au cas où nouvel emoji
     roles.forEach(item => {
         // custom emoji
