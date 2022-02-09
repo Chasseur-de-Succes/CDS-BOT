@@ -1,16 +1,16 @@
-const { VERY_PALE_BLUE } = require('../../data/colors.json');
+const { ORANGE } = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
 const { CHANNEL } = require('../../config');
 
-module.exports = async (client, member) => {
-    // IN DEVELOPMENT - NOT FUNCTIONAL
-    //const user = client.users.cache.get(member.id);
-    let oldNickname = "x";
+module.exports = async (client, oldUser, newUser) => {
+    let oldNickname = oldUser.nickname || '_Aucun_';
+    let newNickname = newUser.nickname ||'_Aucun_';
     const embed = new MessageEmbed()
-        .setColor(VERY_PALE_BLUE)
-        .setTitle(`Changement surnom`)
-        .setDescription(`<@${member.id}>\nAncien surnom: ${oldNickname}\nNouveau surnom: ${member.nickname}`)
-        .setFooter(`ID: ${member.id}`);
+        .setColor(ORANGE)
+        .setTitle(`Surnom modifier`)
+        .setDescription(`<@${newUser.id}>\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`)
+        .setFooter(`ID: ${newUser.id}`)
+        .setTimestamp();
 
-    //client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});
+    client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});
 }
