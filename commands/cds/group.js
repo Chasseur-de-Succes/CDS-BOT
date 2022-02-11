@@ -7,7 +7,6 @@ const { NIGHT, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
-const { listenerCount } = require('npmlog');
 const { create } = require('../../models/user');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
 

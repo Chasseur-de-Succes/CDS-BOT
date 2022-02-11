@@ -68,7 +68,7 @@ module.exports = client => {
         const createGroup = await new Group(merged);
         let grp = await createGroup.save()
         await grp.populate('captain members').execPopulate()
-        logger.info({prefix:"[DB]", message:"Nouvel groupe : " + grp.name});
+        logger.info({prefix:"[DB]", message:"Nouveau groupe : " + grp.name});
         return grp;
     };
 

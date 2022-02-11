@@ -208,8 +208,38 @@ const MESSAGES = {
                 aliases: [],
                 category: "cds",
                 cooldown: 0,
-                description: "",
-                usage: "help"
+                description: "Commande pour gérer les groupes",
+                usage: "help",
+                args: [
+                    {
+                        name: 'create',
+                        type: 'SUB_COMMAND',
+                        description: 'Créer un nouveau groupe, sur un jeu Steam',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                            }, { 
+                                name: 'max',
+                                type: 'INTEGER',
+                                description: 'Nombre max de membres dans le groupe',
+                                required: true,
+                            }, { 
+                                name: 'jeu',
+                                type: 'STRING',
+                                description: 'Nom du jeu',
+                                required: true,
+                            }, { 
+                                name: 'description',
+                                type: 'STRING',
+                                description: 'Description du groupe, quels succès sont rechercher, spécificités, etc',
+                                required: false,
+                            }
+                        ]
+                    }
+                ],
             }
         },
         ECONOMY: {
