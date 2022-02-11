@@ -238,6 +238,28 @@ const MESSAGES = {
                                 required: false,
                             }
                         ]
+                    }, {
+                        name: 'schedule',
+                        type: 'SUB_COMMAND',
+                        description: 'Planifie une date pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                            }, { 
+                                name: 'jour',
+                                type: 'STRING',
+                                description: 'Jour de l\'événement, au format DD/MM/YY',
+                                required: true,
+                            }, { 
+                                name: 'heure',
+                                type: 'STRING',
+                                description: 'Heure de l\'événement, au format HH:mm',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
             }
