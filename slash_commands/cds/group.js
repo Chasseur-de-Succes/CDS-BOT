@@ -4,7 +4,7 @@ const { createError, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup } = require("../../util/msg/group");
-const { CHANNEL } = require("../../config");
+const { PREFIX, CHANNEL } = require("../../config");
 const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
 const { options } = require("superagent");
@@ -19,7 +19,7 @@ module.exports.run = async (interaction) => {
     } else if (subcommand === 'dissolve') {
         dissolve(interaction, interaction.options)
     } else if (subcommand === 'transfert') {
-        // deleteRole(interaction, interaction.options)
+        transfert(interaction, interaction.options)
     } else if (subcommand === 'end') {
         // deleteRole(interaction, interaction.options)
     }
@@ -82,7 +82,7 @@ const create = async (interaction, options) => {
     }
 
     // SELECT n'accepte que 25 max
-    if (items.length > 25) await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
+    if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
 
     // row contenant le Select menu
     const row = new MessageActionRow().addComponents(
@@ -205,7 +205,7 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     const author = interaction.member;
     
     // -- test si user a le droit de gérer les messages (mode admin)
-    if (isAdmin && !mauthor.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) 
+    if (isAdmin && !author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) 
         return interaction.reply({ embeds: [createError(`Interdiction.`)] });
     
     // test si captain est register
@@ -242,6 +242,47 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     // envoi dans channel log
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
+}
+
+const transfert = async (interaction, options) => {
+    const grpName = options.get('nom')?.value;
+    const newCaptain = options.get('membre')?.member; // USER
+    const client = interaction.client;
+    const author = interaction.member;
+
+    // test si captain est register
+    const authorDB = await client.getUser(author);
+    if (!authorDB) // Si pas dans la BDD
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+    let newCaptainDB = await client.getUser(newCaptain);
+    if (!newCaptainDB)
+        return interaction.reply({ embeds: [createError(`${newCaptain} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``)] });
+
+    // recup le groupe
+    let grp = await client.findGroupByName(grpName);
+    if (!grp) 
+        return interaction.reply({ embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)] });
+        
+    // si l'author n'est pas capitaine 
+    if (!grp.captain._id.equals(authorDB._id))
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
+    // si le nouveau capitaine fait parti du groupe
+    let memberGrp = grp.members.find(u => u._id.equals(newCaptainDB._id));
+    if (!memberGrp)
+        return interaction.reply({ embeds: [createError(`${newCaptain} ne fait pas parti du groupe **${grpName}** !`)] });
+
+    // update du groupe : captain
+    await client.update(grp, {
+        captain: newCaptainDB,
+        dateUpdated: Date.now()
+    })
+
+    // update msg
+    await editMsgHubGroup(client, grp);
+    logger.info(`${author.user.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe ${grpName}`);
+    const newMsgEmbed = new MessageEmbed()
+        .setDescription(`${CHECK_MARK} ${newCaptain} est le nouveau capitaine du groupe **${grpName}** !`);
+    await interaction.reply({ embeds: [newMsgEmbed] });
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

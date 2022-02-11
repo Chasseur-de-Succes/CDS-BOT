@@ -272,6 +272,23 @@ const MESSAGES = {
                                 required: true,
                             }
                         ]
+                    }, {
+                        name: 'transfert',
+                        type: 'SUB_COMMAND',
+                        description: 'Transfert le statut de 👑capitaine à un autre membre du groupe (👑 only)',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                            }, { 
+                                name: 'membre',
+                                type: 'USER',
+                                description: 'Membre du groupe, deviendra le nouveau capitaine',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
             }

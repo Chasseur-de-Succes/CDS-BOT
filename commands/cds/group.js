@@ -5,7 +5,7 @@ const moment = require('moment');
 
 const { NIGHT, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup } = require('../../util/msg/group');
+const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 const { create } = require('../../models/user');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
@@ -205,7 +205,7 @@ module.exports.run = async (client, message, args) => {
         }
 
         // update du groupe : size +1, ajout de l'user dans members
-        joinGroup(grp, userDB);
+        joinGroup(client, grp, userDB);
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Tu as bien rejoint le groupe **${grpName}** !`);
@@ -243,7 +243,7 @@ module.exports.run = async (client, message, args) => {
         if (grp.captain._id.equals(userDB._id))
             return sendError(message, `Tu es capitaine du groupe **${grpName}**, utilise plutôt \`group transfert\` ou \`group dissolve\`.`, 'group leave');
 
-        leaveGroup(grp, userDB);
+        leaveGroup(client, grp, userDB);
         
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Tu as bien quitté le groupe **${grpName}** !`);
@@ -548,49 +548,9 @@ module.exports.run = async (client, message, args) => {
         msgChannel.reactions.removeAll();
     }
 
-    /* Methodes utils */
-    /**
-     * Enlève un utilisateur d'un groupe
-     * @param {*} grp Le groupe
-     * @param {*} userDB L'utilisateur a enlever
-     */
-    async function leaveGroup(grp, userDB) {
-        // update du groupe : size -1, remove de l'user dans members
-        let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
-        var indexMember = grp.members.indexOf(memberGrp);
-        grp.members.splice(indexMember, 1);
-        grp.size--;
-        await client.update(grp, {
-            members: grp.members,
-            size: grp.size,
-            dateUpdated: Date.now()
-        })
-        
-        // update msg
-        await editMsgHubGroup(client, grp);
-        logger.info(userDB.username+" vient de quitter groupe "+grp.name);
-    }
-
-    /**
-     * Ajouter un utilisateur dans un groupe
-     * @param {*} grp Le groupe
-     * @param {*} userDB L'utilisateur
-     */
-    async function joinGroup(grp, userDB) {
-        grp.members.push(userDB);
-        grp.size++;
-        await client.update(grp, {
-            members: grp.members,
-            size: grp.size,
-            dateUpdated: Date.now()
-        });
-
-        // update msg
-        await editMsgHubGroup(client, grp);
-        logger.info(userDB.username+" vient de rejoindre groupe "+grp.name);
-    }
 }
 
+/* Methodes utils */
 /**
  * Dissoud un groupe, en prévenant tous les membres
  * Seul le capitaine peut dissoudre son groupe

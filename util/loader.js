@@ -91,6 +91,7 @@ const loadBatch = async (client) => {
 
 // Charge les réactions des messages des groupes
 const loadReactionGroup = async (client) => {
+    logger.info(`Chargement des messages 'events' ..`)
     // recupere TOUS les messages du channel de listage des groupes
     // TODO filtrer ?
     client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch()
@@ -100,10 +101,10 @@ const loadReactionGroup = async (client) => {
                 if (msg.author.bot) {
                     // recup le group associé au message (unique)
                     client.findGroup({ idMsg: msg.id })
-                    .then(grps => {
+                    .then(async grps => {
                         // filtre group encore en cours
                         if (grps[0] && !grps[0].validated) {
-                            createReactionCollectorGroup(client, msg, grps[0]);
+                            await createReactionCollectorGroup(client, msg, grps[0]);
                         }
                     })
                 }
@@ -112,6 +113,7 @@ const loadReactionGroup = async (client) => {
         .catch(err => {
             logger.error("Erreur load listener reaction groupes " + err);
         });
+    logger.info(`.. terminé`)
 }
 
 // Créé ou charge les reactions sur le message donnant les rôles

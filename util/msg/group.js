@@ -3,6 +3,7 @@ const { GUILD_ID, CHANNEL } = require("../../config");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');
+const { Group } = require('../../models');
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -114,26 +115,33 @@ function getMembersList(group, members) {
  * Sinon on se retire du groupe (sauf si on est le capitaine)
  * @param {*} client 
  * @param {*} msg le message
- * @param {*} grpDB le groupe provenant de la bdd
+ * @param {*} grp le groupe provenant de la bdd
  */
- async function createReactionCollectorGroup(client, msg, grpDB) {
-    // TOOD a revoir quand capitaine fait reaction
-    const collector = await msg.createReactionCollector({ dispose: true });
-    collector.on('collect', (r, u) => {
-        if (!u.bot && r.emoji.name === 'check') {
-            client.getUser(u)
-            .then(userDBJoined => {
-                // si u est enregistré, non blacklisté, non capitaine, il peut join le group
-                if (userDBJoined && u.id !== grpDB.captain.userId && !userDBJoined.blacklisted) {
-                    joinGroup(grpDB, userDBJoined);
+ async function createReactionCollectorGroup(client, msg, grp) {
+     // TODO recup grpDB a la volee ! pb lors d'un transfert
+     // TOOD a revoir quand capitaine fait reaction
+     const collector = await msg.createReactionCollector({ dispose: true });
+     collector.on('collect', (r, u) => {
+         if (!u.bot && r.emoji.name === 'check') {
+             client.getUser(u)
+             .then(async userDBJoined => {
+                const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
+
+                // si u est enregistré, non blacklisté, non capitaine, et pas déjà présent, il peut join le group
+                if (userDBJoined && u.id !== grpDB.captain.userId && !userDBJoined.blacklisted && !grpDB.members.find(us => us.userId === u.id)) {
+                    await joinGroup(client, grpDB, userDBJoined);
                 } else {
                     // send mp explication
                     let raison = 'Tu ne peux rejoindre le groupe car ';
                     if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande ${PREFIX}register <steamid>`;
                     else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
                     else raison += `tu es le capitaine du groupe !`;
-                    u.send(`${CROSS_MARK} ${raison}`);
-                    r.users.remove(u.id);
+
+                    // si user déjà dans event, on laisse la reaction, sinon on envoie raison
+                    if (!grpDB.members.find(us => us.userId === u.id)) {
+                        u.send(`${CROSS_MARK} ${raison}`);
+                        r.users.remove(u.id);
+                    }
                 }
             });
         }
@@ -141,14 +149,56 @@ function getMembersList(group, members) {
     collector.on('remove', (r, u) => {
         if (!u.bot && r.emoji.name === 'check') {
             client.getUser(u)
-            .then(userDBLeaved => {
+            .then(async userDBLeaved => {
+                const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
                 // si u est capitaine, on remet? la reaction
                 if (u.id !== grpDB.captain.userId && userDBLeaved) 
-                    leaveGroup(grpDB, userDBLeaved);
+                    await leaveGroup(client, grpDB, userDBLeaved);
             });
         }
     });
     // collector.on('end', collected => msgChannel.clearReactions());
+}
+
+/**
+ * Enlève un utilisateur d'un groupe
+ * @param {*} grp Le groupe
+ * @param {*} userDB L'utilisateur a enlever
+ */
+async function leaveGroup(client, grp, userDB) {
+    // update du groupe : size -1, remove de l'user dans members
+    let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
+    var indexMember = grp.members.indexOf(memberGrp);
+    grp.members.splice(indexMember, 1);
+    grp.size--;
+    await client.update(grp, {
+        members: grp.members,
+        size: grp.size,
+        dateUpdated: Date.now()
+    })
+    
+    // update msg
+    await editMsgHubGroup(client, grp);
+    logger.info(userDB.username+" vient de quitter groupe "+grp.name);
+}
+
+/**
+ * Ajouter un utilisateur dans un groupe
+ * @param {*} grp Le groupe
+ * @param {*} userDB L'utilisateur
+ */
+ async function joinGroup(client, grp, userDB) {
+    grp.members.push(userDB);
+    grp.size++;
+    await client.update(grp, {
+        members: grp.members,
+        size: grp.size,
+        dateUpdated: Date.now()
+    });
+
+    // update msg
+    await editMsgHubGroup(client, grp);
+    logger.info(userDB.username+" vient de rejoindre groupe "+grp.name);
 }
 
 exports.getMembersList = getMembersList
@@ -157,3 +207,5 @@ exports.sendMsgHubGroup = sendMsgHubGroup
 exports.editMsgHubGroup = editMsgHubGroup
 exports.deleteMsgHubGroup = deleteMsgHubGroup
 exports.createReactionCollectorGroup = createReactionCollectorGroup
+exports.leaveGroup = leaveGroup
+exports.joinGroup = joinGroup
