@@ -1,12 +1,13 @@
-const { MessageActionRow, MessageSelectMenu, MessageEmbed } = require("discord.js");
+const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions } = require("discord.js");
 const { MESSAGES } = require("../../util/constants");
-const { createError } = require("../../util/envoiMsg");
+const { createError, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup } = require("../../util/msg/group");
+const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup } = require("../../util/msg/group");
 const { CHANNEL } = require("../../config");
-const { createRappelJob } = require("../../util/batch/batch");
+const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
+const { options } = require("superagent");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
@@ -16,7 +17,7 @@ module.exports.run = async (interaction) => {
     } else if (subcommand === 'schedule') {
         schedule(interaction, interaction.options)
     } else if (subcommand === 'dissolve') {
-        // deleteRole(interaction, interaction.options)
+        dissolve(interaction, interaction.options)
     } else if (subcommand === 'transfert') {
         // deleteRole(interaction, interaction.options)
     } else if (subcommand === 'end') {
@@ -196,6 +197,51 @@ const schedule = async (interaction, options) => {
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} RdV le **${dateVoulue + ' à ' + heureVoulue}** !`);
     return interaction.reply({ embeds: [newMsgEmbed] });
+}
+
+const dissolve = async (interaction, options, isAdmin = false) => {
+    const grpName = options.get('nom')?.value;
+    const client = interaction.client;
+    const author = interaction.member;
+    
+    // -- test si user a le droit de gérer les messages (mode admin)
+    if (isAdmin && !mauthor.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) 
+        return interaction.reply({ embeds: [createError(`Interdiction.`)] });
+    
+    // test si captain est register
+    const authorDB = await client.getUser(author);
+    if (!authorDB) // Si pas dans la BDD
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+
+    // recup le groupe
+    let grp = await client.findGroupByName(grpName);
+    if (!grp) 
+        return interaction.reply({ embeds: [createError(`Le groupe ${grpName} n'existe pas !`)] });
+        
+    // si l'author n'est pas capitaine (non admin)
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
+    
+    // delete rappel
+    deleteRappelJob(client, grp);
+
+    // suppr groupe
+    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
+    await client.deleteGroup(grp);
+    logger.info(`${author.tag} a dissout le groupe ${grpName}`);
+
+    let mentionsUsers = '';
+    for (const member of grp.members)
+        mentionsUsers += `<@${member.userId}> `
+    
+    await interaction.reply(`${mentionsUsers} : le groupe **${grpName}** a été dissout !`);
+
+    // update msg
+    await deleteMsgHubGroup(client, grp);
+        
+    // envoi dans channel log
+    sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
+                                                            Membres concernés : ${mentionsUsers}`);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

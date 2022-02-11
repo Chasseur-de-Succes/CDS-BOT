@@ -260,6 +260,18 @@ const MESSAGES = {
                                 required: true,
                             }
                         ]
+                    }, {
+                        name: 'dissolve',
+                        type: 'SUB_COMMAND',
+                        description: 'Dissoud un groupe et préviens les membres de celui-ci (👑 only)',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
             }
