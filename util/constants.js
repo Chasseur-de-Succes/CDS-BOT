@@ -312,7 +312,15 @@ const MESSAGES = {
                 category: "economy",
                 cooldown: 0,
                 description: "Voir son argent",
-                usage: ""
+                usage: "",
+                args: [
+                    { 
+                        name: 'user',
+                        type: 'USER',
+                        description: 'Porte-monnaie de tel utilisateur',
+                        required: false,
+                    }
+                ],
             },
             SHOP: {
                 name: "shop",

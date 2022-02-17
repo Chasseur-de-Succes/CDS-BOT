@@ -7,7 +7,6 @@ const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMs
 const { PREFIX, CHANNEL } = require("../../config");
 const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
-const { options } = require("superagent");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
