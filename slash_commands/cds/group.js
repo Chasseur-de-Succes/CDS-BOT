@@ -21,7 +21,7 @@ module.exports.run = async (interaction) => {
     } else if (subcommand === 'transfert') {
         transfert(interaction, interaction.options)
     } else if (subcommand === 'end') {
-        // deleteRole(interaction, interaction.options)
+        end(interaction, interaction.options)
     }
 }
 
@@ -238,7 +238,7 @@ const dissolve = async (interaction, options, isAdmin = false) => {
 
     // update msg
     await deleteMsgHubGroup(client, grp);
-        
+    
     // envoi dans channel log
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
@@ -283,6 +283,43 @@ const transfert = async (interaction, options) => {
     const newMsgEmbed = new MessageEmbed()
         .setDescription(`${CHECK_MARK} ${newCaptain} est le nouveau capitaine du groupe **${grpName}** !`);
     await interaction.reply({ embeds: [newMsgEmbed] });
+}
+
+const end = async (interaction, options) => {
+    const grpName = options.get('nom')?.value;
+    const client = interaction.client;
+    const author = interaction.member;
+
+    // test si captain est register
+    const authorDB = await client.getUser(author);
+    if (!authorDB) // Si pas dans la BDD
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+        
+    // recup le groupe
+    let grp = await client.findGroupByName(grpName);
+    if (!grp) 
+        return interaction.reply({ embeds: [createError(`Le groupe ${grpName} n'existe pas !`)] });
+    
+    // si l'author n'est pas capitaine
+    if (!grp.captain._id.equals(authorDB._id))
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grp.name} !`)] });
+
+    await client.update(grp, { validated: true });
+
+    logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
+    const newMsgEmbed = new MessageEmbed()
+        .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
+    await interaction.reply({ embeds: [newMsgEmbed] });
+
+    // update msg
+    await editMsgHubGroup(client, grp);
+
+    // remove job
+    deleteRappelJob(client, grp);
+
+    // TODO déplacer event terminé ?
+    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
+    msgChannel.reactions.removeAll();
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

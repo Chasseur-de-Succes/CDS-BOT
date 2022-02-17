@@ -289,6 +289,18 @@ const MESSAGES = {
                                 required: true,
                             }
                         ]
+                    }, {
+                        name: 'end',
+                        type: 'SUB_COMMAND',
+                        description: 'Valide et termine un groupe (👑 only)',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
             }
