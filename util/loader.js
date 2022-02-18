@@ -84,8 +84,8 @@ const loadEvents = (client, dir = "./events/") => {
         if (!itr.isAutocomplete()) return;
         // TODO mettre dans fichier js
 
-        // cmd delete, autocomplete sur nom jeu
-        if (itr.commandName === 'shop') {
+        if (itr.commandName === 'adminshop') {
+            // cmd adminshop delete, autocomplete sur nom jeu
             const focusedValue = itr.options.getFocused(true);
             const vendeurId = itr.options.get('vendeur')?.value;
 
@@ -98,6 +98,7 @@ const loadEvents = (client, dir = "./events/") => {
                 filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
             );
         } else if (itr.commandName === 'group') {
+            // cmd group create, autocomplete sur nom jeu multi/coop avec succès
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
 

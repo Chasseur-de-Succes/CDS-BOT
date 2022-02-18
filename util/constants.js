@@ -324,6 +324,61 @@ const MESSAGES = {
                     }
                 ],
             },
+            ADMINSHOP: {
+                name: "adminshop",
+                aliases: ["adminboutique"],
+                category: "economy",
+                cooldown: 0,
+                description: "Gestion de la boutique",
+                usage: "help",
+                args: [{
+                        name: 'cancel',
+                        type: 'SUB_COMMAND',
+                        description: 'Annule une transaction **en cours**',
+                        options: [
+                            {
+                                name: 'id',
+                                type: 'STRING',
+                                description: 'ID de la transaction (récupéré dans msg log)',
+                                required: true
+                                /* autocomplete: true */
+                            }
+                        ],
+                    }, {
+                        name: 'refund',
+                        type: 'SUB_COMMAND',
+                        description: 'Rembourse une transaction **terminé**',
+                        options: [
+                            {
+                                name: 'id',
+                                type: 'STRING',
+                                description: 'ID de la transaction (récupéré dans msg log)',
+                                required: true
+                                /* autocomplete: true */
+                            }
+                        ],
+                    }, {
+                        name: 'delete',
+                        type: 'SUB_COMMAND',
+                        description: 'Supprime un item du shop',
+                        options: [
+                            {
+                                name: 'vendeur',
+                                type: 'USER',
+                                description: 'Vendeur',
+                                required: true
+                            }, {
+                                name: 'jeu',
+                                type: 'STRING',
+                                description: 'Nom du jeu',
+                                autocomplete: true,
+                                required: true
+                            },
+                        ],
+                    }
+                ],
+                userperms: ['ADMINISTRATOR']
+            },
             SHOP: {
                 name: "shop",
                 aliases: ["boutique"],
@@ -377,59 +432,7 @@ const MESSAGES = {
                                 required: true,
                             }
                         ]
-                    }, {
-                        name: 'admin',
-                        type: 'SUB_COMMAND_GROUP',
-                        description: 'Gestion des items du shop',
-                        options: [
-                            {
-                                name: 'cancel',
-                                type: 'SUB_COMMAND',
-                                description: 'Annule une transaction **en cours**',
-                                options: [
-                                    {
-                                        name: 'id',
-                                        type: 'STRING',
-                                        description: 'ID de la transaction (récupéré dans msg log)',
-                                        required: true
-                                        /* autocomplete: true */
-                                    }
-                                ],
-                            }, {
-                                name: 'refund',
-                                type: 'SUB_COMMAND',
-                                description: 'Rembourse une transaction **terminé**',
-                                options: [
-                                    {
-                                        name: 'id',
-                                        type: 'STRING',
-                                        description: 'ID de la transaction (récupéré dans msg log)',
-                                        required: true
-                                        /* autocomplete: true */
-                                    }
-                                ],
-                            }, {
-                                name: 'delete',
-                                type: 'SUB_COMMAND',
-                                description: 'Supprime un item du shop',
-                                options: [
-                                    {
-                                        name: 'vendeur',
-                                        type: 'USER',
-                                        description: 'Vendeur',
-                                        required: true
-                                    }, {
-                                        name: 'jeu',
-                                        type: 'STRING',
-                                        description: 'Nom du jeu',
-                                        autocomplete: true,
-                                        required: true
-                                    },
-                                ],
-                            }
-                        ],
-                        userperms: ['ADMINISTRATOR']
-                    }
+                    }, 
                 ]
             }
         },
