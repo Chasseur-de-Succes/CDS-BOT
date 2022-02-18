@@ -231,6 +231,7 @@ const MESSAGES = {
                                 name: 'jeu',
                                 type: 'STRING',
                                 description: 'Nom du jeu',
+                                autocomplete: true,
                                 required: true,
                             }, { 
                                 name: 'description',
@@ -386,17 +387,6 @@ const MESSAGES = {
                                 type: 'SUB_COMMAND',
                                 description: 'Annule une transaction **en cours**',
                                 options: [
-                                    /* {
-                                        name: 'vendeur',
-                                        type: 'STRING',
-                                        description: 'Vendeur',
-                                        autocomplete: true
-                                    },{
-                                        name: 'jeu',
-                                        type: 'STRING',
-                                        description: 'Nom du jeu',
-                                        autocomplete: true
-                                    }, */ 
                                     {
                                         name: 'id',
                                         type: 'STRING',
@@ -428,7 +418,7 @@ const MESSAGES = {
                                         type: 'USER',
                                         description: 'Vendeur',
                                         required: true
-                                    },{
+                                    }, {
                                         name: 'jeu',
                                         type: 'STRING',
                                         description: 'Nom du jeu',

@@ -97,6 +97,24 @@ const loadEvents = (client, dir = "./events/") => {
             await itr.respond(
                 filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
             );
+        } else if (itr.commandName === 'group') {
+            const focusedValue = itr.options.getFocused(true);
+            let filtered = [];
+
+            if (focusedValue.name === 'jeu')
+                filtered = await client.findGames({
+                    name: new RegExp(focusedValue.value, "i"), 
+                    hasAchievements: true,
+                    $or: [{isMulti: true}, {isCoop: true}],
+                });
+
+            if (filtered.length <= 25) {
+                await itr.respond(
+                    filtered.map(choice => ({ name: choice.name, value: choice._id })),
+                );
+            } else {
+                await itr.respond([])
+            }
         }
     })
 };
