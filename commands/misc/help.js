@@ -9,10 +9,10 @@ module.exports.run = (client, message, args) => {
     if (!args[0]) {
         let embed = new MessageEmbed()
         .setColor(CORNFLOWER_BLUE)
-        .setAuthor(client.user.username, client.user.displayAvatarURL())
+        .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL()})
         .setTimestamp()
         .setDescription(`Voici la liste des commandes disponibles :\nPréfixe: \`${PREFIX}\`\n:books: _Faites \`${PREFIX}info\` pour en apprendre plus sur moi._`)
-        .setFooter('Demandé par ' + message.author.username);
+        .setFooter({ text: 'Demandé par ' + message.author.username});
         //.addField(':pencil2: Commandes:', `${PREFIX}help [command]\n${PREFIX}info`)
         //.addField(':gear: Utilitaires (???)', `${PREFIX}uptime\n${PREFIX}ping`)
 
@@ -70,7 +70,7 @@ module.exports.run = (client, message, args) => {
             .addField('**Description**', `${command.help.description || "Pas de description"}`)
             .addField('**Utilisation**', usage)
             .addField('**Aliases**', aliases)
-            .setFooter('Demandé par ' + message.author.username);
+            .setFooter({ text: 'Demandé par ' + message.author.username});
 
             return message.channel.send({embeds: [embedCommand]});
         } else {

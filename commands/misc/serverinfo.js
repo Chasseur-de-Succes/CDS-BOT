@@ -37,7 +37,7 @@ module.exports.run = async (client, message, args) => {
         {name: 'Serveur créé le', value: moment.utc(message.guild.createdAt).format("dddd, MMMM Do, YYYY"), inline: false},
     )
     .setTimestamp(new Date())
-    .setFooter('Demandé par ' + message.author.username);
+    .setFooter({ text: 'Demandé par ' + message.author.username});
 
     return message.channel.send({embeds: [embed]});
 }

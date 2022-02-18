@@ -21,7 +21,7 @@ module.exports.run = async (interaction) => {
             {name: 'Serveur créé le', value: moment.utc(guild.createdAt).format("dddd, MMMM Do, YYYY"), inline: false},
         )
         .setTimestamp(new Date())
-        .setFooter('Demandé par ' + user.username);
+        .setFooter({ text: 'Demandé par ' + user.username});
 
     return interaction.reply({embeds: [embed]});
 }

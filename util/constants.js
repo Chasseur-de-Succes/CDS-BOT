@@ -427,7 +427,8 @@ const MESSAGES = {
                                     },
                                 ],
                             }
-                        ]
+                        ],
+                        userperms: ['ADMINISTRATOR']
                     }
                 ]
             }

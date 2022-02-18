@@ -68,7 +68,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             .setDescription(`Liste des jeux disponibles à l'achat.`)
-            .setFooter(`💵 ${userDB.money} ${MONEY}`);
+            .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
 
         if (items.length === 0) {
             embed.setDescription(`Liste des jeux disponibles à l'achat.
@@ -137,7 +137,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE 💰')
             .setDescription(`Que souhaitez-vous acheter ${message.author} ?`)
-            .setFooter(`💵 ${userDB.money} ${MONEY}`);
+            .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
 
         let rows = [];
         let row = new MessageActionRow();
@@ -297,7 +297,7 @@ module.exports.run = async (client, message, args) => {
                             ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
 
                             *En cas de problème, n'hésitez pas à contacter un **admin***.`)
-                        .setFooter(`💵 ${userDB.money - items.items[0].montant} ${MONEY}`);
+                        .setFooter({ text: `💵 ${userDB.money - items.items[0].montant} ${MONEY}`});
                     
                     // maj du msg, en enlevant boutons actions
                     await interaction.update({ 
@@ -324,7 +324,7 @@ module.exports.run = async (client, message, args) => {
             .setColor(YELLOW)
             .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
             //.setDescription(`Liste des jeux disponibles à l'achat.`)
-            .setFooter(`💵 ${money} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}`)
+            .setFooter({ text: `💵 ${money} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}`})
 
         // on limite le nb de jeu affichable (car embed à une limite de caracteres)
         // de 0 à 10, puis de 10 à 20, etc
@@ -372,7 +372,7 @@ module.exports.run = async (client, message, args) => {
             embed.setThumbnail(gameUrlHeader)
                 .setDescription(`**${game.name}**
                                 ${links}`)
-                .setFooter(`💵 ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`);
+                .setFooter({ text: `💵 ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`});
             
             let nbItem = 0;
             const nbMax = 5;

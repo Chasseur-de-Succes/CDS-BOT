@@ -10,7 +10,7 @@ module.exports = async (client, oldUser, newUser) => {
             .setColor(ORANGE)
             .setTitle(`Surnom modifier`)
             .setDescription(`<@${newUser.id}>\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`)
-            .setFooter(`ID: ${newUser.id}`)
+            .setFooter({ text: `ID: ${newUser.id}`})
             .setTimestamp();
 
         client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});

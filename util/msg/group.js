@@ -94,7 +94,7 @@ function getMembersList(group, members) {
     const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
     const editMsgEmbed = createEmbedGroupInfo(members, group, false);
     
-    editMsgEmbed.setFooter(`${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`);
+    editMsgEmbed.setFooter({ text: `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`});
 
     await msg.edit({embeds: [editMsgEmbed]});
 }

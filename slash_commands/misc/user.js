@@ -32,7 +32,7 @@ module.exports.run = async (interaction) => {
 
     const embed = new MessageEmbed()
         .setColor(VERY_PALE_VIOLET)
-        .setAuthor(`Informations sur ${user.tag}`, user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'}))
+        .setAuthor({ name: `Informations sur ${user.tag}`, iconURL: user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'})})
         //.setDescription(`aucune idée de description :eyes:`)
         .setThumbnail(user.displayAvatarURL({dynamic : true, size: 4096, format: 'png'}))
         .addFields(
