@@ -250,6 +250,7 @@ const MESSAGES = {
                                 type: 'STRING',
                                 description: 'Nom du groupe',
                                 required: true,
+                                autocomplete: true
                             }, { 
                                 name: 'jour',
                                 type: 'STRING',
@@ -272,6 +273,7 @@ const MESSAGES = {
                                 type: 'STRING',
                                 description: 'Nom du groupe',
                                 required: true,
+                                autocomplete: true
                             }
                         ]
                     }, {
@@ -284,6 +286,7 @@ const MESSAGES = {
                                 type: 'STRING',
                                 description: 'Nom du groupe',
                                 required: true,
+                                autocomplete: true
                             }, { 
                                 name: 'membre',
                                 type: 'USER',
@@ -301,6 +304,7 @@ const MESSAGES = {
                                 type: 'STRING',
                                 description: 'Nom du groupe',
                                 required: true,
+                                autocomplete: true
                             }
                         ]
                     }

@@ -4,6 +4,7 @@ const { CHANNEL, GUILD_ID, MONEY } = require('../config');
 const { RolesChannel } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
+const { Group } = require('../models/index');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -98,16 +99,26 @@ const loadEvents = (client, dir = "./events/") => {
                 filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
             );
         } else if (itr.commandName === 'group') {
-            // cmd group create, autocomplete sur nom jeu multi/coop avec succès
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
-
+            
+            // cmd group create, autocomplete sur nom jeu multi/coop avec succès
             if (focusedValue.name === 'jeu')
                 filtered = await client.findGames({
                     name: new RegExp(focusedValue.value, "i"), 
                     hasAchievements: true,
                     $or: [{isMulti: true}, {isCoop: true}],
                 });
+
+            // autocomplete sur nom groupe
+            if (focusedValue.name === 'nom') {
+                filtered = await Group.find({
+                    $and: [
+                        { validated: false },
+                        { name: new RegExp(focusedValue.value, 'i') }
+                    ]
+                })
+            }
 
             if (filtered.length <= 25) {
                 await itr.respond(
