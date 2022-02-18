@@ -1,7 +1,6 @@
 const { DiscordAPIError, Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { CHANNEL, GUILD_ID } = require('../config');
-const { AMONGUS_RUNNING } = require('../data/emojis.json');
+const { CHANNEL, GUILD_ID, MONEY } = require('../config');
 const { RolesChannel } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
@@ -33,10 +32,10 @@ const loadSlashCommands = async (client, dir = "./slash_commands/") => {
 
     // Add our slash commands
     const data = client.slashCommands.map(c => ({
-      name: c.help.name,
-      description: c.help.description,
-      options: c.help.args,
-      defaultPermission: (!c.help.userperms || c.help.userperms?.length == 0),
+        name: c.help.name,
+        description: c.help.description,
+        options: c.help.args,
+        defaultPermission: (!c.help.userperms || c.help.userperms?.length == 0),
     }));
     // Update the current list of commands for this guild
     const guild = await client.guilds.fetch(GUILD_ID);
@@ -79,6 +78,31 @@ const loadEvents = (client, dir = "./events/") => {
             logger.info("Évènement chargé " + evtName);
         };
     });
+
+    // TODO a revoir
+    client.on('interactionCreate', async itr => {
+        if (!itr.isAutocomplete()) return;
+        // TODO mettre dans fichier js
+
+        if (itr.commandName === 'shop') {
+            const focusedValue = itr.options.getFocused(true);
+
+            let filtered = [];
+            if (focusedValue.name === 'vendeur')
+                filtered = await client.findGameItemShopByVendeur(focusedValue.value);
+            
+            if (focusedValue.name === 'jeu')
+                filtered = await client.findGameItemShopByName(focusedValue.value);
+            
+            if (focusedValue.name === 'id' && focusedValue.value)
+                filtered = await client.findGameItemShop({ _id: focusedValue.value})
+
+            //console.log(filtered);
+            await itr.respond(
+                filtered.map(choice => ({ name: `${choice.game.name}, par ${choice.seller.username} [${choice.montant} ${MONEY}]`, value: choice._id })),
+            );
+        }
+    })
 };
 
 // Charge les 'batch'

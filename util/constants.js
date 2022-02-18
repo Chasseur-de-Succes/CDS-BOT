@@ -1,4 +1,5 @@
 const moment = require("moment");
+const { MONEY } = require("../config");
 
 const MESSAGES = {
     COMMANDS: {
@@ -328,7 +329,94 @@ const MESSAGES = {
                 category: "economy",
                 cooldown: 0,
                 description: "Affiche la boutique",
-                usage: ""
+                usage: "help",
+                args: [
+                    {
+                        name: 'list',
+                        type: 'SUB_COMMAND',
+                        description: 'Liste les jeux achetable',
+                    },{
+                        name: 'jeux',
+                        type: 'SUB_COMMAND',
+                        description: 'Ouvre le shop (Jeux)',
+                        options: [
+                            { 
+                                name: 'page',
+                                type: 'INTEGER',
+                                description: 'N° de page du shop',
+                                required: false,
+                            }, 
+                        ]
+                    }, { 
+                        name: 'custom',
+                        type: 'SUB_COMMAND',
+                        description: 'Ouvre le shop (personnalisation)',
+                        options: [
+                            { 
+                                name: 'page',
+                                type: 'INTEGER',
+                                description: 'N° de page du shop',
+                                required: false,
+                            }, 
+                        ]
+                    }, {
+                        name: 'sell',
+                        type: 'SUB_COMMAND',
+                        description: 'Vend une clé Steam',
+                        options: [
+                            { 
+                                name: 'jeu',
+                                type: 'STRING',
+                                description: 'Nom du jeu',
+                                required: true,
+                            }, { 
+                                name: 'prix',
+                                type: 'INTEGER',
+                                description: 'Prix du jeu (en ' + MONEY + ')',
+                                required: true,
+                            }
+                        ]
+                    }, {
+                        name: 'admin',
+                        type: 'SUB_COMMAND_GROUP',
+                        description: 'Gestion des items du shop',
+                        options: [
+                            {
+                                name: 'cancel',
+                                type: 'SUB_COMMAND',
+                                description: 'Annule une transaction **en cours**',
+                                options: [
+                                    /* {
+                                        name: 'vendeur',
+                                        type: 'STRING',
+                                        description: 'Vendeur',
+                                        autocomplete: true
+                                    },{
+                                        name: 'jeu',
+                                        type: 'STRING',
+                                        description: 'Nom du jeu',
+                                        autocomplete: true
+                                    }, */ 
+                                    {
+                                        name: 'id',
+                                        type: 'STRING',
+                                        description: 'ID de la transaction (récupéré dans msg log)',
+                                        required: true
+                                        /* autocomplete: true */
+                                    }
+                                ],
+                            }, {
+                                name: 'refund',
+                                type: 'SUB_COMMAND',
+                                description: 'Rembourse une transaction **terminé**'
+                            }, {
+                                name: 'delete',
+                                type: 'SUB_COMMAND',
+                                description: 'Supprime un item du shop'
+                            }
+                        ]
+                    }
+                ]
             }
         },
         MODERATION: {

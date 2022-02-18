@@ -327,6 +327,88 @@ module.exports = client => {
         else return;
     };
 
+    client.findGameItemShopByName = async q => {
+        const agg = [{
+                // select GameItem
+                $match: { itemtype: 'GameItem' }
+            }, {
+                // recup info Game
+                $lookup: {
+                    from: 'games',
+                    localField: 'game',
+                    foreignField: '_id',
+                    as: 'game'
+                }
+            }, {
+                // recup info vendeur
+                $lookup: {
+                    from: 'users',
+                    localField: 'seller',
+                    foreignField: '_id',
+                    as: 'seller'
+                }
+            }, {
+                // transforme array en Game
+                $unwind: {
+                    path: '$game'
+                }
+            }, {
+                // transforme array en User
+                $unwind: {
+                    path: '$seller'
+                }
+            }, {
+                // regex sur nom
+                $match: {
+                    'game.name': RegExp(q, 'i')
+                }
+            }];
+            const data = await GameItem.aggregate(agg);
+            if (data) return data;
+            else return;
+    }
+
+    client.findGameItemShopByVendeur = async q => {
+        const agg = [{
+                // select GameItem
+                $match: { itemtype: 'GameItem' }
+            }, {
+                // recup info Game
+                $lookup: {
+                    from: 'games',
+                    localField: 'game',
+                    foreignField: '_id',
+                    as: 'game'
+                }
+            }, {
+                // recup info vendeur
+                $lookup: {
+                    from: 'users',
+                    localField: 'seller',
+                    foreignField: '_id',
+                    as: 'seller'
+                }
+            }, {
+                // transforme array en Game
+                $unwind: {
+                    path: '$game'
+                }
+            }, {
+                // transforme array en User
+                $unwind: {
+                    path: '$seller'
+                }
+            }, {
+                // regex sur nom
+                $match: {
+                    'seller.username': RegExp(q, 'i')
+                }
+            }];
+            const data = await GameItem.aggregate(agg);
+            if (data) return data;
+            else return;
+    }
+
     client.findGameItemShopByGame = async query => {
         const agg = [
             {
