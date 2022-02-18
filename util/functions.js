@@ -319,6 +319,14 @@ module.exports = client => {
         let item = await GameItem.deleteOne({ _id: gameItem._id })
         logger.info({prefix:"[DB]", message:"Delete game item"});
     }
+    /**
+     * Supprime un jeu du shop
+     * @param {Object} id
+     */
+     client.deleteGameItemById = async id => {
+        let item = await GameItem.findOneAndDelete({ _id: new mongoose.Types.ObjectId(id) })
+        logger.info({prefix:"[DB]", message:"Delete game item"});
+    }
 
     client.findGameItemShop = async query => {
         const data = await GameItem.find(query)
@@ -327,7 +335,7 @@ module.exports = client => {
         else return;
     };
 
-    client.findGameItemShopByName = async q => {
+    client.findGameItemShopBy = async q => {
         const agg = [{
                 // select GameItem
                 $match: { itemtype: 'GameItem' }
@@ -357,53 +365,22 @@ module.exports = client => {
                 $unwind: {
                     path: '$seller'
                 }
-            }, {
-                // regex sur nom
-                $match: {
-                    'game.name': RegExp(q, 'i')
-                }
             }];
-            const data = await GameItem.aggregate(agg);
-            if (data) return data;
-            else return;
-    }
 
-    client.findGameItemShopByVendeur = async q => {
-        const agg = [{
-                // select GameItem
-                $match: { itemtype: 'GameItem' }
-            }, {
-                // recup info Game
-                $lookup: {
-                    from: 'games',
-                    localField: 'game',
-                    foreignField: '_id',
-                    as: 'game'
-                }
-            }, {
-                // recup info vendeur
-                $lookup: {
-                    from: 'users',
-                    localField: 'seller',
-                    foreignField: '_id',
-                    as: 'seller'
-                }
-            }, {
-                // transforme array en Game
-                $unwind: {
-                    path: '$game'
-                }
-            }, {
-                // transforme array en User
-                $unwind: {
-                    path: '$seller'
-                }
-            }, {
-                // regex sur nom
-                $match: {
-                    'seller.username': RegExp(q, 'i')
-                }
-            }];
+            // jeux pas encore vendu
+            if (q.notSold) {
+                agg.push({ $match: { buyer: { '$exists': false } } })
+            }
+
+            // filtre sur nom jeu
+            if (q.game) {
+                agg.push({ $match: { 'game.name': RegExp(q.game, 'i') } })
+            }
+            // filtre sur vendeur (ID)
+            if (q.seller) {
+                agg.push({ $match: { 'seller.userId': RegExp(q.seller, 'i') } })
+            }
+
             const data = await GameItem.aggregate(agg);
             if (data) return data;
             else return;

@@ -408,11 +408,34 @@ const MESSAGES = {
                             }, {
                                 name: 'refund',
                                 type: 'SUB_COMMAND',
-                                description: 'Rembourse une transaction **terminé**'
+                                description: 'Rembourse une transaction **terminé**',
+                                options: [
+                                    {
+                                        name: 'id',
+                                        type: 'STRING',
+                                        description: 'ID de la transaction (récupéré dans msg log)',
+                                        required: true
+                                        /* autocomplete: true */
+                                    }
+                                ],
                             }, {
                                 name: 'delete',
                                 type: 'SUB_COMMAND',
-                                description: 'Supprime un item du shop'
+                                description: 'Supprime un item du shop',
+                                options: [
+                                    {
+                                        name: 'vendeur',
+                                        type: 'USER',
+                                        description: 'Vendeur',
+                                        required: true
+                                    },{
+                                        name: 'jeu',
+                                        type: 'STRING',
+                                        description: 'Nom du jeu',
+                                        autocomplete: true,
+                                        required: true
+                                    },
+                                ],
                             }
                         ]
                     }

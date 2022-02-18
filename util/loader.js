@@ -84,22 +84,18 @@ const loadEvents = (client, dir = "./events/") => {
         if (!itr.isAutocomplete()) return;
         // TODO mettre dans fichier js
 
+        // cmd delete, autocomplete sur nom jeu
         if (itr.commandName === 'shop') {
             const focusedValue = itr.options.getFocused(true);
+            const vendeurId = itr.options.get('vendeur')?.value;
 
             let filtered = [];
-            if (focusedValue.name === 'vendeur')
-                filtered = await client.findGameItemShopByVendeur(focusedValue.value);
             
             if (focusedValue.name === 'jeu')
-                filtered = await client.findGameItemShopByName(focusedValue.value);
-            
-            if (focusedValue.name === 'id' && focusedValue.value)
-                filtered = await client.findGameItemShop({ _id: focusedValue.value})
+                filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true });
 
-            //console.log(filtered);
             await itr.respond(
-                filtered.map(choice => ({ name: `${choice.game.name}, par ${choice.seller.username} [${choice.montant} ${MONEY}]`, value: choice._id })),
+                filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
             );
         }
     })

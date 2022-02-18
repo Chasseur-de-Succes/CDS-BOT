@@ -42,6 +42,6 @@ module.exports.sendLogs = (client, title, desc, footer = '', color = DARK_RED) =
         .setColor(color)
         .setTitle(`${title}`)
         .setDescription(desc)
-        .setFooter(footer);
+        .setFooter({ text: footer});
     client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
 }
