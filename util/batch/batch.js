@@ -96,29 +96,6 @@ module.exports = {
     },
 
     /**
-     * Supprimer un rappel et désactive le job lié à ce rappel
-     * @param {*} client 
-     * @param {*} groupe 
-     */
-    deleteRappelJob(client, groupe) {
-        const jobName = `rappel_${groupe.name}`;
-
-        // cancel ancien job si existe
-        if (scheduledJobs[jobName])
-            scheduledJobs[jobName].cancel();
-
-        // si job existe -> update date, sinon créé
-        client.findJob({name: jobName})
-        .then(jobs => {
-            if (jobs.length > 0) {
-                let jobDB = jobs[0];
-                logger.info("-- Suppression "+jobDB.name+" pour groupe "+groupe.name+"..");
-                client.deleteJob(jobDB);
-            }
-        })
-    },
-
-    /**
      * Charge les différents jobs (rappels, ...)
      * @param {*} client 
      */

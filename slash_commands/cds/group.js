@@ -1,13 +1,12 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions } = require("discord.js");
-const { MESSAGES, BAREME_XP } = require("../../util/constants");
+const { MESSAGES } = require("../../util/constants");
 const { createError, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
-const { PREFIX, CHANNEL } = require("../../config");
-const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
+const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
+const { PREFIX } = require("../../config");
+const { createRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
-const { User } = require("../../models");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
@@ -223,7 +222,7 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
     
-    logger.info(`${author.tag} a dissout le groupe ${grpName}`);
+    logger.info(`${author.user.tag} a dissout le groupe ${grpName}`);
     await interaction.reply(`${mentionsUsers} : le groupe **${grpName}** a été dissout !`);
 }
 
@@ -289,10 +288,14 @@ const end = async (interaction, options) => {
 
     await client.update(grp, { validated: true });
 
+    let mentionsUsers = '';
+    for (const member of grp.members)
+        mentionsUsers += `<@${member.userId}> `
+    
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
-    await interaction.reply({ embeds: [newMsgEmbed] });
+    await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
     endGroup(client, grp);
 }

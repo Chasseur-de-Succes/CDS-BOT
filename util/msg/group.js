@@ -1,9 +1,11 @@
+const { scheduleJob, scheduledJobs } = require("node-schedule");
+const { Group, User } = require('../../models');
 const { MessageEmbed } = require('discord.js');
 const { GUILD_ID, CHANNEL } = require("../../config");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');
-const { Group, User } = require('../../models');
+const { BAREME_XP } = require("../constants");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -236,7 +238,7 @@ async function dissolveGroup(client, grp) {
     // TODO si fait par un admin
     // stat ++
     await User.updateOne(
-        { _id: newGrp.captain._id },
+        { _id: grp.captain._id },
         { $inc: { "stats.group.dissolved" : 1 } }
     );
 
@@ -264,11 +266,40 @@ async function endGroup(client, grp) {
     // TODO xp variable en fonction nb de personnes, si capitaine
     let xp = BAREME_XP.EVENT_END;
 
-    // - Stat
+    // - Stat++ pour tous les membres
+    await User.updateMany(
+        { _id: { $in: grp.members } },
+        { $inc: { "stats.group.ended" : 1 } },
+        { multi: true }
+    );
 
     // TODO déplacer event terminé ?
     const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
     msgChannel.reactions.removeAll();
+}
+
+
+/**
+ * Supprimer un rappel et désactive le job lié à ce rappel
+ * @param {*} client 
+ * @param {*} groupe 
+ */
+ function deleteRappelJob(client, groupe) {
+    const jobName = `rappel_${groupe.name}`;
+
+    // cancel ancien job si existe
+    if (scheduledJobs[jobName])
+        scheduledJobs[jobName].cancel();
+
+    // si job existe -> update date, sinon créé
+    client.findJob({name: jobName})
+    .then(jobs => {
+        if (jobs.length > 0) {
+            let jobDB = jobs[0];
+            logger.info("-- Suppression "+jobDB.name+" pour groupe "+groupe.name+"..");
+            client.deleteJob(jobDB);
+        }
+    })
 }
 
 exports.getMembersList = getMembersList

@@ -3,13 +3,11 @@ const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX, CHANNEL } = require('../../config.js');
 const moment = require('moment');
 
-const { NIGHT, DARK_RED } = require("../../data/colors.json");
-const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
-const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
-const { create } = require('../../models/user');
+const { NIGHT } = require("../../data/colors.json");
+const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
+const { editMsgHubGroup, createEmbedGroupInfo, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
+const { createRappelJob } = require('../../util/batch/batch');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
-const { User } = require('../../models');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
