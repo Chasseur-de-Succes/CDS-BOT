@@ -5,10 +5,11 @@ const moment = require('moment');
 
 const { NIGHT, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup } = require('../../util/msg/group');
+const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup, endGroup, createGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 const { create } = require('../../models/user');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
+const { User } = require('../../models');
 
 /**
  * Envoie un msg embed en DM ou sur le channel du message
@@ -387,16 +388,7 @@ module.exports.run = async (client, message, args) => {
             members: [userDB._id],
             game: game
         };
-        let grpDB = await client.createGroup(newGrp);
-
-        // creation msg channel
-        await sendMsgHubGroup(client, grpDB);
-        
-        const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
-        msgChannel.react(CHECK_MARK);
-
-        // filtre reaction sur emoji
-        await createReactionCollectorGroup(client, msgChannel, grpDB);
+        createGroup(client, newGrp);
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
@@ -538,14 +530,7 @@ module.exports.run = async (client, message, args) => {
             .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
         message.channel.send({ embeds: [newMsgEmbed] });
 
-        // update msg
-        await editMsgHubGroup(client, grp);
-
-        // remove job
-        deleteRappelJob(client, grp);
-
-        const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
-        msgChannel.reactions.removeAll();
+        endGroup(client, grp);
     }
 
 }

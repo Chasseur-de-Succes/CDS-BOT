@@ -25,7 +25,22 @@ const userSchema = mongoose.Schema({
         "type": Boolean,
         "default": false
     },
-    lastBuy: Date
+    lastBuy: Date,
+    stats: {
+        group: {
+            created:    { type: Number, default: 0 },
+            joined:     { type: Number, default: 0 },
+            left:       { type: Number, default: 0 },
+            dissolved:  { type: Number, default: 0 },
+            ended:      { type: Number, default: 0 }
+        },
+        misc: {
+            // dans Hall des héros, nb de fois qu'un admin a réagi avec emoji custom (a definir)
+            hall_heros_approved_by_admin :      { type: Number, default: 0 },
+            // dans Hall des zeros, nb de fois qu'un admin a réagi avec emoji custom (a definir)
+            hall_zeros_approved_by_admin :      { type: Number, default: 0 },
+        }
+    }
 })
 
 module.exports = mongoose.model("User", userSchema);

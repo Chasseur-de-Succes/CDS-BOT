@@ -122,7 +122,7 @@ const loadEvents = (client, dir = "./events/") => {
 
             if (filtered.length <= 25) {
                 await itr.respond(
-                    filtered.map(choice => ({ name: choice.name, value: choice._id })),
+                    filtered.map(choice => ({ name: choice.name, value: choice.name })),
                 );
             } else {
                 await itr.respond([])

@@ -1,12 +1,13 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions } = require("discord.js");
-const { MESSAGES } = require("../../util/constants");
+const { MESSAGES, BAREME_XP } = require("../../util/constants");
 const { createError, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup } = require("../../util/msg/group");
+const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup, endGroup, createGroup } = require("../../util/msg/group");
 const { PREFIX, CHANNEL } = require("../../config");
 const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
+const { User } = require("../../models");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
@@ -64,8 +65,8 @@ const create = async (interaction, options) => {
     });
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games) await interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
-    if (games.length === 0) await interaction.editReply({ embeds: [createError(`Pas de résultat trouvé pour **${gameName}** !`)] });
+    if (!games) return await interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
+    if (games.length === 0) return await interaction.editReply({ embeds: [createError(`Pas de résultat trouvé pour **${gameName}** !`)] });
 
     // values pour Select Menu
     let items = [];
@@ -131,16 +132,7 @@ const create = async (interaction, options) => {
         members: [captainDB._id],
         game: game
     };
-    let grpDB = await client.createGroup(newGrp);
-
-    // creation msg channel
-    await sendMsgHubGroup(client, grpDB);
-
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
-    msgChannel.react(CHECK_MARK);
-
-    // filtre reaction sur emoji
-    await createReactionCollectorGroup(client, msgChannel, grpDB);
+    createGroup(client, newGrp);
 
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
@@ -310,15 +302,7 @@ const end = async (interaction, options) => {
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
     await interaction.reply({ embeds: [newMsgEmbed] });
 
-    // update msg
-    await editMsgHubGroup(client, grp);
-
-    // remove job
-    deleteRappelJob(client, grp);
-
-    // TODO déplacer event terminé ?
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
-    msgChannel.reactions.removeAll();
+    endGroup(client, grp);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

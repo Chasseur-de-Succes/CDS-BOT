@@ -1,9 +1,9 @@
 const { MessageEmbed } = require('discord.js');
 const { GUILD_ID, CHANNEL } = require("../../config");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
-const { CROSS_MARK } = require('../../data/emojis.json');
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');
-const { Group } = require('../../models');
+const { Group, User } = require('../../models');
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -196,9 +196,54 @@ async function leaveGroup(client, grp, userDB) {
         dateUpdated: Date.now()
     });
 
+    // stat ++
+    await User.updateOne(
+        { _id: userDB._id },
+        { $inc: { "stats.group.joined" : 1 } }
+    );
+
     // update msg
     await editMsgHubGroup(client, grp);
     logger.info(userDB.username+" vient de rejoindre groupe "+grp.name);
+}
+
+async function createGroup(client, newGrp) {
+    let grpDB = await client.createGroup(newGrp);
+    
+    // stat ++
+    await User.updateOne(
+        { _id: newGrp.captain._id },
+        { $inc: { "stats.group.created" : 1 } }
+    );
+
+    // creation msg channel
+    await sendMsgHubGroup(client, grpDB);
+    
+    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
+    msgChannel.react(CHECK_MARK);
+
+    // filtre reaction sur emoji
+    await createReactionCollectorGroup(client, msgChannel, grpDB);
+}
+
+async function endGroup(client, grp) {
+    // update msg
+    await editMsgHubGroup(client, grp);
+
+    // remove job
+    deleteRappelJob(client, grp);
+
+    // update info user
+    // - XP
+    // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
+    // TODO xp variable en fonction nb de personnes, si capitaine
+    let xp = BAREME_XP.EVENT_END;
+
+    // - Stat
+
+    // TODO déplacer event terminé ?
+    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
+    msgChannel.reactions.removeAll();
 }
 
 exports.getMembersList = getMembersList
@@ -209,3 +254,5 @@ exports.deleteMsgHubGroup = deleteMsgHubGroup
 exports.createReactionCollectorGroup = createReactionCollectorGroup
 exports.leaveGroup = leaveGroup
 exports.joinGroup = joinGroup
+exports.createGroup = createGroup
+exports.endGroup = endGroup
