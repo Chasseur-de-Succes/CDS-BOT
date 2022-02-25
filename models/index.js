@@ -5,6 +5,10 @@ module.exports = {
     GuildConfig: require('./guildConfig'),
     Job: require('./jobs/job'),
     RolesChannel: require('./rolesChannel'),
+    
     GameItem: require('./shop/gameItemShop'),
     CustomItem: require('./shop/customItemShop'),
+
+    MsgHallHeros: require('./hall/hallHeros'),
+    MsgHallZeros: require('./hall/hallZeros'),
 }

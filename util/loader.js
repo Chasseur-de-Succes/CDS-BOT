@@ -143,6 +143,7 @@ const loadBatch = async (client) => {
 const loadReactionGroup = async (client) => {
     logger.info(`Chargement des messages 'events' ..`)
     // recupere TOUS les messages du channel de listage des groupes
+    // TODO recup dans BDD, les id msg des group non validé plutot..
     // TODO filtrer ?
     client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch()
         .then(msgs => {
@@ -159,11 +160,11 @@ const loadReactionGroup = async (client) => {
                     })
                 }
             });
+            logger.info(`.. terminé`)
         })
         .catch(err => {
             logger.error("Erreur load listener reaction groupes " + err);
         });
-    logger.info(`.. terminé`)
 }
 
 // Créé ou charge les reactions sur le message donnant les rôles

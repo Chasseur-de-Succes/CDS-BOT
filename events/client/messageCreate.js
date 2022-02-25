@@ -25,18 +25,42 @@ module.exports = async (client, msg) => {
         if (hasPJ) {
             // si image
             if (msg.attachments.every(m => m.contentType.startsWith('image'))) {
+                // si hall heros
                 if (isHallHeros) {
+                    // stat ++
                     await User.updateOne(
                         { userId: msg.author.id },
                         { $inc: { "stats.img.heros" : 1 } }
                     );
-                }
 
+                    // reactions auto
+                    await msg.react('🏆');
+                    await msg.react('💯');
+
+                    // save msg dans base
+                    const userDB = await client.getUser(msg.author);
+                    client.createMsgHallHeros({
+                        author: userDB,
+                        msgId: msg.id,
+                    });
+                }
+                    
+                // si hall zeros
                 if (isHallZeros) {
+                    // stat ++
                     await User.updateOne(
                         { userId: msg.author.id },
                         { $inc: { "stats.img.zeros" : 1 } }
                     );
+
+                    // reaction auto
+                    await msg.react('💩');
+                    // save msg dans base
+                    const userDB = await client.getUser(msg.author);
+                    client.createMsgHallZeros({
+                        author: userDB,
+                        msgId: msg.id,
+                    });
                 }
             }
         }

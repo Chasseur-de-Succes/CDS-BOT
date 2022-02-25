@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel } = require("../models/index");
+const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel, MsgHallHeros, MsgHallZeros } = require("../models/index");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
@@ -448,6 +448,24 @@ module.exports = client => {
         const g = await createRole.save();
         
         logger.info({prefix:"[DB]", message:"Nouveau Role Channel : " + item.name});
+        return g;
+    };
+
+    /* MSG */
+    client.createMsgHallHeros = async item => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+        const createMsg = await new MsgHallHeros(merged);
+        const g = await createMsg.save();
+        
+        logger.info({prefix:"[DB]", message:"Nouveau Hall 🏆Héros de : " + item.author.username});
+        return g;
+    };
+    client.createMsgHallZeros = async item => {
+        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+        const createMsg = await new MsgHallZeros(merged);
+        const g = await createMsg.save();
+        
+        logger.info({prefix:"[DB]", message:"Nouveau Hall 💩Zéros de : " + item.author.username});
         return g;
     };
 }
