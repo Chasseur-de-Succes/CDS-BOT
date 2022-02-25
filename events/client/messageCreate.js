@@ -1,6 +1,7 @@
 const { PREFIX, CHANNEL } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
-const { User } = require('../../models/index.js');
+const { User, MsgHallHeros } = require('../../models/index.js');
+const { loadCollectorHall } = require('../../util/msg/stats.js');
 
 module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
@@ -8,7 +9,7 @@ module.exports = async (client, msg) => {
     //     return msg.reply(`Tu as besoin d'aide ? Mon préfixe est \`${PREFIX}\``);
     // }
 
-    /* Stat nb msg envoyé (sans compter commande avec prefix et /) */
+    /* Pour stat nb msg envoyé (sans compter commande avec prefix et /) */
     if (!msg.author.bot && !msg.content.startsWith(PREFIX)) {
         // si pas register pas grave, ca ne passera pas
         await User.updateOne(
@@ -39,10 +40,15 @@ module.exports = async (client, msg) => {
 
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
-                    client.createMsgHallHeros({
+                    const initReactions = new Map([['🏆', 0], ['💯', 0]])
+                    const msgHeros = await client.createMsgHallHeros({
                         author: userDB,
                         msgId: msg.id,
+                        reactions: initReactions
                     });
+
+                    // creer collector
+                    loadCollectorHall(msg, msgHeros);
                 }
                     
                 // si hall zeros
@@ -57,10 +63,15 @@ module.exports = async (client, msg) => {
                     await msg.react('💩');
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
-                    client.createMsgHallZeros({
+                    const initReactions = new Map([['💩', 0]]);
+                    const msgZeros = await client.createMsgHallZeros({
                         author: userDB,
                         msgId: msg.id,
+                        reactions: initReactions
                     });
+
+                    // creer collector
+                    loadCollectorHall(msg, msgZeros);
                 }
             }
         }

@@ -1,10 +1,11 @@
 const { DiscordAPIError, Collection } = require('discord.js');
 const { readdirSync } = require('fs');
 const { CHANNEL, GUILD_ID, MONEY } = require('../config');
-const { RolesChannel } = require('../models');
+const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
+const { loadCollectorHall } = require('./msg/stats');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -167,6 +168,29 @@ const loadReactionGroup = async (client) => {
         });
 }
 
+const loadReactionMsg = async (client) => {
+    const lMsgHeros = await MsgHallHeros.find();
+    const lMsgZeros = await MsgHallZeros.find();
+    // merge les 2 array
+    const lMsg = [...lMsgHeros, ...lMsgZeros]
+
+    for (const msgDB of lMsg) {
+        // recup msg sur bon channel
+        const channelHall = msgDB.msgType === 'MsgHallHeros' ? CHANNEL.HALL_HEROS : CHANNEL.HALL_ZEROS;
+        client.channels.cache.get(channelHall).messages.fetch(msgDB.msgId)
+        .then(msg => {
+            // on charge le collecteur
+            // TODO le remove n'est pas pris en compte de suite, je sais pas pk
+            // exemple, msg a deja des reactions, le serveur reset, remove reaction = rine se passe
+            // pas grave car on save le nb d'emoji a chaque fois
+            loadCollectorHall(msg, msgDB);
+        }).catch(async err => {
+            // on supprime les msg qui n'existent plus
+            await Msg.deleteOne({ _id: msgDB._id });
+        });
+    }
+}
+
 // Créé ou charge les reactions sur le message donnant les rôles
 const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     // TODO cooldown
@@ -284,5 +308,6 @@ module.exports = {
     loadBatch,
     loadReactionGroup,
     loadSlashCommands,
-    loadRoleGiver
+    loadRoleGiver,
+    loadReactionMsg
 }

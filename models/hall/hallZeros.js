@@ -3,8 +3,9 @@ const Message = require('./msg');
 
 const zerosSchema = Message.discriminator('MsgHallZeros', new mongoose.Schema({
         // nb 💩 et custom ou autre
-        reactions: {
-            '💩': { type: Number, default: 0 },
+        reactions: { 
+            type: Map,
+            of: Number
         }
     })
 );
