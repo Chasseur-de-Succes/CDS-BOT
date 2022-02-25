@@ -1,4 +1,4 @@
-const {PREFIX} = require('../../config.js');
+const { PREFIX, CHANNEL } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { User } = require('../../models/index.js');
 
@@ -15,6 +15,31 @@ module.exports = async (client, msg) => {
             { userId: msg.author.id },
             { $inc: { "stats.msg" : 1 } }
         );
+
+        const isHallHeros = msg.channelId === CHANNEL.HALL_HEROS;
+        const isHallZeros = msg.channelId === CHANNEL.HALL_ZEROS;
+
+        const hasPJ = msg.attachments.size > 0;
+        // nb img dans hall héros
+        // si piece jointes
+        if (hasPJ) {
+            // si image
+            if (msg.attachments.every(m => m.contentType.startsWith('image'))) {
+                if (isHallHeros) {
+                    await User.updateOne(
+                        { userId: msg.author.id },
+                        { $inc: { "stats.img.heros" : 1 } }
+                    );
+                }
+
+                if (isHallZeros) {
+                    await User.updateOne(
+                        { userId: msg.author.id },
+                        { $inc: { "stats.img.zeros" : 1 } }
+                    );
+                }
+            }
+        }
     }
 
     if(!msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;

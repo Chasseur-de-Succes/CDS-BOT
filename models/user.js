@@ -35,6 +35,10 @@ const userSchema = mongoose.Schema({
             ended:      { type: Number, default: 0 }
         },
         msg: { type: Number, default: 0 },
+        img: {
+            heros: { type: Number, default: 0 },
+            zeros: { type: Number, default: 0 },
+        },
         misc: {
             // dans Hall des héros, nb de fois qu'un admin a réagi avec emoji custom (a definir)
             hall_heros_approved_by_admin :      { type: Number, default: 0 },
