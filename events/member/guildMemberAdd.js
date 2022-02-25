@@ -1,22 +1,17 @@
-const color = require('../../data/colors.json');
+const { CORNFLOWER_BLUE } = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
+const { CHANNEL } = require('../../config');
 
 module.exports = async (client, member) => {
+    const user = client.users.cache.get(member.id);
     const embed = new MessageEmbed()
-    .setColor(color.cornflower_blue)
-    .setTitle(`Nouveau membre • (${member.guild.name})`)
-    .setDescription(`<@${member.id}>`)
-    .addField("ID", member.id);
+        .setColor(CORNFLOWER_BLUE)
+        .setTitle(`Nouveau membre`)
+        .setDescription(`<@${member.id}>`)
+        .addFields(
+            {name: "Âge du compte", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`},
+            {name: "ID", value: `${member.id}`},
+        );
 
-    client.channels.cache.get('872898815097716807').send({embeds: [embed]});
-    
-    // !!! vérifié si user déjà présent (guild id + user id)
-    const newUser = {
-        guildID: member.guild.id,
-        guildName: member.guild.name,
-        userID: member.id,
-        username: member.user.tag,
-    }
-
-    await client.createUser(newUser);
+    client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});
 }

@@ -1,18 +1,18 @@
 const { MessageEmbed } = require('discord.js');
-const colors = require('../../data/colors.json');
+const { DARK_RED, VERY_PALE_BLUE, CORNFLOWER_BLUE} = require('../../data/colors.json');
 const { PREFIX } = require('../../config.js');
 const { readdirSync } = require('fs');
 const { MESSAGES } = require('../../util/constants');
 const categoryList = readdirSync('./commands');
 
 module.exports.run = (client, message, args) => {
-    if(!args[0]) {
+    if (!args[0]) {
         let embed = new MessageEmbed()
-        .setColor(colors.cornflower_blue)
-        .setAuthor(client.user.username, client.user.displayAvatarURL())
+        .setColor(CORNFLOWER_BLUE)
+        .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL()})
         .setTimestamp()
         .setDescription(`Voici la liste des commandes disponibles :\nPréfixe: \`${PREFIX}\`\n:books: _Faites \`${PREFIX}info\` pour en apprendre plus sur moi._`)
-        .setFooter('Demandé par ' + message.author.username);
+        .setFooter({ text: 'Demandé par ' + message.author.username});
         //.addField(':pencil2: Commandes:', `${PREFIX}help [command]\n${PREFIX}info`)
         //.addField(':gear: Utilitaires (???)', `${PREFIX}uptime\n${PREFIX}ping`)
 
@@ -23,10 +23,13 @@ module.exports.run = (client, message, args) => {
                     categoryRename = ':pencil2: Misc';
                     break;
                 case 'moderation' :
-                    categoryRename = '<:warning2:706510404356014121> Modération';
+                    categoryRename = '<:warning2:879843712073621515> Modération';
                     break;
                 case 'economy' :
                     categoryRename = ':moneybag: Économie';
+                    break;
+                case 'cds' :
+                    categoryRename = ':trophy: CDS';
                     break;
                 default:
                     categoryRename = category;
@@ -49,7 +52,7 @@ module.exports.run = (client, message, args) => {
                 aliases = "Pas d'aliases";
             } 
             else {
-                aliases = command.help.aliases;
+                aliases = `${command.help.aliases}`;
             }
 
             if(command.help.usage) {
@@ -62,17 +65,17 @@ module.exports.run = (client, message, args) => {
             //if() check si moderator ou owner
             
             let embedCommand = new MessageEmbed()
-            .setColor(colors.very_pale_blue)
+            .setColor(VERY_PALE_BLUE)
             .setDescription(`**Commande: \`${command.help.name}\`**`)
             .addField('**Description**', `${command.help.description || "Pas de description"}`)
             .addField('**Utilisation**', usage)
             .addField('**Aliases**', aliases)
-            .setFooter('Demandé par ' + message.author.username);
+            .setFooter({ text: 'Demandé par ' + message.author.username});
 
             return message.channel.send({embeds: [embedCommand]});
         } else {
             let errorEmbed = new MessageEmbed()
-            .setColor(colors.dark_red)
+            .setColor(DARK_RED)
             .setTitle(`:x: **Cette commande n'existe pas !**`);
 
             return message.channel.send({embeds: [errorEmbed]});
