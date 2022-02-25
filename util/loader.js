@@ -1,7 +1,7 @@
 const { DiscordAPIError, Collection } = require('discord.js');
 const { readdirSync } = require('fs');
 const { CHANNEL, GUILD_ID, MONEY } = require('../config');
-const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg } = require('../models');
+const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
@@ -142,30 +142,23 @@ const loadBatch = async (client) => {
 
 // Charge les réactions des messages des groupes
 const loadReactionGroup = async (client) => {
-    logger.info(`Chargement des messages 'events' ..`)
+    const lMsgGrp = await MsgDmdeAide.find();
+
     // recupere TOUS les messages du channel de listage des groupes
-    // TODO recup dans BDD, les id msg des group non validé plutot..
-    // TODO filtrer ?
-    client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch()
-        .then(msgs => {
-            msgs.forEach(msg => {
-                // filtre les msgs du BOT
-                if (msg.author.bot) {
-                    // recup le group associé au message (unique)
-                    client.findGroup({ idMsg: msg.id })
-                    .then(async grps => {
-                        // filtre group encore en cours
-                        if (grps[0] && !grps[0].validated) {
-                            await createReactionCollectorGroup(client, msg, grps[0]);
-                        }
-                    })
-                }
-            });
-            logger.info(`.. terminé`)
+    for (const msgDB of lMsgGrp) {
+        // recup msg sur bon channel
+        client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(msgDB.msgId)
+        .then(async msg => {
+            const grp = await Group.findOne({ idMsg: msg.id });
+            // filtre group encore en cours
+            if (!grp.validated)
+                await createReactionCollectorGroup(client, msg, grp);
+        }).catch(async err => {
+            logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
+            // on supprime les msg qui n'existent plus
+            await Msg.deleteOne({ _id: msgDB._id });
         })
-        .catch(err => {
-            logger.error("Erreur load listener reaction groupes " + err);
-        });
+    }
 }
 
 const loadReactionMsg = async (client) => {
@@ -180,7 +173,7 @@ const loadReactionMsg = async (client) => {
         client.channels.cache.get(channelHall).messages.fetch(msgDB.msgId)
         .then(msg => {
             // on charge le collecteur
-            // TODO le remove n'est pas pris en compte de suite, je sais pas pk
+            // le remove n'est pas pris en compte de suite, je sais pas pk
             // exemple, msg a deja des reactions, le serveur reset, remove reaction = rine se passe
             // pas grave car on save le nb d'emoji a chaque fois
             loadCollectorHall(msg, msgDB);

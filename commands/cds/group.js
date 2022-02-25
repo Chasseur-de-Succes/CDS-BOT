@@ -5,28 +5,9 @@ const moment = require('moment');
 
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, createEmbedGroupInfo, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
+const { editMsgHubGroup, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
 const { createRappelJob } = require('../../util/batch/batch');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
-
-/**
- * Envoie un msg embed en DM ou sur le channel du message
- * @param {*} message Contenu du message
- * @param {*} group Groupe
- * @param {*} toDM 'true' si a envoyé par DM, false dans le channel
- */
-function sendEmbedGroupInfo(message, group, toDM = false) {
-    const members = message.guild.members.cache;
-    const memberCaptain = members.get(group.captain.userId);
-    let isAuthorCaptain = message.author === memberCaptain.user;
-    const newMsgEmbed = createEmbedGroupInfo(members, group, isAuthorCaptain);
-
-    // envoie en MP
-    if (toDM)
-        message.author.send({ embeds: [newMsgEmbed] });
-    else 
-        message.channel.send({ embeds: [newMsgEmbed] });
-}
 
 async function sendListGroup(client, message, groupes, title) {
     let urls = [], games = [], infos = []

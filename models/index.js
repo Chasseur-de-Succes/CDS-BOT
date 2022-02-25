@@ -9,7 +9,8 @@ module.exports = {
     GameItem: require('./shop/gameItemShop'),
     CustomItem: require('./shop/customItemShop'),
 
-    Msg: require('./hall/msg'),
-    MsgHallHeros: require('./hall/hallHeros'),
-    MsgHallZeros: require('./hall/hallZeros'),
+    Msg: require('./msgChannel/msg'),
+    MsgDmdeAide: require('./msgChannel/demandeAide'),
+    MsgHallHeros: require('./msgChannel/hallHeros'),
+    MsgHallZeros: require('./msgChannel/hallZeros'),
 }

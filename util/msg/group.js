@@ -83,6 +83,12 @@ function getMembersList(group, members) {
     // recuperation id message pour pouvoir l'editer par la suite
     let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
     await client.update(group, { idMsg: msg.id });
+
+    // nvx msg aide, pour recup + facilement
+    await client.createMsgDmdeAide({
+        //author: userDB, // bot
+        msgId: msg.id,
+    })
 }
 
 
