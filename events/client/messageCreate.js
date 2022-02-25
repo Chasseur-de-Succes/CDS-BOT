@@ -1,11 +1,21 @@
 const {PREFIX} = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
+const { User } = require('../../models/index.js');
 
 module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
     // if (msg.mentions.has(client.user.id)) {
     //     return msg.reply(`Tu as besoin d'aide ? Mon préfixe est \`${PREFIX}\``);
     // }
+
+    /* Stat nb msg envoyé (sans compter commande avec prefix et /) */
+    if (!msg.author.bot && !msg.content.startsWith(PREFIX)) {
+        // si pas register pas grave, ca ne passera pas
+        await User.updateOne(
+            { userId: msg.author.id },
+            { $inc: { "stats.msg" : 1 } }
+        );
+    }
 
     if(!msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;
 
