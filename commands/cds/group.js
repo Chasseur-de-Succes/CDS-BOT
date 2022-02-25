@@ -5,7 +5,7 @@ const moment = require('moment');
 
 const { NIGHT, DARK_RED } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup, endGroup, createGroup } = require('../../util/msg/group');
+const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
 const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
 const { create } = require('../../models/user');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
@@ -564,26 +564,18 @@ module.exports.dissolve = async (client, message, grpName, isAdmin = false) => {
     if (!isAdmin && !grp.captain._id.equals(userDB._id))
         return sendError(message, `Tu n'es pas capitaine du groupe **${grpName}** !`, 'dissolve');
     
-    // delete rappel
-    deleteRappelJob(client, grp);
-
-    // suppr groupe
-    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
-    await client.deleteGroup(grp);
-    logger.info(message.author.tag+" a dissout le groupe "+grpName);
-
+    dissolveGroup(client, grp);
+    
     let mentionsUsers = '';
     for (const member of grp.members)
-        mentionsUsers += `<@${member.userId}> `
-    
-    message.channel.send(mentionsUsers + ` : le groupe **${grpName}** a été dissout.`);
+    mentionsUsers += `<@${member.userId}> `
 
-    // update msg
-    await deleteMsgHubGroup(client, grp);
-    
     // envoi dans channel log
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
+    
+    logger.info(message.author.tag+" a dissout le groupe "+grpName);
+    message.channel.send(mentionsUsers + ` : le groupe **${grpName}** a été dissout.`);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

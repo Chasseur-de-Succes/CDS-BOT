@@ -3,7 +3,7 @@ const { MESSAGES, BAREME_XP } = require("../../util/constants");
 const { createError, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup, endGroup, createGroup } = require("../../util/msg/group");
+const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
 const { PREFIX, CHANNEL } = require("../../config");
 const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
@@ -213,26 +213,18 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
-    // delete rappel
-    deleteRappelJob(client, grp);
-
-    // suppr groupe
-    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
-    await client.deleteGroup(grp);
-    logger.info(`${author.tag} a dissout le groupe ${grpName}`);
-
+    dissolveGroup(client, grp)
+    
     let mentionsUsers = '';
     for (const member of grp.members)
         mentionsUsers += `<@${member.userId}> `
-    
-    await interaction.reply(`${mentionsUsers} : le groupe **${grpName}** a été dissout !`);
 
-    // update msg
-    await deleteMsgHubGroup(client, grp);
-    
     // envoi dans channel log
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
+    
+    logger.info(`${author.tag} a dissout le groupe ${grpName}`);
+    await interaction.reply(`${mentionsUsers} : le groupe **${grpName}** a été dissout !`);
 }
 
 const transfert = async (interaction, options) => {

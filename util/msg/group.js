@@ -176,6 +176,12 @@ async function leaveGroup(client, grp, userDB) {
         size: grp.size,
         dateUpdated: Date.now()
     })
+
+    // stat ++
+    await User.updateOne(
+        { _id: userDB._id },
+        { $inc: { "stats.group.left" : 1 } }
+    );
     
     // update msg
     await editMsgHubGroup(client, grp);
@@ -226,6 +232,25 @@ async function createGroup(client, newGrp) {
     await createReactionCollectorGroup(client, msgChannel, grpDB);
 }
 
+async function dissolveGroup(client, grp) {
+    // TODO si fait par un admin
+    // stat ++
+    await User.updateOne(
+        { _id: newGrp.captain._id },
+        { $inc: { "stats.group.dissolved" : 1 } }
+    );
+
+    // delete rappel
+    deleteRappelJob(client, grp);
+
+    // suppr groupe
+    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
+    await client.deleteGroup(grp);
+
+    // update msg
+    await deleteMsgHubGroup(client, grp);
+}
+
 async function endGroup(client, grp) {
     // update msg
     await editMsgHubGroup(client, grp);
@@ -255,4 +280,5 @@ exports.createReactionCollectorGroup = createReactionCollectorGroup
 exports.leaveGroup = leaveGroup
 exports.joinGroup = joinGroup
 exports.createGroup = createGroup
+exports.dissolveGroup = dissolveGroup
 exports.endGroup = endGroup
