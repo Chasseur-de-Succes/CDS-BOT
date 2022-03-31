@@ -22,7 +22,7 @@ module.exports = async (client, msg) => {
                 { $inc: { "stats.msg" : 1 } },
             );
 
-            addXp(client, msg.author, BAREME_XP.MSG);
+            addXp(msg.author, BAREME_XP.MSG);
         }
 
         const isHallHeros = msg.channelId === CHANNEL.HALL_HEROS;

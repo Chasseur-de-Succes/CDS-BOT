@@ -11,7 +11,7 @@ const { GREEN } = require("../data/colors.json");
  * @param {*} user User Discord
  * @param {*} xp montant de l'xp à donner
  */
-module.exports.addXp = async (client, user, xp) => {
+module.exports.addXp = async (user, xp) => {
     const userDB = await User.findOneAndUpdate(
         { userId: user.id },
         { $inc: { experience : xp } },
@@ -45,8 +45,8 @@ module.exports.addXp = async (client, user, xp) => {
                     .setDescription(`Tu as atteint le niveau ${userDB.level + 1} !`)
                     .setFooter({ text: `Prochain niveau : ${userDB.experience} / ${getXpNeededForNextLevel(userDB.level + 1)}` });
                 
-                // TODO a envoyer sur channel du bot !
-                client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLvlUp] });
+                // envoie en MP !
+                user.send({ embeds: [embedLvlUp] });
             }
         }
     }
