@@ -1,3 +1,4 @@
+const { Collection } = require('discord.js');
 const { PREFIX, CHANNEL } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { User, MsgHallHeros } = require('../../models/index.js');
@@ -9,13 +10,17 @@ module.exports = async (client, msg) => {
     //     return msg.reply(`Tu as besoin d'aide ? Mon préfixe est \`${PREFIX}\``);
     // }
 
-    /* Pour stat nb msg envoyé (sans compter commande avec prefix et /) */
+    /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
     if (!msg.author.bot && !msg.content.startsWith(PREFIX)) {
-        // si pas register pas grave, ca ne passera pas
-        await User.updateOne(
-            { userId: msg.author.id },
-            { $inc: { "stats.msg" : 1 } }
-        );
+        const timeLeft = cooldownTimeLeft('messages', 30, msg.author.id);
+        if (!timeLeft) {
+            // si pas register pas grave, ca ne passera pas
+            await User.updateOne(
+                { userId: msg.author.id },
+                { $inc: { "stats.msg" : 1 } }
+            );
+            // TODO inc xp
+        }
 
         const isHallHeros = msg.channelId === CHANNEL.HALL_HEROS;
         const isHallZeros = msg.channelId === CHANNEL.HALL_ZEROS;
@@ -61,6 +66,7 @@ module.exports = async (client, msg) => {
 
                     // reaction auto
                     await msg.react('💩');
+                    
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
                     const initReactions = new Map([['💩', 0]]);
@@ -75,15 +81,19 @@ module.exports = async (client, msg) => {
                 }
             }
         }
+
+        // TODO auto replies sur certains mots/phrase ?
+
+        // stop
+        return;
     }
 
-    if(!msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;
+    if (!msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;
 
     const args = msg.content.slice(PREFIX.length).split(/ +/);
     const commandName = args.shift().toLowerCase();
 
     const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.help.aliases && cmd.help.aliases.includes(commandName));
-    if(!command) return;
 
     // Vérification du channel
     const dbGuild = await client.findGuildById(msg.guildId);
@@ -100,3 +110,29 @@ module.exports = async (client, msg) => {
 
     command.run(client, msg, args);
 }
+
+const cooldowns = new Collection();
+
+const cooldownTimeLeft = (type, seconds, userID) => {
+    // Apply command cooldowns
+    if (!cooldowns.has(type)) {
+        cooldowns.set(type, new Collection());
+    }
+
+    const now = Date.now();
+    const timestamps = cooldowns.get(type);
+    const cooldownAmount = (seconds || 3) * 1000;
+
+    if (timestamps.has(userID)) {
+        const expirationTime = timestamps.get(userID) + cooldownAmount;
+
+        if (now < expirationTime) {
+        const timeLeft = (expirationTime - now) / 1000;
+        return timeLeft;
+        }
+    }
+
+    timestamps.set(userID, now);
+    setTimeout(() => timestamps.delete(userID), cooldownAmount);
+    return 0;
+};
