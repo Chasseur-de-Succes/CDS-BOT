@@ -3,9 +3,9 @@ const { MESSAGES } = require("../../util/constants");
 const { createError, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { sendMsgHubGroup, createReactionCollectorGroup, editMsgHubGroup, deleteMsgHubGroup } = require("../../util/msg/group");
-const { PREFIX, CHANNEL } = require("../../config");
-const { createRappelJob, deleteRappelJob } = require("../../util/batch/batch");
+const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
+const { PREFIX } = require("../../config");
+const { createRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
 
 module.exports.run = async (interaction) => {
@@ -64,8 +64,8 @@ const create = async (interaction, options) => {
     });
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games) await interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
-    if (games.length === 0) await interaction.editReply({ embeds: [createError(`Pas de résultat trouvé pour **${gameName}** !`)] });
+    if (!games) return await interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
+    if (games.length === 0) return await interaction.editReply({ embeds: [createError(`Pas de résultat trouvé pour **${gameName}** !`)] });
 
     // values pour Select Menu
     let items = [];
@@ -131,16 +131,7 @@ const create = async (interaction, options) => {
         members: [captainDB._id],
         game: game
     };
-    let grpDB = await client.createGroup(newGrp);
-
-    // creation msg channel
-    await sendMsgHubGroup(client, grpDB);
-
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
-    msgChannel.react(CHECK_MARK);
-
-    // filtre reaction sur emoji
-    await createReactionCollectorGroup(client, msgChannel, grpDB);
+    createGroup(client, newGrp);
 
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
@@ -221,26 +212,18 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
-    // delete rappel
-    deleteRappelJob(client, grp);
-
-    // suppr groupe
-    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
-    await client.deleteGroup(grp);
-    logger.info(`${author.tag} a dissout le groupe ${grpName}`);
-
+    dissolveGroup(client, grp)
+    
     let mentionsUsers = '';
     for (const member of grp.members)
         mentionsUsers += `<@${member.userId}> `
-    
-    await interaction.reply(`${mentionsUsers} : le groupe **${grpName}** a été dissout !`);
 
-    // update msg
-    await deleteMsgHubGroup(client, grp);
-    
     // envoi dans channel log
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
+    
+    logger.info(`${author.user.tag} a dissout le groupe ${grpName}`);
+    await interaction.reply(`${mentionsUsers} : le groupe **${grpName}** a été dissout !`);
 }
 
 const transfert = async (interaction, options) => {
@@ -305,20 +288,16 @@ const end = async (interaction, options) => {
 
     await client.update(grp, { validated: true });
 
+    let mentionsUsers = '';
+    for (const member of grp.members)
+        mentionsUsers += `<@${member.userId}> `
+    
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
-    await interaction.reply({ embeds: [newMsgEmbed] });
+    await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
-    // update msg
-    await editMsgHubGroup(client, grp);
-
-    // remove job
-    deleteRappelJob(client, grp);
-
-    // TODO déplacer event terminé ?
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
-    msgChannel.reactions.removeAll();
+    endGroup(client, grp);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

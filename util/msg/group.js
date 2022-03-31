@@ -1,9 +1,11 @@
+const { scheduleJob, scheduledJobs } = require("node-schedule");
+const { Group, User } = require('../../models');
 const { MessageEmbed } = require('discord.js');
 const { GUILD_ID, CHANNEL } = require("../../config");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
-const { CROSS_MARK } = require('../../data/emojis.json');
+const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');
-const { Group } = require('../../models');
+const { BAREME_XP } = require("../constants");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -81,6 +83,12 @@ function getMembersList(group, members) {
     // recuperation id message pour pouvoir l'editer par la suite
     let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
     await client.update(group, { idMsg: msg.id });
+
+    // nvx msg aide, pour recup + facilement
+    await client.createMsgDmdeAide({
+        //author: userDB, // bot
+        msgId: msg.id,
+    })
 }
 
 
@@ -176,6 +184,12 @@ async function leaveGroup(client, grp, userDB) {
         size: grp.size,
         dateUpdated: Date.now()
     })
+
+    // stat ++
+    await User.updateOne(
+        { _id: userDB._id },
+        { $inc: { "stats.group.left" : 1 } }
+    );
     
     // update msg
     await editMsgHubGroup(client, grp);
@@ -196,9 +210,102 @@ async function leaveGroup(client, grp, userDB) {
         dateUpdated: Date.now()
     });
 
+    // stat ++
+    await User.updateOne(
+        { _id: userDB._id },
+        { $inc: { "stats.group.joined" : 1 } }
+    );
+
     // update msg
     await editMsgHubGroup(client, grp);
     logger.info(userDB.username+" vient de rejoindre groupe "+grp.name);
+}
+
+async function createGroup(client, newGrp) {
+    let grpDB = await client.createGroup(newGrp);
+    
+    // stat ++
+    await User.updateOne(
+        { _id: newGrp.captain._id },
+        { $inc: { "stats.group.created" : 1 } }
+    );
+
+    // creation msg channel
+    await sendMsgHubGroup(client, grpDB);
+    
+    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
+    msgChannel.react(CHECK_MARK);
+
+    // filtre reaction sur emoji
+    await createReactionCollectorGroup(client, msgChannel, grpDB);
+}
+
+async function dissolveGroup(client, grp) {
+    // TODO si fait par un admin
+    // stat ++
+    await User.updateOne(
+        { _id: grp.captain._id },
+        { $inc: { "stats.group.dissolved" : 1 } }
+    );
+
+    // delete rappel
+    deleteRappelJob(client, grp);
+
+    // suppr groupe
+    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
+    await client.deleteGroup(grp);
+
+    // update msg
+    await deleteMsgHubGroup(client, grp);
+}
+
+async function endGroup(client, grp) {
+    // update msg
+    await editMsgHubGroup(client, grp);
+
+    // remove job
+    deleteRappelJob(client, grp);
+
+    // update info user
+    // - XP
+    // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
+    // TODO xp variable en fonction nb de personnes, si capitaine
+    let xp = BAREME_XP.EVENT_END;
+
+    // - Stat++ pour tous les membres
+    await User.updateMany(
+        { _id: { $in: grp.members } },
+        { $inc: { "stats.group.ended" : 1 } },
+        { multi: true }
+    );
+
+    // TODO déplacer event terminé ?
+    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
+    msgChannel.reactions.removeAll();
+}
+
+
+/**
+ * Supprimer un rappel et désactive le job lié à ce rappel
+ * @param {*} client 
+ * @param {*} groupe 
+ */
+ function deleteRappelJob(client, groupe) {
+    const jobName = `rappel_${groupe.name}`;
+
+    // cancel ancien job si existe
+    if (scheduledJobs[jobName])
+        scheduledJobs[jobName].cancel();
+
+    // si job existe -> update date, sinon créé
+    client.findJob({name: jobName})
+    .then(jobs => {
+        if (jobs.length > 0) {
+            let jobDB = jobs[0];
+            logger.info("-- Suppression "+jobDB.name+" pour groupe "+groupe.name+"..");
+            client.deleteJob(jobDB);
+        }
+    })
 }
 
 exports.getMembersList = getMembersList
@@ -209,3 +316,6 @@ exports.deleteMsgHubGroup = deleteMsgHubGroup
 exports.createReactionCollectorGroup = createReactionCollectorGroup
 exports.leaveGroup = leaveGroup
 exports.joinGroup = joinGroup
+exports.createGroup = createGroup
+exports.dissolveGroup = dissolveGroup
+exports.endGroup = endGroup

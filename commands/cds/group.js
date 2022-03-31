@@ -3,31 +3,11 @@ const { MESSAGES, NB_MAX } = require('../../util/constants');
 const { PREFIX, CHANNEL } = require('../../config.js');
 const moment = require('moment');
 
-const { NIGHT, DARK_RED } = require("../../data/colors.json");
-const { CHECK_MARK, CROSS_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, deleteMsgHubGroup, createEmbedGroupInfo, sendMsgHubGroup, createReactionCollectorGroup, joinGroup, leaveGroup } = require('../../util/msg/group');
-const { createRappelJob, deleteRappelJob } = require('../../util/batch/batch');
-const { create } = require('../../models/user');
+const { NIGHT } = require("../../data/colors.json");
+const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
+const { editMsgHubGroup, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
+const { createRappelJob } = require('../../util/batch/batch');
 const { sendError, sendLogs } = require('../../util/envoiMsg');
-
-/**
- * Envoie un msg embed en DM ou sur le channel du message
- * @param {*} message Contenu du message
- * @param {*} group Groupe
- * @param {*} toDM 'true' si a envoyé par DM, false dans le channel
- */
-function sendEmbedGroupInfo(message, group, toDM = false) {
-    const members = message.guild.members.cache;
-    const memberCaptain = members.get(group.captain.userId);
-    let isAuthorCaptain = message.author === memberCaptain.user;
-    const newMsgEmbed = createEmbedGroupInfo(members, group, isAuthorCaptain);
-
-    // envoie en MP
-    if (toDM)
-        message.author.send({ embeds: [newMsgEmbed] });
-    else 
-        message.channel.send({ embeds: [newMsgEmbed] });
-}
 
 async function sendListGroup(client, message, groupes, title) {
     let urls = [], games = [], infos = []
@@ -387,16 +367,7 @@ module.exports.run = async (client, message, args) => {
             members: [userDB._id],
             game: game
         };
-        let grpDB = await client.createGroup(newGrp);
-
-        // creation msg channel
-        await sendMsgHubGroup(client, grpDB);
-        
-        const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
-        msgChannel.react(CHECK_MARK);
-
-        // filtre reaction sur emoji
-        await createReactionCollectorGroup(client, msgChannel, grpDB);
+        createGroup(client, newGrp);
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
@@ -538,14 +509,7 @@ module.exports.run = async (client, message, args) => {
             .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
         message.channel.send({ embeds: [newMsgEmbed] });
 
-        // update msg
-        await editMsgHubGroup(client, grp);
-
-        // remove job
-        deleteRappelJob(client, grp);
-
-        const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
-        msgChannel.reactions.removeAll();
+        endGroup(client, grp);
     }
 
 }
@@ -579,26 +543,18 @@ module.exports.dissolve = async (client, message, grpName, isAdmin = false) => {
     if (!isAdmin && !grp.captain._id.equals(userDB._id))
         return sendError(message, `Tu n'es pas capitaine du groupe **${grpName}** !`, 'dissolve');
     
-    // delete rappel
-    deleteRappelJob(client, grp);
-
-    // suppr groupe
-    // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
-    await client.deleteGroup(grp);
-    logger.info(message.author.tag+" a dissout le groupe "+grpName);
-
+    dissolveGroup(client, grp);
+    
     let mentionsUsers = '';
     for (const member of grp.members)
-        mentionsUsers += `<@${member.userId}> `
-    
-    message.channel.send(mentionsUsers + ` : le groupe **${grpName}** a été dissout.`);
+    mentionsUsers += `<@${member.userId}> `
 
-    // update msg
-    await deleteMsgHubGroup(client, grp);
-    
     // envoi dans channel log
     sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
+    
+    logger.info(message.author.tag+" a dissout le groupe "+grpName);
+    message.channel.send(mentionsUsers + ` : le groupe **${grpName}** a été dissout.`);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

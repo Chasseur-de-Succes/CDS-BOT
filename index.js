@@ -1,6 +1,6 @@
 const { Client, Intents, Collection } = require('discord.js');
 const {TOKEN, PREFIX} = require('./config.js');
-const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver } = require('./util/loader');
+const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg } = require('./util/loader');
 const axios = require('axios');
 const winston = require("winston");
 global.logger = winston.createLogger({
@@ -55,7 +55,7 @@ client.login(TOKEN).then(c => {
     //loadReactionGroup(client);
 })
 
-client.on('ready', () => {
+client.on('ready', async () => {
   loadSlashCommands(client);
     console.log(`
   oooooooo8 ooooooooo    oooooooo8       oooooooooo    ooooooo   ooooooooooo 
@@ -65,6 +65,14 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
  888oooo88  o888ooo88   o88oooo888       o888ooo888    88ooo88      o888o    
     `);
     loadBatch(client);
-    loadReactionGroup(client);
+    
+    logger.info(`Chargement des messages 'events' ..`)
+    await loadReactionGroup(client);
+    logger.info(`.. terminé`)
+    
+    logger.info(`Chargement des reactions hall héros/zéros ..`)
+    await loadReactionMsg(client);
+    logger.info(`.. terminé`)
+
     loadRoleGiver(client);
 });
