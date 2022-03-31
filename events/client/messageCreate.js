@@ -3,6 +3,8 @@ const { PREFIX, CHANNEL } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { User, MsgHallHeros } = require('../../models/index.js');
 const { loadCollectorHall } = require('../../util/msg/stats.js');
+const { BAREME_XP } = require("../../util/constants");
+const { addXp } = require('../../util/xp.js');
 
 module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
@@ -17,9 +19,10 @@ module.exports = async (client, msg) => {
             // si pas register pas grave, ca ne passera pas
             await User.updateOne(
                 { userId: msg.author.id },
-                { $inc: { "stats.msg" : 1 } }
+                { $inc: { "stats.msg" : 1 } },
             );
-            // TODO inc xp
+
+            addXp(client, msg.author, BAREME_XP.MSG);
         }
 
         const isHallHeros = msg.channelId === CHANNEL.HALL_HEROS;
@@ -66,7 +69,7 @@ module.exports = async (client, msg) => {
 
                     // reaction auto
                     await msg.react('💩');
-                    
+
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
                     const initReactions = new Map([['💩', 0]]);

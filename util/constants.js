@@ -522,12 +522,15 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 const crtHour = () => moment().format("HH[h]mm[:]ss");
 
 const BAREME_XP = {
-    EVENT_END: '10'
+    MSG: 5,
+    EVENT_END: 10
 }
+const THREESOLD_LVL = 100;
 
 exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
 exports.BAREME_XP = BAREME_XP;
+exports.THREESOLD_LVL = THREESOLD_LVL;
 exports.delay = delay;
 exports.crtHour = crtHour;
