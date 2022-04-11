@@ -6,6 +6,7 @@ const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');
 const { BAREME_XP } = require("../constants");
+const { addXp } = require("../xp");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -101,8 +102,9 @@ function getMembersList(group, members) {
     const members = client.guilds.cache.get(GUILD_ID).members.cache;
     const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
     const editMsgEmbed = createEmbedGroupInfo(members, group, false);
+    const footer = `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`
     
-    editMsgEmbed.setFooter({ text: `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`});
+    editMsgEmbed.setFooter({ text: `${footer}`});
 
     await msg.edit({embeds: [editMsgEmbed]});
 }
@@ -269,8 +271,20 @@ async function endGroup(client, grp) {
     // update info user
     // - XP
     // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
-    // TODO xp variable en fonction nb de personnes, si capitaine
+    // TODO xp variable en fonction nb de personnes, autre..
     let xp = BAREME_XP.EVENT_END;
+    // TODO bonus captain
+    let xpBonusCaptain = BAREME_XP.CAPTAIN;
+
+    // xp pour tous les membres (captain inclus)
+    for (const member of grp.members) {
+        const usr = await client.users.fetch(member.userId);
+        // xp bonus captain
+        if (member.equals(grp.captain))
+            addXp(usr, xp + xpBonusCaptain)
+        else if (usr)
+            addXp(usr, xp)
+    }
 
     // - Stat++ pour tous les membres
     await User.updateMany(
