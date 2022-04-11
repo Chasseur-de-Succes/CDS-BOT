@@ -523,6 +523,7 @@ const crtHour = () => moment().format("HH[h]mm[:]ss");
 
 const BAREME_XP = {
     MSG: 5,
+    CAPTAIN: 15,
     EVENT_END: 25,
 }
 const THREESOLD_LVL = 100;
