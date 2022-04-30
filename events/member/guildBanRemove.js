@@ -1,6 +1,6 @@
 const { GREEN } = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
-const { CHANNEL } = require('../../config');
+const { sendLogs } = require('../../util/envoiMsg');
 
 module.exports = async (client, user) => {
     const embedLog = new MessageEmbed()
@@ -14,5 +14,5 @@ module.exports = async (client, user) => {
         .setFooter(`ID: ${user.user.id}`)
         .setTimestamp();
 
-    client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embedLog]});
+    sendLogs(client, embedLog);
 }

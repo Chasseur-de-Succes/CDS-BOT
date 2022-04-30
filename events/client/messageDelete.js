@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const { PREFIX, CHANNEL} = require('../../config.js');
+const { PREFIX} = require('../../config.js');
 const { ORANGE } = require('../../data/colors.json');
 const { Msg } = require('../../models/index.js');
 const { sendLogs } = require('../../util/envoiMsg');
@@ -16,7 +16,7 @@ module.exports = async (client, msg) => {
         .setDescription(`Auteur : ${msg.author}`)
         .addField("Message:", msg.content || 'None')
         .setTimestamp();
-    client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
+    sendLogs(client, embedLog);
 
     //sendLogs(client, `Message de ${msg.author} supprimé`, msg.content || 'None', '', ORANGE);
 }

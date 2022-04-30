@@ -31,17 +31,27 @@ module.exports.sendError = (message, text, cmd) => {
 /**
  * Envoie un message dans le channel de log
  * @param {*} client objet Discord, va envoyé le message dans le channel
+ * @param {*} embedLog
+ * @returns 
+ */
+module.exports.sendLogs = (client, embedLog) => {
+    client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
+}
+
+/**
+ * Créé un log (embed) prédéfini
+ * @param {*} client objet Discord, va envoyé le message dans le channel
  * @param {*} title le titre
  * @param {*} desc le msg du log
  * @param {*} footer facultatif (defaut '')
  * @param {*} color facultatif (defaut DARK_RED)
  * @returns 
  */
-module.exports.sendLogs = (client, title, desc, footer = '', color = DARK_RED) => {
-    const embedLog = new MessageEmbed()
+ module.exports.createLogs = (client, title, desc, footer = '', color = DARK_RED) => {
+    let embedLog = new MessageEmbed()
         .setColor(color)
         .setTitle(`${title}`)
         .setDescription(desc)
         .setFooter({ text: footer});
-    client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
+    this.sendLogs(client, embedLog);
 }
