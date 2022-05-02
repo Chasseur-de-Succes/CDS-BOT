@@ -64,7 +64,7 @@ const loadSlashCommands = async (client, dir = "./slash_commands/") => {
     });
 
     // Update the permissions for these commands
-    await guild.commands.permissions.set({ fullPermissions });
+    //await guild.commands.permissions.set({ fullPermissions });
     logger.info(`-- Permissions slash commands à jour ! (${restrictCmds.length})`);
 }
 

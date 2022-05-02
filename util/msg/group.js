@@ -272,6 +272,7 @@ async function endGroup(client, grp) {
     // - XP
     // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
     // TODO xp variable en fonction nb de personnes, autre..
+    // TODO que faire si end sans qu'il y ai eu qqchose de fait ? comment vérifier ?
     let xp = BAREME_XP.EVENT_END;
     // TODO bonus captain
     let xpBonusCaptain = BAREME_XP.CAPTAIN;
@@ -293,9 +294,25 @@ async function endGroup(client, grp) {
         { multi: true }
     );
 
-    // TODO déplacer event terminé ?
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
+    // déplacer event terminé
+    const channel = await client.channels.cache.get(CHANNEL.LIST_GROUP);
+    const msgChannel = await channel.messages.cache.get(grp.idMsg);
     msgChannel.reactions.removeAll();
+
+    // déplacer vers thread
+    let thread = await channel.threads.cache.find(x => x.name === 'Groupes terminés');
+    if (!thread) {
+        thread = await channel.threads.create({
+            name: 'Groupes terminés',
+            //autoArchiveDuration: 60,
+            reason: 'Archivage des événements.',
+        });
+    }
+
+    // envoi vers thread
+    await thread.send({embeds: [msgChannel.embeds[0]]});
+    // supprime msg
+    await msgChannel.delete();
 }
 
 
