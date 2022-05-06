@@ -14,5 +14,5 @@ module.exports = async (client, member) => {
             {name: "ID", value: `${member.id}`},
         );
 
-    sendLogs(client, embed);
+    sendLogs(client, member.guild.id, embed);
 }

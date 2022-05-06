@@ -1,9 +1,9 @@
 const { Collection } = require('discord.js');
-const { PREFIX, CHANNEL } = require('../../config.js');
+const { PREFIX } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { User, MsgHallHeros } = require('../../models/index.js');
 const { loadCollectorHall } = require('../../util/msg/stats.js');
-const { BAREME_XP } = require("../../util/constants");
+const { BAREME_XP, SALON } = require("../../util/constants");
 const { addXp } = require('../../util/xp.js');
 
 module.exports = async (client, msg) => {
@@ -25,8 +25,11 @@ module.exports = async (client, msg) => {
             addXp(msg.author, BAREME_XP.MSG);
         }
 
-        const isHallHeros = msg.channelId === CHANNEL.HALL_HEROS;
-        const isHallZeros = msg.channelId === CHANNEL.HALL_ZEROS;
+        const idHeros = await client.getGuildChannel(msg.guildId, SALON.HALL_HEROS);
+        const idZeros = await client.getGuildChannel(msg.guildId, SALON.HALL_ZEROS);
+
+        const isHallHeros = msg.channelId === idHeros;
+        const isHallZeros = msg.channelId === idZeros;
 
         const hasPJ = msg.attachments.size > 0;
         // nb img dans hall héros
@@ -52,6 +55,7 @@ module.exports = async (client, msg) => {
                     const msgHeros = await client.createMsgHallHeros({
                         author: userDB,
                         msgId: msg.id,
+                        guildId: msg.guildId,
                         reactions: initReactions
                     });
 
@@ -76,6 +80,7 @@ module.exports = async (client, msg) => {
                     const msgZeros = await client.createMsgHallZeros({
                         author: userDB,
                         msgId: msg.id,
+                        guildId: msg.guildId,
                         reactions: initReactions
                     });
 
@@ -101,7 +106,7 @@ module.exports = async (client, msg) => {
     // Vérification du channel
     const dbGuild = await client.findGuildById(msg.guildId);
     const whitelistList = dbGuild.whitelistChannel;
-    if (whitelistList.length != 0) {
+    if (whitelistList.length != 0 && command) {
         const category = command.help.category;
         if (!(category == 'admin' || category == 'moderation')) {
             const guildConf = await client.findGuildConfig({ whitelistChannel: msg.channelId });
@@ -111,7 +116,7 @@ module.exports = async (client, msg) => {
         }
     }
 
-    command.run(client, msg, args);
+    command?.run(client, msg, args);
 }
 
 const cooldowns = new Collection();

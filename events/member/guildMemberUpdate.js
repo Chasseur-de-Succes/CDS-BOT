@@ -10,9 +10,9 @@ module.exports = async (client, oldUser, newUser) => {
             .setColor(ORANGE)
             .setTitle(`Surnom modifier`)
             .setDescription(`<@${newUser.id}>\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`)
-            .setFooter(`ID: ${newUser.id}`)
+            .setFooter({text: `ID: ${newUser.id}`})
             .setTimestamp();
 
-        sendLogs(client, embed);
+        sendLogs(client, oldUser.guild.id, embed);
     }
 }

@@ -2,6 +2,7 @@ const { MessageEmbed } = require('discord.js');
 const { CHANNEL } = require('../config');
 const { DARK_RED } = require("../data/colors.json");
 const { CROSS_MARK } = require('../data/emojis.json');
+const { SALON } = require('./constants');
 
 /**
  * Créer un embed de type ERREUR
@@ -34,24 +35,26 @@ module.exports.sendError = (message, text, cmd) => {
  * @param {*} embedLog
  * @returns 
  */
-module.exports.sendLogs = (client, embedLog) => {
-    client.channels.cache.get(CHANNEL.LOGS).send({ embeds: [embedLog] });
+module.exports.sendLogs = async (client, guildId, embedLog) => {
+    const idLogs = await client.getGuildChannel(guildId, SALON.LOGS);
+    client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
 }
 
 /**
  * Créé un log (embed) prédéfini
  * @param {*} client objet Discord, va envoyé le message dans le channel
+ * @param {*} guildId id de la guilde
  * @param {*} title le titre
  * @param {*} desc le msg du log
  * @param {*} footer facultatif (defaut '')
  * @param {*} color facultatif (defaut DARK_RED)
  * @returns 
  */
- module.exports.createLogs = (client, title, desc, footer = '', color = DARK_RED) => {
+ module.exports.createLogs = (client, guildId, title, desc, footer = '', color = DARK_RED) => {
     let embedLog = new MessageEmbed()
         .setColor(color)
         .setTitle(`${title}`)
         .setDescription(desc)
         .setFooter({ text: footer});
-    this.sendLogs(client, embedLog);
+    this.sendLogs(client, guildId, embedLog);
 }

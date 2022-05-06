@@ -5,7 +5,7 @@ const { createLogs } = require('../../util/envoiMsg');
 const { GuildConfig } = require('../../models');
 
 module.exports.run = async (interaction) => {
-    const nomConfig = interaction.options.get('nom')?.value.toLowerCase();
+    const nomConfig = interaction.options.get('nom')?.value;
     const salon = interaction.options.get('salon');
 
     const guildId = interaction.guildId;
@@ -20,7 +20,7 @@ module.exports.run = async (interaction) => {
     );
     // await client.update(guildDB, { channels: val });
     logger.warn(`${user.tag} a effectué la commande admin : /${MESSAGES.COMMANDS.ADMIN.SALON.name} ${nomConfig} ${salon.channel.name} `);
-    createLogs(client, `Modification config ${nomConfig}`, `${msgCustom}`, '', GREEN)
+    createLogs(client, guildId, `Modification config ${nomConfig}`, `${msgCustom}`, '', GREEN)
 
     const embed = new MessageEmbed()
         .setColor(GREEN)

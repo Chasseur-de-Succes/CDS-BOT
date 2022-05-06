@@ -562,24 +562,32 @@ const THREESOLD_LVL = 100;
 const CHANNEL = [
     { 
         name: 'Salon de bienvenue',
-        value: 'WELCOME' // channel de bienvenue, affiche les nouveaux arrivants
+        value: 'welcome' // channel de bienvenue, affiche les nouveaux arrivants
     }, { 
         name: 'Salon choix de rôle (cf /role)',
-        value: 'ROLE' // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+        value: 'role' // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
     }, { 
         name: 'Salon qui liste les groupes',
-        value: 'LIST_GROUP' // channel qui affichera tous les groupes
+        value: 'list_group' // channel qui affichera tous les groupes
     }, { 
         name: 'Salon du hall des héros',
-        value: 'HALL_HEROS' // channel eponyme (pour stat)
+        value: 'hall_heros' // channel eponyme (pour stat)
     }, { 
         name: 'Salon du hall des zéros',
-        value: 'HALL_ZEROS' // channel eponyme (pour stat)
+        value: 'hall_zeros' // channel eponyme (pour stat)
     }, { 
         name: 'Salon de logs (admin)',
-        value: 'LOGS' // channel de logs (discord: join, leave, modification surnom,...)
+        value: 'logs' // channel de logs (discord: join, leave, modification surnom,...)
     },
 ]
+const SALON = {
+    WELCOME: 'welcome',
+    ROLE: 'role',
+    LIST_GROUP: 'list_group',
+    HALL_HEROS: 'hall_heros',
+    HALL_ZEROS: 'hall_zeros',
+    LOGS: 'logs'
+}
 
 exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
@@ -589,3 +597,4 @@ exports.THREESOLD_LVL = THREESOLD_LVL;
 exports.delay = delay;
 exports.crtHour = crtHour;
 exports.CHANNEL = CHANNEL;
+exports.SALON = SALON;

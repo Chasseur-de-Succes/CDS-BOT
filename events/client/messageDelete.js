@@ -16,7 +16,5 @@ module.exports = async (client, msg) => {
         .setDescription(`Auteur : ${msg.author}`)
         .addField("Message:", msg.content || 'None')
         .setTimestamp();
-    sendLogs(client, embedLog);
-
-    //sendLogs(client, `Message de ${msg.author} supprimé`, msg.content || 'None', '', ORANGE);
+    sendLogs(client, msg.guildId, embedLog);
 }
