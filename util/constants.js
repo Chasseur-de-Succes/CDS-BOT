@@ -201,6 +201,29 @@ const MESSAGES = {
                     }
                 ],
                 userperms: ['ADMINISTRATOR']
+            },
+            SALON: {
+                name: 'salon',
+                aliases: [],
+                category: "admin",
+                cooldown: 5,
+                description: "Pour configurer les salons",
+                args: [
+                    {
+                        name: 'nom',
+                        type: 'STRING',
+                        description: 'Nom du paramètre',
+                        required: true,
+                        autocomplete: true,
+                    },
+                    {
+                        name: 'salon',
+                        type: 'CHANNEL',
+                        description: 'Nom du channel correspondant au paramètre',
+                        required: true,
+                    }
+                ],
+                userperms: ['ADMINISTRATOR']
             }
         },
         CDS: {
@@ -528,6 +551,36 @@ const BAREME_XP = {
 }
 const THREESOLD_LVL = 100;
 
+/* const CHANNEL = {
+    WELCOME: 'Salon de bienvenue', // channel de bienvenue, affiche les nouveaux arrivants
+    ROLE: 'Salon choix de rôle (cf /role)', // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+    LIST_GROUP: 'Salon qui liste les groupes', // channel qui affichera tous les groupes
+    HALL_HEROS: 'Salon du hall des héros', // channel eponyme (pour stat)
+    HALL_ZEROS: 'Salon du hall des zéros', // channel eponyme (pour stat)
+    LOGS: 'Salon de logs (admin)' // channel de logs (discord: join, leave, modification surnom,...)
+} */
+const CHANNEL = [
+    { 
+        name: 'Salon de bienvenue',
+        value: 'WELCOME' // channel de bienvenue, affiche les nouveaux arrivants
+    }, { 
+        name: 'Salon choix de rôle (cf /role)',
+        value: 'ROLE' // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+    }, { 
+        name: 'Salon qui liste les groupes',
+        value: 'LIST_GROUP' // channel qui affichera tous les groupes
+    }, { 
+        name: 'Salon du hall des héros',
+        value: 'HALL_HEROS' // channel eponyme (pour stat)
+    }, { 
+        name: 'Salon du hall des zéros',
+        value: 'HALL_ZEROS' // channel eponyme (pour stat)
+    }, { 
+        name: 'Salon de logs (admin)',
+        value: 'LOGS' // channel de logs (discord: join, leave, modification surnom,...)
+    },
+]
+
 exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
@@ -535,3 +588,4 @@ exports.BAREME_XP = BAREME_XP;
 exports.THREESOLD_LVL = THREESOLD_LVL;
 exports.delay = delay;
 exports.crtHour = crtHour;
+exports.CHANNEL = CHANNEL;

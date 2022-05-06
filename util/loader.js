@@ -1,11 +1,13 @@
 const { DiscordAPIError, Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { CHANNEL, GUILD_ID, MONEY } = require('../config');
+const { GUILD_ID, MONEY } = require('../config');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
 const { loadCollectorHall } = require('./msg/stats');
+const { CHANNEL } = require('./constants');
+const { Logform } = require('winston');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -128,6 +130,15 @@ const loadEvents = (client, dir = "./events/") => {
             } else {
                 await itr.respond([])
             }
+        } else if (itr.commandName === 'salon') {
+            // cmd config, autocomplete sur nom param
+            const focusedValue = itr.options.getFocused(true);
+
+            let filtered = [];
+            if (focusedValue.name === 'nom')
+                filtered = CHANNEL
+            
+            await itr.respond(filtered)
         }
     })
 };
