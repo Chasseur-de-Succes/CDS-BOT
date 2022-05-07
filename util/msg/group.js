@@ -227,6 +227,7 @@ async function leaveGroup(client, guildId, grp, userDB) {
 }
 
 async function createGroup(client, guildId, newGrp) {
+    newGrp.guildId = guildId;
     let grpDB = await client.createGroup(newGrp);
     
     // stat ++

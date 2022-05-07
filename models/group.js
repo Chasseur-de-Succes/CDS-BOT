@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const grpSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
+    guildId: String,
     name: String,
     desc: String,
     idMsg: String,

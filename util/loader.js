@@ -147,7 +147,8 @@ const loadEvents = (client, dir = "./events/") => {
                 filtered = await Group.find({
                     $and: [
                         { validated: false },
-                        { name: new RegExp(focusedValue.value, 'i') }
+                        { name: new RegExp(focusedValue.value, 'i') },
+                        { guildId: itr.guildId }
                     ]
                 })
             }
