@@ -512,7 +512,8 @@ function createListGame(items, money, currentIndex = 0) {
 
 // shop sell <montant> <nom du jeu>
 async function sell(interaction, options) {
-    const gameName = options.get('jeu')?.value;
+    // recup via autocomplete (loader.js)
+    const gameId = options.get('jeu')?.value;
     const montant = options.get('prix')?.value;
     const client = interaction.client;
     const author = interaction.member;
@@ -525,70 +526,8 @@ async function sell(interaction, options) {
         return interaction.reply({ embeds: [createError(`Montant négatif !`)] });
     // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
-    // - recherche du jeu
-    // création de la regex sur le nom du jeu        
-    logger.info(`Recherche jeu Steam par nom ${gameName}`)
-    let regGame = new RegExp(gameName, "i");
+    // jeu déjà recherché via autocomplete
 
-    // recherche..
-    await interaction.deferReply();
-
-    // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    let games = await client.findGames({
-        name: regGame
-    });
-
-    logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games) return interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
-    if (games.length === 0) return interaction.editReply({ embeds: [createError(`Pas de résultat trouvé pour **${gameName}** !`)] });
-
-    // values pour Select Menu
-    let items = [];
-    for (let i = 0; i < games.length; i++) {
-        let crtGame = games[i];
-        if (crtGame) {
-            items.unshift({
-                label: crtGame.name,
-                // description: 'Description',
-                value: '' + crtGame.appid
-            });
-        }
-    }
-    // SELECT n'accepte que 25 max
-    if (items.length > 25) return interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
-    
-    // row contenant le Select menu
-    const row = new MessageActionRow()
-        .addComponents(
-            new MessageSelectMenu()
-                .setCustomId('select-games-' + author)
-                .setPlaceholder('Sélectionner le jeu..')
-                .addOptions(items)
-        );
-
-    let embed = new MessageEmbed()
-        .setColor(YELLOW)
-        .setTitle(`💰 BOUTIQUE - VENTE - J'ai trouvé ${games.length} jeux ! 💰`)
-        .setDescription(`Quel jeu veux-tu vendre ?`);
-
-    let msgEmbed = await interaction.editReply({embeds: [embed], components: [row] });
-
-    // attend une interaction bouton de l'auteur de la commande
-    let filter, itr;
-    try {
-        filter = i => {return i.user.id === author.id}
-        itr = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: 'SELECT_MENU',
-            time: 30000 // 5min
-        });
-    } catch (error) {
-        msgEmbed.edit({ components: [] })
-        return;
-    }
-        
-    const gameId = itr.values[0];
-    logger.info(`.. Steam app ${gameId} choisi`);
     // on recupere le custom id "APPID_GAME"
     let game = await client.findGameByAppid(gameId);
 
@@ -599,10 +538,14 @@ async function sell(interaction, options) {
     }
     let itemDB = await client.createGameItemShop(item);
 
-    embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
+    let embed = new MessageEmbed()
+        .setColor(YELLOW)
+        .setTitle(`💰 BOUTIQUE - VENTE 💰`)
         .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
         ${game.name} à ${montant} ${MONEY}`)
-    msgEmbed.edit({ embeds: [embed], components: [] })
+
+    let msgEmbed = await interaction.reply({embeds: [embed] });
+    //msgEmbed.edit({ embeds: [embed], components: [] })
 
     // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
     createLogs(client, interaction.guildId, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);

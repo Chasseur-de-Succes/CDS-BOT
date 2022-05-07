@@ -451,6 +451,7 @@ const MESSAGES = {
                                 name: 'jeu',
                                 type: 'STRING',
                                 description: 'Nom du jeu',
+                                autocomplete: true,
                                 required: true,
                             }, { 
                                 name: 'prix',

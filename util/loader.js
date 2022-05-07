@@ -104,17 +104,43 @@ const loadEvents = (client, dir = "./events/") => {
             await itr.respond(
                 filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
             );
+        } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'sell') {
+            const focusedValue = itr.options.getFocused(true);
+            let filtered = [];
+
+            // cmd group create, autocomplete sur nom jeu
+            if (focusedValue.name === 'jeu') {
+                filtered = await client.findGames({
+                    name: new RegExp(focusedValue.value, "i"),
+                });
+                // si nom jeu dépasse limite imposé par Discord (100 char)
+                // + on prepare le résultat en tableau de {name: '', value: ''}
+                filtered = filtered.map(element => ({
+                    name: element.name.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
+                    value: "" + element.appid
+                }));
+            }
+
+            if (filtered.length <= 25) {
+                await itr.respond(
+                    filtered.map(choice => ({ name: choice.name, value: choice.value })),
+                );
+            } else {
+                console.log('..trop de jeux ..');
+                await itr.respond([])
+            }
         } else if (itr.commandName === 'group') {
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
             
             // cmd group create, autocomplete sur nom jeu multi/coop avec succès
-            if (focusedValue.name === 'jeu')
+            if (focusedValue.name === 'jeu') {
                 filtered = await client.findGames({
                     name: new RegExp(focusedValue.value, "i"), 
                     hasAchievements: true,
                     $or: [{isMulti: true}, {isCoop: true}],
                 });
+            }
 
             // autocomplete sur nom groupe
             if (focusedValue.name === 'nom') {
