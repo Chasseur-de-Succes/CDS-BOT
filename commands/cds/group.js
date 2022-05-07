@@ -421,7 +421,7 @@ module.exports.run = async (client, message, args) => {
         });
 
         // créer/update rappel
-        createRappelJob(client, [grp]);
+        createRappelJob(client, message.guildId, [grp]);
 
         // update msg
         await editMsgHubGroup(client, message.guildId, grp);

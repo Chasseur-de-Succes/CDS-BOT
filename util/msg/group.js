@@ -1,7 +1,6 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { Group, User } = require('../../models');
 const { MessageEmbed } = require('discord.js');
-const { GUILD_ID, CHANNEL } = require("../../config");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');

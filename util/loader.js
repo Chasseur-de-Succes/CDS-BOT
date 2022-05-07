@@ -1,6 +1,5 @@
-const { DiscordAPIError, Collection } = require('discord.js');
+const { Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { GUILD_ID, MONEY } = require('../config');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide } = require('../models');
 const { loadJobs, searchNewGamesJob } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
@@ -41,33 +40,37 @@ const loadSlashCommands = async (client, dir = "./slash_commands/") => {
         options: c.help.args,
         defaultPermission: (!c.help.userperms || c.help.userperms?.length == 0),
     }));
-    // Update the current list of commands for this guild
-    const guild = await client.guilds.fetch(GUILD_ID);
-    await guild.commands.set(data);
-
-    // update permissions
-    const restrictCmds = client.slashCommands.filter(c => c.help.userperms?.length > 0).map(c => {
-        const roleIDs = guild.roles.cache.filter(r => r.permissions.has(c.help.userperms)).map(r => r.id);
-        c.roleIDs = roleIDs;
-        return c;
-    });
+    // Update the current list of commands for all guild
+    // pour chaque guild
+    client.guilds.cache.forEach(async guild => {
+        logger.info(`.. creation / command pour guild ${guild.name}..`);
+        await guild.commands.set(data);
     
-    const fullPermissions = await guild.commands.cache.filter(c => restrictCmds.find(cmd => cmd.help.name === c.name)).map(c => {
-        const cmd = restrictCmds.find(cmd => cmd.help.name === c.name);
+        // update permissions
+        const restrictCmds = client.slashCommands.filter(c => c.help.userperms?.length > 0).map(c => {
+            const roleIDs = guild.roles.cache.filter(r => r.permissions.has(c.help.userperms)).map(r => r.id);
+            c.roleIDs = roleIDs;
+            return c;
+        });
+        
+        const fullPermissions = await guild.commands.cache.filter(c => restrictCmds.find(cmd => cmd.help.name === c.name)).map(c => {
+            const cmd = restrictCmds.find(cmd => cmd.help.name === c.name);
+    
+            return {
+                id: c.id,
+                permissions: cmd.roleIDs.map(r => ({
+                    id: r,
+                    type: 'ROLE',
+                    permission: true,
+                })),
+            };
+        });
 
-        return {
-            id: c.id,
-            permissions: cmd.roleIDs.map(r => ({
-                id: r,
-                type: 'ROLE',
-                permission: true,
-            })),
-        };
+        // Update the permissions for these commands
+        //await guild.commands.permissions.set({ fullPermissions });
+        logger.info(`.. Permissions slash commands à jour pour guild ${guild.name} ! (${restrictCmds.length})`);
     });
 
-    // Update the permissions for these commands
-    //await guild.commands.permissions.set({ fullPermissions });
-    logger.info(`-- Permissions slash commands à jour ! (${restrictCmds.length})`);
 }
 
 // Charge les événements
@@ -285,10 +288,13 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
                     if (item?.roleID) {
                         // recup role
                         const role = await guild.roles.fetch(item.roleID);
-                        // recup membre qui a cliqué
-                        const member = await guild.members.fetch(u.id);
-                        logger.info(`${u.tag} s'est ajouté le rôle ${role.name}`);
-                        member.roles.add(role);
+
+                        if (role) {
+                            // recup membre qui a cliqué
+                            const member = await guild.members.fetch(u.id);
+                            logger.info(`${u.tag} s'est ajouté le rôle ${role.name}`);
+                            member.roles.add(role);
+                        }
                     }
                 }
             });
@@ -302,10 +308,13 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
                     if (item?.roleID) {
                         // recup role
                         const role = await guild.roles.fetch(item.roleID);
-                        // recup membre qui a cliqué
-                        const member = await guild.members.fetch(u.id);
-                        logger.info(`${u.tag} s'est retiré le rôle ${role.name}`);
-                        member.roles.remove(role);
+
+                        if (role) {
+                            // recup membre qui a cliqué
+                            const member = await guild.members.fetch(u.id);
+                            logger.info(`${u.tag} s'est retiré le rôle ${role.name}`);
+                            member.roles.remove(role);
+                        }
                     }
                 }
             });

@@ -27,7 +27,7 @@ module.exports.run = async (interaction) => {
         .setDescription(`${msgCustom}`);
         
         // TODO : APPELER EVENT CUSTOM POUR ENVOYER LOG
-    return interaction.reply({ embeds: [embed] });
+    return interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 module.exports.help = MESSAGES.COMMANDS.ADMIN.SALON;

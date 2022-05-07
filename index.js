@@ -56,23 +56,24 @@ client.login(TOKEN).then(c => {
 })
 
 client.on('ready', async () => {
-  loadSlashCommands(client);
-    console.log(`
+  console.log(`
   oooooooo8 ooooooooo    oooooooo8       oooooooooo    ooooooo   ooooooooooo 
 o888     88  888    88o 888               888    888 o888   888o 88  888  88 
 888          888    888  888oooooo        888oooo88  888     888     888     
 888o     oo  888    888         888       888    888 888o   o888     888     
  888oooo88  o888ooo88   o88oooo888       o888ooo888    88ooo88      o888o    
     `);
-    loadBatch(client);
-    
-    logger.info(`Chargement des messages 'events' ..`)
-    await loadReactionGroup(client);
-    logger.info(`.. terminé`)
-    
-    logger.info(`Chargement des reactions hall héros/zéros ..`)
-    await loadReactionMsg(client);
-    logger.info(`.. terminé`)
+  await loadSlashCommands(client);
 
-    loadRoleGiver(client);
+  await loadBatch(client);
+  
+  logger.info(`Chargement des messages 'events' ..`)
+  await loadReactionGroup(client);
+  logger.info(`.. terminé`)
+  
+  logger.info(`Chargement des reactions hall héros/zéros ..`)
+  await loadReactionMsg(client);
+  logger.info(`.. terminé`)
+
+  loadRoleGiver(client);
 });

@@ -178,7 +178,7 @@ const schedule = async (interaction, options) => {
     });
 
     // créer/update rappel
-    createRappelJob(client, [grp]);
+    createRappelJob(client, interaction.guildId, [grp]);
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
