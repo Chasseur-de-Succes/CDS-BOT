@@ -3,17 +3,31 @@ const {TOKEN, PREFIX} = require('./config.js');
 const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg } = require('./util/loader');
 const axios = require('axios');
 const winston = require("winston");
+require('winston-daily-rotate-file');
+
+var transport = new winston.transports.DailyRotateFile({
+  filename: 'logs/app-%DATE%.log',
+  datePattern: 'YYYY-MM-DD-HH',
+  zippedArchive: true,
+  maxSize: '20m',
+  maxFiles: '14d'
+});
 global.logger = winston.createLogger({
   transports: [
+    transport,
     new winston.transports.Console({
       level: 'silly',
       format: winston.format.combine(
                 winston.format.colorize(),
                 winston.format.simple()
-              
       )
-          
-    })]});
+    })
+  ],
+  format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+  )
+});
 require('date.format');
 
 
