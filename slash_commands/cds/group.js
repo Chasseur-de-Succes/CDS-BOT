@@ -4,7 +4,6 @@ const { createError, createLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
-const { PREFIX } = require("../../config");
 const { createRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
 
@@ -35,7 +34,7 @@ const create = async (interaction, options) => {
     // test si captain est register
     const captainDB = await client.getUser(captain);
     if (!captainDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
     if (nameGrp.length < 3) 
@@ -154,7 +153,7 @@ const schedule = async (interaction, options) => {
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
     // recup le groupe
     let grp = await client.findGroupByName(nameGrp);
@@ -201,7 +200,7 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
     // recup le groupe
     let grp = await client.findGroupByName(grpName);
@@ -235,10 +234,10 @@ const transfert = async (interaction, options) => {
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
     let newCaptainDB = await client.getUser(newCaptain);
     if (!newCaptainDB)
-        return interaction.reply({ embeds: [createError(`${newCaptain} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`${PREFIX}register\``)] });
+        return interaction.reply({ embeds: [createError(`${newCaptain} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`/register\``)] });
 
     // recup le groupe
     let grp = await client.findGroupByName(grpName);
@@ -275,7 +274,7 @@ const end = async (interaction, options) => {
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)] });
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
         
     // recup le groupe
     let grp = await client.findGroupByName(grpName);

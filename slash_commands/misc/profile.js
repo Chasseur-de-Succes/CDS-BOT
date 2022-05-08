@@ -1,5 +1,5 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
-const { PREFIX, MONEY } = require("../../config");
+const { MONEY } = require("../../config");
 const { VERY_PALE_BLUE, DARK_RED, CRIMSON } = require('../../data/colors.json');
 const { CROSS_MARK, STEAM } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
@@ -27,7 +27,7 @@ module.exports.run = async (interaction) => {
     let dbUser = await client.getUser(member);
 
     if (!dbUser) { // Si pas dans la BDD
-        const embedErr = createError(`${member.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)
+        const embedErr = createError(`${member.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)
         return interaction.reply({ embeds: [embedErr] });
     }
 
