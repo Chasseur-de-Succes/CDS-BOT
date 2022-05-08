@@ -1,18 +1,20 @@
 const { MessageEmbed, MessageActionRow, MessageSelectMenu, Permissions } = require('discord.js');
-const { MESSAGES, NB_MAX } = require('../../util/constants');
-const { PREFIX, CHANNEL } = require('../../config.js');
+const { MESSAGES, NB_MAX, SALON } = require('../../util/constants');
+const { PREFIX } = require('../../config.js');
 const moment = require('moment');
 
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, joinGroup, leaveGroup, endGroup, createGroup, dissolveGroup } = require('../../util/msg/group');
 const { createRappelJob } = require('../../util/batch/batch');
-const { sendError, sendLogs } = require('../../util/envoiMsg');
+const { sendError } = require('../../util/envoiMsg');
 
 async function sendListGroup(client, message, groupes, title) {
     let urls = [], games = [], infos = []
     for (const group of groupes) {
-        const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg)
+        const idListGroup = await client.getGuildChannel(message.guildId, SALON.LIST_GROUP);
+        
+        const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg)
         const captain = await message.guild.members.fetch(group.captain.userId);
         let isAuthorCaptain = message.author === captain.user;
         const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
@@ -185,7 +187,7 @@ module.exports.run = async (client, message, args) => {
         }
 
         // update du groupe : size +1, ajout de l'user dans members
-        joinGroup(client, grp, userDB);
+        joinGroup(client, message.guildId, grp, userDB);
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Tu as bien rejoint le groupe **${grpName}** !`);
@@ -223,7 +225,7 @@ module.exports.run = async (client, message, args) => {
         if (grp.captain._id.equals(userDB._id))
             return sendError(message, `Tu es capitaine du groupe **${grpName}**, utilise plutôt \`group transfert\` ou \`group dissolve\`.`, 'group leave');
 
-        leaveGroup(client, grp, userDB);
+        leaveGroup(client, message.guildId, grp, userDB);
         
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Tu as bien quitté le groupe **${grpName}** !`);
@@ -367,7 +369,7 @@ module.exports.run = async (client, message, args) => {
             members: [userDB._id],
             game: game
         };
-        createGroup(client, newGrp);
+        createGroup(client, message.guildId, newGrp);
 
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
@@ -419,10 +421,10 @@ module.exports.run = async (client, message, args) => {
         });
 
         // créer/update rappel
-        createRappelJob(client, [grp]);
+        createRappelJob(client, message.guildId, [grp]);
 
         // update msg
-        await editMsgHubGroup(client, grp);
+        await editMsgHubGroup(client, message.guildId, grp);
 
         logger.info(".. date "+dateEvent+" choisi");
         const newMsgEmbed = new MessageEmbed()
@@ -471,7 +473,7 @@ module.exports.run = async (client, message, args) => {
         })
 
         // update msg
-        await editMsgHubGroup(client, grp);
+        await editMsgHubGroup(client, message.guildId, grp);
         logger.info(message.author.tag+" vient de nommer "+newCaptain.user.tag+" capitaine du groupe "+grpName);
         const newMsgEmbed = new MessageEmbed()
             .setTitle(`${CHECK_MARK} ${newCaptain.user.tag} est le nouveau capitaine du groupe **${grpName}** !`);
@@ -509,7 +511,7 @@ module.exports.run = async (client, message, args) => {
             .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
         message.channel.send({ embeds: [newMsgEmbed] });
 
-        endGroup(client, grp);
+        endGroup(client, message.guildId, grp);
     }
 
 }
@@ -543,14 +545,14 @@ module.exports.dissolve = async (client, message, grpName, isAdmin = false) => {
     if (!isAdmin && !grp.captain._id.equals(userDB._id))
         return sendError(message, `Tu n'es pas capitaine du groupe **${grpName}** !`, 'dissolve');
     
-    dissolveGroup(client, grp);
+    dissolveGroup(client, message.guildId, grp);
     
     let mentionsUsers = '';
     for (const member of grp.members)
     mentionsUsers += `<@${member.userId}> `
 
     // envoi dans channel log
-    sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
+    createLogs(client, message.guildId, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
     
     logger.info(message.author.tag+" a dissout le groupe "+grpName);

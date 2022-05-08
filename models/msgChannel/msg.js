@@ -9,7 +9,8 @@ const baseOptions = {
 const msg = mongoose.model('Message', new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
         author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        msgId: String
+        msgId: String,
+        guildId: String,
     }, baseOptions,
   ),
 );

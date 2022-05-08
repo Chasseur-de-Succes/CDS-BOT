@@ -3,7 +3,7 @@ const { MessageEmbed, Permissions } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
 const { PREFIX, MONEY } = require('../../config');
-const { sendError, sendLogs, createError } = require('../../util/envoiMsg');
+const { createError, createLogs } = require('../../util/envoiMsg');
 
 module.exports.run = async (interaction) => {
     // TODO permissions
@@ -40,7 +40,7 @@ module.exports.run = async (interaction) => {
 
     await client.update(dbUser, { money: money });
     logger.warn(`${user.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name} ${montant}`);
-    sendLogs(client, `Modification ${MONEY}`, `${msgCustom}`, '', GREEN)
+    createLogs(client, interaction.guildId, `Modification ${MONEY}`, `${msgCustom}`, '', GREEN)
 
     const embed = new MessageEmbed()
         .setColor(GREEN)

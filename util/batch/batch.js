@@ -1,5 +1,4 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
-const { GUILD_ID } = require("../../config");
 const { createEmbedGroupInfo } = require("../msg/group");
 const { TAGS, delay, crtHour } = require('../../util/constants');
 const moment = require("moment");
@@ -10,7 +9,7 @@ module.exports = {
      * @param {*} client le client
      * @param {*} groupes les groupes à rappeler
      */
-    createRappelJob(client, groupes) {
+    createRappelJob(client, guildId, groupes) {
         for (const groupe of groupes) {
             let dateEvent = groupe.dateEvent;
             if (dateEvent) {
@@ -22,6 +21,7 @@ module.exports = {
                 
                 let job1j = {
                     name: jobName,
+                    guildId: guildId,
                     when: dateRappel1j,
                     what: 'envoiMpRappel',
                     args: [groupe._id, 'jour'],
@@ -40,6 +40,7 @@ module.exports = {
                 
                 let job1h = {
                     name: jobName,
+                    guildId: guildId,
                     when: dateRappel1h,
                     what: 'envoiMpRappel',
                     args: [groupe._id, 'heure'],
@@ -68,7 +69,7 @@ module.exports = {
                     logger.info("-- Création rappel le "+job.when+" pour groupe "+groupe.name+"..");
                     //scheduleJob("*/10 * * * * *", function() {
                     scheduleJob(job.name, job.when, function(){
-                        module.exports.envoiMpRappel(client, groupe, job.args[1]);
+                        module.exports.envoiMpRappel(client, job.guildId, groupe, job.args[1]);
                         // update job
                         jobDB.pending = false;
                         client.update(jobDB, {pending: false});
@@ -134,8 +135,8 @@ module.exports = {
      * @param {*} groupeId l'id du groupe 
      * @param {*} typeHoraire le type d'horaire (jours/heures)
      */
-    envoiMpRappel: function(client, groupeId, typeHoraire) {
-        const membersGuild = client.guilds.cache.get(GUILD_ID).members.cache;
+    envoiMpRappel: function(client, guildId, groupeId, typeHoraire) {
+        const membersGuild = client.guilds.cache.get(guildId).members.cache;
         client.findGroupById(groupeId)
         .then(groupe => {
             // TODO a filtrer depuis findGroupe

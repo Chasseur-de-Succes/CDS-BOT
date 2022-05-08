@@ -1,11 +1,11 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { Group, User } = require('../../models');
 const { MessageEmbed } = require('discord.js');
-const { GUILD_ID, CHANNEL } = require("../../config");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment');
-const { BAREME_XP } = require("../constants");
+const { BAREME_XP, SALON } = require("../constants");
+const { addXp } = require("../xp");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -76,33 +76,37 @@ function getMembersList(group, members) {
  * @param {*} client 
  * @param {*} group Groupe (DB)
  */
- async function sendMsgHubGroup(client, group) {
-    const members = client.guilds.cache.get(GUILD_ID).members.cache;
+ async function sendMsgHubGroup(client, guildId, group) {
+    const members = client.guilds.cache.get(guildId).members.cache;
     const newMsgEmbed = createEmbedGroupInfo(members, group, false);
 
     // recuperation id message pour pouvoir l'editer par la suite
-    let msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).send({embeds: [newMsgEmbed]});
+    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    let msg = await client.channels.cache.get(idListGroup).send({embeds: [newMsgEmbed]});
     await client.update(group, { idMsg: msg.id });
 
     // nvx msg aide, pour recup + facilement
     await client.createMsgDmdeAide({
         //author: userDB, // bot
         msgId: msg.id,
+        guildId: msg.guildId,
     })
 }
-
 
 /**
  * Update un msg embed du channel spécifique
  * @param {*} client 
  * @param {*} group Groupe (DB)
  */
- async function editMsgHubGroup(client, group) {
-    const members = client.guilds.cache.get(GUILD_ID).members.cache;
-    const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
-    const editMsgEmbed = createEmbedGroupInfo(members, group, false);
+ async function editMsgHubGroup(client, guildId, group) {
+    const members = client.guilds.cache.get(guildId).members.cache;
     
-    editMsgEmbed.setFooter({ text: `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`});
+    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
+    const editMsgEmbed = createEmbedGroupInfo(members, group, false);
+    const footer = `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`
+    
+    editMsgEmbed.setFooter({ text: `${footer}`});
 
     await msg.edit({embeds: [editMsgEmbed]});
 }
@@ -112,8 +116,9 @@ function getMembersList(group, members) {
  * @param {*} client 
  * @param {*} group 
  */
- async function deleteMsgHubGroup(client, group) {
-    const msg = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(group.idMsg);
+ async function deleteMsgHubGroup(client, guildId, group) {
+    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
     await msg.delete();
 }
 
@@ -137,7 +142,7 @@ function getMembersList(group, members) {
 
                 // si u est enregistré, non blacklisté, non capitaine, et pas déjà présent, il peut join le group
                 if (userDBJoined && u.id !== grpDB.captain.userId && !userDBJoined.blacklisted && !grpDB.members.find(us => us.userId === u.id)) {
-                    await joinGroup(client, grpDB, userDBJoined);
+                    await joinGroup(client, msg.guildId, grpDB, userDBJoined);
                 } else {
                     // send mp explication
                     let raison = 'Tu ne peux rejoindre le groupe car ';
@@ -161,7 +166,7 @@ function getMembersList(group, members) {
                 const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
                 // si u est capitaine, on remet? la reaction
                 if (u.id !== grpDB.captain.userId && userDBLeaved) 
-                    await leaveGroup(client, grpDB, userDBLeaved);
+                    await leaveGroup(client, msg.guildId, grpDB, userDBLeaved);
             });
         }
     });
@@ -173,7 +178,7 @@ function getMembersList(group, members) {
  * @param {*} grp Le groupe
  * @param {*} userDB L'utilisateur a enlever
  */
-async function leaveGroup(client, grp, userDB) {
+async function leaveGroup(client, guildId, grp, userDB) {
     // update du groupe : size -1, remove de l'user dans members
     let memberGrp = grp.members.find(u => u._id.equals(userDB._id));
     var indexMember = grp.members.indexOf(memberGrp);
@@ -192,7 +197,7 @@ async function leaveGroup(client, grp, userDB) {
     );
     
     // update msg
-    await editMsgHubGroup(client, grp);
+    await editMsgHubGroup(client, guildId, grp);
     logger.info(userDB.username+" vient de quitter groupe "+grp.name);
 }
 
@@ -201,7 +206,7 @@ async function leaveGroup(client, grp, userDB) {
  * @param {*} grp Le groupe
  * @param {*} userDB L'utilisateur
  */
- async function joinGroup(client, grp, userDB) {
+ async function joinGroup(client, guildId, grp, userDB) {
     grp.members.push(userDB);
     grp.size++;
     await client.update(grp, {
@@ -217,11 +222,12 @@ async function leaveGroup(client, grp, userDB) {
     );
 
     // update msg
-    await editMsgHubGroup(client, grp);
+    await editMsgHubGroup(client, guildId, grp);
     logger.info(userDB.username+" vient de rejoindre groupe "+grp.name);
 }
 
-async function createGroup(client, newGrp) {
+async function createGroup(client, guildId, newGrp) {
+    newGrp.guildId = guildId;
     let grpDB = await client.createGroup(newGrp);
     
     // stat ++
@@ -231,16 +237,17 @@ async function createGroup(client, newGrp) {
     );
 
     // creation msg channel
-    await sendMsgHubGroup(client, grpDB);
+    await sendMsgHubGroup(client, guildId, grpDB);
     
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grpDB.idMsg);
+    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    const msgChannel = await client.channels.cache.get(idListGroup).messages.fetch(grpDB.idMsg);
     msgChannel.react(CHECK_MARK);
 
     // filtre reaction sur emoji
     await createReactionCollectorGroup(client, msgChannel, grpDB);
 }
 
-async function dissolveGroup(client, grp) {
+async function dissolveGroup(client, guildId, grp) {
     // TODO si fait par un admin
     // stat ++
     await User.updateOne(
@@ -256,12 +263,12 @@ async function dissolveGroup(client, grp) {
     await client.deleteGroup(grp);
 
     // update msg
-    await deleteMsgHubGroup(client, grp);
+    await deleteMsgHubGroup(client, guildId, grp);
 }
 
-async function endGroup(client, grp) {
+async function endGroup(client, guildId, grp) {
     // update msg
-    await editMsgHubGroup(client, grp);
+    await editMsgHubGroup(client, guildId, grp);
 
     // remove job
     deleteRappelJob(client, grp);
@@ -269,8 +276,21 @@ async function endGroup(client, grp) {
     // update info user
     // - XP
     // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
-    // TODO xp variable en fonction nb de personnes, si capitaine
+    // TODO xp variable en fonction nb de personnes, autre..
+    // TODO que faire si end sans qu'il y ai eu qqchose de fait ? comment vérifier ?
     let xp = BAREME_XP.EVENT_END;
+    // TODO bonus captain
+    let xpBonusCaptain = BAREME_XP.CAPTAIN;
+
+    // xp pour tous les membres (captain inclus)
+    for (const member of grp.members) {
+        const usr = await client.users.fetch(member.userId);
+        // xp bonus captain
+        if (member.equals(grp.captain))
+            addXp(usr, xp + xpBonusCaptain)
+        else if (usr)
+            addXp(usr, xp)
+    }
 
     // - Stat++ pour tous les membres
     await User.updateMany(
@@ -279,9 +299,27 @@ async function endGroup(client, grp) {
         { multi: true }
     );
 
-    // TODO déplacer event terminé ?
-    const msgChannel = await client.channels.cache.get(CHANNEL.LIST_GROUP).messages.fetch(grp.idMsg);
+    // déplacer event terminé
+    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    const channel = await client.channels.cache.get(idListGroup);
+    const msgChannel = await channel.messages.cache.get(grp.idMsg);
     msgChannel.reactions.removeAll();
+
+    // déplacer vers thread
+    // TODO fetchActive & fetchArchived..
+    let thread = await channel.threads.cache.find(x => x.name === 'Groupes terminés');
+    if (!thread) {
+        thread = await channel.threads.create({
+            name: 'Groupes terminés',
+            //autoArchiveDuration: 60,
+            reason: 'Archivage des événements.',
+        });
+    }
+
+    // envoi vers thread
+    await thread.send({embeds: [msgChannel.embeds[0]]});
+    // supprime msg
+    await msgChannel.delete();
 }
 
 

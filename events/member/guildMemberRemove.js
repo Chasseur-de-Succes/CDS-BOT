@@ -1,6 +1,6 @@
 const { DARK_RED } = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
-const { CHANNEL } = require('../../config');
+const { sendLogs } = require('../../util/envoiMsg');
 
 module.exports = async (client, member) => {
     const user = client.users.cache.get(member.id);
@@ -14,5 +14,5 @@ module.exports = async (client, member) => {
             {name: "ID", value: `${member.id}`},
         );
 
-    client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});
+    sendLogs(client, member.guild.id, embed);
 }

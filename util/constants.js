@@ -201,6 +201,29 @@ const MESSAGES = {
                     }
                 ],
                 userperms: ['ADMINISTRATOR']
+            },
+            SALON: {
+                name: 'salon',
+                aliases: [],
+                category: "admin",
+                cooldown: 5,
+                description: "Pour configurer les salons",
+                args: [
+                    {
+                        name: 'nom',
+                        type: 'STRING',
+                        description: 'Nom du paramètre',
+                        required: true,
+                        autocomplete: true,
+                    },
+                    {
+                        name: 'salon',
+                        type: 'CHANNEL',
+                        description: 'Nom du channel correspondant au paramètre',
+                        required: true,
+                    }
+                ],
+                userperms: ['ADMINISTRATOR']
             }
         },
         CDS: {
@@ -428,6 +451,7 @@ const MESSAGES = {
                                 name: 'jeu',
                                 type: 'STRING',
                                 description: 'Nom du jeu',
+                                autocomplete: true,
                                 required: true,
                             }, { 
                                 name: 'prix',
@@ -522,12 +546,56 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 const crtHour = () => moment().format("HH[h]mm[:]ss");
 
 const BAREME_XP = {
-    EVENT_END: '10'
+    MSG: 5,
+    CAPTAIN: 15,
+    EVENT_END: 25,
+}
+const THREESOLD_LVL = 100;
+
+/* const CHANNEL = {
+    WELCOME: 'Salon de bienvenue', // channel de bienvenue, affiche les nouveaux arrivants
+    ROLE: 'Salon choix de rôle (cf /role)', // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+    LIST_GROUP: 'Salon qui liste les groupes', // channel qui affichera tous les groupes
+    HALL_HEROS: 'Salon du hall des héros', // channel eponyme (pour stat)
+    HALL_ZEROS: 'Salon du hall des zéros', // channel eponyme (pour stat)
+    LOGS: 'Salon de logs (admin)' // channel de logs (discord: join, leave, modification surnom,...)
+} */
+const CHANNEL = [
+    { 
+        name: 'Salon de bienvenue',
+        value: 'welcome' // channel de bienvenue, affiche les nouveaux arrivants
+    }, { 
+        name: 'Salon choix de rôle (cf /role)',
+        value: 'role' // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+    }, { 
+        name: 'Salon qui liste les groupes',
+        value: 'list_group' // channel qui affichera tous les groupes
+    }, { 
+        name: 'Salon du hall des héros',
+        value: 'hall_heros' // channel eponyme (pour stat)
+    }, { 
+        name: 'Salon du hall des zéros',
+        value: 'hall_zeros' // channel eponyme (pour stat)
+    }, { 
+        name: 'Salon de logs (admin)',
+        value: 'logs' // channel de logs (discord: join, leave, modification surnom,...)
+    },
+]
+const SALON = {
+    WELCOME: 'welcome',
+    ROLE: 'role',
+    LIST_GROUP: 'list_group',
+    HALL_HEROS: 'hall_heros',
+    HALL_ZEROS: 'hall_zeros',
+    LOGS: 'logs'
 }
 
 exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
 exports.BAREME_XP = BAREME_XP;
+exports.THREESOLD_LVL = THREESOLD_LVL;
 exports.delay = delay;
 exports.crtHour = crtHour;
+exports.CHANNEL = CHANNEL;
+exports.SALON = SALON;

@@ -1,6 +1,6 @@
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
-const { createError, sendLogs } = require("../../util/envoiMsg");
+const { createError, createLogs } = require("../../util/envoiMsg");
 const { YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK } = require('../../data/emojis.json');
 const { MONEY } = require('../../config.js');
@@ -42,7 +42,7 @@ async function cancel(interaction, options) {
     logger.info(`Annulation vente id ${id}`);
     // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
     interaction.reply(CHECK_MARK)
-    sendLogs(client, `Annulation vente`, `${author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
+    createLogs(client, interaction.guildId, `Annulation vente`, `${author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
 }
 
 async function refund(interaction, options) {
@@ -84,7 +84,7 @@ async function refund(interaction, options) {
     logger.info(`Remboursement vente id ${id}`);
     // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
     interaction.reply(CHECK_MARK)
-    sendLogs(client, `Annulation vente`, `${author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
+    createLogs(client, interaction.guildId, `Annulation vente`, `${author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
 }
 
 async function deleteItem(interaction, options) {
@@ -145,7 +145,7 @@ async function deleteItem(interaction, options) {
     // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
     embed.setTitle(`${CHECK_MARK} Item supprimé`)
     await interaction.editReply({ embeds: [embed] })
-    sendLogs(client, `Suppression vente`, `${author} a supprimé la vente de **${jeu}**, par **${vendeur}**`, `ID : ${id}`, YELLOW);
+    createLogs(client, interaction.guildId, `Suppression vente`, `${author} a supprimé la vente de **${jeu}**, par **${vendeur}**`, `ID : ${id}`, YELLOW);
     return;    
 }
 

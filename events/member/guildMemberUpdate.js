@@ -1,6 +1,6 @@
 const { ORANGE } = require('../../data/colors.json');
 const { MessageEmbed } = require("discord.js");
-const { CHANNEL } = require('../../config');
+const { sendLogs } = require('../../util/envoiMsg');
 
 module.exports = async (client, oldUser, newUser) => {
     if(oldUser.nickname != newUser.nickname) {
@@ -10,9 +10,9 @@ module.exports = async (client, oldUser, newUser) => {
             .setColor(ORANGE)
             .setTitle(`Surnom modifier`)
             .setDescription(`<@${newUser.id}>\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`)
-            .setFooter({ text: `ID: ${newUser.id}`})
+            .setFooter({text: `ID: ${newUser.id}`})
             .setTimestamp();
 
-        client.channels.cache.get(CHANNEL.LOGS).send({embeds: [embed]});
+        sendLogs(client, oldUser.guild.id, embed);
     }
 }

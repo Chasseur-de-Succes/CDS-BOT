@@ -1,6 +1,6 @@
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
-const { createError, sendLogs } = require("../../util/envoiMsg");
+const { createError, createLogs } = require("../../util/envoiMsg");
 const { YELLOW,  } = require("../../data/colors.json");
 const { CHECK_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MONEY } = require('../../config.js');
@@ -135,7 +135,7 @@ const list = async (interaction, options, showGame = false) => {
                 }
 
                 // ACHETE !
-                buyGame(client, author, userDB, vendeur, items);
+                buyGame(client, interaction.guildId, author, userDB, vendeur, items);
 
                 // message recap
                 let recapEmbed = new MessageEmbed()
@@ -220,7 +220,7 @@ function createShop(guild, infos, currentIndex = 0) {
     return embed;
 }
 
-async function buyGame(client, author, acheteurDB, vendeur, info) {
+async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     // recup objet DB du vendeur
     let vendeurDB = await client.findUserById(info.items[0].seller.userId);
     
@@ -238,7 +238,7 @@ async function buyGame(client, author, acheteurDB, vendeur, info) {
         lastBuy: Date.now()
     });
     // log 'Acheteur perd montant MONEY a cause vente'
-    sendLogs(client, `Argent perdu`, `${author} achète **${game.name}** à **${item.montant} ${MONEY}**`, `ID vente : ${item._id}`, YELLOW);
+    createLogs(client, guildId, `Argent perdu`, `${author} achète **${game.name}** à **${item.montant} ${MONEY}**`, `ID vente : ${item._id}`, YELLOW);
 
     // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
     await client.update(item, { 
@@ -275,7 +275,7 @@ async function buyGame(client, author, acheteurDB, vendeur, info) {
     // maj state
     await client.update(item, { state: 'pending - key demandée' });
     // log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' 
-    sendLogs(client, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                         2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`, `ID vente : ${item._id}`, YELLOW);
 
     // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
@@ -311,7 +311,7 @@ async function buyGame(client, author, acheteurDB, vendeur, info) {
     // maj state
     await client.update(item, { state: 'pending - key recup' });
     // log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur'
-    sendLogs(client, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                         ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
                                          3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`, `ID vente : ${item._id}`, YELLOW);
 
@@ -373,7 +373,7 @@ async function buyGame(client, author, acheteurDB, vendeur, info) {
     // maj state
     await client.update(item, { state: 'done' });
     // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
-    sendLogs(client, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                         ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
                                         ~~3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation~~
                                         4️⃣ ${author} a confirmé la réception ! C'est terminé !`, `ID vente : ${item._id}`, YELLOW);
@@ -382,7 +382,7 @@ async function buyGame(client, author, acheteurDB, vendeur, info) {
     vendeurDB.money += item.montant;
     await client.update(vendeurDB, { money: vendeurDB.money });
     // log 'Vendeur reçoit montant MONEY grâce vente'
-    sendLogs(client, `Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`, YELLOW);
+    createLogs(client, guildId, `Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`, YELLOW);
 
     // msg pour vendeur 
     MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
@@ -512,7 +512,8 @@ function createListGame(items, money, currentIndex = 0) {
 
 // shop sell <montant> <nom du jeu>
 async function sell(interaction, options) {
-    const gameName = options.get('jeu')?.value;
+    // recup via autocomplete (loader.js)
+    const gameId = options.get('jeu')?.value;
     const montant = options.get('prix')?.value;
     const client = interaction.client;
     const author = interaction.member;
@@ -525,70 +526,8 @@ async function sell(interaction, options) {
         return interaction.reply({ embeds: [createError(`Montant négatif !`)] });
     // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
-    // - recherche du jeu
-    // création de la regex sur le nom du jeu        
-    logger.info(`Recherche jeu Steam par nom ${gameName}`)
-    let regGame = new RegExp(gameName, "i");
+    // jeu déjà recherché via autocomplete
 
-    // recherche..
-    await interaction.deferReply();
-
-    // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    let games = await client.findGames({
-        name: regGame
-    });
-
-    logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games) return interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
-    if (games.length === 0) return interaction.editReply({ embeds: [createError(`Pas de résultat trouvé pour **${gameName}** !`)] });
-
-    // values pour Select Menu
-    let items = [];
-    for (let i = 0; i < games.length; i++) {
-        let crtGame = games[i];
-        if (crtGame) {
-            items.unshift({
-                label: crtGame.name,
-                // description: 'Description',
-                value: '' + crtGame.appid
-            });
-        }
-    }
-    // SELECT n'accepte que 25 max
-    if (items.length > 25) return interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
-    
-    // row contenant le Select menu
-    const row = new MessageActionRow()
-        .addComponents(
-            new MessageSelectMenu()
-                .setCustomId('select-games-' + author)
-                .setPlaceholder('Sélectionner le jeu..')
-                .addOptions(items)
-        );
-
-    let embed = new MessageEmbed()
-        .setColor(YELLOW)
-        .setTitle(`💰 BOUTIQUE - VENTE - J'ai trouvé ${games.length} jeux ! 💰`)
-        .setDescription(`Quel jeu veux-tu vendre ?`);
-
-    let msgEmbed = await interaction.editReply({embeds: [embed], components: [row] });
-
-    // attend une interaction bouton de l'auteur de la commande
-    let filter, itr;
-    try {
-        filter = i => {return i.user.id === author.id}
-        itr = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: 'SELECT_MENU',
-            time: 30000 // 5min
-        });
-    } catch (error) {
-        msgEmbed.edit({ components: [] })
-        return;
-    }
-        
-    const gameId = itr.values[0];
-    logger.info(`.. Steam app ${gameId} choisi`);
     // on recupere le custom id "APPID_GAME"
     let game = await client.findGameByAppid(gameId);
 
@@ -599,13 +538,17 @@ async function sell(interaction, options) {
     }
     let itemDB = await client.createGameItemShop(item);
 
-    embed.setTitle(`💰 BOUTIQUE - VENTE 💰`)
+    let embed = new MessageEmbed()
+        .setColor(YELLOW)
+        .setTitle(`💰 BOUTIQUE - VENTE 💰`)
         .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
         ${game.name} à ${montant} ${MONEY}`)
-    msgEmbed.edit({ embeds: [embed], components: [] })
+
+    let msgEmbed = await interaction.reply({embeds: [embed] });
+    //msgEmbed.edit({ embeds: [embed], components: [] })
 
     // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
-    sendLogs(client, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);
+    createLogs(client, interaction.guildId, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);
 }
 
 module.exports.help = MESSAGES.COMMANDS.ECONOMY.SHOP;

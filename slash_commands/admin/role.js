@@ -1,6 +1,6 @@
 const { MESSAGES } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
-const { sendLogs, createError } = require('../../util/envoiMsg');
+const { createError } = require('../../util/envoiMsg');
 const { loadRoleGiver } = require('../../util/loader');
 const { Permissions } = require("discord.js");
 const { RolesChannel } = require("../../models");
@@ -60,7 +60,7 @@ const createRole = async (interaction, options) => {
     loadRoleGiver(client, true);
 
     // log
-    sendLogs(client, `Création`, `Nouveau rôle ${role} & channel ${channel}, réalisé par ${author}`, '', GREEN)
+    createLogs(client, interaction.guildId, `Création`, `Nouveau rôle ${role} & channel ${channel}, réalisé par ${author}`, '', GREEN)
 
     return interaction.reply(`Création du channel ${channel} pour ceux ayant le rôle ${role}`);
 }
@@ -96,7 +96,7 @@ const deleteRole = async (interaction, options) => {
     loadRoleGiver(client, true, rolesExist.emoji);
 
     // log
-    sendLogs(client, `Suppression`, `Rôle ${roleGuild.name} & channel ${channel.name} supprimé, réalisé par ${author}`, '', GREEN)
+    createLogs(client, interaction.guildId, `Suppression`, `Rôle ${roleGuild.name} & channel ${channel.name} supprimé, réalisé par ${author}`, '', GREEN)
 
     return interaction.reply(`Suppression du channel ${channel.name} et le rôle ${roleGuild.name} associé !`);
 }

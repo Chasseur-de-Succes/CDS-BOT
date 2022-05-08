@@ -5,7 +5,15 @@ const guildConfigSchema = mongoose.Schema({
     guildId: String,
     whitelistChannel : [{
         "type": String
-    }]
+    }],
+    channels : {
+        welcome: String,
+        role: String,
+        list_group: String,
+        hall_heros: String,
+        hall_zeros: String,
+        logs: String
+    }
 })
 
 module.exports = mongoose.model("GuildConfig", guildConfigSchema);

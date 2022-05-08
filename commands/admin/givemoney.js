@@ -3,7 +3,7 @@ const { MessageEmbed, Permissions } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
 const { PREFIX, MONEY } = require('../../config');
-const { sendError, sendLogs } = require('../../util/envoiMsg');
+const { sendError, createLogs } = require('../../util/envoiMsg');
 
 module.exports.run = async (client, message, args) => {
     if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) 
@@ -43,7 +43,7 @@ module.exports.run = async (client, message, args) => {
     message.channel.send({embeds: [embed]});
 
     // TODO : APPELER EVENT CUSTOM POUR ENVOYER LOG
-    sendLogs(client, `Modification ${MONEY}`, 
+    createLogs(client, message.guildId, `Modification ${MONEY}`, 
         `${message.author} ${msgCustom} **${montant}** ${MONEY} à ${member.user}\nSon argent est désormais de : **${money}** ${MONEY}`,
         '', GREEN)
 }

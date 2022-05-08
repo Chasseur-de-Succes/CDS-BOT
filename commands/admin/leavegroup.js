@@ -41,11 +41,11 @@ module.exports.run = async (client, message, args) => {
     })
 
     // update msg
-    await editMsgHubGroup(client, grp);
+    await editMsgHubGroup(client, message.guildId, grp);
     logger.info((memberToLeave.user.tag ?? memberToLeaveId)+" a été kick du groupe : "+grpName);
     message.react(CHECK_MARK)
     
-    sendLogs(client, `${WARNING} Expulsion d'un groupe`, `${memberToLeave.user.tag ?? memberToLeaveId} a été kick du groupe : ${grpName} par ${message.author}`);
+    createLogs(client, message.guildId, `${WARNING} Expulsion d'un groupe`, `${memberToLeave.user.tag ?? memberToLeaveId} a été kick du groupe : ${grpName} par ${message.author}`);
 }
 
 module.exports.help = MESSAGES.COMMANDS.ADMIN.LEAVEGROUP;

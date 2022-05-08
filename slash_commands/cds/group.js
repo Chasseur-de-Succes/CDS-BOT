@@ -1,6 +1,6 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions } = require("discord.js");
 const { MESSAGES } = require("../../util/constants");
-const { createError, sendLogs } = require("../../util/envoiMsg");
+const { createError, createLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
@@ -131,7 +131,7 @@ const create = async (interaction, options) => {
         members: [captainDB._id],
         game: game
     };
-    createGroup(client, newGrp);
+    createGroup(client, interaction.guildId, newGrp);
 
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
@@ -178,10 +178,10 @@ const schedule = async (interaction, options) => {
     });
 
     // créer/update rappel
-    createRappelJob(client, [grp]);
+    createRappelJob(client, interaction.guildId, [grp]);
 
     // update msg
-    await editMsgHubGroup(client, grp);
+    await editMsgHubGroup(client, interaction.guildId, grp);
 
     logger.info(`.. date ${dateEvent} choisi`);
     const newMsgEmbed = new MessageEmbed()
@@ -212,14 +212,14 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
-    dissolveGroup(client, grp)
+    dissolveGroup(client, interaction.guildId, grp)
     
     let mentionsUsers = '';
     for (const member of grp.members)
         mentionsUsers += `<@${member.userId}> `
 
     // envoi dans channel log
-    sendLogs(client, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
+    createLogs(client, interaction.guildId, `${WARNING} Dissolution d'un groupe`, `Le groupe **${grpName}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`);
     
     logger.info(`${author.user.tag} a dissout le groupe ${grpName}`);
@@ -260,7 +260,7 @@ const transfert = async (interaction, options) => {
     })
 
     // update msg
-    await editMsgHubGroup(client, grp);
+    await editMsgHubGroup(client, interaction.guildId, grp);
     logger.info(`${author.user.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe ${grpName}`);
     const newMsgEmbed = new MessageEmbed()
         .setDescription(`${CHECK_MARK} ${newCaptain} est le nouveau capitaine du groupe **${grpName}** !`);
@@ -297,7 +297,7 @@ const end = async (interaction, options) => {
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
     await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
-    endGroup(client, grp);
+    endGroup(client, interaction.guildId, grp);
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;
