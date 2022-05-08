@@ -1,5 +1,5 @@
 const { Client, Intents, Collection } = require('discord.js');
-const {TOKEN, PREFIX} = require('./config.js');
+const { TOKEN } = require('./config.js');
 const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg } = require('./util/loader');
 const axios = require('axios');
 const winston = require("winston");

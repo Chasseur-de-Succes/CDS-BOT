@@ -2,7 +2,7 @@ const { MessageEmbed, Permissions } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
-const { PREFIX, MONEY } = require('../../config');
+const { MONEY } = require('../../config');
 const { createError, createLogs } = require('../../util/envoiMsg');
 
 module.exports.run = async (interaction) => {
@@ -26,7 +26,7 @@ module.exports.run = async (interaction) => {
     }
     const dbUser = await client.getUser(member);
     if (!dbUser) { // Si pas dans la BDD
-        const embedErr = createError(`${member.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`${PREFIX}register\``)
+        const embedErr = createError(`${member.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)
         return interaction.reply({ embeds: [embedErr] });
     }
     

@@ -146,7 +146,7 @@ function getMembersList(group, members) {
                 } else {
                     // send mp explication
                     let raison = 'Tu ne peux rejoindre le groupe car ';
-                    if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande ${PREFIX}register <steamid>`;
+                    if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande /register <steamid>`;
                     else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
                     else raison += `tu es le capitaine du groupe !`;
 

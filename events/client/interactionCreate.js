@@ -1,9 +1,8 @@
-const {PREFIX} = require('../../config.js');
-const { CROSS_MARK } = require('../../data/emojis.json');
-
 // inspiré de https://github.com/RedSparr0w/Discord-bot-pokeclicker/blob/v13/index.js
 module.exports = async (client, interaction) => {
     if (!interaction.isCommand()) return;
+
+    // TODO autocomplete ici ?
 
     const command = client.slashCommands.find(cmd => cmd.help.name === interaction.commandName);
 
