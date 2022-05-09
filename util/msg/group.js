@@ -322,26 +322,38 @@ async function endGroup(client, guildId, grp) {
         const msgChannel = await channel.messages.cache.get(grp.idMsg);
         msgChannel.reactions.removeAll();
 
-        // déplacer vers thread
-        // TODO fetchActive & fetchArchived..
-        let thread = await channel.threads.cache.find(x => x.name === 'Groupes terminés');
-        if (!thread) {
+        // déplacement vers thread
+        let archived = await channel.threads.fetchArchived();
+        let thread = archived.threads.filter(x => x.name === 'Groupes terminés');
+
+        // si pas archivé, on regarde s'il est actif
+        if (thread.size === 0) {
+            let active = await channel.threads.fetchActive();
+            thread = active.threads.filter(x => x.name === 'Groupes terminés');
+        }
+
+        // si tjs pas actif, on le créé
+        if (thread.size === 0) {
+            logger.info('.. création thread archive')
             thread = await channel.threads.create({
                 name: 'Groupes terminés',
                 //autoArchiveDuration: 60,
                 reason: 'Archivage des événements.',
             });
+            
+            // envoi vers thread
+            await thread.send({embeds: [msgChannel.embeds[0]]});
+        } else {
+            // envoi vers thread
+            await thread.first().send({embeds: [msgChannel.embeds[0]]});
         }
-
-        // envoi vers thread
-        await thread.send({embeds: [msgChannel.embeds[0]]});
+        
         // supprime msg
         await msgChannel.delete();
     } else {
         logger.error(`Le channel de list group n'existe pas !`);
     }
 }
-
 
 /**
  * Supprimer un rappel et désactive le job lié à ce rappel
