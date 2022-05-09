@@ -481,6 +481,6 @@ module.exports = client => {
     // TODO a deplacer
     client.getGuildChannel = async (guildId, salon) => {
         const guildDB = await client.findGuildById(guildId);
-        return guildDB.channels[salon];
+        return guildDB?.channels[salon];
     }
 }
