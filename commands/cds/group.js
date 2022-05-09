@@ -11,28 +11,32 @@ const { sendError } = require('../../util/envoiMsg');
 
 async function sendListGroup(client, message, groupes, title) {
     let urls = [], games = [], infos = []
-    for (const group of groupes) {
-        const idListGroup = await client.getGuildChannel(message.guildId, SALON.LIST_GROUP);
-        
-        const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg)
-        const captain = await message.guild.members.fetch(group.captain.userId);
-        let isAuthorCaptain = message.author === captain.user;
-        const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
-        // TODO limite embed
-        urls.push(`[🔗 Message](${msg.url})`);
-        games.push(`${isAuthorCaptain ? '👑' : ''} ${group.name} - **${group.game.name}**`)
-        infos.push(`[${group.size}/${group.nbMax}] - ${dateEvent}`)
-    }
+    const idListGroup = await client.getGuildChannel(message.guildId, SALON.LIST_GROUP);
 
-    let embedSearch = new MessageEmbed()
-        .setTitle(title)
-        .setDescription('*👑 : Tu es capitaine*')
-        .addFields(
-            { name: 'Lien', value: urls.join('\n'), inline: true },
-            { name: 'Nom groupe - Jeux', value: games.join('\n'), inline: true },
-            { name: 'Membre(s) - Date prévue', value: infos.join('\n'), inline: true }
-        );
-    await message.channel.send({ embeds: [embedSearch] });
+    if (idListGroup) {
+        for (const group of groupes) {
+            const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg)
+            const captain = await message.guild.members.fetch(group.captain.userId);
+            let isAuthorCaptain = message.author === captain.user;
+            const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
+            // TODO limite embed
+            urls.push(`[🔗 Message](${msg.url})`);
+            games.push(`${isAuthorCaptain ? '👑' : ''} ${group.name} - **${group.game.name}**`)
+            infos.push(`[${group.size}/${group.nbMax}] - ${dateEvent}`)
+        }
+    
+        let embedSearch = new MessageEmbed()
+            .setTitle(title)
+            .setDescription('*👑 : Tu es capitaine*')
+            .addFields(
+                { name: 'Lien', value: urls.join('\n'), inline: true },
+                { name: 'Nom groupe - Jeux', value: games.join('\n'), inline: true },
+                { name: 'Membre(s) - Date prévue', value: infos.join('\n'), inline: true }
+            );
+        await message.channel.send({ embeds: [embedSearch] });
+    } else {
+        logger.error('- Config salon msg groupe non défini !')
+    }
 }
 
 module.exports.run = async (client, message, args) => {

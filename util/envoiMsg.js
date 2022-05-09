@@ -37,7 +37,10 @@ module.exports.sendError = (message, text, cmd) => {
  */
 module.exports.sendLogs = async (client, guildId, embedLog) => {
     const idLogs = await client.getGuildChannel(guildId, SALON.LOGS);
-    client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
+    if (idLogs)
+        client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
+    else
+        logger.error(`- Config salon logs manquante !`);
 }
 
 /**
