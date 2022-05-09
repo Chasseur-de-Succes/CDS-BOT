@@ -82,15 +82,19 @@ function getMembersList(group, members) {
 
     // recuperation id message pour pouvoir l'editer par la suite
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
-    let msg = await client.channels.cache.get(idListGroup).send({embeds: [newMsgEmbed]});
-    await client.update(group, { idMsg: msg.id });
-
-    // nvx msg aide, pour recup + facilement
-    await client.createMsgDmdeAide({
-        //author: userDB, // bot
-        msgId: msg.id,
-        guildId: msg.guildId,
-    })
+    if (idListGroup) {
+        let msg = await client.channels.cache.get(idListGroup).send({embeds: [newMsgEmbed]});
+        await client.update(group, { idMsg: msg.id });
+    
+        // nvx msg aide, pour recup + facilement
+        await client.createMsgDmdeAide({
+            //author: userDB, // bot
+            msgId: msg.id,
+            guildId: msg.guildId,
+        })
+    } else {
+        logger.error(`Le channel de list group n'existe pas !`);
+    }
 }
 
 /**
@@ -102,13 +106,17 @@ function getMembersList(group, members) {
     const members = client.guilds.cache.get(guildId).members.cache;
     
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
-    const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
-    const editMsgEmbed = createEmbedGroupInfo(members, group, false);
-    const footer = `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`
+    if (idListGroup) {
+        const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
+        const editMsgEmbed = createEmbedGroupInfo(members, group, false);
+        const footer = `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`
+        
+        editMsgEmbed.setFooter({ text: `${footer}`});
     
-    editMsgEmbed.setFooter({ text: `${footer}`});
-
-    await msg.edit({embeds: [editMsgEmbed]});
+        await msg.edit({embeds: [editMsgEmbed]});
+    } else {
+        logger.error(`Le channel de list group n'existe pas !`);
+    }
 }
 
 /**
@@ -118,8 +126,12 @@ function getMembersList(group, members) {
  */
  async function deleteMsgHubGroup(client, guildId, group) {
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
-    const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
-    await msg.delete();
+    if (idListGroup) {
+        const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
+        await msg.delete();
+    } else {
+        logger.error(`Le channel de list group n'existe pas !`);
+    }
 }
 
 /**
@@ -240,11 +252,15 @@ async function createGroup(client, guildId, newGrp) {
     await sendMsgHubGroup(client, guildId, grpDB);
     
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
-    const msgChannel = await client.channels.cache.get(idListGroup).messages.fetch(grpDB.idMsg);
-    msgChannel.react(CHECK_MARK);
+    if (idListGroup) {
+        const msgChannel = await client.channels.cache.get(idListGroup).messages.fetch(grpDB.idMsg);
+        msgChannel.react(CHECK_MARK);
 
-    // filtre reaction sur emoji
-    await createReactionCollectorGroup(client, msgChannel, grpDB);
+        // filtre reaction sur emoji
+        await createReactionCollectorGroup(client, msgChannel, grpDB);
+    } else {
+        logger.error(`Le channel de list group n'existe pas !`);
+    }
 }
 
 async function dissolveGroup(client, guildId, grp) {
@@ -301,27 +317,43 @@ async function endGroup(client, guildId, grp) {
 
     // déplacer event terminé
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
-    const channel = await client.channels.cache.get(idListGroup);
-    const msgChannel = await channel.messages.cache.get(grp.idMsg);
-    msgChannel.reactions.removeAll();
+    if (idListGroup) {
+        const channel = await client.channels.cache.get(idListGroup);
+        const msgChannel = await channel.messages.cache.get(grp.idMsg);
+        msgChannel.reactions.removeAll();
 
-    // déplacer vers thread
-    // TODO fetchActive & fetchArchived..
-    let thread = await channel.threads.cache.find(x => x.name === 'Groupes terminés');
-    if (!thread) {
-        thread = await channel.threads.create({
-            name: 'Groupes terminés',
-            //autoArchiveDuration: 60,
-            reason: 'Archivage des événements.',
-        });
+        // déplacement vers thread
+        let archived = await channel.threads.fetchArchived();
+        let thread = archived.threads.filter(x => x.name === 'Groupes terminés');
+
+        // si pas archivé, on regarde s'il est actif
+        if (thread.size === 0) {
+            let active = await channel.threads.fetchActive();
+            thread = active.threads.filter(x => x.name === 'Groupes terminés');
+        }
+
+        // si tjs pas actif, on le créé
+        if (thread.size === 0) {
+            logger.info('.. création thread archive')
+            thread = await channel.threads.create({
+                name: 'Groupes terminés',
+                //autoArchiveDuration: 60,
+                reason: 'Archivage des événements.',
+            });
+            
+            // envoi vers thread
+            await thread.send({embeds: [msgChannel.embeds[0]]});
+        } else {
+            // envoi vers thread
+            await thread.first().send({embeds: [msgChannel.embeds[0]]});
+        }
+        
+        // supprime msg
+        await msgChannel.delete();
+    } else {
+        logger.error(`Le channel de list group n'existe pas !`);
     }
-
-    // envoi vers thread
-    await thread.send({embeds: [msgChannel.embeds[0]]});
-    // supprime msg
-    await msgChannel.delete();
 }
-
 
 /**
  * Supprimer un rappel et désactive le job lié à ce rappel

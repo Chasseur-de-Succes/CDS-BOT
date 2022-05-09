@@ -188,18 +188,23 @@ const loadReactionGroup = async (client) => {
     // recupere TOUS les messages du channel de listage des groupes
     for (const msgDB of lMsgGrp) {
         const idListGroup = await client.getGuildChannel(msgDB.guildId, SALON.LIST_GROUP);
-        // recup msg sur bon channel
-        client.channels.cache.get(idListGroup).messages.fetch(msgDB.msgId)
-        .then(async msg => {
-            const grp = await Group.findOne({ idMsg: msg.id });
-            // filtre group encore en cours
-            if (!grp.validated)
-                await createReactionCollectorGroup(client, msg, grp);
-        }).catch(async err => {
-            logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
-            // on supprime les msg qui n'existent plus
-            await Msg.deleteOne({ _id: msgDB._id });
-        })
+
+        if (idListGroup) {
+            // recup msg sur bon channel
+            client.channels.cache.get(idListGroup).messages.fetch(msgDB.msgId)
+            .then(async msg => {
+                const grp = await Group.findOne({ idMsg: msg.id });
+                // filtre group encore en cours
+                if (!grp.validated)
+                    await createReactionCollectorGroup(client, msg, grp);
+            }).catch(async err => {
+                logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
+                // on supprime les msg qui n'existent plus
+                await Msg.deleteOne({ _id: msgDB._id });
+            })
+        } else {
+            logger.error('- Config salon msg groupe non défini !')
+        }
     }
 }
 
@@ -212,19 +217,24 @@ const loadReactionMsg = async (client) => {
     for (const msgDB of lMsg) {
         const idHeros = await client.getGuildChannel(msgDB.guildId, SALON.HALL_HEROS);
         const idZeros = await client.getGuildChannel(msgDB.guildId, SALON.HALL_ZEROS);
-        // recup msg sur bon channel
-        const channelHall = msgDB.msgType === 'MsgHallHeros' ? idHeros : idZeros;
-        client.channels.cache.get(channelHall).messages.fetch(msgDB.msgId)
-        .then(msg => {
-            // on charge le collecteur
-            // le remove n'est pas pris en compte de suite, je sais pas pk
-            // exemple, msg a deja des reactions, le serveur reset, remove reaction = rine se passe
-            // pas grave car on save le nb d'emoji a chaque fois
-            loadCollectorHall(msg, msgDB);
-        }).catch(async err => {
-            // on supprime les msg qui n'existent plus
-            await Msg.deleteOne({ _id: msgDB._id });
-        });
+
+        if (idHeros && idZeros) {
+            // recup msg sur bon channel
+            const channelHall = msgDB.msgType === 'MsgHallHeros' ? idHeros : idZeros;
+            client.channels.cache.get(channelHall).messages.fetch(msgDB.msgId)
+            .then(msg => {
+                // on charge le collecteur
+                // le remove n'est pas pris en compte de suite, je sais pas pk
+                // exemple, msg a deja des reactions, le serveur reset, remove reaction = rine se passe
+                // pas grave car on save le nb d'emoji a chaque fois
+                loadCollectorHall(msg, msgDB);
+            }).catch(async err => {
+                // on supprime les msg qui n'existent plus
+                await Msg.deleteOne({ _id: msgDB._id });
+            });
+        } else {
+            logger.error('- Config salons héros & zéros non définis !')
+        }
     }
 }
 
@@ -234,7 +244,10 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     // pour chaque guild
     client.guilds.cache.forEach(async guild => {
         const idRole = await client.getGuildChannel(guild.id, SALON.ROLE);
-        if (!idRole) return;
+        if (!idRole) {
+            logger.error('- Config salon rôle non défini !')
+            return;
+        }
         // recupere le channel, et l'unique message dedans (normalement)
         const roleChannel = await guild.channels.fetch(idRole);
 
