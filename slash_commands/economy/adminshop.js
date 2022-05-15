@@ -89,63 +89,36 @@ async function refund(interaction, options) {
 
 async function deleteItem(interaction, options) {
     // const id = options.get('id')?.value;
-    const jeu = options.get('jeu')?.value;
+    const idItem = options.get('jeu')?.value;
+    const jeu = options.get('jeu')?.name;
     const vendeur = options.get('vendeur')?.user;
     const client = interaction.client;
     const author = interaction.member;
-    
-    // recup list item (pas encore vendu) en fonction vendeur ET jeu
-    let items = await client.findGameItemShopBy({ game: jeu, seller: vendeur.id, notSold: true });
-    items = items.map(i => ({ label: `${i.game.name}, vendu par ${i.seller.username}, à ${i.montant} ${MONEY}`, value: '' + i._id}))
 
-    // row contenant le Select menu
-    const row = new MessageActionRow().addComponents(
-        new MessageSelectMenu()
-            .setCustomId('select-items-' + author)
-            .setPlaceholder(`Sélectionner l'item à supprimer..`)
-            .addOptions(items)
-    );
-    let embed = new MessageEmbed()
-        .setColor(NIGHT)
-        .setTitle(`Quel item à supprimer ?`);
-    
-    let msgEmbed = await interaction.reply({embeds: [embed], components: [row], fetchReply: true});
-
-    // TODO choix select : delete
-    let filter, itr;
-    try {
-        filter = i => {return i.user.id === author.id}
-        itr = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: 'SELECT_MENU',
-            time: 30000 // 5min
-        });
-    } catch (error) {
-        msgEmbed.edit({ components: [] })
-        return;
-    }
-    // on enleve le select
-    await interaction.editReply({ components: [] })
-
-    const id = itr.values[0]
-    const gameItem = await client.findGameItemShop({ _id: new mongoose.Types.ObjectId(id) });
+    const gameItem = await client.findGameItemShop({ _id: new mongoose.Types.ObjectId(idItem) });
     logger.info(`.. Item ${gameItem[0]._id} choisi`);
 
     // teste si state n'existe pas
-    if (gameItem[0].state) return interaction.editReply({ embeds: [createError(`L'item ne doit pas être encore en cours de vente ! Utiliser \`/shop admin cancel <id>\` ou \`/shop admin refund <id>\``)] });
-   
+    if (gameItem[0].state) return interaction.reply({ embeds: [createError(`L'item ne doit pas être encore en cours de vente ! Utiliser \`/shop admin cancel <id>\` ou \`/shop admin refund <id>\``)] });
+    const gamename = gameItem[0].game.name;
+
     // suppr item boutique
     try {
-        await client.deleteGameItemById(id);
+        await client.deleteGameItemById(idItem);
     } catch (error) {
-        return interaction.editReply({ embeds: [createError(`Item du shop non trouvé !`)] });
+        return interaction.reply({ embeds: [createError(`Item du shop non trouvé !`)] });
     }
 
-    logger.info(`Suppression vente id ${id}`);
+    logger.info(`Suppression vente id ${jeu}`);
+
+    
     // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
-    embed.setTitle(`${CHECK_MARK} Item supprimé`)
-    await interaction.editReply({ embeds: [embed] })
-    createLogs(client, interaction.guildId, `Suppression vente`, `${author} a supprimé la vente de **${jeu}**, par **${vendeur}**`, `ID : ${id}`, YELLOW);
+    let embed = new MessageEmbed()
+        .setColor(NIGHT)
+        .setTitle(`${CHECK_MARK} Item ${gamename} supprimé`);
+
+    await interaction.reply({ embeds: [embed] })
+    createLogs(client, interaction.guildId, `Suppression vente`, `${author} a supprimé la vente de **${gamename}**, par **${vendeur}**`, `ID : ${idItem}`, YELLOW);
     return;    
 }
 
