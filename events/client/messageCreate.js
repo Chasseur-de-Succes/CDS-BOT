@@ -5,6 +5,7 @@ const { User, MsgHallHeros } = require('../../models/index.js');
 const { loadCollectorHall } = require('../../util/msg/stats.js');
 const { BAREME_XP, SALON } = require("../../util/constants");
 const { addXp } = require('../../util/xp.js');
+const user = require('../../models/user.js');
 
 module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
@@ -51,16 +52,18 @@ module.exports = async (client, msg) => {
 
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
-                    const initReactions = new Map([['🏆', 0], ['💯', 0]])
-                    const msgHeros = await client.createMsgHallHeros({
-                        author: userDB,
-                        msgId: msg.id,
-                        guildId: msg.guildId,
-                        reactions: initReactions
-                    });
-
-                    // creer collector
-                    loadCollectorHall(msg, msgHeros);
+                    if (userDB) {
+                        const initReactions = new Map([['🏆', 0], ['💯', 0]])
+                        const msgHeros = await client.createMsgHallHeros({
+                            author: userDB,
+                            msgId: msg.id,
+                            guildId: msg.guildId,
+                            reactions: initReactions
+                        });
+    
+                        // creer collector
+                        loadCollectorHall(msg, msgHeros);
+                    }
                 }
                     
                 // si hall zeros
@@ -76,16 +79,18 @@ module.exports = async (client, msg) => {
 
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
-                    const initReactions = new Map([['💩', 0]]);
-                    const msgZeros = await client.createMsgHallZeros({
-                        author: userDB,
-                        msgId: msg.id,
-                        guildId: msg.guildId,
-                        reactions: initReactions
-                    });
-
-                    // creer collector
-                    loadCollectorHall(msg, msgZeros);
+                    if (userDB) {
+                        const initReactions = new Map([['💩', 0]]);
+                        const msgZeros = await client.createMsgHallZeros({
+                            author: userDB,
+                            msgId: msg.id,
+                            guildId: msg.guildId,
+                            reactions: initReactions
+                        });
+                        
+                        // creer collector
+                        loadCollectorHall(msg, msgZeros);
+                    }
                 }
             }
         }
