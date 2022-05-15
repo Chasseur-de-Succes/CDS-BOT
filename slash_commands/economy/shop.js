@@ -522,6 +522,9 @@ async function sell(interaction, options) {
     if (!userDB)
         return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
+    if (!parseInt(gameId))
+        return interaction.reply({ embeds: [createError(`Jeu non trouvé ou donne trop de résultats !`)] });
+
     if (montant < 0)
         return interaction.reply({ embeds: [createError(`Montant négatif !`)] });
     // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)

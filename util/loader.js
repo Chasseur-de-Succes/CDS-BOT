@@ -125,9 +125,6 @@ const loadEvents = (client, dir = "./events/") => {
                 await itr.respond(
                     filtered.map(choice => ({ name: choice.name, value: choice.value })),
                 );
-            } else {
-                console.log('..trop de jeux ..');
-                await itr.respond([])
             }
         } else if (itr.commandName === 'group') {
             const focusedValue = itr.options.getFocused(true);
