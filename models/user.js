@@ -25,6 +25,10 @@ const userSchema = mongoose.Schema({
         "type": Boolean,
         "default": false
     },
+    moneyLimit: {
+        type: Number,
+        default: 0
+    },
     lastBuy: Date,
     stats: {
         group: {

@@ -2,6 +2,7 @@ const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
 const { TAGS, delay, crtHour } = require('../../util/constants');
 const moment = require("moment");
+const { User } = require("../../models");
 
 module.exports = {
     /**
@@ -225,6 +226,18 @@ module.exports = {
                 logger.error(`Erreur refresh games ${err}`);
                 return;
             });
+        });
+    },
+
+    resetMoneyLimit() {
+        logger.info(`--  Mise en place batch reset limit money`);
+        // refresh games tous les soirs à 0h
+        scheduleJob({ hour: 0, minute: 00 }, async function() {
+            logger.info(`Début reset limit money ..`);
+
+            User.updateMany({}, { moneyLimit: 0 })
+            .then(res => logger.info(`..reset limit money ok`))
+            .catch(err => logger.error(`Erreur lors reset limit money ${err}`))
         });
     }
 }

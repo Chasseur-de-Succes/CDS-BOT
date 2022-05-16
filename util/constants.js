@@ -551,6 +551,9 @@ const BAREME_XP = {
     EVENT_END: 25,
 }
 const THREESOLD_LVL = 100;
+const BAREME_MONEY = {
+    MSG: 5
+}
 
 /* const CHANNEL = {
     WELCOME: 'Salon de bienvenue', // channel de bienvenue, affiche les nouveaux arrivants
@@ -594,6 +597,7 @@ exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
 exports.BAREME_XP = BAREME_XP;
+exports.BAREME_MONEY = BAREME_MONEY;
 exports.THREESOLD_LVL = THREESOLD_LVL;
 exports.delay = delay;
 exports.crtHour = crtHour;
