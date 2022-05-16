@@ -53,7 +53,7 @@ module.exports.run = async (interaction) => {
     const confirmFilter = (i) => i.customId === `confirm` && i.user.id === interaction.user.id;
     const cancelFilter = (i) => i.customId === `cancel` && i.user.id === interaction.user.id;
     // 
-    const timer = 3000; // (30 seconds)
+    const timer = 30000; // (30 seconds)
     const confirm = interaction.channel.createMessageComponentCollector({ filter: confirmFilter, time: timer });
     const cancel = interaction.channel.createMessageComponentCollector({ filter: cancelFilter, time: timer });
 
