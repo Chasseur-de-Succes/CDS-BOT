@@ -157,7 +157,7 @@ const addMoney = async (client, user, money) => {
     const userDB = await client.getUser(user);
 
     // limit argent gagné par 50 TODO constant ?
-    if (userDB.moneyLimit < 50) {
+    if (userDB?.moneyLimit < 50) {
         // si pas register pas grave, ca ne passera pas
         await User.updateOne(
             { userId: user.id },
