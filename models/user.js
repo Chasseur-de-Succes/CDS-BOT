@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema({
     },
     money: {
         "type": Number,
-        "default": 0
+        "default": 150
     },
     banned: {
         "type": Boolean,
