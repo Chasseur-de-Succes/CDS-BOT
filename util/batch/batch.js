@@ -88,7 +88,7 @@ module.exports = {
                 
                 // pour le relancer
                 scheduleJob(job.name, job.when, function(){
-                    module.exports.envoiMpRappel(client, groupe, job.args[1]);
+                    module.exports.envoiMpRappel(client, job.guildId, groupe, job.args[1]);
                     // update job
                     jobDB.pending = false;
                     client.update(jobDB, {pending: false});
@@ -109,7 +109,7 @@ module.exports = {
             // lancement jobs
             for (const job of jobs) {
                 scheduleJob(job.name, job.when, function() {
-                    require('./batch')[job.what](client, job.guildId, job.args[0]);
+                    require('./batch')[job.what](client, job.guildId, job.args[0], job.args[1]);
                 });
             }
         });
