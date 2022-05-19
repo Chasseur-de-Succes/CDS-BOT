@@ -109,7 +109,7 @@ module.exports = {
             // lancement jobs
             for (const job of jobs) {
                 scheduleJob(job.name, job.when, function() {
-                    require('./batch')[job.what](client, job.args[0]);
+                    require('./batch')[job.what](client, job.guildId, job.args[0]);
                 });
             }
         });
