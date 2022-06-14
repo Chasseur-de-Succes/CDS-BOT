@@ -308,10 +308,18 @@ async function endGroup(client, guildId, grp) {
             addXp(usr, xp)
     }
 
+    // - MONEY
+    // X = [[(Valeur du joueur de base ( 20)+ (5 par joueur supplémentaire)] X par le nombre de joueur total inscrit]] + 50 par session 
+    const base = 20, baseJoueur = 5, baseSession = 50;
+    const nbSession = 1; // TODO pour plus tard
+    const nbJoueur = grp.size;
+    let prize = ((base + (baseJoueur * nbJoueur)) * nbJoueur) + (baseSession * nbSession);
+
     // - Stat++ pour tous les membres
     await User.updateMany(
         { _id: { $in: grp.members } },
-        { $inc: { "stats.group.ended" : 1 } },
+        { $inc: { "stats.group.ended" : 1,
+                  "money" : prize } },
         { multi: true }
     );
 

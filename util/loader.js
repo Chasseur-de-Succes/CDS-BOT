@@ -90,7 +90,9 @@ const loadEvents = (client, dir = "./events/") => {
     client.on('interactionCreate', async itr => {
         if (!itr.isAutocomplete()) return;
         // TODO mettre dans fichier js
-
+        // TODO si nom jeu trop grand, ou form trop grand (lim à 100 car)
+        // TODO limiter les suggestions à 25
+        
         if (itr.commandName === 'adminshop') {
             // cmd adminshop delete, autocomplete sur nom jeu
             const focusedValue = itr.options.getFocused(true);

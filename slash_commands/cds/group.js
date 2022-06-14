@@ -6,6 +6,7 @@ const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
+const { MONEY } = require("../../config");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
@@ -293,7 +294,8 @@ const end = async (interaction, options) => {
     
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
     const newMsgEmbed = new MessageEmbed()
-        .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`);
+        .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`)
+        .setDescription(`Vous gagnez chacun **${prize}** ${MONEY} ! 💰`);
     await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
     endGroup(client, interaction.guildId, grp);
