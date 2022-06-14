@@ -38,7 +38,7 @@ async function cancel(interaction, options) {
     if (!gameItem.state) return interaction.reply({ embeds: [createError(`La vente n'a pas encore **commencée** ! Utiliser \`/shop admin delete <id>\``)] });
     if (gameItem.state === 'done') return interaction.reply({ embeds: [createError(`La vente est déjà **terminée** ! Utiliser \`/shop admin refund <id>\``)] });
 
-    await client.update(gameItem, { $unset : { state : 1} } )
+    await client.update(gameItem, { $unset : { state : 1, buyer: 1 } } )
     logger.info(`Annulation vente id ${id}`);
     // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
     interaction.reply(CHECK_MARK)
