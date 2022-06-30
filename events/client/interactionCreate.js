@@ -25,5 +25,13 @@ module.exports = async (client, interaction) => {
     // Cooldown ?
 
     // lancement commande
-    command.run(interaction);
+    try {
+        await command.run(interaction).catch(e => {
+            throw(e);
+        });
+    } catch (error) {
+        logger.error(`Erreur lors exécution cmd '${command.help.name}' : ${error.stack}`);
+        interaction.replied ? interaction.followUp({ content: 'Une erreur est survenue lors de l\'exécution de la commande !', ephemeral: true }) 
+                                : interaction.reply({ content: 'Une erreur est survenue lors de l\'exécution de la commande !', ephemeral: true });
+    }
 }

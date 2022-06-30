@@ -124,7 +124,14 @@ module.exports = async (client, msg) => {
         }
     }
 
-    command?.run(client, msg, args);
+    try {
+        await command?.run(client, msg, args).catch(e => {
+            throw(e);
+        });
+    } catch (error) {
+        logger.error(`Erreur lors exécution cmd '${commandName}' : ${error.stack}`);
+        msg.channel.send('Une erreur est survenue lors de l\'exécution de la commande !');
+    }
 }
 
 const cooldowns = new Collection();
