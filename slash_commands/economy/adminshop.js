@@ -39,9 +39,24 @@ async function cancel(interaction, options) {
     if (gameItem.state === 'done') return interaction.reply({ embeds: [createError(`La vente est déjà **terminée** ! Utiliser \`/shop admin refund <id>\``)] });
 
     await client.update(gameItem, { $unset : { state : 1, buyer: 1 } } )
+
+    try {
+        // enleve la restriction "1 achat tout les 2 jours"
+        await client.update(gameItem.buyer, { $unset : { lastBuy : 1 } } )
+        // rembourse acheteur
+        await client.update(gameItem.buyer, { money: gameItem.buyer.money + gameItem.montant })
+    } catch (error) {
+        return interaction.reply({ embeds: [createError(`Acheteur non trouvé ! Impossible de le rembourser.`)] });
+    }
+
     logger.info(`Annulation vente id ${id}`);
-    // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
-    interaction.reply(CHECK_MARK)
+    
+    let embed = new MessageEmbed()
+        .setColor(NIGHT)
+        .setTitle(`${CHECK_MARK} Vente annulée !`)
+        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
+                         ▶️ L'item est de nouveau **disponible** dans le shop`);
+    interaction.reply({ embeds: [embed] })
     createLogs(client, interaction.guildId, `Annulation vente`, `${author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
 }
 
@@ -82,8 +97,14 @@ async function refund(interaction, options) {
     }
 
     logger.info(`Remboursement vente id ${id}`);
-    // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
-    interaction.reply(CHECK_MARK)
+    
+    let embed = new MessageEmbed()
+        .setColor(NIGHT)
+        .setTitle(`${CHECK_MARK} Achat remboursé !`)
+        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
+                         ▶️ ${MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
+                         ▶️ L'item est de nouveau **disponible** dans le shop`);
+    interaction.reply({ embeds: [embed] })
     createLogs(client, interaction.guildId, `Annulation vente`, `${author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);
 }
 
@@ -111,8 +132,6 @@ async function deleteItem(interaction, options) {
 
     logger.info(`Suppression vente id ${jeu}`);
 
-    
-    // TODO embed plutot qu'emoji (car on peut pas juste react je crois)
     let embed = new MessageEmbed()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Item ${gamename} supprimé`);
