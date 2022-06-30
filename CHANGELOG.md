@@ -4,6 +4,9 @@
 
 ## [v1.0.1]
 ### Added
+- Autocomplétion d'un jeu : 
+    - nom exact possible
+    - recherche limité à 25
 - 150 Points CDS par défaut pour les nouveaux utilisateurs
 - 5 Points CDS par message envoyé, limité à 50 Points / jour et 30 secondes entre chaque message
 

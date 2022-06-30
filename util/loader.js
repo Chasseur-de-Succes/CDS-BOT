@@ -104,41 +104,73 @@ const loadEvents = (client, dir = "./events/") => {
                 filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true });
 
             await itr.respond(
-                filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
+                // on ne prend que les 25 1er  (au cas où)
+                filtered.slice(0, 25).map(choice => ({ name: choice.game.name, value: choice._id })),
             );
         } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'sell') {
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
+            let exact = [];
 
             // cmd group create, autocomplete sur nom jeu
             if (focusedValue.name === 'jeu') {
+                // recherche nom exacte
+                exact = await client.findGames({
+                    name: focusedValue.value,
+                });
+                
+                // recherche tous les jeux contenant
                 filtered = await client.findGames({
                     name: new RegExp(focusedValue.value, "i"),
                 });
+
+                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                // limit au 25 premiers
                 // si nom jeu dépasse limite imposé par Discord (100 char)
                 // + on prepare le résultat en tableau de {name: '', value: ''}
-                filtered = filtered.map(element => ({
-                    name: element.name.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
-                    value: "" + element.appid
-                }));
+                filtered = filtered
+                    .filter(jeu => jeu.name && jeu.name !== exact[0]?.name)
+                    .slice(0, 25)
+                    .map(element => ({
+                        name: element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
+                        value: "" + element.appid
+                    }));
             }
 
-            if (filtered.length <= 25) {
-                await itr.respond(
-                    filtered.map(choice => ({ name: choice.name, value: choice.value })),
-                );
+            // si nom exact trouvé
+            if (exact.length === 1) {
+                const jeuExact = exact[0]
+                // on récupère les 24 premiers
+                filtered = filtered.slice(0, 24);
+                // et on ajoute en 1er l'exact
+                filtered.unshift({ name: jeuExact.name, value: "" + jeuExact.appid })
             }
+
+            await itr.respond(
+                filtered.map(choice => ({ name: choice.name, value: choice.value })),
+            );
         } else if (itr.commandName === 'group') {
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
+            let exact = [];
             
             // cmd group create, autocomplete sur nom jeu multi/coop avec succès
             if (focusedValue.name === 'jeu') {
+                // recherche nom exacte
+                exact = await client.findGames({
+                    name: focusedValue.value,
+                    hasAchievements: true,
+                    $or: [{isMulti: true}, {isCoop: true}],
+                });
+
                 filtered = await client.findGames({
                     name: new RegExp(focusedValue.value, "i"), 
                     hasAchievements: true,
                     $or: [{isMulti: true}, {isCoop: true}],
                 });
+
+                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                filtered = filtered.filter(jeu => jeu.name && jeu.name !== exact[0]?.name);
             }
 
             // autocomplete sur nom groupe
@@ -152,13 +184,23 @@ const loadEvents = (client, dir = "./events/") => {
                 })
             }
 
-            if (filtered.length <= 25) {
-                await itr.respond(
-                    filtered.map(choice => ({ name: choice.name, value: choice.name })),
-                );
-            } else {
-                await itr.respond([])
+            // 25 premiesr + si nom jeu dépasse limite imposé par Discord (100 char)
+            filtered = filtered
+                .slice(0, 25)
+                .map(element => element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name);
+
+            // si nom exact trouvé
+            if (exact.length === 1) {
+                const jeuExact = exact[0]
+                // on récupère les 24 premiers
+                filtered = filtered.slice(0, 24);
+                // et on ajoute en 1er l'exact
+                filtered.unshift(jeuExact.name)
             }
+
+            await itr.respond(
+                filtered.map(choice => ({ name: choice, value: choice })),
+            );
         } else if (itr.commandName === 'salon') {
             // cmd config, autocomplete sur nom param
             const focusedValue = itr.options.getFocused(true);
