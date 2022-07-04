@@ -291,6 +291,13 @@ const end = async (interaction, options) => {
     let mentionsUsers = '';
     for (const member of grp.members)
         mentionsUsers += `<@${member.userId}> `
+
+    // - MONEY
+    // X = [[(Valeur du joueur de base ( 20)+ (5 par joueur supplémentaire)] X par le nombre de joueur total inscrit]] + 50 par session 
+    const base = 20, baseJoueur = 5, baseSession = 50;
+    const nbSession = 1; // TODO pour plus tard
+    const nbJoueur = grp.size;
+    let prize = ((base + (baseJoueur * nbJoueur)) * nbJoueur) + (baseSession * nbSession);
     
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
     const newMsgEmbed = new MessageEmbed()
