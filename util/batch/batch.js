@@ -239,6 +239,37 @@ module.exports = {
             .then(res => logger.info(`..reset limit money ok`))
             .catch(err => logger.error(`Erreur lors reset limit money ${err}`))
         });
+    },
+
+    loadJobHelper(client) {
+        logger.info(`--  Mise en place batch envoi money au @helper du discord CDS (s'il existe)`);
+        // 971508881165545544
+        // tous les lundi, à 0h01
+        scheduleJob({ dayOfWeek: 1, hour: 0, minute: 01 }, async function() {
+            client.guilds.cache.forEach(guild => {
+                logger.info(`.. rechrche @Helper dans ${guild.name}..`);
+                
+                guild.roles.fetch('971508881165545544')
+                    .then(roleHelper => {
+                        if (roleHelper?.members) {
+                            roleHelper.members.each(async member => {
+                                const user = member.user;
+                                const userDB = await client.getUser(user);
+
+                                // si dans bdd
+                                if (userDB) {
+                                    logger.info(`.. On est lundi ! On donne 100 point à ${userDB.username}`)
+                                    await User.updateOne(
+                                        { userId: user.id },
+                                        { $inc: { money : 100 } }
+                                    );
+                                }
+                            })
+                        }
+                    })
+                    .catch(err => logger.error(`Impossible de trouver rôle @Helper ${err}`));
+            });
+        });
     }
 }
 

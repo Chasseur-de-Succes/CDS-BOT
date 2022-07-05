@@ -1,7 +1,7 @@
 const { Collection } = require('discord.js');
 const { readdirSync } = require('fs');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide } = require('../models');
-const { loadJobs, searchNewGamesJob, resetMoneyLimit } = require('./batch/batch');
+const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
 const { loadCollectorHall } = require('./msg/stats');
@@ -222,6 +222,8 @@ const loadBatch = async (client) => {
     searchNewGamesJob(client);
 
     resetMoneyLimit();
+
+    loadJobHelper(client);
 }
 
 // Charge les réactions des messages des groupes
