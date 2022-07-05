@@ -381,6 +381,11 @@ module.exports = client => {
             if (q.seller) {
                 agg.push({ $match: { 'seller.userId': RegExp(q.seller, 'i') } })
             }
+            
+            // limit résultat
+            if (q.limit) {
+                agg.push({ '$limit':  q.limit })
+            }
 
             const data = await GameItem.aggregate(agg);
             if (data) return data;
@@ -437,6 +442,7 @@ module.exports = client => {
                 }
             }
         ];
+
         const data = await GameItem.aggregate(agg);
         if (data) return data;
         else return;

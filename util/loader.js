@@ -1,6 +1,6 @@
 const { Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide } = require('../models');
+const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game } = require('../models');
 const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
@@ -100,8 +100,12 @@ const loadEvents = (client, dir = "./events/") => {
 
             let filtered = [];
             
-            if (focusedValue.name === 'jeu')
-                filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true });
+            if (focusedValue.name === 'jeu') {
+                if (focusedValue.value)
+                    filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true, limit: 25 });
+                else
+                    filtered = await client.findGameItemShopBy({ seller: vendeurId, notSold: true, limit: 25 });
+            }
 
             await itr.respond(
                 // on ne prend que les 25 1er  (au cas où)
@@ -118,11 +122,14 @@ const loadEvents = (client, dir = "./events/") => {
                 exact = await client.findGames({
                     name: focusedValue.value,
                 });
-                
-                // recherche tous les jeux contenant
-                filtered = await client.findGames({
-                    name: new RegExp(focusedValue.value, "i"),
-                });
+
+                // recup limit de 25 jeux, correspondant a la value rentré
+                filtered = await Game.aggregate([{
+                    // select GameItem
+                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
+                }, {
+                    '$limit': 25
+                }])
 
                 // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
                 // limit au 25 premiers
@@ -163,11 +170,27 @@ const loadEvents = (client, dir = "./events/") => {
                     $or: [{isMulti: true}, {isCoop: true}],
                 });
 
-                filtered = await client.findGames({
-                    name: new RegExp(focusedValue.value, "i"), 
-                    hasAchievements: true,
-                    $or: [{isMulti: true}, {isCoop: true}],
-                });
+                // recup limit de 25 jeux, correspondant a la value rentré
+                filtered = await Game.aggregate([{
+                    // select GameItem
+                    '$match': {
+                        '$and': [{
+                            'name': new RegExp(focusedValue.value, "i")
+                        }, {
+                            'hasAchievements': true
+                        }]
+                    }
+                }, {
+                    '$match': {
+                        '$or': [{
+                            'isMulti': true
+                        }, {
+                            'isCoop': true
+                        }]
+                    }
+                }, {
+                    '$limit': 25
+                }])
 
                 // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
                 filtered = filtered.filter(jeu => jeu.name && jeu.name !== exact[0]?.name);
@@ -184,7 +207,7 @@ const loadEvents = (client, dir = "./events/") => {
                 })
             }
 
-            // 25 premiesr + si nom jeu dépasse limite imposé par Discord (100 char)
+            // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
             filtered = filtered
                 .slice(0, 25)
                 .map(element => element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name);
