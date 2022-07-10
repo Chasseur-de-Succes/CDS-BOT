@@ -330,6 +330,24 @@ const MESSAGES = {
                                 autocomplete: true
                             }
                         ]
+                    }, {
+                        name: 'kick',
+                        type: 'SUB_COMMAND',
+                        description: 'Kick un membre du groupe (👑 only)',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                                autocomplete: true
+                            }, { 
+                                name: 'membre',
+                                type: 'USER',
+                                description: 'Membre du groupe à kick',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
             }

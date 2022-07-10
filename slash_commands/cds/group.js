@@ -1,9 +1,9 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions } = require("discord.js");
 const { MESSAGES } = require("../../util/constants");
-const { createError, createLogs } = require("../../util/envoiMsg");
+const { createError, createLogs, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
+const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
 const { MONEY } = require("../../config");
@@ -21,6 +21,8 @@ module.exports.run = async (interaction) => {
         transfert(interaction, interaction.options)
     } else if (subcommand === 'end') {
         end(interaction, interaction.options)
+    } else if (subcommand === 'kick') {
+        kick(interaction, interaction.options)
     }
 }
 
@@ -306,6 +308,60 @@ const end = async (interaction, options) => {
     await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
     endGroup(client, interaction.guildId, grp);
+}
+
+const kick = async (interaction, options) => {
+    const grpName = options.get('nom')?.value;
+    const toKicked = options.get('membre')?.member; // USER
+    const client = interaction.client;
+    const author = interaction.member;
+
+    // test si captain est register
+    const authorDB = await client.getUser(author);
+    if (!authorDB) // Si pas dans la BDD
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
+    let toKickedDB = await client.getUser(toKicked);
+    if (!toKickedDB)
+        return interaction.reply({ embeds: [createError(`${toKicked} n'a pas de compte ! Merci de t'enregistrer avec la commande : \`/register\``)] });
+
+    // recup le groupe
+    let grp = await client.findGroupByName(grpName);
+    if (!grp) 
+        return interaction.reply({ embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)] });
+
+    // si user a kick est capitaine
+    if (grp.captain._id.equals(toKickedDB._id))
+        return interaction.reply({ embeds: [createError(`Tu ne peux pas kick le capitaine du groupe **${grpName}** !`)] });
+
+    // si l'author n'est pas capitaine ou non admin
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+    if (!isAdmin) {
+        if (!grp.captain._id.equals(authorDB._id))
+            return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
+    }
+
+    // si le user a kick fait parti du groupe
+    let memberGrp = grp.members.find(u => u._id.equals(toKickedDB._id));
+    if (!memberGrp)
+        return interaction.reply({ embeds: [createError(`${toKicked} ne fait pas parti du groupe **${grpName}** !`)] });
+
+    // update du groupe : size -1 et maj members
+    leaveGroup(interaction.client, interaction.guildId, grp, toKickedDB)
+
+    // update msg
+    await editMsgHubGroup(client, interaction.guildId, grp);
+    logger.info(`${author.user.tag} vient de kick ${toKicked.user.tag} du groupe ${grpName}`);
+    
+    const kickLogEmbed = new MessageEmbed()
+        .setTitle(`Kick d'un groupe`)
+        .setDescription(`**${author.user.tag}** vient de kick **${toKicked.user.tag}** du groupe **${grpName}**`);
+    const kickEmbed = new MessageEmbed()
+        .setDescription(`${CHECK_MARK} ${toKicked} a été kick du groupe **${grpName}** !`);
+    
+    // - send logs
+    sendLogs(interaction.client, interaction.guildId, kickLogEmbed)
+
+    await interaction.reply({ embeds: [kickEmbed] });
 }
 
 module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;
