@@ -1,11 +1,9 @@
 const { Collection } = require('discord.js');
 const { PREFIX } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
-const { User, MsgHallHeros } = require('../../models/index.js');
-const { loadCollectorHall } = require('../../util/msg/stats.js');
+const { User } = require('../../models/index.js');
 const { BAREME_XP, BAREME_MONEY, SALON } = require("../../util/constants");
 const { addXp } = require('../../util/xp.js');
-const user = require('../../models/user.js');
 
 module.exports = async (client, msg) => {
     // A Corriger : uniquement si début du message
@@ -57,15 +55,12 @@ module.exports = async (client, msg) => {
                     const userDB = await client.getUser(msg.author);
                     if (userDB) {
                         const initReactions = new Map([['🏆', 0], ['💯', 0]])
-                        const msgHeros = await client.createMsgHallHeros({
+                        await client.createMsgHallHeros({
                             author: userDB,
                             msgId: msg.id,
                             guildId: msg.guildId,
                             reactions: initReactions
                         });
-    
-                        // creer collector
-                        loadCollectorHall(msg, msgHeros);
                     }
                 }
                     
@@ -84,15 +79,12 @@ module.exports = async (client, msg) => {
                     const userDB = await client.getUser(msg.author);
                     if (userDB) {
                         const initReactions = new Map([['💩', 0]]);
-                        const msgZeros = await client.createMsgHallZeros({
+                        await client.createMsgHallZeros({
                             author: userDB,
                             msgId: msg.id,
                             guildId: msg.guildId,
                             reactions: initReactions
                         });
-                        
-                        // creer collector
-                        loadCollectorHall(msg, msgZeros);
                     }
                 }
             }

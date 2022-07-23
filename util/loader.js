@@ -4,7 +4,6 @@ const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game } = req
 const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
-const { loadCollectorHall } = require('./msg/stats');
 const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
 
@@ -290,13 +289,7 @@ const loadReactionMsg = async (client) => {
             // recup msg sur bon channel
             const channelHall = msgDB.msgType === 'MsgHallHeros' ? idHeros : idZeros;
             client.channels.cache.get(channelHall).messages.fetch(msgDB.msgId)
-            .then(msg => {
-                // on charge le collecteur
-                // le remove n'est pas pris en compte de suite, je sais pas pk
-                // exemple, msg a deja des reactions, le serveur reset, remove reaction = rine se passe
-                // pas grave car on save le nb d'emoji a chaque fois
-                loadCollectorHall(msg, msgDB);
-            }).catch(async err => {
+            .catch(async err => {
                 // on supprime les msg qui n'existent plus
                 await Msg.deleteOne({ _id: msgDB._id });
             });
