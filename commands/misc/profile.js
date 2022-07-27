@@ -3,8 +3,6 @@ const { PREFIX, MONEY } = require("../../config");
 const { VERY_PALE_BLUE, DARK_RED, CRIMSON } = require('../../data/colors.json');
 const { CROSS_MARK, STEAM } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
-const Canvas = require('canvas');
-const path = require('path');
 
 //Canvas.registerFont('x.ttf', { family: ' name '});
 
