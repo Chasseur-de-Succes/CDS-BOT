@@ -13,7 +13,7 @@ module.exports.run = async (interaction) => {
 
     if (subcommand === 'create') {
         create(interaction, interaction.options)
-    } else if (subcommand === 'schedule') {
+    } else if (subcommand === 'session') {
         schedule(interaction, interaction.options)
     } else if (subcommand === 'dissolve') {
         dissolve(interaction, interaction.options)
@@ -168,11 +168,12 @@ const schedule = async (interaction, options) => {
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
     // test si date bon format
-    if (!moment(dateVoulue + ' ' + heureVoulue, "DD/MM/YY HH:mm", true).isValid())
+    const allowedDateFormat = ['DD/MM/YY HH:mm', 'DD/MM/YYYY HH:mm'];
+    if (!moment(dateVoulue + ' ' + heureVoulue, allowedDateFormat, true).isValid())
         return interaction.reply({ embeds: [createError(`${dateVoulue + ' ' + heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`)] });
 
     // parse string to Moment (date)
-    let dateEvent = moment(dateVoulue + ' ' + heureVoulue, 'DD/MM/YY HH:mm');
+    let dateEvent = moment(dateVoulue + ' ' + heureVoulue, allowedDateFormat);
 
     await client.update(grp, {
         dateEvent: dateEvent,
