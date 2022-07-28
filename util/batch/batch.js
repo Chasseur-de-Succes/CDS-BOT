@@ -14,41 +14,48 @@ module.exports = {
         for (const groupe of groupes) {
             let dateEvent = groupe.dateEvent;
             if (dateEvent) {
-                // 1j avant
-                let dateRappel1j = new Date(dateEvent.getTime());
-                dateRappel1j.setDate(dateEvent.getDate() - 1);
-                
-                let jobName = `rappel_1d_${groupe.name}`;
-                
-                let job1j = {
-                    name: jobName,
-                    guildId: guildId,
-                    when: dateRappel1j,
-                    what: 'envoiMpRappel',
-                    args: [groupe._id, 'jour'],
-                };
-                
-                if (dateRappel1j > new Date())
-                    module.exports.updateOrCreateRappelJob(client, job1j, groupe);
-                
-                // TODO regrouper car similaire a au dessus ? 
-                // ou attendre que la methode soit fini et faire la suite
-                // 1h avant
-                let dateRappel1h = new Date(dateEvent.getTime());
-                dateRappel1h.setHours(dateEvent.getHours() - 1);
+                let i = 0;
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
 
-                jobName = `rappel_1h_${groupe.name}`;
-                
-                let job1h = {
-                    name: jobName,
-                    guildId: guildId,
-                    when: dateRappel1h,
-                    what: 'envoiMpRappel',
-                    args: [groupe._id, 'heure'],
-                };
-                
-                if (dateRappel1h > new Date())
-                    module.exports.updateOrCreateRappelJob(client, job1h, groupe);
+                dateEvent.forEach(date => {
+                    // 1j avant
+                    let dateRappel1j = new Date(date.getTime());
+                    dateRappel1j.setDate(date.getDate() - 1);
+                    
+                    let jobName = `rappel_1d_${groupe.name}_${date.toLocaleDateString('fr-FR', options)}`;
+                    
+                    let job1j = {
+                        name: jobName,
+                        guildId: guildId,
+                        when: dateRappel1j,
+                        what: 'envoiMpRappel',
+                        args: [groupe._id, 'jour'],
+                    };
+                    
+                    if (dateRappel1j > new Date())
+                        module.exports.updateOrCreateRappelJob(client, job1j, groupe);
+                    
+                    // TODO regrouper car similaire a au dessus ? 
+                    // ou attendre que la methode soit fini et faire la suite
+                    // 1h avant
+                    let dateRappel1h = new Date(date.getTime());
+                    dateRappel1h.setHours(date.getHours() - 1);
+    
+                    jobName = `rappel_1h_${groupe.name}_${date.toLocaleDateString('fr-FR', options)}`;
+                    
+                    let job1h = {
+                        name: jobName,
+                        guildId: guildId,
+                        when: dateRappel1h,
+                        what: 'envoiMpRappel',
+                        args: [groupe._id, 'heure'],
+                    };
+                    
+                    if (dateRappel1h > new Date())
+                        module.exports.updateOrCreateRappelJob(client, job1h, groupe);
+
+                    i++;
+                });
             }
         }
     },

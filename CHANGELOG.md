@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [v1.0.2]
+### Added
+- Possibilité d'avoir plusieurs sessions pour un groupe !
+    - [CHANGED] renommage de la commage '/group schedule' en '/group session'
+    - pour supprimer une date, refaire la même commande que pour ajouter une date : '/group session <groupe> <jour> <heure>'
+    - [FIX] format de la date du jour possible entre JJ/MM/AA et JJ/MM/YYYY
+
 ## [v1.0.1]
 ### Added
 - Autocomplétion d'un jeu : 

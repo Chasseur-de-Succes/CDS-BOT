@@ -17,7 +17,7 @@ const grpSchema = mongoose.Schema({
         default: 1
     },
     game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
-    dateEvent: Date,
+    dateEvent: [Date],
     dateCreated : {
         type: Date,
         default: Date.now
