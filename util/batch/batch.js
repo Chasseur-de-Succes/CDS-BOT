@@ -3,6 +3,8 @@ const { createEmbedGroupInfo } = require("../msg/group");
 const { TAGS, delay, crtHour } = require('../../util/constants');
 const moment = require("moment");
 const { User } = require("../../models");
+const { createLogs } = require("../envoiMsg");
+const { MONEY } = require("../../config");
 
 module.exports = {
     /**
@@ -254,11 +256,12 @@ module.exports = {
         // tous les lundi, à 0h01
         scheduleJob({ dayOfWeek: 1, hour: 0, minute: 01 }, async function() {
             client.guilds.cache.forEach(guild => {
-                logger.info(`.. rechrche @Helper dans ${guild.name}..`);
+                logger.info(`.. recherche @Helper dans ${guild.name}..`);
                 
                 guild.roles.fetch('971508881165545544')
-                    .then(roleHelper => {
-                        if (roleHelper?.members) {
+                .then(roleHelper => {
+                    if (roleHelper?.members) {
+                            let helpers = roleHelper.members.map(m => m.toString()).join(', ');
                             roleHelper.members.each(async member => {
                                 const user = member.user;
                                 const userDB = await client.getUser(user);
@@ -272,6 +275,8 @@ module.exports = {
                                     );
                                 }
                             })
+
+                            createLogs(client, guild.id, `Distribution au @Helper`, `${helpers} recoivent chacun **100 ${MONEY}** pour leur aide !`);
                         }
                     })
                     .catch(err => logger.error(`Impossible de trouver rôle @Helper ${err}`));
