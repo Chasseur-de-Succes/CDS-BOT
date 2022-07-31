@@ -1,10 +1,8 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
 const { MONEY } = require("../../config");
-const { VERY_PALE_BLUE, DARK_RED, CRIMSON } = require('../../data/colors.json');
-const { CROSS_MARK, STEAM } = require('../../data/emojis.json');
+const { VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
+const { STEAM } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
-const Canvas = require('canvas');
-const path = require('path');
 const { createError } = require("../../util/envoiMsg");
 
 //Canvas.registerFont('x.ttf', { family: ' name '});

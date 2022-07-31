@@ -3,7 +3,7 @@ const { MESSAGES } = require("../../util/constants");
 const { createError, createLogs, sendLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup } = require("../../util/msg/group");
+const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
 const moment = require('moment');
 const { MONEY } = require("../../config");
@@ -13,7 +13,7 @@ module.exports.run = async (interaction) => {
 
     if (subcommand === 'create') {
         create(interaction, interaction.options)
-    } else if (subcommand === 'schedule') {
+    } else if (subcommand === 'session') {
         schedule(interaction, interaction.options)
     } else if (subcommand === 'dissolve') {
         dissolve(interaction, interaction.options)
@@ -168,27 +168,49 @@ const schedule = async (interaction, options) => {
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
     // test si date bon format
-    if (!moment(dateVoulue + ' ' + heureVoulue, "DD/MM/YY HH:mm", true).isValid())
+    const allowedDateFormat = ['DD/MM/YY HH:mm', 'DD/MM/YYYY HH:mm'];
+    if (!moment(dateVoulue + ' ' + heureVoulue, allowedDateFormat, true).isValid())
         return interaction.reply({ embeds: [createError(`${dateVoulue + ' ' + heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`)] });
 
     // parse string to Moment (date)
-    let dateEvent = moment(dateVoulue + ' ' + heureVoulue, 'DD/MM/YY HH:mm');
+    let dateEvent = moment(dateVoulue + ' ' + heureVoulue, allowedDateFormat);
+    await interaction.deferReply();
 
-    await client.update(grp, {
-        dateEvent: dateEvent,
-        dateUpdated: Date.now()
-    });
+    // si la date existe déjà, la supprimer
+    const indexDateEvent = grp.dateEvent.findIndex(d => d.getTime() === dateEvent.valueOf());
+    let titreReponse = `${CHECK_MARK} `;
+    let msgReponse = `▶️ `;
+    if (indexDateEvent > 0) {
+        grp.dateEvent.splice(indexDateEvent, 1);
+
+        titreReponse += 'Rdv enlevé 🚮';
+        msgReponse += `Session enlevée, le **${dateVoulue + ' à ' + heureVoulue}** !`;
+        logger.info(`.. date ${dateEvent} retiré`);
+    } else {
+        // sinon on l'ajoute, dans le bon ordre
+        grp.dateEvent.push(dateEvent);
+        
+        titreReponse += 'Rdv ajouté 🗓️';
+        msgReponse += `Session ajoutée, le **${dateVoulue + ' à ' + heureVoulue}** !`;
+        logger.info(`.. date ${dateEvent} ajouté`);
+    }
+
+    grp.dateUpdated = Date.now();
+    grp.save();
 
     // créer/update rappel
-    createRappelJob(client, interaction.guildId, [grp]);
+    if (indexDateEvent > 0)
+        deleteRappelJob(client, grp, dateEvent.toDate());
+    else
+        createRappelJob(client, interaction.guildId, [grp]);
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
 
-    logger.info(`.. date ${dateEvent} choisi`);
     const newMsgEmbed = new MessageEmbed()
-        .setTitle(`${CHECK_MARK} RdV le **${dateVoulue + ' à ' + heureVoulue}** !`);
-    return interaction.reply({ embeds: [newMsgEmbed] });
+        .setTitle(titreReponse)
+        .setDescription(msgReponse);
+    return interaction.editReply({ embeds: [newMsgEmbed] });
 }
 
 const dissolve = async (interaction, options, isAdmin = false) => {
@@ -297,7 +319,7 @@ const end = async (interaction, options) => {
     // - MONEY
     // X = [[(Valeur du joueur de base ( 20)+ (5 par joueur supplémentaire)] X par le nombre de joueur total inscrit]] + 50 par session 
     const base = 20, baseJoueur = 5, baseSession = 50;
-    const nbSession = 1; // TODO pour plus tard
+    const nbSession = grp.dateEvent.length;
     const nbJoueur = grp.size;
     let prize = ((base + (baseJoueur * nbJoueur)) * nbJoueur) + (baseSession * nbSession);
     

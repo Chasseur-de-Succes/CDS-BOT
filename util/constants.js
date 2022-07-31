@@ -264,9 +264,9 @@ const MESSAGES = {
                             }
                         ]
                     }, {
-                        name: 'schedule',
+                        name: 'session',
                         type: 'SUB_COMMAND',
-                        description: 'Planifie une date pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant',
+                        description: 'Ajoute/supprime une session pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant',
                         options: [
                             { 
                                 name: 'nom',

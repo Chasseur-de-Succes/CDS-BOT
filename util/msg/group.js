@@ -40,7 +40,18 @@ function getMembersList(group, members) {
     else if (group.size === 1) color = GREEN;
     else if (group.size === group.nbMax) color = DARK_RED;
     else color = YELLOW;
-    const dateEvent = group.dateEvent ? moment(group.dateEvent).format("ddd Do MMM HH:mm") : "*Non définie*";
+    
+    let dateEvent = "*Non définie*";
+    if (group.dateEvent) {
+        dateEvent = "";
+        group.dateEvent.sort((a, b) => b.getTime() - a.getTime())
+            .forEach(date => {
+                // moment(group.dateEvent).format("ddd Do MMM HH:mm")
+                dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
+            })
+    }
+    if (!dateEvent)
+        dateEvent = "*Non définie*";
 
     const gameAppid = group.game.appid;
     const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
@@ -272,7 +283,7 @@ async function dissolveGroup(client, guildId, grp) {
     );
 
     // delete rappel
-    deleteRappelJob(client, grp);
+    deleteAllRappelJob(client, grp);
 
     // suppr groupe
     // TODO mettre juste un temoin suppr si l'on veut avoir une trace ? un groupHisto ?
@@ -287,7 +298,7 @@ async function endGroup(client, guildId, grp) {
     await editMsgHubGroup(client, guildId, grp);
 
     // remove job
-    deleteRappelJob(client, grp);
+    deleteAllRappelJob(client, grp);
 
     // update info user
     // - XP
@@ -311,7 +322,7 @@ async function endGroup(client, guildId, grp) {
     // - MONEY
     // X = [[(Valeur du joueur de base ( 20)+ (5 par joueur supplémentaire)] X par le nombre de joueur total inscrit]] + 50 par session 
     const base = 20, baseJoueur = 5, baseSession = 50;
-    const nbSession = 1; // TODO pour plus tard
+    const nbSession = grp.dateEvent.length;
     const nbJoueur = grp.size;
     let prize = ((base + (baseJoueur * nbJoueur)) * nbJoueur) + (baseSession * nbSession);
 
@@ -364,19 +375,45 @@ async function endGroup(client, guildId, grp) {
 }
 
 /**
- * Supprimer un rappel et désactive le job lié à ce rappel
+ * Supprimer tous les rappels et désactive les jobs liés à ce rappel
  * @param {*} client 
  * @param {*} groupe 
  */
- function deleteRappelJob(client, groupe) {
-    const jobName = `rappel_${groupe.name}`;
+ function deleteAllRappelJob(client, groupe) {
+    // pour chaque date de session :
+    groupe.dateEvent.forEach(date => {
+        deleteRappelJob(client, groupe, date)
+    })
+}
+
+/**
+ * Supprimer un rappel et désactive le jobs lié à ce rappel
+ * @param {*} client 
+ * @param {*} groupe 
+ */
+ function deleteRappelJob(client, groupe, date) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+
+    // rappel 1h et 1j avant
+    const jobName1h = `rappel_1h_${groupe.name}_${date.toLocaleDateString('fr-FR', options)}`;
+    const jobName1d = `rappel_1d_${groupe.name}_${date.toLocaleDateString('fr-FR', options)}`;
 
     // cancel ancien job si existe
-    if (scheduledJobs[jobName])
-        scheduledJobs[jobName].cancel();
+    if (scheduledJobs[jobName1h])
+        scheduledJobs[jobName1h].cancel();
+    if (scheduledJobs[jobName1d])
+        scheduledJobs[jobName1d].cancel();
 
-    // si job existe -> update date, sinon créé
-    client.findJob({name: jobName})
+    // si job existe -> delete
+    client.findJob({name: jobName1h})
+    .then(jobs => {
+        if (jobs.length > 0) {
+            let jobDB = jobs[0];
+            logger.info("-- Suppression "+jobDB.name+" pour groupe "+groupe.name+"..");
+            client.deleteJob(jobDB);
+        }
+    })
+    client.findJob({name: jobName1d})
     .then(jobs => {
         if (jobs.length > 0) {
             let jobDB = jobs[0];
@@ -397,3 +434,5 @@ exports.joinGroup = joinGroup
 exports.createGroup = createGroup
 exports.dissolveGroup = dissolveGroup
 exports.endGroup = endGroup
+exports.deleteAllRappelJob = deleteAllRappelJob
+exports.deleteRappelJob = deleteRappelJob

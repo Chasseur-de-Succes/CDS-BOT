@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel, MsgHallHeros, MsgHallZeros, MsgDmdeAide } = require("../models/index");
-const { CHANNEL } = require("./constants");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
