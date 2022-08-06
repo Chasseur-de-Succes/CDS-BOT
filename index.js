@@ -1,6 +1,6 @@
 const { Client, Intents, Collection } = require('discord.js');
 const { TOKEN } = require('./config.js');
-const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg } = require('./util/loader');
+const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg, loadVocalCreator } = require('./util/loader');
 const axios = require('axios');
 const winston = require("winston");
 require('winston-daily-rotate-file');
@@ -32,7 +32,9 @@ require('date.format');
 
 
 const myIntents = new Intents();
-myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_BANS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.GUILD_MESSAGE_TYPING, Intents.FLAGS.DIRECT_MESSAGES)
+myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_BANS, 
+  Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.GUILD_MESSAGE_TYPING, Intents.FLAGS.DIRECT_MESSAGES,
+  Intents.FLAGS.GUILD_VOICE_STATES)
 
 const client = new Client({ intents: myIntents });
 require('./util/functions')(client);
@@ -87,6 +89,10 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
   
   logger.info(`Chargement des reactions hall héros/zéros ..`)
   await loadReactionMsg(client);
+  logger.info(`.. terminé`)
+
+  logger.info(`Chargement du chan vocal créateur ..`)
+  await loadVocalCreator(client);
   logger.info(`.. terminé`)
 
   loadRoleGiver(client);

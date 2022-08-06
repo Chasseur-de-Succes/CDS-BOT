@@ -12,8 +12,10 @@ const guildConfigSchema = mongoose.Schema({
         list_group: String,
         hall_heros: String,
         hall_zeros: String,
-        logs: String
-    }
+        logs: String,
+        create_vocal: String
+    },
+    voice_channels : [String]
 })
 
 module.exports = mongoose.model("GuildConfig", guildConfigSchema);

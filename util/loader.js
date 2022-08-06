@@ -1,6 +1,6 @@
 const { Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game } = require('../models');
+const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
 const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
@@ -423,6 +423,35 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     })
 }
 
+const loadVocalCreator = async (client) => {
+    
+    // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
+    client.guilds.cache.forEach(async guild => {
+        // si le chan vocal n'existe pas, on le créé + save
+        let config = await GuildConfig.findOne({ guildId: guild.id })
+
+        if (!config.channels || !config.channels['create_vocal']) {
+            console.log('jexiste pas');
+            // créer un voice channel
+            // TODO parent ?
+            const voiceChannel = await guild.channels.create('🔧 Créer un salon vocal', {
+                type: "GUILD_VOICE"
+            });
+
+            await GuildConfig.updateOne(
+                { guildId: guild.id },
+                { $set: { ["channels.create_vocal"] : voiceChannel.id } }
+            );
+
+            logger.warn(`.. salon vocal 'créateur' créé`)
+        } else {
+            // TODO on test si le salon existe bien ?
+
+            console.log('jexiste en bdd');
+        }
+    });
+}
+
 module.exports = {
     loadCommands,
     loadEvents,
@@ -430,5 +459,6 @@ module.exports = {
     loadReactionGroup,
     loadSlashCommands,
     loadRoleGiver,
-    loadReactionMsg
+    loadReactionMsg,
+    loadVocalCreator
 }
