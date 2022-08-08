@@ -37,7 +37,7 @@ const create = async (interaction, options) => {
     // test si captain est register
     const captainDB = await client.getUser(captain);
     if (!captainDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
+        return interaction.reply({ embeds: [createError(`${captain.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
     if (nameGrp.length < 3) 
