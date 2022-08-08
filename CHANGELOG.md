@@ -4,10 +4,13 @@
 
 ## [v1.0.2]
 ### Added
+- /group kick <user>
 - Possibilité d'avoir plusieurs sessions pour un groupe !
-    - [CHANGED] renommage de la commage '/group schedule' en '/group session'
+    - [CHANGED] renommage de la commande '/group schedule' en '/group session'
     - pour supprimer une date, refaire la même commande que pour ajouter une date : '/group session <groupe> <jour> <heure>'
     - [FIX] format de la date du jour possible entre JJ/MM/AA et JJ/MM/YYYY
+- Création automatique de salon vocal, en joignant 'Créer un salon vocal' !
+    - Dès qu'il n'y a plus personne sur le salon, celui-ci est détruit
 
 ## [v1.0.1]
 ### Added

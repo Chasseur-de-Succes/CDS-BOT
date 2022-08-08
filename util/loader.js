@@ -431,7 +431,6 @@ const loadVocalCreator = async (client) => {
         let config = await GuildConfig.findOne({ guildId: guild.id })
 
         if (!config.channels || !config.channels['create_vocal']) {
-            console.log('jexiste pas');
             // créer un voice channel
             // TODO parent ?
             const voiceChannel = await guild.channels.create('🔧 Créer un salon vocal', {
@@ -445,9 +444,8 @@ const loadVocalCreator = async (client) => {
 
             logger.warn(`.. salon vocal 'créateur' créé`)
         } else {
-            // TODO on test si le salon existe bien ?
-
-            console.log('jexiste en bdd');
+            // TODO test si le salon existe bien
+            // s'il n'existe pas, on supprime la valeur dans la bdd
         }
     });
 }
