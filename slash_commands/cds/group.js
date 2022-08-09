@@ -180,7 +180,7 @@ const schedule = async (interaction, options) => {
     const indexDateEvent = grp.dateEvent.findIndex(d => d.getTime() === dateEvent.valueOf());
     let titreReponse = `${CHECK_MARK} `;
     let msgReponse = `▶️ `;
-    if (indexDateEvent > 0) {
+    if (indexDateEvent >= 0) {
         grp.dateEvent.splice(indexDateEvent, 1);
 
         titreReponse += 'Rdv enlevé 🚮';
