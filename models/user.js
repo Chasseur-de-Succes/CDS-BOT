@@ -38,6 +38,10 @@ const userSchema = mongoose.Schema({
             dissolved:  { type: Number, default: 0 },
             ended:      { type: Number, default: 0 }
         },
+        shop: {
+            sold:       { type: Number, default: 0 },
+            bought:     { type: Number, default: 0 },
+        },
         msg: { type: Number, default: 0 },
         img: {
             heros: { type: Number, default: 0 },

@@ -6,6 +6,7 @@ const { CHECK_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MONEY } = require('../../config.js');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const { User } = require('../../models');
 
 const NB_PAR_PAGES = 10;
 
@@ -375,6 +376,10 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     
     // maj state
     await client.update(item, { state: 'done' });
+    // maj stat vendeur & acheteur
+    await User.updateOne({ userId: vendeurDB.userId}, { $inc: { "stats.shop.sold" : 1 } })
+    await User.updateOne({ userId: acheteurDB.userId}, { $inc: { "stats.shop.bought" : 1 } })
+
     // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
     createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
                                         ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
