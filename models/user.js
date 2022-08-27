@@ -53,6 +53,32 @@ const userSchema = mongoose.Schema({
             // dans Hall des zeros, nb de fois qu'un admin a réagi avec emoji custom (a definir)
             hall_zeros_approved_by_admin :      { type: Number, default: 0 },
         }
+    },
+    profile: {
+        text: {
+            type: Map,
+            of: Boolean
+        },
+        border: {
+            style: {
+                type: Map,
+                of: Boolean
+            },
+            color: {
+                type: Map,
+                of: Boolean
+            }
+        },
+        avatar: {
+            style: {
+                type: Map,
+                of: Boolean
+            },
+            color: {
+                type: Map,
+                of: Boolean
+            }
+        }
     }
 })
 

@@ -1,7 +1,7 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
 const { MONEY } = require("../../config");
 const { VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
-const { STEAM } = require('../../data/emojis.json');
+const { STEAM, ASTATS, CME, SH } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
 const { createError } = require("../../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../../util/xp");
@@ -48,7 +48,6 @@ module.exports.run = async (interaction) => {
     const level = dbUser.level;
     const xp = dbUser.experience;
     const nextXpNeeded = getXpNeededForNextLevel(dbUser.level);
-    console.log(xp, ' / ', nextXpNeeded);
 
     const embed = new MessageEmbed()
         .setColor(colorEmbed)
@@ -63,13 +62,31 @@ module.exports.run = async (interaction) => {
 
     const urlSteam = `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})`;
     const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
-    const urlCompletionist = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
+    const urlCME = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
+    const urlSH = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
 
-    const msg = `[ ${STEAM} ${urlSteam} | ${urlAstats} | ${urlCompletionist} ]`;
+    const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCME} | ${SH} ${urlSH} ]`;
+
+    // recup settings de l'user 
+    const configProfile = dbUser.profile;
+    // -- couleur texte
+    const textColor = configProfile.text ? getByValue(configProfile.text, true) : 'white';
+    // -- couleur/style bordure
+    const borderStyle = configProfile.border?.style ? getByValue(configProfile.border?.style, true) : 'solid';
+    // TODO si border speciale, pas de couleur ?
+    const borderColor = configProfile.border?.color ? getByValue(configProfile.border?.color, true) : 'white';
+    // -- couleur/style bordure avatar
+    const borderAvatarStyle = configProfile.avatar?.style ? getByValue(configProfile.avatar?.style, true) : 'solid';
+    const borderAvatarColor = configProfile.avatar?.color ? getByValue(configProfile.avatar?.color, true) : 'white';
+    console.log(configProfile.avatar);
+    // -- couleur/style fond
+    const backgroundStyle = '';
+    // TODO si background speciale, pas de couleur
+    const backgroundColor = configProfile.background?.color ? getByValue(configProfile.border?.color, true) : 'black';
 
     // CANVAS
     // TODO
-    const canvas = Canvas.createCanvas(460, 185);
+    const canvas = Canvas.createCanvas(480, 205);
     const ctx = canvas.getContext('2d');
     const background = await Canvas.loadImage(path.join(__dirname, '../../data/img/background.jpg'));
 
@@ -80,58 +97,110 @@ module.exports.run = async (interaction) => {
     // ctx.arc(250,250,0.2*Math.PI,0.4*Math.PI);
     // ctx.closePath();
     // ctx.clip();
+    
+    //ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    // BACKGROUND
+    ctx.strokeStyle = borderColor;
+    ctx.fillStyle = backgroundColor
+    // - STYLE BORDER
+    if (borderStyle === 'double'){
+        ctx.lineWidth = 2;
+        // TODO a revoir
+        if (borderStyle === 'dashed')
+            ctx.setLineDash([10]);
+        else if (borderStyle === 'dotted')
+            ctx.setLineDash([2, 5]);
+            
+        roundRect(ctx, 5, 5, canvas.width - 10, canvas.height - 10, 15, true, true);
+        roundRect(ctx, 10, 10, canvas.width -20, canvas.height -20, 10, true, true);
+    } else {
+        ctx.lineWidth = 3;
+        if (borderStyle === 'dashed')
+            ctx.setLineDash([10]);
+        else if (borderStyle === 'dotted')
+            ctx.setLineDash([2, 5]);
+            
+        roundRect(ctx, 5, 5, canvas.width -10, canvas.height -10, 10, true, true);
+    }
+    ctx.setLineDash([]);
 
-    // FOND
     // QUE FAIT LE JOUEUR ACTUELLEMENT ?
     ctx.font = '15px Impact'
-    ctx.fillStyle = 'cyan'
-    let activities = member.presence.activities;
-    // - filtre 'type' sur 'PLAYING'
-    activities = activities.filter(act => act.type === 'PLAYING');
-    if (activities.length === 1) {
-        const act = activities[0];
-        console.log(act);
+    ctx.fillStyle = textColor
 
-        const game = act.name;
-        //const game = 'Half-Life Deathmatch: Source';
-        const width = ctx.measureText(game).width;
-
-        const gameDB = await Game.findOne({ name: game });
-        if (gameDB) {
-            const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDB.appid}/capsule_184x69.jpg`;
-            try {
-                let gameImg = await Canvas.loadImage(gameUrlHeader)
-                ctx.drawImage(gameImg, canvas.width - 184 - 10, 40, 184, 69);
-            } catch (error) {
-                logger.warn(`.. erreur chargement image steam : ${error}`)
+    if (member.presence) {
+        let activities = member.presence.activities;
+        // - filtre 'type' sur 'PLAYING'
+        activities = activities.filter(act => act.type === 'PLAYING');
+        if (activities.length === 1) {
+            const act = activities[0];
+    
+            const game = act.name;
+            //const game = 'Half-Life Deathmatch: Source';
+            const width = ctx.measureText(game).width;
+    
+            const gameDB = await Game.findOne({ name: game });
+            if (gameDB) {
+                const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDB.appid}/capsule_184x69.jpg`;
+                try {
+                    let gameImg = await Canvas.loadImage(gameUrlHeader)
+                    ctx.drawImage(gameImg, canvas.width - 194 - 10, 50, 184, 69);
+                } catch (error) {
+                    logger.warn(`.. erreur chargement image steam : ${error}`)
+                }
             }
+    
+            ctx.fillText(`actuellement sur`, canvas.width - 194 - 10, 25)
+            ctx.fillText(`${game}`, canvas.width - 194 - 10, 45)
         }
-
-        ctx.fillText(`joue à`, canvas.width - 184 - 10, 15)
-        ctx.fillText(`${game}`, canvas.width - 184 - 10, 35)
     }
 
-    //ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = 'cyan';
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
     // AVATAR
-    ctx.drawImage(steamAvatar, 10, 10, steamAvatar.width, steamAvatar.height);
+    // ROND
+    // TODO if profile rond
+    ctx.save();
+    //ctx.beginPath();
+    //ctx.arc(10 + steamAvatar.width/2, 10 + steamAvatar.height/2, 50, 0, 2 * Math.PI);
+    //ctx.closePath();
+    //ctx.clip();
+
+    //ctx.drawImage(steamAvatar, 20, 20, steamAvatar.width, steamAvatar.height);
+    ctx.drawImage(steamAvatar, 20, 20, 96, 96);
 
     // Bordure avatar
-    // TODO shop
-    //ctx.lineWidth = 5;
-    //ctx.strokeStyle = '#DC143C';
-    //ctx.strokeRect(10, 10, steamAvatar.width, steamAvatar.height);
-    //ctx.lineWidth = 1;
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = borderAvatarColor;
+    ctx.fillStyle = borderAvatarStyle;
+    // TODO si rond
+    //roundRect(ctx, 20, 20, steamAvatar.width, steamAvatar.height, 10, false, true);
+    //roundRect(ctx, 20, 20, 96, 96, 10, false, true);
+    
+    // - STYLE BORDER
+    if (borderAvatarStyle === 'double'){
+        ctx.lineWidth = 3;
+        
+        roundRect(ctx, 20, 20, 96, 96, 15, false, true);
+        roundRect(ctx, 25, 25, 96 - 10, 96 - 10, 10, false, true);
+    } else {
+        if (borderAvatarStyle === 'dashed') {
+            ctx.setLineDash([8]);
+        } else if (borderAvatarStyle === 'dotted') {
+            ctx.lineWidth = 3;
+            ctx.setLineDash([3, 4]);
+        }
+            
+        roundRect(ctx, 20, 20, 96, 96, 10, false, true);
+    }
+    ctx.setLineDash([]);
+    
+    ctx.restore();
 
     // PSEUDO
-    let x = 111;
+    let x = 126;
 
     ctx.font = '30px Impact'
-    ctx.fillStyle = 'cyan'
-    ctx.fillText(pseudo, x, 40)
+    ctx.fillStyle = textColor
+    ctx.fillText(pseudo, x, 50)
     // TODO si pseudo trop grand
     //ctx.fillText('Camper-Hunter', x, 40)
 
@@ -143,8 +212,8 @@ module.exports.run = async (interaction) => {
     ctx.strokeStyle = 'grey'
     ctx.fillStyle = 'grey'
     ctx.fillRect(x, 55, 100, 10)
-    ctx.strokeStyle = 'cyan'
-    ctx.fillStyle = 'cyan'
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
     ctx.fillRect(x, 55, roundedPercent, 10)
 
     ctx.font = '20px Impact'
@@ -152,10 +221,12 @@ module.exports.run = async (interaction) => {
 
     // MONEY
     ctx.font = '17px Impact'
-    ctx.fillText(`${money} ${MONEY}`, x, 90)
+    ctx.fillText(`${money} ${MONEY}`, x, 85)
+
+    // TODO separator ?
 
     // "MEDALS" aka meta achievemnts
-    x = 10
+    x = 20
     ctx.lineWidth = 14
     ctx.strokeStyle = 'grey'
     ctx.fillStyle = 'grey'
@@ -164,18 +235,19 @@ module.exports.run = async (interaction) => {
     for (let i = 0; i < 8; i++) {
         //ctx.fillRect(x, 50, 40, 40)
         const squareX = x + (i * 50) + (i * 5);
-        const squareY = 120;
-        ctx.fillRect(squareX, squareY, 50, 50)
+        const squareY = 135;
+        //ctx.fillRect(squareX, squareY, 50, 50)
+        roundRect(ctx, squareX, squareY, 50, 50, 10, true, false);
     }
     // - fond pour achievemnt speciaux (derniere ligne)
-    ctx.fillRect(x + 50 + 5, 10 + 100 + 10, 50, 50)
-    ctx.fillRect(x + 100 + 10, 10 + 100 + 10, 50, 50)
+    //ctx.fillRect(x + 50 + 5, 10 + 100 + 10, 50, 50)
+    //ctx.fillRect(x + 100 + 10, 10 + 100 + 10, 50, 50)
 
     // - recup stats OU achievements lié à user
     const stats = dbUser.stats;
     // - Hall héros 🏆
     let crtX = x + 5;
-    let crtY = 125;
+    let crtY = 140;
     if (stats.img?.heros >= 100) {
         // TODO bordure speciale (car dernier palier) genre a la steam et ses succes rares
         const trophy = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/trophy_100.png'));
@@ -285,5 +357,65 @@ module.exports.run = async (interaction) => {
     // message.channel.send({content: msg, embeds: [embed], files: [attachment]});
     await message.suppressEmbeds();
 }
+
+// TODO a deplacer dans utils..
+function getByValue(map, searchValue) {
+    for (let [key, value] of map.entries()) {
+        if (value === searchValue)
+        return key;
+    }
+}
+
+/**
+ * Draws a rounded rectangle using the current state of the canvas.
+ * If you omit the last three params, it will draw a rectangle
+ * outline with a 5 pixel border radius
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Number} x The top left x coordinate
+ * @param {Number} y The top left y coordinate
+ * @param {Number} width The width of the rectangle
+ * @param {Number} height The height of the rectangle
+ * @param {Number} [radius = 5] The corner radius; It can also be an object 
+ *                 to specify different radii for corners
+ * @param {Number} [radius.tl = 0] Top left
+ * @param {Number} [radius.tr = 0] Top right
+ * @param {Number} [radius.br = 0] Bottom right
+ * @param {Number} [radius.bl = 0] Bottom left
+ * @param {Boolean} [fill = false] Whether to fill the rectangle.
+ * @param {Boolean} [stroke = true] Whether to stroke the rectangle.
+ */
+ function roundRect(
+    ctx,
+    x,
+    y,
+    width,
+    height,
+    radius = 5,
+    fill = false,
+    stroke = true
+  ) {
+    if (typeof radius === 'number') {
+      radius = {tl: radius, tr: radius, br: radius, bl: radius};
+    } else {
+      radius = {...{tl: 0, tr: 0, br: 0, bl: 0}, ...radius};
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + radius.tl, y);
+    ctx.lineTo(x + width - radius.tr, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    ctx.lineTo(x + width, y + height - radius.br);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    ctx.lineTo(x + radius.bl, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    ctx.lineTo(x, y + radius.tl);
+    ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+    ctx.closePath();
+    if (fill) {
+      ctx.fill();
+    }
+    if (stroke) {
+      ctx.stroke();
+    }
+  }
 
 module.exports.help = MESSAGES.COMMANDS.MISC.PROFILE;
