@@ -59,6 +59,12 @@ const userSchema = mongoose.Schema({
             type: Map,
             of: Boolean
         },
+        background: {
+            color: {
+                type: Map,
+                of: Boolean
+            }
+        },
         border: {
             style: {
                 type: Map,

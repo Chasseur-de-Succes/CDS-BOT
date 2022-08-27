@@ -78,11 +78,10 @@ module.exports.run = async (interaction) => {
     // -- couleur/style bordure avatar
     const borderAvatarStyle = configProfile.avatar?.style ? getByValue(configProfile.avatar?.style, true) : 'solid';
     const borderAvatarColor = configProfile.avatar?.color ? getByValue(configProfile.avatar?.color, true) : 'white';
-    console.log(configProfile.avatar);
     // -- couleur/style fond
     const backgroundStyle = '';
     // TODO si background speciale, pas de couleur
-    const backgroundColor = configProfile.background?.color ? getByValue(configProfile.border?.color, true) : 'black';
+    const backgroundColor = configProfile.background?.color ? getByValue(configProfile.background?.color, true) : 'black';
 
     // CANVAS
     // TODO
@@ -103,6 +102,8 @@ module.exports.run = async (interaction) => {
     ctx.strokeStyle = borderColor;
     ctx.fillStyle = backgroundColor
     // - STYLE BORDER
+    // TODO refactor pour n'avoir qu'une méthode ? car similaire au tracé des bordures de l'avatar
+    
     if (borderStyle === 'double'){
         ctx.lineWidth = 2;
         // TODO a revoir
@@ -110,21 +111,29 @@ module.exports.run = async (interaction) => {
             ctx.setLineDash([10]);
         else if (borderStyle === 'dotted')
             ctx.setLineDash([2, 5]);
+        
+        // fond couleur (pas derriere meta succes)
+        roundRect(ctx, 5, 5, canvas.width -10, 120, 10, true, false);
             
-        roundRect(ctx, 5, 5, canvas.width - 10, canvas.height - 10, 15, true, true);
-        roundRect(ctx, 10, 10, canvas.width -20, canvas.height -20, 10, true, true);
+        roundRect(ctx, 5, 5, canvas.width - 10, canvas.height - 10, 15, false, true);
+        roundRect(ctx, 10, 10, canvas.width -20, canvas.height -20, 10, false, true);
+
     } else {
         ctx.lineWidth = 3;
         if (borderStyle === 'dashed')
             ctx.setLineDash([10]);
         else if (borderStyle === 'dotted')
             ctx.setLineDash([2, 5]);
-            
-        roundRect(ctx, 5, 5, canvas.width -10, canvas.height -10, 10, true, true);
+        
+        // fond couleur (pas derriere meta succes)
+        roundRect(ctx, 5, 5, canvas.width -10, 120, 10, true, false);
+
+        roundRect(ctx, 5, 5, canvas.width -10, canvas.height -10, 10, false, true);
     }
     ctx.setLineDash([]);
 
     // QUE FAIT LE JOUEUR ACTUELLEMENT ?
+    // TODO ou le dernier jeu joué ?
     ctx.font = '15px Impact'
     ctx.fillStyle = textColor
 
@@ -165,6 +174,7 @@ module.exports.run = async (interaction) => {
     //ctx.clip();
 
     //ctx.drawImage(steamAvatar, 20, 20, steamAvatar.width, steamAvatar.height);
+    // TODO round rect
     ctx.drawImage(steamAvatar, 20, 20, 96, 96);
 
     // Bordure avatar
@@ -200,9 +210,8 @@ module.exports.run = async (interaction) => {
 
     ctx.font = '30px Impact'
     ctx.fillStyle = textColor
-    ctx.fillText(pseudo, x, 50)
-    // TODO si pseudo trop grand
-    //ctx.fillText('Camper-Hunter', x, 40)
+    // 145 : si pseudo trop grand
+    ctx.fillText(pseudo, x, 50, 145)
 
     // LEVEL
     const percentage = Math.floor((xp / nextXpNeeded) * 100);
@@ -223,112 +232,165 @@ module.exports.run = async (interaction) => {
     ctx.font = '17px Impact'
     ctx.fillText(`${money} ${MONEY}`, x, 85)
 
-    // TODO separator ?
-
     // "MEDALS" aka meta achievemnts
     x = 20
-    ctx.lineWidth = 14
-    ctx.strokeStyle = 'grey'
+    ctx.lineWidth = 2
+    ctx.strokeStyle = 'black'
     ctx.fillStyle = 'grey'
-
-    // - fond
-    for (let i = 0; i < 8; i++) {
-        //ctx.fillRect(x, 50, 40, 40)
-        const squareX = x + (i * 50) + (i * 5);
-        const squareY = 135;
-        //ctx.fillRect(squareX, squareY, 50, 50)
-        roundRect(ctx, squareX, squareY, 50, 50, 10, true, false);
-    }
-    // - fond pour achievemnt speciaux (derniere ligne)
-    //ctx.fillRect(x + 50 + 5, 10 + 100 + 10, 50, 50)
-    //ctx.fillRect(x + 100 + 10, 10 + 100 + 10, 50, 50)
 
     // - recup stats OU achievements lié à user
     const stats = dbUser.stats;
-    // - Hall héros 🏆
-    let crtX = x + 5;
+    let crtX = x;
     let crtY = 140;
-    if (stats.img?.heros >= 100) {
-        // TODO bordure speciale (car dernier palier) genre a la steam et ses succes rares
-        const trophy = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/trophy_100.png'));
-        ctx.drawImage(trophy, crtX, crtY, 40, 40);
-    } else if (stats.img?.heros >= 50) {
-        const trophy = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/trophy_50.png'));
-        ctx.drawImage(trophy, crtX, crtY, 40, 40);
-    } else if (stats.img?.heros >= 10) {
-        const trophy = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/trophy_10.png'));
-        ctx.drawImage(trophy, crtX, crtY, 40, 40);
-    } else if (stats.img?.heros >= 1) {
-        const trophy = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/trophy.png'));
-        ctx.drawImage(trophy, crtX, crtY, 40, 40);
+    
+    // d'abord l'ombre, puis le fond, puis le trophée (si besoin est)
+    // - Hall héros 🏆
+    if (stats.img?.heros >= 1) {
+        let filename = 'trophy';
+        let colorFill = 'grey';
+
+        if (stats.img?.heros >= 100) {
+            filename += '_plat';
+            colorFill = '#1CD6CE'; // ~cyan
+        } else if (stats.img?.heros >= 50) {
+            filename += '_gold';
+            colorFill = '#FAC213';
+        } else if (stats.img?.heros >= 10) {
+            filename += '_silver';
+            colorFill = 'silver';
+        }
+
+        // ombre
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = colorFill;
+        roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
+        
+        // fond
+        ctx.globalAlpha = 1;
+        roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
+
+        const trophy = await Canvas.loadImage(path.join(__dirname, `../../data/img/achievements/${filename}.png`));
+        ctx.drawImage(trophy, crtX + 5, crtY, 40, 40);
     }
 
     // - Hall zéros 💩
-    crtX += 55; 
-    if (stats.img?.zeros >= 250) {
-        // TODO bordure speciale (car dernier palier) genre a la steam et ses succes rares
-        const poop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/poop_250.png'));
-        ctx.drawImage(poop, crtX, crtY, 40, 40);
-    } else if (stats.img?.zeros >= 50) {
-        const poop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/poop_50.png'));
-        ctx.drawImage(poop, crtX, crtY, 40, 40);
-    } else if (stats.img?.zeros >= 10) {
-        const poop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/poop_10.png'));
-        ctx.drawImage(poop, crtX, crtY, 40, 40);
-    } else if (stats.img?.zeros >= 1) {
-        const poop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/poop.png'));
-        ctx.drawImage(poop, crtX, crtY, 40, 40);
+    crtX += 55;
+    if (stats.img?.zeros >= 1) {
+        let filename = 'poop';
+        let colorFill = 'grey';
+
+        if (stats.img?.zeros >= 250) {
+            filename += '_plat';
+            colorFill = '#1CD6CE'; // ~cyan
+        } else if (stats.img?.zeros >= 50) {
+            filename += '_gold';
+            colorFill = '#FAC213';
+        } else if (stats.img?.zeros >= 10) {
+            filename += '_silver';
+            colorFill = 'silver';
+        }
+
+        // ombre
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = colorFill;
+        roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
+        
+        // fond
+        ctx.globalAlpha = 1;
+        roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
+
+        const poop = await Canvas.loadImage(path.join(__dirname, `../../data/img/achievements/${filename}.png`));
+        ctx.drawImage(poop, crtX + 5, crtY, 40, 40);
     }
     
     // - Dmd aides 🤝
     crtX += 55;
-    if (stats.group?.ended >= 100) {
-        // TODO bordure speciale (car dernier palier) genre a la steam et ses succes rares
-        const dmdAide = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/dmd-aide_100.png'));
-        ctx.drawImage(dmdAide, crtX, crtY, 40, 40);
-    } else if (stats.group?.ended >= 50) {
-        const dmdAide = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/dmd-aide_50.png'));
-        ctx.drawImage(dmdAide, crtX, crtY, 40, 40);
-    } else if (stats.group?.ended >= 25) {
-        const dmdAide = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/dmd-aide_25.png'));
-        ctx.drawImage(dmdAide, crtX, crtY, 40, 40);
-    } else if (stats.group?.ended >= 1) {
-        const dmdAide = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/dmd-aide.png'));
-        ctx.drawImage(dmdAide, crtX, crtY, 40, 40);
+    if (stats.group?.ended >= 1) {
+        let filename = 'dmd-aide';
+        let colorFill = 'grey';
+
+        if (stats.group?.ended >= 100) {
+            filename += '_plat';
+            colorFill = '#1CD6CE'; // ~cyan
+        } else if (stats.group?.ended >= 50) {
+            filename += '_gold';
+            colorFill = '#FAC213';
+        } else if (stats.group?.ended >= 25) {
+            filename += '_silver';
+            colorFill = 'silver';
+        }
+
+        // ombre
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = colorFill;
+        roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
+        
+        // fond
+        ctx.globalAlpha = 1;
+        roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
+
+        const dmdAide = await Canvas.loadImage(path.join(__dirname, `../../data/img/achievements/${filename}.png`));
+        ctx.drawImage(dmdAide, crtX + 5, crtY, 40, 40);
     }
 
     // - Shop 💰
     crtX += 55;
-    if (stats.shop?.sold >= 100) {
-        // TODO bordure speciale (car dernier palier) genre a la steam et ses succes rares
-        const shop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/shop_100.png'));
-        ctx.drawImage(shop, crtX, crtY, 40, 40);
-    } else if (stats.shop?.sold >= 50) {
-        const shop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/shop_50.png'));
-        ctx.drawImage(shop, crtX, crtY, 40, 40);
-    } else if (stats.shop?.sold >= 10) {
-        const shop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/shop_10.png'));
-        ctx.drawImage(shop, crtX, crtY, 40, 40);
-    } else if (stats.shop?.sold >= 1) {
-        const shop = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/shop.png'));
-        ctx.drawImage(shop, crtX, crtY, 40, 40);
+    if (stats.shop?.sold >= 1) {
+        let filename = 'shop';
+        let colorFill = 'grey';
+
+        if (stats.shop?.sold >= 100) {
+            filename += '_plat';
+            colorFill = '#1CD6CE'; // ~cyan
+        } else if (stats.shop?.sold >= 50) {
+            filename += '_gold';
+            colorFill = '#FAC213';
+        } else if (stats.shop?.sold >= 10) {
+            filename += '_silver';
+            colorFill = 'silver';
+        }
+
+        // ombre
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = colorFill;
+        roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
+        
+        // fond
+        ctx.globalAlpha = 1;
+        roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
+
+        const dmdAide = await Canvas.loadImage(path.join(__dirname, `../../data/img/achievements/${filename}.png`));
+        ctx.drawImage(dmdAide, crtX + 5, crtY, 40, 40);
     }
     
     // - Nb messages 💬
     crtX += 55;
-    if (stats.msg >= 10000) {
-        // TODO bordure speciale (car dernier palier) genre a la steam et ses succes rares
-        const nbMsg = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/nbMsg_10000.png'));
-        ctx.drawImage(nbMsg, crtX, crtY, 40, 40);
-    } else if (stats.msg >= 2500) {
-        const nbMsg = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/nbMsg_2500.png'));
-        ctx.drawImage(nbMsg, crtX, crtY, 40, 40);
-    } else if (stats.msg >= 500) {
-        const nbMsg = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/nbMsg_500.png'));
-        ctx.drawImage(nbMsg, crtX, crtY, 40, 40);
-    } else if (stats.msg >= 50) {
-        const nbMsg = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/nbMsg.png'));
-        ctx.drawImage(nbMsg, crtX, crtY, 40, 40);
+    if (stats.msg >= 50) {
+        let filename = 'nbMsg';
+        let colorFill = 'grey';
+
+        if (stats.msg >= 10000) {
+            filename += '_plat';
+            colorFill = '#1CD6CE'; // ~cyan
+        } else if (stats.msg >= 2500) {
+            filename += '_gold';
+            colorFill = '#FAC213';
+        } else if (stats.msg >= 500) {
+            filename += '_silver';
+            colorFill = 'silver';
+        }
+
+        // ombre
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = colorFill;
+        roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
+        
+        // fond
+        ctx.globalAlpha = 1;
+        roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
+
+        const dmdAide = await Canvas.loadImage(path.join(__dirname, `../../data/img/achievements/${filename}.png`));
+        ctx.drawImage(dmdAide, crtX + 5, crtY, 40, 40);
     }
 
     // - Event communautaires
