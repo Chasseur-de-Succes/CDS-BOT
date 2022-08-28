@@ -1,5 +1,6 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
 const { MONEY } = require("../../config");
+const succes = require('../../data/achievements.json');
 const { VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
 const { STEAM, ASTATS, CME, SH } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
@@ -8,13 +9,13 @@ const { getXpNeededForNextLevel } = require("../../util/xp");
 
 const Canvas = require('canvas');
 const path = require('path');
-const { cp } = require("fs");
-const { Game, User } = require("../../models");
+const { Game } = require("../../models");
 
 //Canvas.registerFont('x.ttf', { family: ' name '});
 
 module.exports.run = async (interaction) => {
     const id = interaction.options.get('user')?.value;
+    let typeSucces = interaction.options.get('succes')?.value;
     const client = interaction.client;
     let member = interaction.member;
     let user = interaction.user;
@@ -37,11 +38,8 @@ module.exports.run = async (interaction) => {
 
     await interaction.deferReply();
 
-    // TODO stats groupe, boutique
     // const msg = `> **Profil** de ${member.user.tag}`;
     const colorEmbed = (dbUser.banned || dbUser.blacklisted) ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
-    const banned = dbUser.banned ? "[banni] " : "";
-    const blacklisted = dbUser.blacklisted ? "[blacklisté]" : "";
 
     const pseudo = member.user.username;
     const money = dbUser.money;
@@ -49,16 +47,32 @@ module.exports.run = async (interaction) => {
     const xp = dbUser.experience;
     const nextXpNeeded = getXpNeededForNextLevel(dbUser.level);
 
-    const embed = new MessageEmbed()
-        .setColor(colorEmbed)
-        .setTitle(`${pseudo} ${banned}${blacklisted}`)
-        .setThumbnail(member.user.displayAvatarURL({dynamic : true, size: 4096}))
-        .addFields(
-            {name: `:flame: Niveau`, value: `${level} (XP: ${xp})`},
-            {name: `:moneybag: Money`, value: `${money} ${MONEY}`},
-            {name: `${STEAM} Compte Steam`, value: `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})\nSteamID64: ${dbUser.steamId}`, inline: true},
-            {name: `Site tracking succès`, value: `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId}) | [Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`, inline: true},
-        );
+    if (typeSucces) {
+        const userStat = dbUser.stats;
+        const infoSucces = succes[typeSucces];
+        const nbStat = getJSONValue(userStat, infoSucces.db, '')
+        let desc = ``;
+        for (let x in infoSucces.succes) {
+            const achieved = nbStat >= parseInt(x);
+            
+            if (achieved)
+                desc += `✅ `
+            else
+                desc += `⬛ `
+            desc += `**${infoSucces.succes[x].title}**\n`
+    
+            if (achieved)
+                desc += `> ${infoSucces.succes[x].desc}\n`
+            else
+                desc += `> ||${infoSucces.succes[x].desc}||\n`
+        }
+        const embed = new MessageEmbed()
+            .setColor(colorEmbed)
+            .setTitle(infoSucces.title)
+            .setDescription(`${desc}`);
+    
+        return await interaction.editReply({ embeds: [embed] });
+    }
 
     const urlSteam = `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})`;
     const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
@@ -339,10 +353,10 @@ module.exports.run = async (interaction) => {
         let filename = 'shop';
         let colorFill = 'grey';
 
-        if (stats.shop?.sold >= 100) {
+        if (stats.shop?.sold >= 50) {
             filename += '_plat';
             colorFill = '#1CD6CE'; // ~cyan
-        } else if (stats.shop?.sold >= 50) {
+        } else if (stats.shop?.sold >= 25) {
             filename += '_gold';
             colorFill = '#FAC213';
         } else if (stats.shop?.sold >= 10) {
@@ -479,5 +493,19 @@ function getByValue(map, searchValue) {
       ctx.stroke();
     }
   }
+
+  // recup la valeur d'un chemin dans un JSON
+  // ex: path = 'img.heros' dans { img: {heros: 1} } retourne '1'
+  var getJSONValue = function (model, path, def) {
+    path = path || '';
+    model = model || {};
+    def = typeof def === 'undefined' ? '' : def;
+    var parts = path.split('.');
+    if (parts.length > 1 && typeof model[parts[0]] === 'object') {
+      return getJSONValue(model[parts[0]], parts.splice(1).join('.'), def);
+    } else {
+      return model[parts[0]] || def;
+    }
+  } 
 
 module.exports.help = MESSAGES.COMMANDS.MISC.PROFILE;

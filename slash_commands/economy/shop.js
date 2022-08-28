@@ -53,6 +53,7 @@ const list = async (interaction, options, showGame = false) => {
         infos.soustitre = 'TUNNING';
         infos.type = 1;
         // TODO définir fonction à appeler lorsqu'on achete ? similaire à Job
+        // TODO pas pareil que game
     }
     
     const max = infos.items?.length ?? 0;

@@ -1,0 +1,112 @@
+{
+    "heros": {
+        "title": "🏆 Hall des héros 🏆",
+        "db": "img.heros",
+        "succes": {
+            "1": {
+                "title": "Et de 1 !",
+                "desc": "Mettre **1** 100% dans le hall des héros"
+            },
+            "10": {
+                "title": "Pas mal !",
+                "desc": "Mettre **10** 100% dans le hall des héros"
+            },
+            "50": {
+                "title": "On ne l'arrête plus",
+                "desc": "Mettre **50** 100% dans le hall des héros"
+            },
+            "100": {
+                "title": "100 100%, la classe",
+                "desc": "Mettre **100** 100% dans le hall des héros"
+            }
+        }
+    },
+    "zeros": {
+        "title": "💩 Hall des zéros 💩",
+        "db": "img.zeros",
+        "succes": {
+            "1": {
+                "title": "Tu ne te sens pas sale ?",
+                "desc": "Mettre **1** 100% dans le hall des zéros"
+            },
+            "10": {
+                "title": "Pense à bien essuyer",
+                "desc": "Mettre **10** 100% dans le hall des zéros"
+            },
+            "50": {
+                "title": "Je suis à deux doigts de vomir",
+                "desc": "Mettre **50** 100% dans le hall des zéros"
+            },
+            "250": {
+                "title": "La honte n'est pas un problème chez toi",
+                "desc": "Mettre **250** 100% dans le hall des zéros"
+            }
+        }
+    },
+    "dmd-aide": {
+        "title": "🤝 Participations aux groupes 🤝",
+        "db": "group.ended",
+        "succes": {
+            "1": {
+                "title": "Good job",
+                "desc": "Participer à **1** event de groupe"
+            },
+            "25": {
+                "title": "Tu es quelqu'un de sympa en fait",
+                "desc": "Participer à **25** events de groupe"
+            },
+            "50": {
+                "title": "Je savais qu'on pouvait compter sur toi",
+                "desc": "Participer à **50** events de groupe"
+            },
+            "100": {
+                "title": "Chasseur altruiste",
+                "desc": "Participer à **100** events de groupe"
+            }
+        }
+    },
+    "shop": {
+        "title": "💰 Ventes du shop 💰",
+        "db": "shop.sold",
+        "succes": {
+            "1": {
+                "title": "Bienvenue chez les rats",
+                "desc": "Vendre **1** jeu via le shop"
+            },
+            "10": {
+                "title": "On aime le pognon ?",
+                "desc": "Vendre **10** jeu via le shop"
+            },
+            "25": {
+                "title": "Arrondir la fin du mois",
+                "desc": "Vendre **25** jeu via le shop"
+            },
+            "50": {
+                "title": "Picsou",
+                "desc": "Vendre **50** jeu via le shop"
+            }
+        }
+    },
+    "nbMsg": {
+        "title": "💬 Nombre de messages 💬",
+        "db": "msg",
+        "succes": {
+            "50": {
+                "title": "Sois pas timide",
+                "desc": "Écrire **50** messages"
+            },
+            "500": {
+                "title": "C'est passionnant",
+                "desc": "Écrire **500** messages"
+            },
+            "2500": {
+                "title": "Pipelette",
+                "desc": "Écrire **2 500** messages"
+            },
+            "10000": {
+                "title": "Il va faire tout noir",
+                "desc": "Écrire **10 000** messages"
+            }
+        }
+    }
+}

@@ -42,6 +42,13 @@ const MESSAGES = {
                         description: 'Affiche le profil d\'un utilisateur',
                         required: false,
                     },
+                    { 
+                        name: 'succes',
+                        type: 'STRING',
+                        description: 'Affiche les succès du profile',
+                        required: false,
+                        autocomplete: true,
+                    },
                 ]
             },
             SERVERINFO: {
