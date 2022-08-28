@@ -108,5 +108,15 @@
                 "desc": "Écrire **10 000** messages"
             }
         }
+    },
+    "nbPoints": {
+        "title": "🪙 Nombre de points CDS 🪙",
+        "db": "money",
+        "succes": {
+            "1000000": {
+                "title": "Qu'est ce que je vais faire de tous ces points",
+                "desc": "Avoir **1M** de Points CDS"
+            }
+        }
     }
 }

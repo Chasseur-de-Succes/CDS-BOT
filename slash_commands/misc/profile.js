@@ -50,7 +50,8 @@ module.exports.run = async (interaction) => {
     if (typeSucces) {
         const userStat = dbUser.stats;
         const infoSucces = succes[typeSucces];
-        const nbStat = getJSONValue(userStat, infoSucces.db, '')
+        // on test si 'money' car non présent dans stat.
+        const nbStat = typeSucces === 'money' ? money : getJSONValue(userStat, infoSucces.db, '')
         let desc = ``;
         for (let x in infoSucces.succes) {
             const achieved = nbStat >= parseInt(x);
