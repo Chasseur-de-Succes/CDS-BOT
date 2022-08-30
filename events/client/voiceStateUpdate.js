@@ -1,3 +1,4 @@
+const { loggers } = require("winston");
 const { GuildConfig } = require("../../models");
 
 module.exports = async (client, oldState, newState) => {
@@ -42,13 +43,19 @@ module.exports = async (client, oldState, newState) => {
                 const idxVoiceSaved = config.voice_channels.indexOf(oldState.channelId.toString());
                 
                 if (idxVoiceSaved >= 0) {
-                    console.log('.. voice channel trouvé et vide ! on delete');
-                    // -- le supprime dans config
-                    config.voice_channels.splice(idxVoiceSaved, 1);
-                    await config.save();
-    
-                    // -- le supprime
-                    await oldState.channel.delete();
+                    logger.info('.. voice channel trouvé et vide ! on delete');
+                    try {
+                        // -- le supprime dans config
+                        config.voice_channels.splice(idxVoiceSaved, 1);
+                        await config.save();
+                        
+                        // -- le supprime
+                        await oldState.channel.delete();
+                    } catch (err) {
+                        logger.warn('.. pb avec la suppression du channel vocal !');
+                        // -- le supprime en cas d'erreur
+                        await oldState.channel.delete();
+                    }
                 }
             }
         }
