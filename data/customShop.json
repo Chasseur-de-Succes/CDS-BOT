@@ -1,0 +1,32 @@
+{
+    "text": {
+        "title": "Couleur texte"
+    },
+    "border": {
+        "title": "Bordure",
+        "style": {
+            "simple": 0,
+            "double": 0,
+            "dashed": 0,
+            "dotted": 0
+        }
+    },
+    "border-color": {
+        "title": "Couleur bordure"
+    },
+    "border-avatar": {
+        "title": "Bordure Avatar",
+        "style": {
+            "simple": 0,
+            "double": 0,
+            "dashed": 0,
+            "dotted": 0
+        }
+    },
+    "border-color-avatar": {
+        "title": "Couleur bordure avatar"
+    },
+    "background": {
+        "title": "Fond"
+    }
+}

@@ -18,8 +18,7 @@ module.exports.run = async (interaction) => {
     } else if (subcommand === 'jeux') {
         list(interaction, interaction.options, true);
     } else if (subcommand === 'custom') {
-        list(interaction, interaction.options, false);
-        // TODO EN CONSTRUCTION
+        listCustom(interaction, interaction.options);
     } else if (subcommand === 'sell') {
         sell(interaction, interaction.options)
     }
@@ -170,6 +169,27 @@ const list = async (interaction, options, showGame = false) => {
             components: []
         })
     });
+}
+
+function listCustom(interaction, options) {
+    let nbPage = options.get('page') ? options.get('page').value - 1 : 0;
+    const client = interaction.client;
+    const guild = interaction.guild;
+    let author = interaction.member;
+
+    // "Bot réfléchit.."
+    await interaction.deferReply();
+
+    let userDB = await client.getUser(author);
+    if (!userDB)
+        return interaction.editReply({ embeds: [createError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`/register\``)] });
+
+    let infos = {};
+    infos.money = userDB.money;
+    let rows = [];
+
+    // TODO Select : ["Couleur texte", "Bordure", "Couleur Bordure", "Bordure avatar", "Couleur Bordure avatar", "Fond"]
+    // => couleur par defaut (X points), couleur au choix (HEX, XX points)
 }
 
 function createShop(guild, infos, currentIndex = 0) {
