@@ -165,7 +165,7 @@ const schedule = async (interaction, options) => {
         
     // si l'author n'est pas capitaine 
     if (!grp.captain._id.equals(authorDB._id))
-        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`)] });
     
     // test si date bon format
     const allowedDateFormat = ['DD/MM/YY HH:mm', 'DD/MM/YYYY HH:mm'];
