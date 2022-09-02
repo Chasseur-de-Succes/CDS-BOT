@@ -350,6 +350,22 @@ const MESSAGES = {
                         ]
                     }
                 ],
+            },
+            FETCHGAME: {
+                name: "fetchgame",
+                aliases: [],
+                category: "cds",
+                cooldown: 0,
+                description: "Ajout ou maj d'un jeu dans la base de données",
+                usage: "help",
+                args: [
+                    { 
+                        name: 'appid',
+                        type: 'INTEGER',
+                        description: 'App id du jeu Steam',
+                        required: true,
+                    }
+                ]
             }
         },
         ECONOMY: {
