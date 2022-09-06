@@ -616,6 +616,12 @@ const CHANNEL = [
     }, { 
         name: 'Salon de logs (admin)',
         value: 'logs' // channel de logs (discord: join, leave, modification surnom,...)
+    }, {
+        name: 'Catégorie des discussions de groupe',
+        value: 'cat_discussion_groupe'
+    }, {
+        name: 'Catégorie des archives des discussions de groupe',
+        value: 'cat_archive_discussion_groupe'
     },
 ]
 const SALON = {
@@ -624,7 +630,9 @@ const SALON = {
     LIST_GROUP: 'list_group',
     HALL_HEROS: 'hall_heros',
     HALL_ZEROS: 'hall_zeros',
-    LOGS: 'logs'
+    LOGS: 'logs',
+    CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
+    CAT_ARCHIVE_DISCUSSION_GROUPE: "cat_archive_discussion_groupe"
 }
 
 exports.MESSAGES = MESSAGES;
