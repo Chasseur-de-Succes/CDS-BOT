@@ -12,7 +12,9 @@ const guildConfigSchema = mongoose.Schema({
         list_group: String,
         hall_heros: String,
         hall_zeros: String,
-        logs: String
+        logs: String,
+        cat_discussion_groupe: String,
+        cat_archive_discussion_groupe: String
     }
 })
 

@@ -27,6 +27,7 @@ const grpSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    channelId : String,
 })
 
 module.exports = mongoose.model("Group", grpSchema);

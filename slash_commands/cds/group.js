@@ -1,10 +1,11 @@
-const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions } = require("discord.js");
-const { MESSAGES } = require("../../util/constants");
+const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions, Message, CategoryChannel } = require("discord.js");
+const { MESSAGES, SALON } = require("../../util/constants");
 const { createError, createLogs } = require("../../util/envoiMsg");
 const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
+const { GuildConfig } = require('../../models');
 const moment = require('moment');
 
 module.exports.run = async (interaction) => {
@@ -30,6 +31,7 @@ const create = async (interaction, options) => {
     const description = options.get('description')?.value;
     const client = interaction.client;
     const captain = interaction.member;
+    const guildId = interaction.guildId;
     
     // test si captain est register
     const captainDB = await client.getUser(captain);
@@ -121,6 +123,37 @@ const create = async (interaction, options) => {
     // on recupere le custom id "APPID_GAME"
     const game = await client.findGameByAppid(gameId);
 
+    const idDiscussionGroupe = await client.getGuildChannel(guildId, SALON.CAT_DISCUSSION_GROUPE);
+    let cat = await client.channels.cache.get(idDiscussionGroupe);
+    if(!cat) {
+        logger.error("Catégorie des discussions de groupe n'existe pas ! Création en cours...");
+        const nameCat = "Discussions groupes";
+        cat = await interaction.guild.channels.create(nameCat, {
+            type: "GUILD_CATEGORY"
+        });
+        await GuildConfig.updateOne(
+            { guildId: guildId },
+            { $set: { ["channels." + SALON.CAT_DISCUSSION_GROUPE] : cat.id } }
+        );
+        logger.info(`Catégorie "${nameCat}" créé avec succès`);
+    }
+
+    // création channel de discussion
+    const channel = await interaction.guild.channels.create(nameGrp, {
+            type: "GUILD_TEXt",
+            parent: cat,
+            permissionOverwrites: [
+                {
+                    id: interaction.guild.roles.everyone.id,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: captain.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+                },
+            ],
+    });
+
     // creation groupe
     let newGrp = {
         name: nameGrp,
@@ -128,7 +161,8 @@ const create = async (interaction, options) => {
         nbMax: nbMaxMember,
         captain: captainDB._id,
         members: [captainDB._id],
-        game: game
+        game: game,
+        channelId: channel.id
     };
     createGroup(client, interaction.guildId, newGrp);
 
@@ -213,6 +247,10 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     
     dissolveGroup(client, interaction.guildId, grp)
     
+    // suppression channel discussion
+    const channel = interaction.guild.channels.cache.get(grp.channelId);
+    channel.delete("Groupe supprimé");
+
     let mentionsUsers = '';
     for (const member of grp.members)
         mentionsUsers += `<@${member.userId}> `
@@ -270,6 +308,8 @@ const end = async (interaction, options) => {
     const grpName = options.get('nom')?.value;
     const client = interaction.client;
     const author = interaction.member;
+    const guild = interaction.guild;
+    const guildId = interaction.guildId;
 
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -286,6 +326,32 @@ const end = async (interaction, options) => {
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grp.name} !`)] });
 
     await client.update(grp, { validated: true });
+
+    // archivage du channel de discussion
+    const idArchDiscussionGroupe = await client.getGuildChannel(guildId, SALON.CAT_ARCHIVE_DISCUSSION_GROUPE);
+    let catArchive = await interaction.guild.channels.cache.get(idArchDiscussionGroupe);
+    if(!catArchive) {
+        logger.error("Catégorie archives des discussions de groupe n'existe pas ! Création en cours...");
+        const nameCat = "Archives discussions groupes";
+        catArchive = await interaction.guild.channels.create(nameCat, {
+            type: "GUILD_CATEGORY"
+        });
+        await GuildConfig.updateOne(
+            { guildId: guildId },
+            { $set: { ["channels." + SALON.CAT_ARCHIVE_DISCUSSION_GROUPE] : catArchive.id } }
+        );
+        logger.info(`Catégorie "${nameCat}" créé avec succès`);
+    }
+    const channel = await guild.channels.cache.get(grp.channelId);
+    channel.setParent(catArchive);
+    channel.permissionOverwrites.set([{
+        id: guild.roles.everyone.id,
+        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
+    }, {
+        id: author.id,
+        allow: ['VIEW_CHANNEL'],
+        deny: ['SEND_MESSAGES']
+    }]);
 
     let mentionsUsers = '';
     for (const member of grp.members)
