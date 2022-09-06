@@ -30,9 +30,12 @@ const list = async (interaction, options, showGame = false) => {
     const guild = interaction.guild;
     let author = interaction.member;
 
+    // "Bot réfléchit.."
+    await interaction.deferReply();
+
     let userDB = await client.getUser(author);
     if (!userDB)
-        return interaction.reply({ embeds: [createError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`/register\``)] });
+        return interaction.editReply({ embeds: [createError(`Tu n'as pas de compte ! Merci de t'enregistrer avec la commande : \`/register\``)] });
 
     let infos = {};
     infos.money = userDB.money;
@@ -54,11 +57,11 @@ const list = async (interaction, options, showGame = false) => {
     const max = infos.items?.length ?? 0;
     // si 0 item dispo
     if (showGame && max === 0) 
-        return interaction.reply({ embeds: [createError(`Désolé, aucun item n'est actuellement en vente !`)] });
+        return interaction.editReply({ embeds: [createError(`Désolé, aucun item n'est actuellement en vente !`)] });
         
     // teste si index nbPages existe
     if (nbPage < 0 || nbPage >= max)
-        return interaction.reply({ embeds: [createError(`Oh là, il n'y a pas autant de pages que ça !`)] });
+        return interaction.editReply({ embeds: [createError(`Oh là, il n'y a pas autant de pages que ça !`)] });
     let currentIndex = nbPage;
 
     // row pagination
@@ -92,7 +95,7 @@ const list = async (interaction, options, showGame = false) => {
     // on envoie créer et envoie le message du shop
     // TODO msg différent pour jeux / custom ?
     let shopEmbed = createShop(guild, infos, nbPage);
-    let msgShopEmbed = await interaction.reply({embeds: [shopEmbed], components: rows, fetchReply: true});
+    let msgShopEmbed = await interaction.editReply({embeds: [shopEmbed], components: rows, fetchReply: true});
     
     // Collect button interactions
     const collector = msgShopEmbed.createMessageComponentCollector({
@@ -522,9 +525,15 @@ async function sell(interaction, options) {
     if (!userDB)
         return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
+    if (!parseInt(gameId))
+        return interaction.reply({ embeds: [createError(`Jeu non trouvé ou donne trop de résultats !`)] });
+
     if (montant < 0)
         return interaction.reply({ embeds: [createError(`Montant négatif !`)] });
     // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
+
+    // "Bot réfléchit.."
+    await interaction.deferReply();
 
     // jeu déjà recherché via autocomplete
 
@@ -544,8 +553,8 @@ async function sell(interaction, options) {
         .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
         ${game.name} à ${montant} ${MONEY}`)
 
-    let msgEmbed = await interaction.reply({embeds: [embed] });
-    //msgEmbed.edit({ embeds: [embed], components: [] })
+    // edit car deferReply
+    interaction.editReply({embeds: [embed] });
 
     // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
     createLogs(client, interaction.guildId, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);

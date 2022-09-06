@@ -36,7 +36,7 @@ module.exports.run = async (interaction) => {
         montant -= money;
         money = 0;
     }
-    const msgCustom = `${author} ${(montant > 0 ? `à donné` : `à retiré`)} **${montant}** ${MONEY} à ${member.user}\nSon argent est désormais de : **${money}** ${MONEY}`;
+    const msgCustom = `${author} ${(montant > 0 ? `a donné` : `a retiré`)} **${Math.abs(montant)}** ${MONEY} à ${member.user}\nSon argent est désormais de : **${money}** ${MONEY}`;
 
     await client.update(dbUser, { money: money });
     logger.warn(`${user.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name} ${montant}`);

@@ -264,9 +264,9 @@ const MESSAGES = {
                             }
                         ]
                     }, {
-                        name: 'schedule',
+                        name: 'session',
                         type: 'SUB_COMMAND',
-                        description: 'Planifie une date pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant',
+                        description: 'Ajoute/supprime une session pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant',
                         options: [
                             { 
                                 name: 'nom',
@@ -330,8 +330,42 @@ const MESSAGES = {
                                 autocomplete: true
                             }
                         ]
+                    }, {
+                        name: 'kick',
+                        type: 'SUB_COMMAND',
+                        description: 'Kick un membre du groupe (👑 only)',
+                        options: [
+                            { 
+                                name: 'nom',
+                                type: 'STRING',
+                                description: 'Nom du groupe',
+                                required: true,
+                                autocomplete: true
+                            }, { 
+                                name: 'membre',
+                                type: 'USER',
+                                description: 'Membre du groupe à kick',
+                                required: true,
+                            }
+                        ]
                     }
                 ],
+            },
+            FETCHGAME: {
+                name: "fetchgame",
+                aliases: [],
+                category: "cds",
+                cooldown: 0,
+                description: "Ajout ou maj d'un jeu dans la base de données",
+                usage: "help",
+                args: [
+                    { 
+                        name: 'appid',
+                        type: 'INTEGER',
+                        description: 'App id du jeu Steam',
+                        required: true,
+                    }
+                ]
             }
         },
         ECONOMY: {
@@ -551,6 +585,9 @@ const BAREME_XP = {
     EVENT_END: 25,
 }
 const THREESOLD_LVL = 100;
+const BAREME_MONEY = {
+    MSG: 5
+}
 
 /* const CHANNEL = {
     WELCOME: 'Salon de bienvenue', // channel de bienvenue, affiche les nouveaux arrivants
@@ -602,6 +639,7 @@ exports.MESSAGES = MESSAGES;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
 exports.BAREME_XP = BAREME_XP;
+exports.BAREME_MONEY = BAREME_MONEY;
 exports.THREESOLD_LVL = THREESOLD_LVL;
 exports.delay = delay;
 exports.crtHour = crtHour;

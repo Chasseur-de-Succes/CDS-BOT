@@ -71,6 +71,7 @@ module.exports.run = async (interaction) => {
             .setColor(GREEN)
             .setTitle(`${CHECK_MARK} Vous êtes désormais inscrit`)
 
+        confirm.stop();
         return interaction.editReply({ embeds: [embed] })
     });
 

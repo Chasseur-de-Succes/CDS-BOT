@@ -1,9 +1,8 @@
 const { Collection } = require('discord.js');
 const { PREFIX } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
-const { User, MsgHallHeros } = require('../../models/index.js');
-const { loadCollectorHall } = require('../../util/msg/stats.js');
-const { BAREME_XP, SALON } = require("../../util/constants");
+const { User } = require('../../models/index.js');
+const { BAREME_XP, BAREME_MONEY, SALON } = require("../../util/constants");
 const { addXp } = require('../../util/xp.js');
 
 module.exports = async (client, msg) => {
@@ -13,6 +12,7 @@ module.exports = async (client, msg) => {
     // }
 
     /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
+    /* et money par jour */
     if (!msg.author.bot && !msg.content.startsWith(PREFIX)) {
         const timeLeft = cooldownTimeLeft('messages', 30, msg.author.id);
         if (!timeLeft) {
@@ -22,7 +22,9 @@ module.exports = async (client, msg) => {
                 { $inc: { "stats.msg" : 1 } },
             );
 
-            addXp(msg.author, BAREME_XP.MSG);
+            await addXp(msg.author, BAREME_XP.MSG);
+
+            await addMoney(client, msg.author, BAREME_MONEY.MSG);
         }
 
         const idHeros = await client.getGuildChannel(msg.guildId, SALON.HALL_HEROS);
@@ -51,16 +53,15 @@ module.exports = async (client, msg) => {
 
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
-                    const initReactions = new Map([['🏆', 0], ['💯', 0]])
-                    const msgHeros = await client.createMsgHallHeros({
-                        author: userDB,
-                        msgId: msg.id,
-                        guildId: msg.guildId,
-                        reactions: initReactions
-                    });
-
-                    // creer collector
-                    loadCollectorHall(msg, msgHeros);
+                    if (userDB) {
+                        const initReactions = new Map([['🏆', 0], ['💯', 0]])
+                        await client.createMsgHallHeros({
+                            author: userDB,
+                            msgId: msg.id,
+                            guildId: msg.guildId,
+                            reactions: initReactions
+                        });
+                    }
                 }
                     
                 // si hall zeros
@@ -76,16 +77,15 @@ module.exports = async (client, msg) => {
 
                     // save msg dans base
                     const userDB = await client.getUser(msg.author);
-                    const initReactions = new Map([['💩', 0]]);
-                    const msgZeros = await client.createMsgHallZeros({
-                        author: userDB,
-                        msgId: msg.id,
-                        guildId: msg.guildId,
-                        reactions: initReactions
-                    });
-
-                    // creer collector
-                    loadCollectorHall(msg, msgZeros);
+                    if (userDB) {
+                        const initReactions = new Map([['💩', 0]]);
+                        await client.createMsgHallZeros({
+                            author: userDB,
+                            msgId: msg.id,
+                            guildId: msg.guildId,
+                            reactions: initReactions
+                        });
+                    }
                 }
             }
         }
@@ -116,7 +116,14 @@ module.exports = async (client, msg) => {
         }
     }
 
-    command?.run(client, msg, args);
+    try {
+        await command?.run(client, msg, args).catch(e => {
+            throw(e);
+        });
+    } catch (error) {
+        logger.error(`Erreur lors exécution cmd '${commandName}' : ${error.stack}`);
+        msg.channel.send('Une erreur est survenue lors de l\'exécution de la commande !');
+    }
 }
 
 const cooldowns = new Collection();
@@ -144,3 +151,20 @@ const cooldownTimeLeft = (type, seconds, userID) => {
     setTimeout(() => timestamps.delete(userID), cooldownAmount);
     return 0;
 };
+
+const addMoney = async (client, user, money) => {
+    const userDB = await client.getUser(user);
+
+    // limit argent gagné par 50 TODO constant ?
+    if (userDB?.moneyLimit < 50) {
+        // si pas register pas grave, ca ne passera pas
+        await User.updateOne(
+            { userId: user.id },
+            { $inc: { moneyLimit : money } }
+        );
+        await User.updateOne(
+            { userId: user.id },
+            { $inc: { money : money } }
+        );
+    }
+}

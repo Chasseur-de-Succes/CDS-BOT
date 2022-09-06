@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel, MsgHallHeros, MsgHallZeros, MsgDmdeAide } = require("../models/index");
-const { CHANNEL } = require("./constants");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
@@ -381,6 +380,11 @@ module.exports = client => {
             if (q.seller) {
                 agg.push({ $match: { 'seller.userId': RegExp(q.seller, 'i') } })
             }
+            
+            // limit résultat
+            if (q.limit) {
+                agg.push({ '$limit':  q.limit })
+            }
 
             const data = await GameItem.aggregate(agg);
             if (data) return data;
@@ -437,6 +441,7 @@ module.exports = client => {
                 }
             }
         ];
+
         const data = await GameItem.aggregate(agg);
         if (data) return data;
         else return;
@@ -481,6 +486,6 @@ module.exports = client => {
     // TODO a deplacer
     client.getGuildChannel = async (guildId, salon) => {
         const guildDB = await client.findGuildById(guildId);
-        return guildDB.channels[salon];
+        return guildDB?.channels[salon];
     }
 }

@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema({
     },
     money: {
         "type": Number,
-        "default": 0
+        "default": 150
     },
     banned: {
         "type": Boolean,
@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema({
     blacklisted: {
         "type": Boolean,
         "default": false
+    },
+    moneyLimit: {
+        type: Number,
+        default: 0
     },
     lastBuy: Date,
     stats: {

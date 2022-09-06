@@ -1,10 +1,9 @@
 const { Collection } = require('discord.js');
 const { readdirSync } = require('fs');
-const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide } = require('../models');
-const { loadJobs, searchNewGamesJob } = require('./batch/batch');
+const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
+const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
 const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
-const { loadCollectorHall } = require('./msg/stats');
 const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
 
@@ -90,7 +89,9 @@ const loadEvents = (client, dir = "./events/") => {
     client.on('interactionCreate', async itr => {
         if (!itr.isAutocomplete()) return;
         // TODO mettre dans fichier js
-
+        // TODO si nom jeu trop grand, ou form trop grand (lim à 100 car)
+        // TODO limiter les suggestions à 25
+        
         if (itr.commandName === 'adminshop') {
             // cmd adminshop delete, autocomplete sur nom jeu
             const focusedValue = itr.options.getFocused(true);
@@ -98,48 +99,100 @@ const loadEvents = (client, dir = "./events/") => {
 
             let filtered = [];
             
-            if (focusedValue.name === 'jeu')
-                filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true });
+            if (focusedValue.name === 'jeu') {
+                if (focusedValue.value)
+                    filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true, limit: 25 });
+                else
+                    filtered = await client.findGameItemShopBy({ seller: vendeurId, notSold: true, limit: 25 });
+            }
 
             await itr.respond(
-                filtered.map(choice => ({ name: choice.game.name, value: choice._id })),
+                // on ne prend que les 25 1er  (au cas où)
+                filtered.slice(0, 25).map(choice => ({ name: choice.game.name, value: choice._id })),
             );
         } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'sell') {
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
+            let exact = [];
 
             // cmd group create, autocomplete sur nom jeu
             if (focusedValue.name === 'jeu') {
-                filtered = await client.findGames({
-                    name: new RegExp(focusedValue.value, "i"),
+                // recherche nom exacte
+                exact = await client.findGames({
+                    name: focusedValue.value,
                 });
+
+                // recup limit de 25 jeux, correspondant a la value rentré
+                filtered = await Game.aggregate([{
+                    // select GameItem
+                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
+                }, {
+                    '$limit': 25
+                }])
+
+                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                // limit au 25 premiers
                 // si nom jeu dépasse limite imposé par Discord (100 char)
                 // + on prepare le résultat en tableau de {name: '', value: ''}
-                filtered = filtered.map(element => ({
-                    name: element.name.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
-                    value: "" + element.appid
-                }));
+                filtered = filtered
+                    .filter(jeu => jeu.name && jeu.name !== exact[0]?.name)
+                    .slice(0, 25)
+                    .map(element => ({
+                        name: element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
+                        value: "" + element.appid
+                    }));
             }
 
-            if (filtered.length <= 25) {
-                await itr.respond(
-                    filtered.map(choice => ({ name: choice.name, value: choice.value })),
-                );
-            } else {
-                console.log('..trop de jeux ..');
-                await itr.respond([])
+            // si nom exact trouvé
+            if (exact.length === 1) {
+                const jeuExact = exact[0]
+                // on récupère les 24 premiers
+                filtered = filtered.slice(0, 24);
+                // et on ajoute en 1er l'exact
+                filtered.unshift({ name: jeuExact.name, value: "" + jeuExact.appid })
             }
+
+            await itr.respond(
+                filtered.map(choice => ({ name: choice.name, value: choice.value })),
+            );
         } else if (itr.commandName === 'group') {
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
+            let exact = [];
             
             // cmd group create, autocomplete sur nom jeu multi/coop avec succès
             if (focusedValue.name === 'jeu') {
-                filtered = await client.findGames({
-                    name: new RegExp(focusedValue.value, "i"), 
+                // recherche nom exacte
+                exact = await client.findGames({
+                    name: focusedValue.value,
                     hasAchievements: true,
                     $or: [{isMulti: true}, {isCoop: true}],
                 });
+
+                // recup limit de 25 jeux, correspondant a la value rentré
+                filtered = await Game.aggregate([{
+                    // select GameItem
+                    '$match': {
+                        '$and': [{
+                            'name': new RegExp(focusedValue.value, "i")
+                        }, {
+                            'hasAchievements': true
+                        }]
+                    }
+                }, {
+                    '$match': {
+                        '$or': [{
+                            'isMulti': true
+                        }, {
+                            'isCoop': true
+                        }]
+                    }
+                }, {
+                    '$limit': 25
+                }])
+
+                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                filtered = filtered.filter(jeu => jeu.name && jeu.name !== exact[0]?.name);
             }
 
             // autocomplete sur nom groupe
@@ -153,13 +206,23 @@ const loadEvents = (client, dir = "./events/") => {
                 })
             }
 
-            if (filtered.length <= 25) {
-                await itr.respond(
-                    filtered.map(choice => ({ name: choice.name, value: choice.name })),
-                );
-            } else {
-                await itr.respond([])
+            // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
+            filtered = filtered
+                .slice(0, 25)
+                .map(element => element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name);
+
+            // si nom exact trouvé
+            if (exact.length === 1) {
+                const jeuExact = exact[0]
+                // on récupère les 24 premiers
+                filtered = filtered.slice(0, 24);
+                // et on ajoute en 1er l'exact
+                filtered.unshift(jeuExact.name)
             }
+
+            await itr.respond(
+                filtered.map(choice => ({ name: choice, value: choice })),
+            );
         } else if (itr.commandName === 'salon') {
             // cmd config, autocomplete sur nom param
             const focusedValue = itr.options.getFocused(true);
@@ -179,6 +242,10 @@ const loadBatch = async (client) => {
     loadJobs(client);
 
     searchNewGamesJob(client);
+
+    resetMoneyLimit();
+
+    loadJobHelper(client);
 }
 
 // Charge les réactions des messages des groupes
@@ -222,13 +289,7 @@ const loadReactionMsg = async (client) => {
             // recup msg sur bon channel
             const channelHall = msgDB.msgType === 'MsgHallHeros' ? idHeros : idZeros;
             client.channels.cache.get(channelHall).messages.fetch(msgDB.msgId)
-            .then(msg => {
-                // on charge le collecteur
-                // le remove n'est pas pris en compte de suite, je sais pas pk
-                // exemple, msg a deja des reactions, le serveur reset, remove reaction = rine se passe
-                // pas grave car on save le nb d'emoji a chaque fois
-                loadCollectorHall(msg, msgDB);
-            }).catch(async err => {
+            .catch(async err => {
                 // on supprime les msg qui n'existent plus
                 await Msg.deleteOne({ _id: msgDB._id });
             });
@@ -362,6 +423,33 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     })
 }
 
+const loadVocalCreator = async (client) => {
+    
+    // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
+    client.guilds.cache.forEach(async guild => {
+        // si le chan vocal n'existe pas, on le créé + save
+        let config = await GuildConfig.findOne({ guildId: guild.id })
+
+        if (!config.channels || !config.channels['create_vocal']) {
+            // créer un voice channel
+            // TODO parent ?
+            const voiceChannel = await guild.channels.create('🔧 Créer un salon vocal', {
+                type: "GUILD_VOICE"
+            });
+
+            await GuildConfig.updateOne(
+                { guildId: guild.id },
+                { $set: { ["channels.create_vocal"] : voiceChannel.id } }
+            );
+
+            logger.warn(`.. salon vocal 'créateur' créé`)
+        } else {
+            // TODO test si le salon existe bien
+            // s'il n'existe pas, on supprime la valeur dans la bdd
+        }
+    });
+}
+
 module.exports = {
     loadCommands,
     loadEvents,
@@ -369,5 +457,6 @@ module.exports = {
     loadReactionGroup,
     loadSlashCommands,
     loadRoleGiver,
-    loadReactionMsg
+    loadReactionMsg,
+    loadVocalCreator
 }
