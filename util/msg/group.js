@@ -213,6 +213,11 @@ async function leaveGroup(client, guildId, grp, userDB) {
         dateUpdated: Date.now()
     })
 
+    // update perm channel
+    const guild = await client.guilds.cache.get(guildId);
+    const channel = await guild.channels.cache.get(grp.channelId);
+    channel.permissionOverwrites.delete(userDB.userId, "Membre a quitté le groupe");
+
     // stat ++
     await User.updateOne(
         { _id: userDB._id },
@@ -236,6 +241,14 @@ async function leaveGroup(client, guildId, grp, userDB) {
         members: grp.members,
         size: grp.size,
         dateUpdated: Date.now()
+    });
+
+    // update perm channel
+    const guild = await client.guilds.cache.get(guildId);
+    const channel = await guild.channels.cache.get(grp.channelId);
+    channel.permissionOverwrites.edit(userDB.userId, {
+        VIEW_CHANNEL: true,
+        SEND_MESSAGES: true
     });
 
     // stat ++
