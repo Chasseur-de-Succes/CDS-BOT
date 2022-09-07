@@ -273,8 +273,10 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     dissolveGroup(client, interaction.guildId, grp)
     
     // suppression channel discussion
-    const channel = interaction.guild.channels.cache.get(grp.channelId);
-    channel.delete("Groupe supprimé");
+    if (grp.channelId) {
+        const channel = interaction.guild.channels.cache.get(grp.channelId);
+        channel.delete("Groupe supprimé");
+    }
 
     let mentionsUsers = '';
     for (const member of grp.members)
@@ -355,7 +357,7 @@ const end = async (interaction, options) => {
     // archivage du channel de discussion
     const idArchDiscussionGroupe = await client.getGuildChannel(guildId, SALON.CAT_ARCHIVE_DISCUSSION_GROUPE);
     let catArchive = await interaction.guild.channels.cache.get(idArchDiscussionGroupe);
-    if(!catArchive) {
+    if (!catArchive) {
         logger.error("Catégorie archives des discussions de groupe n'existe pas ! Création en cours...");
         const nameCat = "Archives discussions groupes";
         catArchive = await interaction.guild.channels.create(nameCat, {
@@ -367,16 +369,19 @@ const end = async (interaction, options) => {
         );
         logger.info(`Catégorie "${nameCat}" créé avec succès`);
     }
-    const channel = await guild.channels.cache.get(grp.channelId);
-    channel.setParent(catArchive);
-    channel.permissionOverwrites.set([{
-        id: guild.roles.everyone.id,
-        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
-    }, {
-        id: author.id,
-        allow: ['VIEW_CHANNEL'],
-        deny: ['SEND_MESSAGES']
-    }]);
+
+    if (grp.channelId) {
+        const channel = await guild.channels.cache.get(grp.channelId);
+        channel.setParent(catArchive);
+        channel.permissionOverwrites.set([{
+            id: guild.roles.everyone.id,
+            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
+        }, {
+            id: author.id,
+            allow: ['VIEW_CHANNEL'],
+            deny: ['SEND_MESSAGES']
+        }]);
+    }
 
     let mentionsUsers = '';
     for (const member of grp.members)

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.0.3]
+- Un salon textuel est créé lors de la création d'un groupe !
+- Une partie des anciennes commandes avec préfixes ont été supprimées
+
 ## [v1.0.2]
 ### Added
 - /group kick <user>
