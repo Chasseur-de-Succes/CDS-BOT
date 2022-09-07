@@ -1,7 +1,8 @@
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
 const { createError, createLogs } = require("../../util/envoiMsg");
-const { YELLOW,  } = require("../../data/colors.json");
+const { YELLOW, NIGHT } = require("../../data/colors.json");
+const customItems = require("../../data/customShop.json");
 const { CHECK_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MONEY } = require('../../config.js');
 const moment = require('moment');
@@ -171,7 +172,7 @@ const list = async (interaction, options, showGame = false) => {
     });
 }
 
-function listCustom(interaction, options) {
+async function listCustom(interaction, options) {
     let nbPage = options.get('page') ? options.get('page').value - 1 : 0;
     const client = interaction.client;
     const guild = interaction.guild;
@@ -186,10 +187,72 @@ function listCustom(interaction, options) {
 
     let infos = {};
     infos.money = userDB.money;
-    let rows = [];
 
     // TODO Select : ["Couleur texte", "Bordure", "Couleur Bordure", "Bordure avatar", "Couleur Bordure avatar", "Fond"]
-    // => couleur par defaut (X points), couleur au choix (HEX, XX points)
+    let itemsSelect = [];
+    for (let x in customItems) {
+        itemsSelect.push({
+            label: customItems[x].title,
+            // description: 'Description',
+            value: '' + x
+        });
+    }
+    // row contenant le Select menu : type items
+    // TODO mettre en parametre directement
+    const row = new MessageActionRow().addComponents(
+        new MessageSelectMenu()
+            .setCustomId('custom-items-menu')
+            .setPlaceholder(`Sélectionner le type d'item..`)
+            .addOptions(itemsSelect)
+    );
+
+    let embed = new MessageEmbed()
+        .setColor(NIGHT)
+        .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
+        .setDescription(`Quel élément voulez-vous personnaliser ?`)
+        .setFooter({ text: `💵 ${infos.money} ${MONEY}`});
+    
+    let msgEmbed = await interaction.editReply({embeds: [embed], components: [row] });
+
+    // attend une interaction bouton de l'auteur de la commande
+    let filter, itrSelect;
+    try {
+        filter = i => {
+            i.deferUpdate();
+            return i.user.id === interaction.user.id;
+        };
+        itrSelect = await msgEmbed.awaitMessageComponent({
+            filter,
+            componentType: 'SELECT_MENU',
+            time: 30000 // 5min
+        });
+    } catch (error) {
+        await interaction.editReply({ components: [] })
+        return;
+    }
+    // on enleve le select
+    await interaction.editReply({ components: [] })
+
+    const type = itrSelect.values[0];
+    logger.info(`.. Item '${type}' choisi`);
+
+    // TODO edit embed: choix parmis élément dans customItems[type].value
+    console.log(customItems[type]);
+
+    itemsSelect = [];
+    for (let x in customItems[type].values) {
+        console.log(x);
+        // nom
+        console.log(customItems[type].values[x].name);
+        // prix
+        console.log(customItems[type].values[x].price);
+    }
+    const rowItem = new MessageActionRow().addComponents(
+        new MessageSelectMenu()
+            .setCustomId('custom-item-' + type)
+            .setPlaceholder(`Choisir l'élément à acheter..`)
+            .addOptions(itemsSelect)
+    );
 }
 
 function createShop(guild, infos, currentIndex = 0) {

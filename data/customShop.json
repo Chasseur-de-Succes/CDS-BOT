@@ -1,32 +1,80 @@
 {
     "text": {
-        "title": "Couleur texte"
+        "title": "Couleur texte",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 0
+            }
+        }
     },
     "border": {
         "title": "Bordure",
-        "style": {
-            "simple": 0,
-            "double": 0,
-            "dashed": 0,
-            "dotted": 0
+        "values": {
+            "simple": {
+                "name": "Simple trait",
+                "price": 0
+            },
+            "double": {
+                "name": "Double trait",
+                "price": 0
+            },
+            "dashed": {
+                "name": "Tirets",
+                "price": 0
+            },
+            "dotted": {
+                "name": "Pointillés",
+                "price": 0
+            }
         }
     },
     "border-color": {
-        "title": "Couleur bordure"
+        "title": "Couleur bordure",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 0
+            }
+        }
     },
     "border-avatar": {
         "title": "Bordure Avatar",
-        "style": {
-            "simple": 0,
-            "double": 0,
-            "dashed": 0,
-            "dotted": 0
+        "values": {
+            "simple": {
+                "name": "Simple trait",
+                "price": 0
+            },
+            "double": {
+                "name": "Double trait",
+                "price": 0
+            },
+            "dashed": {
+                "name": "Tirets",
+                "price": 0
+            },
+            "dotted": {
+                "name": "Pointillés",
+                "price": 0
+            }
         }
     },
     "border-color-avatar": {
-        "title": "Couleur bordure avatar"
+        "title": "Couleur bordure avatar",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 0
+            }
+        }
     },
     "background": {
-        "title": "Fond"
+        "title": "Fond",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 0
+            }
+        }
     }
 }
