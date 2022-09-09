@@ -1,6 +1,7 @@
 {
     "text": {
         "title": "Couleur texte",
+        "db": "text",
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
@@ -10,10 +11,11 @@
     },
     "border": {
         "title": "Bordure",
+        "db": "border.style",
         "values": {
             "simple": {
                 "name": "Simple trait",
-                "price": 0
+                "price": 100
             },
             "double": {
                 "name": "Double trait",
@@ -31,6 +33,7 @@
     },
     "border-color": {
         "title": "Couleur bordure",
+        "db": "border.color",
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
@@ -40,6 +43,7 @@
     },
     "border-avatar": {
         "title": "Bordure Avatar",
+        "db": "avatar.style",
         "values": {
             "simple": {
                 "name": "Simple trait",
@@ -61,6 +65,7 @@
     },
     "border-color-avatar": {
         "title": "Couleur bordure avatar",
+        "db": "avatar.color",
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
@@ -70,6 +75,7 @@
     },
     "background": {
         "title": "Fond",
+        "db": "background.color",
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",

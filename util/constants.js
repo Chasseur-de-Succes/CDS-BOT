@@ -477,10 +477,11 @@ const MESSAGES = {
                         description: 'Ouvre le shop (personnalisation)',
                         options: [
                             { 
-                                name: 'page',
-                                type: 'INTEGER',
-                                description: 'N° de page du shop',
-                                required: false,
+                                name: 'type',
+                                type: 'STRING',
+                                description: `Type d'item`,
+                                autocomplete: true,
+                                required: true,
                             }, 
                         ]
                     }, {

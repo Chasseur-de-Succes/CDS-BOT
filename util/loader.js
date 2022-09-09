@@ -7,6 +7,7 @@ const { Group } = require('../models/index');
 const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
 const succes = require('../data/achievements.json');
+const customItems = require('../data/customShop.json');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -120,6 +121,19 @@ const loadEvents = (client, dir = "./events/") => {
             await itr.respond(
                 // on ne prend que les 25 1er  (au cas où)
                 filtered.slice(0, 25).map(choice => ({ name: choice.game.name, value: choice._id })),
+            );
+        } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'custom') {
+            let filtered = [];
+            for (let x in customItems) {
+                filtered.push({
+                    name: customItems[x].title,
+                    // description: 'Description',
+                    value: '' + x
+                });
+            }
+            
+            await itr.respond(
+                filtered.map(choice => ({ name: choice.name, value: choice.value })),
             );
         } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'sell') {
             const focusedValue = itr.options.getFocused(true);
