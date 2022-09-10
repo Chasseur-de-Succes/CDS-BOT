@@ -175,7 +175,6 @@ const list = async (interaction, options, showGame = false) => {
 /* CUSTOM */
 async function listCustom(interaction, options) {
     let type = options.get('type').value;
-    let nbPage = options.get('page') ? options.get('page').value - 1 : 0;
     const client = interaction.client;
     const guild = interaction.guild;
     let author = interaction.member;
@@ -190,10 +189,7 @@ async function listCustom(interaction, options) {
     // type : ["text", "border", ...]
     logger.info(`.. Item '${type}' choisi`);
 
-    // TODO edit embed: choix parmis élément dans customItems[type].value
-    console.log(customItems[type]);
-    console.log(customItems[type].title);
-    console.log('--');
+    // edit embed: choix parmis élément dans customItems[type].value
 
     createChoixCustom(interaction, userDB, type, customItems);
 }
@@ -248,8 +244,6 @@ async function createChoixCustom(interaction, userDB, type, customItems) {
     createAchatCustom(interaction, userDB, type, customItems, value);
 }
 async function createAchatCustom(interaction, userDB, type, customItems, value) {
-    console.log('-- type ', type);
-    console.log('-- value ', value);
     const dbConfig = customItems[type].db
     const finalVal = customItems[type].values[value];
 

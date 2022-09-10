@@ -1,7 +1,7 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
 const { MONEY } = require("../../config");
 const succes = require('../../data/achievements.json');
-const { VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
+const { VERY_PALE_VIOLET, VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
 const { STEAM, ASTATS, CME, SH } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
 const { createError } = require("../../util/envoiMsg");
@@ -69,7 +69,7 @@ module.exports.run = async (interaction) => {
         }
         const embed = new MessageEmbed()
             .setColor(colorEmbed)
-            .setTitle(infoSucces.title)
+            .setTitle(`${infoSucces.title} de ${user.tag}`)
             .setDescription(`${desc}`);
     
         return await interaction.editReply({ embeds: [embed] });
@@ -427,12 +427,13 @@ module.exports.run = async (interaction) => {
     //ctx.drawImage(egg, crtX, crtY, 40, 40);
 
     const attachment = new MessageAttachment(canvas.toBuffer(), `profile_${pseudo}.png`);
+
+    let embed = new MessageEmbed()
+        .setColor(VERY_PALE_VIOLET)
+        .setDescription(`${msg}`);
     
     // Send message
-    //await interaction.editReply({ embeds: [embed], files: [attachment] });
-    const message = await interaction.editReply({ content: msg, files: [attachment] });
-    // message.channel.send({content: msg, embeds: [embed], files: [attachment]});
-    await message.suppressEmbeds();
+    await interaction.editReply({ embeds: [embed], files: [attachment] });
 }
 
 // TODO a deplacer dans utils..
