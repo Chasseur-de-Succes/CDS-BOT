@@ -5,7 +5,7 @@
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
-                "price": 0
+                "price": 200
             }
         }
     },
@@ -19,15 +19,15 @@
             },
             "double": {
                 "name": "Double trait",
-                "price": 0
+                "price": 100
             },
             "dashed": {
                 "name": "Tirets",
-                "price": 0
+                "price": 100
             },
             "dotted": {
                 "name": "Pointillés",
-                "price": 0
+                "price": 100
             }
         }
     },
@@ -37,7 +37,7 @@
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
-                "price": 0
+                "price": 200
             }
         }
     },
@@ -47,19 +47,19 @@
         "values": {
             "solid": {
                 "name": "Simple trait",
-                "price": 0
+                "price": 100
             },
             "double": {
                 "name": "Double trait",
-                "price": 0
+                "price": 100
             },
             "dashed": {
                 "name": "Tirets",
-                "price": 0
+                "price": 100
             },
             "dotted": {
                 "name": "Pointillés",
-                "price": 0
+                "price": 100
             }
         }
     },
@@ -69,7 +69,7 @@
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
-                "price": 0
+                "price": 200
             }
         }
     },
@@ -79,7 +79,7 @@
         "values": {
             "custom": {
                 "name": "Au choix (code HEX)",
-                "price": 0
+                "price": 200
             }
         }
     }
