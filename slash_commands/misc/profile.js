@@ -83,20 +83,20 @@ module.exports.run = async (interaction) => {
     const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCME} | ${SH} ${urlSH} ]`;
 
     // recup settings de l'user 
-    const configProfile = dbUser.profile;
+    const configProfile = await client.getOrInitProfile(dbUser);
     // -- couleur texte
-    const textColor = configProfile.text ? getByValue(configProfile.text, true) : 'white';
+    const textColor = getByValue(configProfile.text, true);
     // -- couleur/style bordure
-    const borderStyle = configProfile.border?.style ? getByValue(configProfile.border?.style, true) : 'solid';
+    const borderStyle = getByValue(configProfile.border?.style, true);
     // TODO si border speciale, pas de couleur ?
-    const borderColor = configProfile.border?.color ? getByValue(configProfile.border?.color, true) : 'white';
+    const borderColor = getByValue(configProfile.border?.color, true);
     // -- couleur/style bordure avatar
-    const borderAvatarStyle = configProfile.avatar?.style ? getByValue(configProfile.avatar?.style, true) : 'solid';
-    const borderAvatarColor = configProfile.avatar?.color ? getByValue(configProfile.avatar?.color, true) : 'white';
+    const borderAvatarStyle = getByValue(configProfile.avatar?.style, true);
+    const borderAvatarColor = getByValue(configProfile.avatar?.color, true);
     // -- couleur/style fond
     const backgroundStyle = '';
     // TODO si background speciale, pas de couleur
-    const backgroundColor = configProfile.background?.color ? getByValue(configProfile.background?.color, true) : 'black';
+    const backgroundColor = getByValue(configProfile.background?.color, true);
 
     // CANVAS
     // TODO

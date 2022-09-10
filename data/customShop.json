@@ -13,7 +13,7 @@
         "title": "Bordure",
         "db": "border.style",
         "values": {
-            "simple": {
+            "solid": {
                 "name": "Simple trait",
                 "price": 100
             },
@@ -45,7 +45,7 @@
         "title": "Bordure Avatar",
         "db": "avatar.style",
         "values": {
-            "simple": {
+            "solid": {
                 "name": "Simple trait",
                 "price": 0
             },

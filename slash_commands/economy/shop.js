@@ -1,7 +1,7 @@
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
 const { MESSAGES } = require("../../util/constants");
 const { createError, createLogs } = require("../../util/envoiMsg");
-const { YELLOW, NIGHT, GREEN } = require("../../data/colors.json");
+const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
 const customItems = require("../../data/customShop.json");
 const { CHECK_MARK, NO_SUCCES } = require('../../data/emojis.json');
 const { MONEY } = require('../../config.js');
@@ -262,8 +262,10 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
     //     .setEmoji('⬅️')
     //     .setStyle('PRIMARY')
 
+    // recup settings de l'user 
+    const configProfile = await interaction.client.getOrInitProfile(userDB);
     // - si user a déjà acheté => "Utiliser" "enabled"
-    const bought = typeof getJSONValue(userDB.profile, dbConfig, new Map()).get(value) !== 'undefined'
+    let bought = typeof getJSONValue(configProfile, dbConfig, new Map()).get(value) !== 'undefined'
 
     const buyBtn = new MessageButton()
         .setCustomId("buy")
@@ -297,16 +299,94 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
         // on recréé le message 
         if (itr.customId === 'buy') {
             if (value === 'custom') {
-                // TODO si custom, attente d'un message de l'user
-                
-                // TODO ajout config user
+                // - si custom, attente d'un message de l'user
+                embed = new MessageEmbed()
+                    .setColor(NIGHT)
+                    .setTitle(`En attente de ta couleur..`)
+                    .setDescription(`Quelle couleur souhaites-tu pour ***${customItems[type].title}*** ?
+                        Réponds ta couleur au format héxadécimal ! (ex: #008000 (vert))`)
+                    .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+
+                await interaction.editReply({embeds: [embed], components: []});
+
+                // TODO refactor.. doublons un peu
+                try {
+                    let filter = m => { return m.author.id === interaction.member.id }
+                    let response = await msgCustomEmbed.channel.awaitMessages({ filter, max: 1, time: 300000 });
+                    let daColor = response.first().content;
+                    
+                    // regex #000 ou #000000
+                    if (daColor.match(/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/)){
+                        // MAJ
+                        daColor = daColor.toUpperCase();
+
+                        // si couleur déjà présente ?
+                        bought = typeof getJSONValue(configProfile, dbConfig, new Map()).get(daColor) !== 'undefined'
+
+                        // sinon on achete/utilise
+                        const query = { userId: userDB.userId };
+                        var update = { $set : {} };
+        
+                        // on met a false toutes les options (s'il y en a)
+                        getJSONValue(configProfile, dbConfig, new Map())
+                            .forEach(async (value, key) => {
+                                update.$set["profile." + dbConfig + "." + key] = false;
+                                await User.findOneAndUpdate(query, update)
+                            })
+
+                        // maj config user
+                        update = { $set : {} };
+                        update.$set["profile." + dbConfig + "." + daColor] = true;
+                        await User.findOneAndUpdate(query, update)
+
+                        // si pas acheté, on enleve argent
+                        if (!bought) {
+                            await interaction.client.update(userDB, { 
+                                money: userDB.money - finalVal.price
+                            });
+
+                            // log 
+                            createLogs(interaction.client, interaction.guildId, `Argent perdu`, `${interaction.member} achète ***${finalVal.name}*** pour ***${customItems[type].title}***`);
+                        }
+
+                        embed = new MessageEmbed()
+                            .setColor(GREEN)
+                            .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
+                            .setDescription(`***${daColor}*** pour ***${customItems[type].title}*** ${bought ? "sélectionnée" : "achetée"} !
+                                Va voir sur ton profile ! \`/profile\``)
+                            .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+
+                        // reply
+                        await interaction.editReply({embeds: [embed], components: []});
+                    } else {
+                        embed = new MessageEmbed()
+                            .setColor(DARK_RED)
+                            .setTitle(`Erreur`)
+                            .setDescription(`La couleur n'est pas au bon format ! (format hexa)
+                                Pour retenter, il faut relancer la commande !`)
+                            .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+    
+                        await interaction.editReply({embeds: [embed], components: []});
+                    }
+
+                    // TODO ajout config user
+                } catch(err) {
+                    logger.error(err)
+                    embed = new MessageEmbed()
+                        .setColor(DARK_RED)
+                        .setTitle(`Erreur`)
+                        .setDescription(`Petit soucis, essaie de renseigner à temps ! ou bien vérifier si la couleur existe (format HEX)`)
+                        .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+
+                    await interaction.editReply({embeds: [embed], components: []});
+                }
             } else {
                 // sinon on achete/utilise
                 const query = { userId: userDB.userId };
                 var update = { $set : {} };
 
                 // on met a false toutes les options (s'il y en a)
-                getJSONValue(userDB.profile, dbConfig, new Map())
+                getJSONValue(configProfile, dbConfig, new Map())
                     .forEach(async (value, key) => {
                         update.$set["profile." + dbConfig + "." + key] = false;
                         await User.findOneAndUpdate(query, update)
@@ -322,6 +402,9 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                     await interaction.client.update(userDB, { 
                         money: userDB.money - finalVal.price
                     });
+
+                    // log 
+                    createLogs(interaction.client, interaction.guildId, `Argent perdu`, `${interaction.member} achète ***${finalVal.name}*** pour ***${customItems[type].title}***`);
                 }
 
                 embed = new MessageEmbed()
@@ -333,8 +416,6 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
 
                 // reply
                 await interaction.editReply({embeds: [embed], components: []});
-
-                // TODO logs
             }
         }
     });
