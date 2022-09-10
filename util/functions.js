@@ -488,4 +488,46 @@ module.exports = client => {
         const guildDB = await client.findGuildById(guildId);
         return guildDB?.channels[salon];
     }
+
+    // config profile
+    client.getOrInitProfile = async (user) => {
+        const configProfile = user.profile;
+        let toSave = false;
+
+        if (!configProfile.text) {
+            configProfile.text = new Map();
+            configProfile.text.set("#FFFFFF", true);
+            toSave = true;
+        }
+
+        if (!configProfile.border.style || !configProfile.border.color) {
+            configProfile.border.style = new Map();
+            configProfile.border.style.set("solid", true);
+            
+            configProfile.border.color = new Map();
+            configProfile.border.color.set("#FFFFFF", true);
+            toSave = true;
+        }
+
+        if (!configProfile.avatar.style || !configProfile.avatar.color) {
+            configProfile.avatar.style = new Map();
+            configProfile.avatar.style.set("solid", true);
+            
+            configProfile.avatar.color = new Map();
+            configProfile.avatar.color.set("#FFFFFF", true);
+            toSave = true;
+        }
+
+        if (!configProfile.background.color) {
+            configProfile.background.color = new Map();
+            configProfile.background.color.set("#000000", true);
+            toSave = true;
+        }
+
+        if (toSave) {
+            await user.save()
+        }
+
+        return configProfile;
+    }
 }

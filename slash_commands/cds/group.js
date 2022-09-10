@@ -128,7 +128,7 @@ const create = async (interaction, options) => {
 
     const idDiscussionGroupe = await client.getGuildChannel(guildId, SALON.CAT_DISCUSSION_GROUPE);
     let cat = await client.channels.cache.get(idDiscussionGroupe);
-    if(!cat) {
+    if (!cat) {
         logger.error("Catégorie des discussions de groupe n'existe pas ! Création en cours...");
         const nameCat = "Discussions groupes";
         cat = await interaction.guild.channels.create(nameCat, {

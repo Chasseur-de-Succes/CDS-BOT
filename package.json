@@ -9,7 +9,9 @@
   "author": "TobiBiotex",
   "license": "GPL3",
   "dependencies": {
+    "@discordjs/builders": "^1.1.0",
     "axios": "^0.21.1",
+    "canvas": "^2.9.3",
     "cpu-stat": "^2.0.1",
     "date.format": "^1.1.2",
     "discord.js": "^13.1.0",

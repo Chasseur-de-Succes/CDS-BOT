@@ -1,0 +1,86 @@
+{
+    "text": {
+        "title": "Couleur texte",
+        "db": "text",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 200
+            }
+        }
+    },
+    "border": {
+        "title": "Bordure",
+        "db": "border.style",
+        "values": {
+            "solid": {
+                "name": "Simple trait",
+                "price": 100
+            },
+            "double": {
+                "name": "Double trait",
+                "price": 100
+            },
+            "dashed": {
+                "name": "Tirets",
+                "price": 100
+            },
+            "dotted": {
+                "name": "Pointillés",
+                "price": 100
+            }
+        }
+    },
+    "border-color": {
+        "title": "Couleur bordure",
+        "db": "border.color",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 200
+            }
+        }
+    },
+    "border-avatar": {
+        "title": "Bordure Avatar",
+        "db": "avatar.style",
+        "values": {
+            "solid": {
+                "name": "Simple trait",
+                "price": 100
+            },
+            "double": {
+                "name": "Double trait",
+                "price": 100
+            },
+            "dashed": {
+                "name": "Tirets",
+                "price": 100
+            },
+            "dotted": {
+                "name": "Pointillés",
+                "price": 100
+            }
+        }
+    },
+    "border-color-avatar": {
+        "title": "Couleur bordure avatar",
+        "db": "avatar.color",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 200
+            }
+        }
+    },
+    "background": {
+        "title": "Fond",
+        "db": "background.color",
+        "values": {
+            "custom": {
+                "name": "Au choix (code HEX)",
+                "price": 200
+            }
+        }
+    }
+}

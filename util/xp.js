@@ -29,7 +29,7 @@ module.exports.addXp = async (user, xp) => {
                 { $inc: { level : 1 } }
             );
         } else {
-            const palier = getXpNeededForNextLevel(crtLvl)
+            const palier = this.getXpNeededForNextLevel(crtLvl)
 
             if (userDB.experience >= palier) {
                 // youpi niveau sup.
@@ -58,9 +58,9 @@ module.exports.addXp = async (user, xp) => {
  * @param {Number} lvl le niveau
  * @returns le nb d'exp
  */
-const getXpNeededForNextLevel = (lvl) => {
+ module.exports.getXpNeededForNextLevel = (lvl) => {
     if (lvl === 1)
         return 100
     else 
-        return getXpNeededForNextLevel(lvl - 1) + (THREESOLD_LVL * (lvl - 1))
+        return this.getXpNeededForNextLevel(lvl - 1) + (THREESOLD_LVL * (lvl - 1))
 }
