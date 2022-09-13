@@ -187,6 +187,8 @@ const schedule = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
@@ -197,8 +199,8 @@ const schedule = async (interaction, options) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)] });
         
-    // si l'author n'est pas capitaine 
-    if (!grp.captain._id.equals(authorDB._id))
+    // si l'author n'est pas capitaine ou admin
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`)] });
     
     // test si date bon format
@@ -247,14 +249,12 @@ const schedule = async (interaction, options) => {
     return interaction.editReply({ embeds: [newMsgEmbed] });
 }
 
-const dissolve = async (interaction, options, isAdmin = false) => {
+const dissolve = async (interaction, options) => {
     const grpName = options.get('nom')?.value;
     const client = interaction.client;
     const author = interaction.member;
-    
-    // -- test si user a le droit de gérer les messages (mode admin)
-    if (isAdmin && !author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) 
-        return interaction.reply({ embeds: [createError(`Interdiction.`)] });
+
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
     
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -266,7 +266,7 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe ${grpName} n'existe pas !`)] });
         
-    // si l'author n'est pas capitaine (non admin)
+    // si l'author n'est pas capitaine et non admin
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
@@ -296,6 +296,8 @@ const transfert = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
@@ -309,9 +311,10 @@ const transfert = async (interaction, options) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)] });
         
-    // si l'author n'est pas capitaine 
-    if (!grp.captain._id.equals(authorDB._id))
+    // si l'author n'est pas admin et n'est pas capitaine 
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
+    
     // si le nouveau capitaine fait parti du groupe
     let memberGrp = grp.members.find(u => u._id.equals(newCaptainDB._id));
     if (!memberGrp)
@@ -337,6 +340,8 @@ const end = async (interaction, options) => {
     const author = interaction.member;
     const guild = interaction.guild;
     const guildId = interaction.guildId;
+    
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
 
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -348,8 +353,8 @@ const end = async (interaction, options) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe ${grpName} n'existe pas !`)] });
     
-    // si l'author n'est pas capitaine
-    if (!grp.captain._id.equals(authorDB._id))
+    // si l'author n'est pas admin et n'est pas capitaine
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grp.name} !`)] });
 
     await client.update(grp, { validated: true });
@@ -428,10 +433,8 @@ const kick = async (interaction, options) => {
 
     // si l'author n'est pas capitaine ou non admin
     const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
-    if (!isAdmin) {
-        if (!grp.captain._id.equals(authorDB._id))
-            return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
-    }
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
 
     // si le user a kick fait parti du groupe
     let memberGrp = grp.members.find(u => u._id.equals(toKickedDB._id));
