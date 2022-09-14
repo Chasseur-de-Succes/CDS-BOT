@@ -43,7 +43,7 @@ module.exports.addXp = async (user, xp) => {
                     .setColor(GREEN)
                     .setTitle(`🥳 Félicitations ${user.username} ! 🥳`)
                     .setDescription(`Tu as atteint le niveau ${userDB.level + 1} !`)
-                    .setFooter({ text: `Prochain niveau : ${userDB.experience} / ${getXpNeededForNextLevel(userDB.level + 1)}` });
+                    .setFooter({ text: `Prochain niveau : ${userDB.experience} / ${this.getXpNeededForNextLevel(userDB.level + 1)}` });
                 
                 // envoie en MP !
                 user.send({ embeds: [embedLvlUp] });
