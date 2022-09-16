@@ -5,7 +5,7 @@ const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
-const { GuildConfig } = require('../../models');
+const { GuildConfig, Game } = require('../../models');
 const moment = require('moment');
 const { MONEY } = require("../../config");
 
@@ -61,11 +61,11 @@ const create = async (interaction, options) => {
     await interaction.deferReply();
 
     // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    let games = await client.findGames({
-        name: regGame, 
-        hasAchievements: true,
-        $or: [{isMulti: true}, {isCoop: true}]
-    });
+    let games = await Game.aggregate([{
+        '$match': { 'name': regGame}
+    }, {
+        '$limit': 25
+    }])
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
     if (!games) return await interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
@@ -85,7 +85,7 @@ const create = async (interaction, options) => {
     }
 
     // SELECT n'accepte que 25 max
-    if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
+    // if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
 
     // row contenant le Select menu
     const row = new MessageActionRow().addComponents(

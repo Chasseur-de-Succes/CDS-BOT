@@ -2,6 +2,7 @@ const { MESSAGES, TAGS, delay, crtHour } = require('../../util/constants');
 const { Permissions } = require('discord.js');
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require("moment");
+const { Game } = require('../../models');
 
 module.exports.run = async (client, message, args) => {
     // -- test si user a un droit assez elevé pour raffraichir la base de donnée de jeu
@@ -10,10 +11,23 @@ module.exports.run = async (client, message, args) => {
     
     moment.updateLocale('fr', {relativeTime : Object});
     logger.info("Début refresh games ..");
-    let startTime = moment();
-    let crtIdx = 1, cptGame = 0;
+    
+    let msgProgress = await message.channel.send(`Ok c'est parti ! Cela peut prendre du temps.. 
+    Récupération de tous les jeux..`);
 
-    let msgProgress = await message.channel.send(`Ok c'est parti ! Récupération de tous les jeux..`);
+    try {
+        const msgFin = await client.fetchAllApps();
+
+        msgProgress.edit(`${msgFin}`);
+    } catch (err) {
+        msgProgress.delete();
+        message.react(CROSS_MARK);
+        logger.error("Erreur refresh games : " + err);
+        console.log(err);
+        return;
+    }
+    
+    return;
 
     // TODO certains jeux passe entre les mailles du filet (ceux qui ont un appid < au max)
     // => refaire depuis le début, avec pagination (une fois les 50000 fait, next page depuis le dernier id)

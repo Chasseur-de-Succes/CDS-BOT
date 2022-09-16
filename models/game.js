@@ -4,6 +4,7 @@ const gameSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     appid: Number,
     name: String,
+    type: String,
     // TODO objet tag 'categories' ?
     /* tags: [{
         id: Number,
@@ -13,6 +14,7 @@ const gameSchema = mongoose.Schema({
     isCoop: Boolean,
     // isCoopOnline: Boolean,
     hasAchievements: Boolean, 
+    isRemoved: Boolean
     // TODO img url ?
     // TODO achievements
 })

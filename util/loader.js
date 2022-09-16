@@ -149,7 +149,6 @@ const loadEvents = (client, dir = "./events/") => {
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    // select GameItem
                     '$match': { 'name': new RegExp(focusedValue.value, "i") }
                 }, {
                     '$limit': 25
@@ -190,28 +189,11 @@ const loadEvents = (client, dir = "./events/") => {
                 // recherche nom exacte
                 exact = await client.findGames({
                     name: focusedValue.value,
-                    hasAchievements: true,
-                    $or: [{isMulti: true}, {isCoop: true}],
                 });
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    // select GameItem
-                    '$match': {
-                        '$and': [{
-                            'name': new RegExp(focusedValue.value, "i")
-                        }, {
-                            'hasAchievements': true
-                        }]
-                    }
-                }, {
-                    '$match': {
-                        '$or': [{
-                            'isMulti': true
-                        }, {
-                            'isCoop': true
-                        }]
-                    }
+                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
                 }, {
                     '$limit': 25
                 }])
@@ -266,7 +248,7 @@ const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
     loadJobs(client);
 
-    searchNewGamesJob(client);
+    //searchNewGamesJob(client);
 
     resetMoneyLimit();
 
