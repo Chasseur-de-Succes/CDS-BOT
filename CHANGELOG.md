@@ -1,6 +1,14 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Slash commands : info
+
+### Fixed
+- correction d'une faute de grammaire de Kek dans le changelog :p
+
+### Removed
+- Anciennes commandes (avec ancien préfixe) : info, uptime
 
 ## [v1.0.4]
 - Nouvelle visualisation du profile en forme de carte !
@@ -34,7 +42,7 @@
 - Finir un groupe donne maintenant des Points CDS automatiquement, en fonction du nombre de participant
 
 ### Fixed
-- Quelques faute de grammaire.. la faute à Tobi :p
+- Quelques fautes de grammaire.. la faute à Tobi :p
 - Si quelconque erreur, elle est catchée (normalement) et le bot ne crash pas
 
 ## [v1.0.0]
