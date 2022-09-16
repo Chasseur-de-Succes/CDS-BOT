@@ -38,6 +38,10 @@ const userSchema = mongoose.Schema({
             dissolved:  { type: Number, default: 0 },
             ended:      { type: Number, default: 0 }
         },
+        shop: {
+            sold:       { type: Number, default: 0 },
+            bought:     { type: Number, default: 0 },
+        },
         msg: { type: Number, default: 0 },
         img: {
             heros: { type: Number, default: 0 },
@@ -48,6 +52,38 @@ const userSchema = mongoose.Schema({
             hall_heros_approved_by_admin :      { type: Number, default: 0 },
             // dans Hall des zeros, nb de fois qu'un admin a réagi avec emoji custom (a definir)
             hall_zeros_approved_by_admin :      { type: Number, default: 0 },
+        }
+    },
+    profile: {
+        text: {
+            type: Map,
+            of: Boolean
+        },
+        background: {
+            color: {
+                type: Map,
+                of: Boolean
+            }
+        },
+        border: {
+            style: {
+                type: Map,
+                of: Boolean
+            },
+            color: {
+                type: Map,
+                of: Boolean
+            }
+        },
+        avatar: {
+            style: {
+                type: Map,
+                of: Boolean
+            },
+            color: {
+                type: Map,
+                of: Boolean
+            }
         }
     }
 })

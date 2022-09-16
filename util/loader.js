@@ -6,6 +6,8 @@ const { createReactionCollectorGroup } = require('./msg/group');
 const { Group } = require('../models/index');
 const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
+const succes = require('../data/achievements.json');
+const customItems = require('../data/customShop.json');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -92,7 +94,17 @@ const loadEvents = (client, dir = "./events/") => {
         // TODO si nom jeu trop grand, ou form trop grand (lim à 100 car)
         // TODO limiter les suggestions à 25
         
-        if (itr.commandName === 'adminshop') {
+        if (itr.commandName === 'profile') {
+            const focusedValue = itr.options.getFocused(true);
+            let filtered = [];
+
+            if (focusedValue.name === 'succes') {
+                for (let x in succes) {
+                    filtered.push({ name: succes[x].title, value: x})
+                }
+            }
+            await itr.respond(filtered)
+        } else if (itr.commandName === 'adminshop') {
             // cmd adminshop delete, autocomplete sur nom jeu
             const focusedValue = itr.options.getFocused(true);
             const vendeurId = itr.options.get('vendeur')?.value;
@@ -110,6 +122,19 @@ const loadEvents = (client, dir = "./events/") => {
                 // on ne prend que les 25 1er  (au cas où)
                 filtered.slice(0, 25).map(choice => ({ name: choice.game.name, value: choice._id })),
             );
+        } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'custom') {
+            let filtered = [];
+            for (let x in customItems) {
+                filtered.push({
+                    name: customItems[x].title,
+                    // description: 'Description',
+                    value: '' + x
+                });
+            }
+            
+            await itr.respond(
+                filtered.map(choice => ({ name: choice.name, value: choice.value })),
+            );
         } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'sell') {
             const focusedValue = itr.options.getFocused(true);
             let filtered = [];
@@ -124,7 +149,6 @@ const loadEvents = (client, dir = "./events/") => {
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    // select GameItem
                     '$match': { 'name': new RegExp(focusedValue.value, "i") }
                 }, {
                     '$limit': 25
@@ -165,28 +189,11 @@ const loadEvents = (client, dir = "./events/") => {
                 // recherche nom exacte
                 exact = await client.findGames({
                     name: focusedValue.value,
-                    hasAchievements: true,
-                    $or: [{isMulti: true}, {isCoop: true}],
                 });
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    // select GameItem
-                    '$match': {
-                        '$and': [{
-                            'name': new RegExp(focusedValue.value, "i")
-                        }, {
-                            'hasAchievements': true
-                        }]
-                    }
-                }, {
-                    '$match': {
-                        '$or': [{
-                            'isMulti': true
-                        }, {
-                            'isCoop': true
-                        }]
-                    }
+                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
                 }, {
                     '$limit': 25
                 }])
@@ -241,7 +248,7 @@ const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
     loadJobs(client);
 
-    searchNewGamesJob(client);
+    //searchNewGamesJob(client);
 
     resetMoneyLimit();
 

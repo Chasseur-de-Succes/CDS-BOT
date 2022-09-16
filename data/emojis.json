@@ -6,8 +6,12 @@
     "WARNING": "<:warning2:879843712073621515>",
     "CHECK_MARK": "<:check:880558609392619570>",
     "CROSS_MARK": "<:uncheck:880558756604313641>",
-    "STEAM": "<:steam:887390058808762418>",
     "STREAMING": "<:streaming:921121826350964796>",
     "AMONGUS_RUNNING": "<a:amongus_running:921121657979011192>",
-    "NO_SUCCES": "<:no_trophy:931316060416794624>"
+    "NO_SUCCES": "<:no_trophy:931316060416794624>",
+    "STEAM": "<:steam:887390058808762418>",
+    "CME": "<:cme:1009553617684021399>",
+    "ASTATS": "<:astats:1009553927118794824>",
+    "SH": "<:steamhunter:1009554238885593148>",
+    "CDS": "<:cds:1013547998174793842>"
 }

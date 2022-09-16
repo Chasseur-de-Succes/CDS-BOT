@@ -42,6 +42,13 @@ const MESSAGES = {
                         description: 'Affiche le profil d\'un utilisateur',
                         required: false,
                     },
+                    { 
+                        name: 'succes',
+                        type: 'STRING',
+                        description: 'Affiche les succès du profile',
+                        required: false,
+                        autocomplete: true,
+                    },
                 ]
             },
             SERVERINFO: {
@@ -470,10 +477,11 @@ const MESSAGES = {
                         description: 'Ouvre le shop (personnalisation)',
                         options: [
                             { 
-                                name: 'page',
-                                type: 'INTEGER',
-                                description: 'N° de page du shop',
-                                required: false,
+                                name: 'type',
+                                type: 'STRING',
+                                description: `Type d'item`,
+                                autocomplete: true,
+                                required: true,
                             }, 
                         ]
                     }, {

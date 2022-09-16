@@ -50,11 +50,15 @@ module.exports = async (client, oldState, newState) => {
                         await config.save();
                         
                         // -- le supprime
-                        await oldState.channel.delete();
+                        oldState.channel.delete()
+                            .then(console.log)
+                            .catch(console.error);
                     } catch (err) {
                         logger.warn('.. pb avec la suppression du channel vocal !');
-                        // -- le supprime en cas d'erreur
-                        await oldState.channel.delete();
+                        // -- le supprime en cas d'erreur avec bdd
+                        oldState.channel.delete()
+                            .then(console.log)
+                            .catch(console.error);
                     }
                 }
             }

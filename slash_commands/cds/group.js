@@ -5,7 +5,7 @@ const { NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
-const { GuildConfig } = require('../../models');
+const { GuildConfig, Game } = require('../../models');
 const moment = require('moment');
 const { MONEY } = require("../../config");
 
@@ -61,11 +61,11 @@ const create = async (interaction, options) => {
     await interaction.deferReply();
 
     // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    let games = await client.findGames({
-        name: regGame, 
-        hasAchievements: true,
-        $or: [{isMulti: true}, {isCoop: true}]
-    });
+    let games = await Game.aggregate([{
+        '$match': { 'name': regGame}
+    }, {
+        '$limit': 25
+    }])
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
     if (!games) return await interaction.editReply({ embeds: [createError(`Erreur lors de la recherche du jeu`)] });
@@ -85,7 +85,7 @@ const create = async (interaction, options) => {
     }
 
     // SELECT n'accepte que 25 max
-    if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
+    // if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
 
     // row contenant le Select menu
     const row = new MessageActionRow().addComponents(
@@ -128,7 +128,7 @@ const create = async (interaction, options) => {
 
     const idDiscussionGroupe = await client.getGuildChannel(guildId, SALON.CAT_DISCUSSION_GROUPE);
     let cat = await client.channels.cache.get(idDiscussionGroupe);
-    if(!cat) {
+    if (!cat) {
         logger.error("Catégorie des discussions de groupe n'existe pas ! Création en cours...");
         const nameCat = "Discussions groupes";
         cat = await interaction.guild.channels.create(nameCat, {
@@ -187,6 +187,8 @@ const schedule = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
@@ -197,8 +199,8 @@ const schedule = async (interaction, options) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)] });
         
-    // si l'author n'est pas capitaine 
-    if (!grp.captain._id.equals(authorDB._id))
+    // si l'author n'est pas capitaine ou admin
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`)] });
     
     // test si date bon format
@@ -247,14 +249,12 @@ const schedule = async (interaction, options) => {
     return interaction.editReply({ embeds: [newMsgEmbed] });
 }
 
-const dissolve = async (interaction, options, isAdmin = false) => {
+const dissolve = async (interaction, options) => {
     const grpName = options.get('nom')?.value;
     const client = interaction.client;
     const author = interaction.member;
-    
-    // -- test si user a le droit de gérer les messages (mode admin)
-    if (isAdmin && !author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES)) 
-        return interaction.reply({ embeds: [createError(`Interdiction.`)] });
+
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
     
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -266,15 +266,17 @@ const dissolve = async (interaction, options, isAdmin = false) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe ${grpName} n'existe pas !`)] });
         
-    // si l'author n'est pas capitaine (non admin)
+    // si l'author n'est pas capitaine et non admin
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grpName} !`)] });
     
     dissolveGroup(client, interaction.guildId, grp)
     
     // suppression channel discussion
-    const channel = interaction.guild.channels.cache.get(grp.channelId);
-    channel.delete("Groupe supprimé");
+    if (grp.channelId) {
+        const channel = interaction.guild.channels.cache.get(grp.channelId);
+        channel.delete("Groupe supprimé");
+    }
 
     let mentionsUsers = '';
     for (const member of grp.members)
@@ -294,6 +296,8 @@ const transfert = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+
     // test si captain est register
     const authorDB = await client.getUser(author);
     if (!authorDB) // Si pas dans la BDD
@@ -307,9 +311,10 @@ const transfert = async (interaction, options) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)] });
         
-    // si l'author n'est pas capitaine 
-    if (!grp.captain._id.equals(authorDB._id))
+    // si l'author n'est pas admin et n'est pas capitaine 
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
+    
     // si le nouveau capitaine fait parti du groupe
     let memberGrp = grp.members.find(u => u._id.equals(newCaptainDB._id));
     if (!memberGrp)
@@ -335,6 +340,8 @@ const end = async (interaction, options) => {
     const author = interaction.member;
     const guild = interaction.guild;
     const guildId = interaction.guildId;
+    
+    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
 
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -346,8 +353,8 @@ const end = async (interaction, options) => {
     if (!grp) 
         return interaction.reply({ embeds: [createError(`Le groupe ${grpName} n'existe pas !`)] });
     
-    // si l'author n'est pas capitaine
-    if (!grp.captain._id.equals(authorDB._id))
+    // si l'author n'est pas admin et n'est pas capitaine
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grp.name} !`)] });
 
     await client.update(grp, { validated: true });
@@ -355,7 +362,7 @@ const end = async (interaction, options) => {
     // archivage du channel de discussion
     const idArchDiscussionGroupe = await client.getGuildChannel(guildId, SALON.CAT_ARCHIVE_DISCUSSION_GROUPE);
     let catArchive = await interaction.guild.channels.cache.get(idArchDiscussionGroupe);
-    if(!catArchive) {
+    if (!catArchive) {
         logger.error("Catégorie archives des discussions de groupe n'existe pas ! Création en cours...");
         const nameCat = "Archives discussions groupes";
         catArchive = await interaction.guild.channels.create(nameCat, {
@@ -367,16 +374,19 @@ const end = async (interaction, options) => {
         );
         logger.info(`Catégorie "${nameCat}" créé avec succès`);
     }
-    const channel = await guild.channels.cache.get(grp.channelId);
-    channel.setParent(catArchive);
-    channel.permissionOverwrites.set([{
-        id: guild.roles.everyone.id,
-        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
-    }, {
-        id: author.id,
-        allow: ['VIEW_CHANNEL'],
-        deny: ['SEND_MESSAGES']
-    }]);
+
+    if (grp.channelId) {
+        const channel = await guild.channels.cache.get(grp.channelId);
+        channel.setParent(catArchive);
+        channel.permissionOverwrites.set([{
+            id: guild.roles.everyone.id,
+            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
+        }, {
+            id: author.id,
+            allow: ['VIEW_CHANNEL'],
+            deny: ['SEND_MESSAGES']
+        }]);
+    }
 
     let mentionsUsers = '';
     for (const member of grp.members)
@@ -423,10 +433,8 @@ const kick = async (interaction, options) => {
 
     // si l'author n'est pas capitaine ou non admin
     const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
-    if (!isAdmin) {
-        if (!grp.captain._id.equals(authorDB._id))
-            return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
-    }
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
 
     // si le user a kick fait parti du groupe
     let memberGrp = grp.members.find(u => u._id.equals(toKickedDB._id));

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [v1.0.4]
+- Nouvelle visualisation du profile en forme de carte !
+- Et customisable via la commande `/shop custom` ! 
+- Méta-achievements, visible sur la carte du profile et en détails via `/profile succes`
+
+## [v1.0.3]
+- Un salon textuel est créé lors de la création d'un groupe !
+- Une partie des anciennes commandes avec préfixes ont été supprimées
+
 ## [v1.0.2]
 ### Added
 - /group kick <user>
