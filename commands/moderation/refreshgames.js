@@ -16,7 +16,7 @@ module.exports.run = async (client, message, args) => {
     Récupération de tous les jeux..`);
 
     try {
-        const msgFin = await client.fetchAllApps();
+        const msgFin = await client.fetchAllApps(msgProgress);
 
         msgProgress.edit(`${msgFin}`);
     } catch (err) {

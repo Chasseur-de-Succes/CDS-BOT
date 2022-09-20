@@ -230,16 +230,13 @@ module.exports = client => {
         return embed;
     }
 
-    client.fetchAllApps = async () => {
+    client.fetchAllApps = async (msgProgress) => {
         let startTime = moment();
         let crtIdx = 1, cptGame = 0;
 
         let apps = await client.getAllApps();
         console.log(`trouvé ${apps.length}`);
         
-        // - recup tous les appids de la bdd
-        const appidsDB = await Game.distinct('appid')
-    
         // - remove name empty 
         apps = apps.filter(item => item.name !== '')
         console.log(`aftr name empty ${apps.length}`);
@@ -250,16 +247,27 @@ module.exports = client => {
         console.log(`aftr mod 10 ${apps.length}`);
         
         // - remove appids déjà dans la bdd
-        // TODO a décommenter
-        apps = apps.filter(item => !appidsDB.includes(item.appid))
-        console.log(`aftr distinct ${apps.length}`);
-    
+        // - recup tous les appids de la bdd
+        const appidsDB = await Game.distinct('appid')
+        const appsDistinct = apps.filter(item => !appidsDB.includes(item.appid))
+        console.log(` distinct ${appsDistinct.length}`);
+
+        // TODO a remove ?
+        // ne garde que ceux qui n'ont pas de 'type'
+        const noTypeObj = await Game.find({ type: null })
+        const noType = noTypeObj.map(obj => obj.appid);
+        const appsNoType = apps.filter(item => noType.includes(item.appid))
+        console.log(` no type ${appsNoType.length}`);
+
+        // fusion des nouvelles appid et des jeux n'ayant pas de type
+        apps = appsNoType.concat(appsDistinct)
         // TODO remove encore d'autres ?
-    
+        
         for (let i = 0; i < apps.length; i++) {
-            if (crtIdx % 250 === 0) {
-                logger.info("[" + crtHour() + "] - " + (crtIdx/apps.length) + " ..");
-                //await msgProgress.edit(`[${crtIdx}/${apps.length}] - Traitement des jeux ${".".repeat(((crtIdx/250) % 3) + 1)}`);
+            if (crtIdx % 100 === 0) {
+                logger.info(`[${crtHour()}] - ${crtIdx}/${apps.length} ..`);
+                if (msgProgress)
+                    await msgProgress.edit(`[${crtIdx}/${apps.length}] - Traitement des jeux ${".".repeat(((crtIdx/100) % 3) + 1)}`);
             }
 
             const app = apps[i];
@@ -273,7 +281,10 @@ module.exports = client => {
 
                 if (err.status === 429) {
                     logger.info("\x1b[34m[INFO]\x1b[0m ["+crtHour()+"] - "+err+", on attend 5 min ..");
-                    //await msgProgress.edit(`${crtIdx}/${apps.length} - Trop de requêtes vers l'API Steam ! On attends 5 min ⏳`);
+
+                    if (msgProgress)
+                        await msgProgress.edit(`${crtIdx}/${apps.length} - Trop de requêtes vers l'API Steam ! On attends 5 min ⏳`);
+
                     // att 5 min
                     await delay(300000);
 
