@@ -355,41 +355,46 @@ async function endGroup(client, guildId, grp) {
     // déplacer event terminé
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
     if (idListGroup) {
-        const channel = await client.channels.cache.get(idListGroup);
-        const msgChannel = await channel.messages.cache.get(grp.idMsg);
-        msgChannel.reactions.removeAll();
-
-        // déplacement vers thread
-        let archived = await channel.threads.fetchArchived();
-        let thread = archived.threads.filter(x => x.name === 'Groupes terminés');
-
-        // si pas archivé, on regarde s'il est actif
-        if (thread.size === 0) {
-            let active = await channel.threads.fetchActive();
-            thread = active.threads.filter(x => x.name === 'Groupes terminés');
-        }
-
-        // si tjs pas actif, on le créé
-        if (thread.size === 0) {
-            logger.info('.. création thread archive')
-            thread = await channel.threads.create({
-                name: 'Groupes terminés',
-                //autoArchiveDuration: 60,
-                reason: 'Archivage des événements.',
-            });
-            
-            // envoi vers thread
-            await thread.send({embeds: [msgChannel.embeds[0]]});
-        } else {
-            // envoi vers thread
-            await thread.first().send({embeds: [msgChannel.embeds[0]]});
-        }
-        
-        // supprime msg
-        await msgChannel.delete();
+        moveToArchive(client, idListGroup, grp.idMsg)
     } else {
         logger.error(`Le channel de list group n'existe pas !`);
     }
+}
+
+async function moveToArchive(client, idListGroup, idMsg) {
+    const channel = await client.channels.cache.get(idListGroup);
+    const msgChannel = await channel.messages.cache.get(idMsg);
+    msgChannel.reactions.removeAll();
+
+    // déplacement vers thread
+    let archived = await channel.threads.fetchArchived();
+    let thread = archived.threads.filter(x => x.name === 'Groupes terminés');
+
+    // si pas archivé, on regarde s'il est actif
+    if (thread.size === 0) {
+        let active = await channel.threads.fetchActive();
+        thread = active.threads.filter(x => x.name === 'Groupes terminés');
+    }
+
+    // si tjs pas actif, on le créé
+    if (thread.size === 0) {
+        logger.info('.. création thread archive')
+        thread = await channel.threads.create({
+            name: 'Groupes terminés',
+            //autoArchiveDuration: 60,
+            reason: 'Archivage des événements.',
+        });
+        
+        // envoi vers thread
+        await thread.send({embeds: [msgChannel.embeds[0]]});
+    } else {
+        // envoi vers thread
+        await thread.first().send({embeds: [msgChannel.embeds[0]]});
+    }
+    
+    // supprime msg
+    await msgChannel.delete();
+
 }
 
 /**
@@ -452,5 +457,6 @@ exports.joinGroup = joinGroup
 exports.createGroup = createGroup
 exports.dissolveGroup = dissolveGroup
 exports.endGroup = endGroup
+exports.moveToArchive = moveToArchive
 exports.deleteAllRappelJob = deleteAllRappelJob
 exports.deleteRappelJob = deleteRappelJob

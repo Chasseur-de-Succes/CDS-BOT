@@ -2,7 +2,7 @@ const { Collection } = require('discord.js');
 const { readdirSync } = require('fs');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
 const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
-const { createReactionCollectorGroup } = require('./msg/group');
+const { createReactionCollectorGroup, moveToArchive } = require('./msg/group');
 const { Group } = require('../models/index');
 const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
@@ -271,6 +271,8 @@ const loadReactionGroup = async (client) => {
                 // filtre group encore en cours
                 if (!grp.validated)
                     await createReactionCollectorGroup(client, msg, grp);
+                else
+                    await moveToArchive(client, idListGroup, grp.idMsg)
             }).catch(async err => {
                 logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
                 // on supprime les msg qui n'existent plus
