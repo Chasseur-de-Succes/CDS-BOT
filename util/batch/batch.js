@@ -150,7 +150,7 @@ module.exports = {
         client.findGroupById(groupeId)
         .then(groupe => {
             // TODO a filtrer depuis findGroupe
-            if (!groupe.validated) {
+            if (!groupe?.validated) {
                 logger.info("Envoi MP rappel pour groupe "+groupe.name+" !");
                 // va MP tous les joueurs présents dans le groupe
                 for (const member of groupe.members) {

@@ -38,7 +38,7 @@ module.exports = async (client, msg) => {
         // si piece jointes
         if (hasPJ) {
             // si image
-            if (msg.attachments.every(m => m.contentType.startsWith('image'))) {
+            if (msg.attachments.every(m => m.contentType?.startsWith('image'))) {
                 // si hall heros
                 if (isHallHeros) {
                     // stat ++
