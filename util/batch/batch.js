@@ -165,76 +165,17 @@ module.exports = {
     },
 
     searchNewGamesJob(client) {
-        // TODO refactor pour que command refreshgames utilise meme methode mais avec envoi message
         logger.info(`-- Mise en place job search new games`);
 
         // refresh games tous les soirs à 1h
         scheduleJob({ hour: 1, minute: 00 }, async function() {
             moment.updateLocale('fr', { relativeTime : Object });
             logger.info(`Début refresh games ..`);
-            let startTime = moment();
-            let crtIdx = 1, cptGame = 0;
-    
-            // recupe depuis l'appid XXX
-            const maxAppid = await client.findMaxAppId();
-            client.getAppList(maxAppid)
-            .then(async appList => {
-                let games = appList.body.response.apps;
-                // parcours de tous les jeux
-        
-                for (const game of games) {
-                    if (crtIdx % 250 === 0) {
-                        logger.info(`[${crtHour()}] - ${crtIdx}/${games.length} ..`);
-                    }
-        
-                    if (game?.appid) {
-                        let gameDB = await client.findGameByAppid(game.appid);
-                        // si game existe déjà en base, on skip // TODO a enlever car ~50K game..
-                        if (gameDB) {
-                            console.debug(`GAME ${game.appid} trouvé !`);
-                        } else {
-                            // on recup les tags du jeu courant
-                            try {
-                                let app = await client.getAppDetails(game.appid);
-                                let tags = app?.body[game.appid]?.data?.categories
-                                // au cas où pas de tags ou undefined
-                                tags = tags ? tags : [];
-                                // on ne garde que les tags qui nous intéresse (MULTI, COOP et ACHIEVEMENTS)
-                                // TODO voir pour faire autrement ? récupérer tous les tags peu importe et faire recherche sur les tags via Mongo ?
-                                let isMulti = tags.some(tag => tag.id === TAGS.MULTI.id);
-                                let isCoop = tags.some(tag => tag.id === TAGS.COOP.id);
-                                let hasAchievements = tags.some(tag => tag.id === TAGS.ACHIEVEMENTS.id);
-                                
-                                // on créé un nouveau Game
-                                let newGame = {
-                                    appid: game.appid,
-                                    name: game.name,
-                                    isMulti: isMulti,
-                                    isCoop: isCoop,
-                                    hasAchievements: hasAchievements
-                                }
-                                await client.createGame(newGame);
-                                cptGame++;
-                            } catch (err) {
-                                if (err.status === 429) {
-                                    logger.info(`[${crtHour()}] - ${err}, on attend 5 min ..`);
-                                    // att 5 min
-                                    await delay(300000);
-                                }
-                            }
-                        }
-                    } else {
-                        console.warn(`\x1b[33m[WARN] \x1b[0mJeu ${game} n'a pas d'appid ou n'existe pas.`);
-                    }
-                    
-                    crtIdx++;
-                }
-        
-                logger.info(`.. Fin refresh games en [${startTime.toNow()}], ${cptGame} jeux ajoutés`);
-            }).catch(err => {
-                logger.error(`Erreur refresh games ${err}`);
-                return;
-            });
+            try {
+                await client.fetchAllApps();
+            } catch (error) {
+                logger.error(`error lors job refresh games : ${error}`);
+            }
         });
     },
 

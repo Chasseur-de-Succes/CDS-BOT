@@ -63,11 +63,9 @@ const create = async (interaction, options) => {
     // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
     let games = await Game.aggregate([{
         '$match': { 'name': regGame }
-    },
-    /*{
+    }, {
         '$match': { 'type': 'game' }
-    }, */
-    {
+    }, {
         '$limit': 25
     }])
 

@@ -231,8 +231,8 @@ module.exports = client => {
     }
 
     client.fetchAllApps = async (msgProgress) => {
-        let startTime = moment();
         let crtIdx = 1, cptGame = 0;
+        let nbTotal = 0, nbDistinct = 0, nbNoType = 0;
 
         let apps = await client.getAllApps();
         console.log(`trouvé ${apps.length}`);
@@ -245,24 +245,29 @@ module.exports = client => {
         // TODO je crois ?
         apps = apps.filter(item => item.appid % 10 === 0)
         console.log(`aftr mod 10 ${apps.length}`);
+        nbTotal = apps.length;
         
         // - remove appids déjà dans la bdd
         // - recup tous les appids de la bdd
         const appidsDB = await Game.distinct('appid')
         const appsDistinct = apps.filter(item => !appidsDB.includes(item.appid))
         console.log(` distinct ${appsDistinct.length}`);
+        nbDistinct = appsDistinct.length;
 
-        // TODO a remove ?
         // ne garde que ceux qui n'ont pas de 'type'
         const noTypeObj = await Game.find({ type: null })
         const noType = noTypeObj.map(obj => obj.appid);
         const appsNoType = apps.filter(item => noType.includes(item.appid))
         console.log(` no type ${appsNoType.length}`);
+        nbNoType = appsNoType.length;
 
         // fusion des nouvelles appid et des jeux n'ayant pas de type
         apps = appsNoType.concat(appsDistinct)
         // TODO remove encore d'autres ?
         
+        if (msgProgress)
+            await msgProgress.edit(`Trouvé ${nbApps}`);
+
         for (let i = 0; i < apps.length; i++) {
             if (crtIdx % 100 === 0) {
                 logger.info(`[${crtHour()}] - ${crtIdx}/${apps.length} ..`);
