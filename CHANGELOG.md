@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v1.0.5]
+### Changed
+- TOUTES les applications (jeux, demo, etc) de Steam sont récupérées
+- Lors d'une création de groupe ou de vente d'un jeu, on filtre **seulement** sur les type *'game'* 
+
 ### Added
 - Slash commands : info
 
@@ -42,7 +48,7 @@
 - Finir un groupe donne maintenant des Points CDS automatiquement, en fonction du nombre de participant
 
 ### Fixed
-- Quelques fautes de grammaire.. la faute à Tobi :p
+- Quelques faute de grammaire.. la faute à Tobi :p
 - Si quelconque erreur, elle est catchée (normalement) et le bot ne crash pas
 
 ## [v1.0.0]
