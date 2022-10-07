@@ -213,11 +213,14 @@ async function leaveGroup(client, guildId, grp, userDB) {
         dateUpdated: Date.now()
     })
 
-    // update perm channel
+    // update perm channel + send message
     if (grp.channelId) {
         const guild = await client.guilds.cache.get(guildId);
         const channel = await guild.channels.cache.get(grp.channelId);
         channel.permissionOverwrites?.delete(userDB.userId, "Membre a quitté le groupe");
+
+        // send message channel group
+        channel.send(`> <@${userDB.userId}> a quitté le groupe (total : ${grp.size})`);
     }
 
     // stat ++
@@ -245,7 +248,7 @@ async function leaveGroup(client, guildId, grp, userDB) {
         dateUpdated: Date.now()
     });
 
-    // update perm channel
+    // update perm channel + send message
     if (grp.channelId) {
         const guild = await client.guilds.cache.get(guildId);
         const channel = await guild.channels.cache.get(grp.channelId);
@@ -254,6 +257,9 @@ async function leaveGroup(client, guildId, grp, userDB) {
             VIEW_CHANNEL: true,
             SEND_MESSAGES: true
         });
+
+        // send message channel group
+        channel.send(`> <@${userDB.userId}> a rejoint le groupe (total : ${grp.size})`);
     }
 
     // stat ++
