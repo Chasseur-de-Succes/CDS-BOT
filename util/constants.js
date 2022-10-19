@@ -630,6 +630,9 @@ const CHANNEL = [
     }, {
         name: 'Catégorie des archives des discussions de groupe',
         value: 'cat_archive_discussion_groupe'
+    }, {
+        name: 'Salon "calendrier de l\'avent"',
+        value: 'advent'
     },
 ]
 const SALON = {
@@ -640,7 +643,8 @@ const SALON = {
     HALL_ZEROS: 'hall_zeros',
     LOGS: 'logs',
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
-    CAT_ARCHIVE_DISCUSSION_GROUPE: "cat_archive_discussion_groupe"
+    CAT_ARCHIVE_DISCUSSION_GROUPE: "cat_archive_discussion_groupe",
+    ADVENT: "advent"
 }
 
 exports.MESSAGES = MESSAGES;

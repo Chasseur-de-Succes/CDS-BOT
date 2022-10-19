@@ -1,7 +1,7 @@
 const { Collection } = require('discord.js');
-const { readdirSync } = require('fs');
+const { readdirSync, cp } = require('fs');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
-const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
+const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper, loadEvent } = require('./batch/batch');
 const { createReactionCollectorGroup, moveToArchive } = require('./msg/group');
 const { Group } = require('../models/index');
 const { CHANNEL, SALON } = require('./constants');
@@ -259,6 +259,8 @@ const loadBatch = async (client) => {
     resetMoneyLimit();
 
     loadJobHelper(client);
+
+    loadEvent(client);
 }
 
 // Charge les réactions des messages des groupes
@@ -473,5 +475,5 @@ module.exports = {
     loadSlashCommands,
     loadRoleGiver,
     loadReactionMsg,
-    loadVocalCreator
+    loadVocalCreator,
 }

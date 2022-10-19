@@ -54,6 +54,14 @@ const userSchema = mongoose.Schema({
             hall_zeros_approved_by_admin :      { type: Number, default: 0 },
         }
     },
+    event: {
+        2022: {
+            advent: {
+                type: Map,
+                of: Boolean
+            }
+        }
+    },
     profile: {
         text: {
             type: Map,

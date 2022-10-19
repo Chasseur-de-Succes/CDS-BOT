@@ -1,10 +1,13 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
-const { TAGS, delay, crtHour } = require('../../util/constants');
+const { TAGS, delay, crtHour, SALON } = require('../../util/constants');
+const advent = require('../../data/advent/calendar.json');
+const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
 const moment = require("moment");
 const { User } = require("../../models");
 const { createLogs } = require("../envoiMsg");
 const { MONEY } = require("../../config");
+const { MessageEmbed, MessageAttachment } = require("discord.js");
 
 module.exports = {
     /**
@@ -223,6 +226,62 @@ module.exports = {
                     .catch(err => logger.error(`Impossible de trouver rôle @Helper ${err}`));
             });
         });
+    },
+
+    loadEvent(client) {
+        logger.info(`--  Mise en place batch event`);
+
+        // tous les jours, à 18h00
+        //scheduleJob({ dayOfWeek: 1, hour: 18, minute: 00 }, async function() {
+            client.guilds.cache.forEach(async guild => {
+                const idAdvent = await client.getGuildChannel(guild.id, SALON.ADVENT);
+                
+                if (idAdvent) {
+                    // recupere le channel
+                    const eventChannel = await guild.channels.fetch(idAdvent);
+    
+                    // let index = new Date().getDate();
+                    // on incremente pour j+1
+                    // index++;
+                    let index = 15;
+
+                    // si == 25 on arrete !
+                    if (index >= 25)
+                        return;
+                    
+                    const infos = advent[index];
+
+                    // en cas d'erreur sur le tableau, on ne va pas + loin (on sait jamais)
+                    if (!infos) 
+                        return;
+                    
+                    // rouge ou vert (couleur noel)
+                    const color = index % 2 === 0 ? "#008000" : "#ff0000"
+
+                    // preapre l'embed
+                    let embed = new MessageEmbed()
+                        .setColor(color)
+                        .setTitle(`🌟 Énigme jour ${index} 🌟`)
+                        .setDescription(`${infos.question}`);
+                    
+                    // si type image, on ajoute l'image
+                    if (infos.type === "img") {
+                        const attachment = new MessageAttachment(`data/advent/${infos.data}`)
+                        embed.setImage(`attachment://data/advent/${infos.data}`)
+
+                        await eventChannel.send({ embeds: [embed], files: [attachment] });
+                    } else {
+                        await eventChannel.send({ embeds: [embed] });
+                    }
+
+                    // on renvoi un embed pour séparer
+                    embed = new MessageEmbed()
+                        .setColor(NIGHT)
+                        .setTitle(`**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**`);
+                    await eventChannel.send({ embeds: [embed] });
+                }
+            });
+        //});
     }
 }
 

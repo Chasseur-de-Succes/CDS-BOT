@@ -1,0 +1,29 @@
+{
+    "1": {
+        "type": "text",
+        "question": "Ma vie est étrange car je peux remonter le temps.\n***Qui suis-je ?***",
+        "reponse": ["Max", "Life is Strange"]
+    },
+    "2": {
+        "type": "img",
+        "question": "De quel jeu est tiré ce morceau d'image ?",
+        "data": "2.png",
+        "reponse": ["Witcher", "Witcher 3", "The Witcher", "The Witcher 3"]
+    },
+    "3": {
+        "type": "text",
+        "question": "> « Mes couilles sur ton nez, t’auras l’air d’un dindon ».\n***De quel jeu est tiré cette citation ?***",
+        "reponse": ["Duke Nukem", "Duke Nukem Forever"]
+    },
+    "4": {
+        "type": "img",
+        "question": "De quel jeu est tiré cette image ?",
+        "data": "4.png",
+        "reponse": ["A Plague Tale", "A Plague Tale : Innocence", "A Plague Tale: Innocence"]
+    },
+    "5": {
+        "type": "text",
+        "question": "> ⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️🅱️🅰️\n***Qu'est ce que c'est ?***",
+        "reponse": ["Code Konami", "Konami Code"]
+    }
+}
