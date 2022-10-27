@@ -57,8 +57,11 @@ const userSchema = mongoose.Schema({
     event: {
         2022: {
             advent: {
-                type: Map,
-                of: Boolean
+                score: { type: Number, default: 0 },
+                answers: {
+                    type: Map,
+                    of: Boolean
+                }
             }
         }
     },

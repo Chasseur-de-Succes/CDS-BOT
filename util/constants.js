@@ -373,6 +373,14 @@ const MESSAGES = {
                         required: true,
                     }
                 ]
+            },
+            CALENDRIERDELAVENT: {
+                name: "calendrier-de-l-avent",
+                aliases: [],
+                category: "cds",
+                cooldown: 0,
+                description: "Voir le classement des points pour le calendrier de l'avent",
+                usage: ""
             }
         },
         ECONOMY: {

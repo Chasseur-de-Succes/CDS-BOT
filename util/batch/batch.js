@@ -232,7 +232,8 @@ module.exports = {
         logger.info(`--  Mise en place batch event`);
 
         // tous les jours, à 18h00
-        //scheduleJob({ dayOfWeek: 1, hour: 18, minute: 00 }, async function() {
+        // TODO only décembre
+        //scheduleJob({ month:10, hour: 18, minute: 00 }, async function() {
             client.guilds.cache.forEach(async guild => {
                 const idAdvent = await client.getGuildChannel(guild.id, SALON.ADVENT);
                 
@@ -240,10 +241,10 @@ module.exports = {
                     // recupere le channel
                     const eventChannel = await guild.channels.fetch(idAdvent);
     
-                    // let index = new Date().getDate();
+                    //let index = new Date().getDate();
                     // on incremente pour j+1
-                    // index++;
-                    let index = 15;
+                    //index++;
+                    let index = 5;
 
                     // si == 25 on arrete !
                     if (index >= 25)

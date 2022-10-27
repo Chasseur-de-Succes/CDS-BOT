@@ -43,27 +43,33 @@ module.exports = async (client, msg) => {
             
             if (userDB) {
                 // - récuperer "index" date du jour, changement à 18h
-                // const index = new Date().getDate();
+                //let index = new Date().getDate();
+                // TODO si mois pas de décembre
+                //if (new Date().getMonth() >= 10)
+                //    return;
                 let index = 5;
-                if (new Date().getHours() >= 18) {
-                    index++
-                }
+                //if (new Date().getHours() >= 18) {
+                //    index++
+                //}
 
                 // les 24 premiers jours
-                if (index < 25 ) {
+                if (index < 25) {
                     let embed = new MessageEmbed()
                         .setTitle(`🌟 Énigme jour ${index} 🌟`);
                     // - si user a déjà répondu à question du jour : on ignore
-                    if (userDB.event[2022].advent === undefined || userDB.event[2022].advent.get(index) === undefined) {
+                    if (userDB.event[2022].advent.answers === undefined || userDB.event[2022].advent.answers.get('' + index) === undefined) {
                         const query = { userId: msg.author.id };
-                        var update = { $set : {} };
+                        var update = { $set : {}, $inc: {} };
                         
                         // on vérifie si le message est l'une des réponses possible
                         const reponseTrouve = advent[index].reponse.some(el => el.toLowerCase() === msg.content.toLowerCase());
     
-                        update.$set["event.2022.advent." + index] = reponseTrouve;
+                        update.$set["event.2022.advent.answers." + index] = reponseTrouve;
+                        update.$inc["event.2022.advent.score"] = reponseTrouve ? 1 : 0
+
+                        // { $inc: { "stats.msg" : 1 } }
                         userDB = await User.findOneAndUpdate(query, update)
-                        
+
                         // - prevenir user
                         embed.setColor(reponseTrouve ? GREEN : DARK_RED);
                         if (reponseTrouve) {
@@ -83,9 +89,9 @@ module.exports = async (client, msg) => {
                     userDB = await User.findOne({ userId: msg.author.id });
     
                     // nb enigme repondu
-                    const nbEnigme = userDB.event[2022].advent ? userDB.event[2022].advent.size : 1;
+                    const nbEnigme = userDB.event[2022].advent.answers ? userDB.event[2022].advent.answers.size : 1;
                     let nbEnigmeSolved = 0;
-                    for (let value of userDB.event[2022].advent.values()) {
+                    for (let value of userDB.event[2022].advent.answers.values()) {
                         if (value) nbEnigmeSolved++
                     }
                     // nb total = index courant
