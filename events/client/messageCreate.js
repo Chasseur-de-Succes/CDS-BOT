@@ -40,17 +40,22 @@ module.exports = async (client, msg) => {
         // SPECIAL CALENDRIER DE L'AVENT
         if (isAdvent) {
             let userDB = await User.findOne({ userId: msg.author.id });
+
+            let author = msg.author;
+            let msgContent = msg.content;
+            await msg.delete()
             
             if (userDB) {
                 // - récuperer "index" date du jour, changement à 18h
-                //let index = new Date().getDate();
-                // TODO si mois pas de décembre
+                let index = new Date().getDate();
+                
                 //if (new Date().getMonth() >= 10)
                 //    return;
-                let index = 5;
-                //if (new Date().getHours() >= 18) {
-                //    index++
-                //}
+                //let index = 5;
+                // si avant 18h, on est tjs sur jours d'avant 
+                if (new Date().getHours() < 18) {
+                    index--
+                }
 
                 // les 24 premiers jours
                 if (index < 25) {
@@ -58,13 +63,14 @@ module.exports = async (client, msg) => {
                         .setTitle(`🌟 Énigme jour ${index} 🌟`);
                     // - si user a déjà répondu à question du jour : on ignore
                     if (userDB.event[2022].advent.answers === undefined || userDB.event[2022].advent.answers.get('' + index) === undefined) {
-                        const query = { userId: msg.author.id };
+                        const query = { userId: author.id };
                         var update = { $set : {}, $inc: {} };
                         
                         // on vérifie si le message est l'une des réponses possible
-                        const reponseTrouve = advent[index].reponse.some(el => el.toLowerCase() === msg.content.toLowerCase());
+                        const reponseTrouve = advent[index].reponse.some(el => el.toLowerCase() === msgContent.toLowerCase());
     
                         update.$set["event.2022.advent.answers." + index] = reponseTrouve;
+                        // TODO score en fonction de la position de l'user (+ rapide, point++)
                         update.$inc["event.2022.advent.score"] = reponseTrouve ? 1 : 0
 
                         // { $inc: { "stats.msg" : 1 } }
@@ -86,7 +92,7 @@ module.exports = async (client, msg) => {
                     }
     
                     // on refresh l'userdb
-                    userDB = await User.findOne({ userId: msg.author.id });
+                    userDB = await User.findOne({ userId: author.id });
     
                     // nb enigme repondu
                     const nbEnigme = userDB.event[2022].advent.answers ? userDB.event[2022].advent.answers.size : 1;
@@ -100,14 +106,12 @@ module.exports = async (client, msg) => {
                     embed.setFooter({ text: `BONNES RÉPONSES ✅${nbEnigmeSolved}/${nbEnigmeTotal} | TOTAL 🗒️${nbEnigme}/${nbEnigmeTotal}` });
     
                     // - send embed MP
-                    await msg.author.send({ embeds: [embed] });
+                    await author.send({ embeds: [embed] });
                 }
                 
             } else {
                 // TODO pas register
             }
-
-            await msg.delete()
         } else {
             const hasPJ = msg.attachments.size > 0;
             // nb img dans hall héros

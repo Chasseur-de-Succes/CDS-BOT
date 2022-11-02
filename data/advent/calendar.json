@@ -6,7 +6,7 @@
     },
     "2": {
         "type": "img",
-        "question": "De quel jeu est tiré ce morceau d'image ?",
+        "question": "***De quel jeu est tiré ce morceau d'image ?***",
         "data": "2.png",
         "reponse": ["Witcher", "Witcher 3", "The Witcher", "The Witcher 3"]
     },
@@ -17,7 +17,7 @@
     },
     "4": {
         "type": "img",
-        "question": "De quel jeu est tiré cette image ?",
+        "question": "***De quel jeu est tiré cette image ?***",
         "data": "4.png",
         "reponse": ["A Plague Tale", "A Plague Tale : Innocence", "A Plague Tale: Innocence"]
     },
@@ -27,44 +27,47 @@
         "reponse": ["Code Konami", "Konami Code"]
     },
     "6": {
-        "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "type": "img",
+        "question": "***De quel jeu est tiré cette image ?***",
+        "data": "6.png",
+        "reponse": ["Fallout 4"]
     },
     "7": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "Dans ***quel jeu*** peut on trouver *The room of the vieux monsieur* ?",
+        "reponse": ["Watch Dogs: Legion", "Watch Dogs Legion"]
     },
     "8": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "***F.. .O .A.***  *(compléter les points)*",
+        "reponse": ["Fus Ro Dah"]
     },
     "9": {
-        "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "type": "img",
+        "question": "***De quel jeu est tiré cette image ?***",
+        "data": "9.png",
+        "reponse": ["Stray"]
     },
     "10": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "Dans ***quel jeu*** peut-on trouver un succès avec l'ancien logo du groupe ?",
+        "reponse": ["Dinosaur Forest"]
     },
     "11": {
-        "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "type": "img",
+        "question": "***De quel jeu est tiré cette image ?***",
+        "data": "11.png",
+        "reponse": ["Guns of Icarus", "Gun of Icarus", "Guns of Icarus Online", "Gun of Icarus Online"]
     },
     "12": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "Quel lien relie le jeu Primal Carnage: Extinction à Futurama ?",
+        "reponse": ["Jurassic Bark"]
     },
     "13": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "***Le nom du jeu ?***\nTu n'as pas besoin de tes yeux, juste de tes oreilles et ma lame pour suivre mon aventure.",
+        "reponse": ["A Blind Legend"]
     },
     "14": {
         "type": "text",

@@ -234,6 +234,7 @@ module.exports = {
         // tous les jours, à 18h00
         // TODO only décembre
         //scheduleJob({ month:10, hour: 18, minute: 00 }, async function() {
+        scheduleJob({ hour: 18, minute: 00 }, async function() {
             client.guilds.cache.forEach(async guild => {
                 const idAdvent = await client.getGuildChannel(guild.id, SALON.ADVENT);
                 
@@ -241,14 +242,16 @@ module.exports = {
                     // recupere le channel
                     const eventChannel = await guild.channels.fetch(idAdvent);
     
-                    //let index = new Date().getDate();
-                    // on incremente pour j+1
-                    //index++;
-                    let index = 5;
+                    let index = new Date().getDate();
+                    // on incremente pour j+1 ?
+                    /*if (index > 1)
+                        index++;*/
+                    // let index = 5;
 
                     // si == 25 on arrete !
                     if (index >= 25)
                         return;
+                    // TODO si == 25 => JOYEUX NOEL !
                     
                     const infos = advent[index];
 
@@ -282,7 +285,7 @@ module.exports = {
                     await eventChannel.send({ embeds: [embed] });
                 }
             });
-        //});
+        });
     }
 }
 

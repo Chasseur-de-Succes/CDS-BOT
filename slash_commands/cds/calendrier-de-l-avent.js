@@ -60,18 +60,16 @@ module.exports.run = async (interaction) => {
 
     // - si user dejà dans top 10, pas besoin
     if (!classementUser) {
-        // TODO revoir recherche
-        for (let i = 0; i < top10.length; i++) {
-            const u = top10[i];
-            if (u) {
-                if (u.userId === userDB.userId) {
-                    classementUser = i + 1;
-                }
-            }
+        let indexUser = top10.findIndex(u => u.userId === userDB.userId);
+        if (indexUser >= 0) {
+            classementUser = indexUser + 1;
+            
+            classement += ' ***---*** \n';
+            classement += `Toi, tu es **${classementUser}ème**, avec ${top10[indexUser].event[2022].advent.score} points !`;
+        } else {
+            classement += ' ***---*** \n';
+            classement += `Tu n'as pas encore répondu à une des questions !`;
         }
-        
-        classement += ' --- ';
-        classement += `Tu es **${classementUser}ème** !`;
     }
 
     await interaction.deferReply();
