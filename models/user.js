@@ -60,7 +60,10 @@ const userSchema = mongoose.Schema({
                 score: { type: Number, default: 0 },
                 answers: {
                     type: Map,
-                    of: Boolean
+                    of: new mongoose.Schema({
+                        valid: Boolean,
+                        date: Date
+                    })
                 }
             }
         }

@@ -68,10 +68,31 @@ module.exports = async (client, msg) => {
                         
                         // on vérifie si le message est l'une des réponses possible
                         const reponseTrouve = advent[index].reponse.some(el => el.toLowerCase() === msgContent.toLowerCase());
-    
-                        update.$set["event.2022.advent.answers." + index] = reponseTrouve;
-                        // TODO score en fonction de la position de l'user (+ rapide, point++)
-                        update.$inc["event.2022.advent.score"] = reponseTrouve ? 1 : 0
+
+                        update.$set["event.2022.advent.answers." + index + ".valid"] = reponseTrouve;
+                        update.$set["event.2022.advent.answers." + index + ".date"] = new Date();
+
+                        // - score en fonction de la position de l'user (+ rapide, point++)
+                        const matchValid = {}, matchExist = {};
+                        const matchAgg = { $match: { $and: [matchValid, matchExist] }};
+                        matchValid["event.2022.advent.answers." + index + ".valid"] = true
+                        matchExist["event.2022.advent.answers." + index + ".date"] = { '$exists': true }
+                        const dejaRep = await User.aggregate([matchAgg, { $limit: 3 }]);
+
+                        let point = 1;
+                        let msgBonus = '';
+                        if (dejaRep.length === 0) {             // 1er
+                            point = 9;
+                            msgBonus = 'Tu as répondu le **1er** ! **9 points** pour toi !';
+                        } else if (dejaRep.length === 1) {      // 2eme
+                            point = 6;
+                            msgBonus = 'Tu as répondu le **2ème** ! **6 points** pour toi !';
+                        } else if (dejaRep.length === 2) {      // 3eme
+                            point = 3;
+                            msgBonus = 'Tu as répondu le **3ème** ! **3 points** pour toi !';
+                        }
+                        
+                        update.$inc["event.2022.advent.score"] = reponseTrouve ? point : 0
 
                         // { $inc: { "stats.msg" : 1 } }
                         userDB = await User.findOneAndUpdate(query, update)
@@ -80,6 +101,7 @@ module.exports = async (client, msg) => {
                         embed.setColor(reponseTrouve ? GREEN : DARK_RED);
                         if (reponseTrouve) {
                             embed.setDescription(`Bravo ! Tu as trouvé la **bonne réponse** à l'énigme !
+                                ${msgBonus}
                                 Il faut attendre demain 18h pour la prochaine énigme 🕵️`)
                         } else {
                             embed.setDescription(`Oh non ! C'est une **mauvaise réponse** :( et il n'y a qu'un seul essai !
@@ -98,7 +120,7 @@ module.exports = async (client, msg) => {
                     const nbEnigme = userDB.event[2022].advent.answers ? userDB.event[2022].advent.answers.size : 1;
                     let nbEnigmeSolved = 0;
                     for (let value of userDB.event[2022].advent.answers.values()) {
-                        if (value) nbEnigmeSolved++
+                        if (value?.valid) nbEnigmeSolved++
                     }
                     // nb total = index courant
                     const nbEnigmeTotal = index;

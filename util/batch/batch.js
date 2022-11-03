@@ -2,7 +2,7 @@ const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
 const { TAGS, delay, crtHour, SALON } = require('../../util/constants');
 const advent = require('../../data/advent/calendar.json');
-const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
+const { YELLOW, NIGHT, VERY_PALE_BLUE } = require("../../data/colors.json");
 const moment = require("moment");
 const { User } = require("../../models");
 const { createLogs } = require("../envoiMsg");
@@ -248,10 +248,28 @@ module.exports = {
                         index++;*/
                     // let index = 5;
 
+
                     // si == 25 on arrete !
+                    // TODO si == 25 => JOYEUX NOEL !
                     if (index >= 25)
                         return;
-                    // TODO si == 25 => JOYEUX NOEL !
+                    if (index === 1) {
+                        // message de "bienvenue"
+                        let embedBienvenue = new MessageEmbed()
+                            .setColor(VERY_PALE_BLUE)
+                            .setTitle(`***🎅 Oh oh oh 🎅*** - 🌟 Calendrier de l'avent des CDS 🌟`)
+                            .setDescription(`Cette année, un calendrier de l'avent spéciale CDS :
+                                ▶️ Tous les jours, à **18h**, une énigme vous sera proposée ! (concocté par les malicieux lutins chasseurs de succès ! 😈)
+                                ▶️ ⚠️ Vous n'avez le droit qu'à **UNE** seule réponse ! Veuillez ne répondre que sur ce **salon** ! ⚠️
+                                ▶️ **1 point** pour chaque bonne réponse, **0** sinon. Les 10 premiers à répondre **juste** auront des points **bonus** !
+                                ▶️ Que gagne le 1er ? 🤔 **2️⃣4️⃣ clés Steam !** 🤩
+                                ▶️ Vous pouvez voir le classement des points grâce à la commande \`/calendrier-de-l-avent\` 
+
+                                C'est parti pour la 1ère énigme :
+                            `);
+
+                        await eventChannel.send({ embeds: [embedBienvenue] });
+                    } 
                     
                     const infos = advent[index];
 

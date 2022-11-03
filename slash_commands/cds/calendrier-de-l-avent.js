@@ -12,7 +12,6 @@ module.exports.run = async (interaction) => {
     if (!userDB)
         return;
 
-    // console.log(classementUser);
     // - recup top 10 des user qui ont des points
     const agg = [{
             $match :{
@@ -21,10 +20,7 @@ module.exports.run = async (interaction) => {
         },
         {
             $sort: { "event.2022.advent.score": -1 }
-        },
-        //{
-        //    $limit: 10
-        //}
+        }
     ]
     const top10 = await User.aggregate(agg);
 
@@ -34,7 +30,7 @@ module.exports.run = async (interaction) => {
     for (let i = 0; i < 10; i++) {
         let ligne = (i + 1) + 'ème - ';
         const u = top10[i];
-        // 1er, 2eme ou 3eme
+        // 1er, 2eme, 3eme, ...
         if (i === 0) ligne = '🥇 - ';
         else if (i === 1) ligne = '🥈 - ';
         else if (i === 2) ligne = '🥉 - ';
