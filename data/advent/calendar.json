@@ -79,8 +79,8 @@
     },
     "15": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "Dans quel ***jeu*** peut on incarner Seth, Hercule ou Maui ?",
+        "reponse": ["Smite"]
     },
     "16": {
         "type": "text",
