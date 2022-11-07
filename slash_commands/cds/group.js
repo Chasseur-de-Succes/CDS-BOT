@@ -8,6 +8,7 @@ const { createRappelJob } = require("../../util/batch/batch");
 const { GuildConfig, Game } = require('../../models');
 const moment = require('moment');
 const { MONEY } = require("../../config");
+const { escapeRegExp } = require("../../util/util");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
@@ -55,7 +56,7 @@ const create = async (interaction, options) => {
     
     // création de la regex sur le nom du jeu
     logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
-    let regGame = new RegExp(gameName, "i");
+    let regGame = new RegExp(escapeRegExp(gameName), "i");
 
     // "recherche.."
     await interaction.deferReply();

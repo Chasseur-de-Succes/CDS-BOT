@@ -8,6 +8,7 @@ const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
 const succes = require('../data/achievements.json');
 const customItems = require('../data/customShop.json');
+const { escapeRegExp } = require('./util');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -150,7 +151,7 @@ const loadEvents = (client, dir = "./events/") => {
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
+                    '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
                 }, {
                     '$match': { 'type': 'game' }
                 }, {
@@ -197,7 +198,7 @@ const loadEvents = (client, dir = "./events/") => {
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
+                    '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
                 }, {
                     '$match': { 'type': 'game' }
                 }, {
@@ -213,7 +214,7 @@ const loadEvents = (client, dir = "./events/") => {
                 filtered = await Group.find({
                     $and: [
                         { validated: false },
-                        { name: new RegExp(focusedValue.value, 'i') },
+                        { name: new RegExp(escapeRegExp(focusedValue.value), 'i') },
                         { guildId: itr.guildId }
                     ]
                 })
