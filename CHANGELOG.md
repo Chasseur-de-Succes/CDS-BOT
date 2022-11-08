@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.0.6]
+- Calendrier de l'avent !
+- Utilisation de .env pour les config !
+
 ## [v1.0.5]
 ### Changed
 - TOUTES les applications (jeux, demo, etc) de Steam sont récupérées

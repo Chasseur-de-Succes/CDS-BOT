@@ -1,13 +1,14 @@
 const { MessageEmbed, Permissions } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
-const { PREFIX } = require("../../config");
+//const { PREFIX } = require("../../config");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const { DARK_RED, NIGHT, GREEN } = require("../../data/colors.json");
 
 module.exports.run = async (client, message, args) => {
     if(!message.member.permissions.has(Permissions.FLAGS.MANAGE_CHANNELS)) return error(`${CROSS_MARK} Vous n'avez pas la permission requise !`);
 
+    const PREFIX = process.env.PREFIX;
     if(!args) return error(`${CROSS_MARK} Merci de préciser un argument : \`${PREFIX}whitelistchannel <add | remove | list> [<mention mention>]\``);
     
     const guildId = message.guildId;

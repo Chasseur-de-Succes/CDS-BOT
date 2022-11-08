@@ -7,7 +7,7 @@ const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, delet
 const { createRappelJob } = require("../../util/batch/batch");
 const { GuildConfig, Game } = require('../../models');
 const moment = require('moment');
-const { MONEY } = require("../../config");
+//const { MONEY } = require("../../config");
 const { escapeRegExp } = require("../../util/util");
 
 module.exports.run = async (interaction) => {
@@ -408,7 +408,7 @@ const end = async (interaction, options) => {
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`)
-        .setDescription(`Vous gagnez chacun **${prize}** ${MONEY} ! 💰`);
+        .setDescription(`Vous gagnez chacun **${prize}** ${process.env.MONEY} ! 💰`);
     await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
     endGroup(client, interaction.guildId, grp);
