@@ -4,3 +4,4 @@ package-lock.json
 update.txt
 note.txt
 logs/
+*.env

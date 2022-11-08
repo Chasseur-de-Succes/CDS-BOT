@@ -1,5 +1,5 @@
 const superagent = require('superagent');
-const { STEAM_API_KEY } = require('../config');
+//const { STEAM_API_KEY } = require('../config');
 const { Game } = require('../models');
 const { TAGS } = require('./constants');
 const { CHECK_MARK, CROSS_MARK } = require('../data/emojis.json')
@@ -48,7 +48,7 @@ module.exports = client => {
 
         const search = await superagent.get('https://api.steampowered.com/ISteamApps/GetAppList/v2/')
                                         .query({
-                                            key: STEAM_API_KEY
+                                            key: process.env.STEAM_API_KEY
                                         });
         return search.body?.applist?.apps
     };
@@ -58,7 +58,7 @@ module.exports = client => {
         
         const search = await superagent.get('https://api.steampowered.com/ICommunityService/GetApps/v1/')
                                         .query({
-                                            key: STEAM_API_KEY,
+                                            key: process.env.STEAM_API_KEY,
                                             appids: {appid},
                                             language: 'fr'
                                         })
@@ -71,7 +71,7 @@ module.exports = client => {
         // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=FC01A70E34CC7AE7174C575FF8D8A07F&gameid=321040
         const search = await superagent.get('https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/')
                                         .query({
-                                            key: STEAM_API_KEY,
+                                            key: process.env.STEAM_API_KEY,
                                             gameid: appid
                                         });
         return search
@@ -92,7 +92,7 @@ module.exports = client => {
         // https://steamapi.xpaw.me/#IStoreService/GetAppList
         const response = await superagent.get('https://api.steampowered.com/IStoreService/GetAppList/v1/?')
                 .query({
-                    key: STEAM_API_KEY,
+                    key: process.env.STEAM_API_KEY,
                     include_games: 1,
                     include_dlc: 0,
                     include_software: 0,
@@ -118,7 +118,7 @@ module.exports = client => {
     client.getAppDetails = async appid => {
         const response = await superagent.get('https://store.steampowered.com/api/appdetails/?')
         .query({
-            key: STEAM_API_KEY,
+            key: process.env.STEAM_API_KEY,
             appids: appid
         });
 
@@ -141,7 +141,7 @@ module.exports = client => {
     client.getPlayerSummaries = async userid => {
         const reponse = await superagent.get('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?')
             .query({
-                key: STEAM_API_KEY,
+                key: process.env.STEAM_API_KEY,
                 steamids: userid
             });
         return reponse;

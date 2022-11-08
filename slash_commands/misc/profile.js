@@ -1,5 +1,5 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
-const { MONEY } = require("../../config");
+//const { MONEY } = require("../../config");
 const succes = require('../../data/achievements.json');
 const { VERY_PALE_VIOLET, VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
 const { STEAM, ASTATS, CME, SH } = require('../../data/emojis.json');
@@ -245,7 +245,7 @@ module.exports.run = async (interaction) => {
 
     // MONEY
     ctx.font = '17px Impact'
-    ctx.fillText(`${money} ${MONEY}`, x, 85)
+    ctx.fillText(`${money} ${process.env.MONEY}`, x, 85)
 
     // "MEDALS" aka meta achievemnts
     x = 20

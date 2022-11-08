@@ -1,5 +1,5 @@
 const { Collection, MessageEmbed } = require('discord.js');
-const { PREFIX } = require('../../config.js');
+//const { PREFIX } = require('../../config.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { User } = require('../../models/index.js');
 const { BAREME_XP, BAREME_MONEY, SALON } = require("../../util/constants");
@@ -8,6 +8,7 @@ const advent = require('../../data/advent/calendar.json');
 const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
 
 module.exports = async (client, msg) => {
+    const PREFIX = process.env.PREFIX;
     // A Corriger : uniquement si début du message
     // if (msg.mentions.has(client.user.id)) {
     //     return msg.reply(`Tu as besoin d'aide ? Mon préfixe est \`${PREFIX}\``);

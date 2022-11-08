@@ -2,7 +2,7 @@ const { MessageEmbed, Permissions } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
-const { MONEY } = require('../../config');
+//const { MONEY } = require('../../config');
 const { createError, createLogs } = require('../../util/envoiMsg');
 
 module.exports.run = async (interaction) => {
@@ -15,6 +15,7 @@ module.exports.run = async (interaction) => {
     const author = interaction.member;
     let user = interaction.user;
     let member;
+    const MONEY = process.env.MONEY;
     
     if (id) {
         member = await interaction.guild.members.fetch(id).catch(e => {});

@@ -6,7 +6,7 @@ const { YELLOW, NIGHT, VERY_PALE_BLUE } = require("../../data/colors.json");
 const moment = require("moment");
 const { User } = require("../../models");
 const { createLogs } = require("../envoiMsg");
-const { MONEY } = require("../../config");
+//const { MONEY } = require("../../config");
 const { MessageEmbed, MessageAttachment } = require("discord.js");
 
 module.exports = {
@@ -220,7 +220,7 @@ module.exports = {
                                 }
                             })
 
-                            createLogs(client, guild.id, `Distribution au @Helper`, `${helpers} recoivent chacun **100 ${MONEY}** pour leur aide !`);
+                            createLogs(client, guild.id, `Distribution au @Helper`, `${helpers} recoivent chacun **100 ${process.env.MONEY}** pour leur aide !`);
                         }
                     })
                     .catch(err => logger.error(`Impossible de trouver rôle @Helper ${err}`));

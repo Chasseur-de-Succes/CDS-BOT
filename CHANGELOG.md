@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Calendrier de l'avent !
+- Utilisation de .env pour les config !
 
 ## [v1.0.5]
 ### Changed

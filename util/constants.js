@@ -1,5 +1,5 @@
 const moment = require("moment");
-const { MONEY } = require("../config");
+//const { MONEY } = require("../config");
 
 const MESSAGES = {
     COMMANDS: {
@@ -506,7 +506,7 @@ const MESSAGES = {
                             }, { 
                                 name: 'prix',
                                 type: 'INTEGER',
-                                description: 'Prix du jeu (en ' + MONEY + ')',
+                                description: 'Prix du jeu (en ' + process.env.MONEY + ')',
                                 required: true,
                             }
                         ]
