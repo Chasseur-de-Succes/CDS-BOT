@@ -51,13 +51,13 @@ module.exports = async (client, oldState, newState) => {
                         
                         // -- le supprime
                         oldState.channel.delete()
-                            .then(console.log)
+                            //.then(console.log)
                             .catch(console.error);
                     } catch (err) {
                         logger.warn('.. pb avec la suppression du channel vocal !');
                         // -- le supprime en cas d'erreur avec bdd
                         oldState.channel.delete()
-                            .then(console.log)
+                            //.then(console.log)
                             .catch(console.error);
                     }
                 }
