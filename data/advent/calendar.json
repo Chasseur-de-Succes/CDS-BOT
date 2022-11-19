@@ -39,7 +39,7 @@
     },
     "8": {
         "type": "text",
-        "question": "***F.. .O .A.***  *(compléter les points)*",
+        "question": "***F__  _O  \\_A\\_ !***  *(compléter les points)*",
         "reponse": ["Fus Ro Dah"]
     },
     "9": {
@@ -84,7 +84,7 @@
     },
     "16": {
         "type": "text",
-        "question": "De quel ***jeu*** est tiré cette citation :\n*Le pistolet était une masse gelée dans ma main, transperçant ma peau, me glaçant jusqu'au os*",
+        "question": "De quel ***jeu*** est tiré cette citation :\n> *Le pistolet était une masse gelée dans ma main, transperçant ma peau, me glaçant jusqu'au os*",
         "reponse": ["Max Payne"]
     },
     "17": {
@@ -94,8 +94,8 @@
     },
     "18": {
         "type": "text",
-        "question": "Selon la ***légende***, comment Gabe Newell a contribué de manière significative au développement d'Half Life ?",
-        "reponse": ["Toto"]
+        "question": "Quelle est la ***race*** insectoïde contre laquelle se sont battus les Krogans ?",
+        "reponse": ["Rachni"]
     },
     "19": {
         "type": "text",
@@ -119,12 +119,12 @@
     },
     "23": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "Dans quel ***jeu*** peut-on entendre cette réplique ? \n> *That was a hell of a campaign son !*",
+        "reponse": ["TF2", "Team Fortress 2"]
     },
     "24": {
         "type": "text",
-        "question": "Lorem ipsum dolor sit amet..\n***Qui suis-je ?***",
-        "reponse": ["Toto"]
+        "question": "Où peut-on trouver Jolene Cranley-Evan ?",
+        "reponse": ["Mont Gordo"]
     }
 }
