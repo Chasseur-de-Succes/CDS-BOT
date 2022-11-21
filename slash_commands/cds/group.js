@@ -241,10 +241,11 @@ const schedule = async (interaction, options) => {
     grp.save();
 
     // créer/update rappel
-    if (indexDateEvent > 0)
+    if (indexDateEvent >= 0) {
         deleteRappelJob(client, grp, dateEvent.toDate());
-    else
+    } else {
         createRappelJob(client, interaction.guildId, [grp]);
+    }
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
