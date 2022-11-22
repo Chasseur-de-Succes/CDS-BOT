@@ -421,17 +421,19 @@ async function moveToArchive(client, idListGroup, idMsg) {
  * @param {*} groupe 
  */
  function deleteRappelJob(client, groupe, date) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
 
     // rappel 1h et 1j avant
     const jobName1h = `rappel_1h_${groupe.name}_${date.toLocaleDateString('fr-FR', options)}`;
     const jobName1d = `rappel_1d_${groupe.name}_${date.toLocaleDateString('fr-FR', options)}`;
 
     // cancel ancien job si existe
-    if (scheduledJobs[jobName1h])
+    if (scheduledJobs[jobName1h]) {
         scheduledJobs[jobName1h].cancel();
-    if (scheduledJobs[jobName1d])
+    }
+    if (scheduledJobs[jobName1d]) {
         scheduledJobs[jobName1d].cancel();
+    }
 
     // si job existe -> delete
     client.findJob({name: jobName1h})

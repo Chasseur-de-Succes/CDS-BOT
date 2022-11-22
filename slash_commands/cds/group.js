@@ -6,7 +6,8 @@ const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
 const { GuildConfig, Game } = require('../../models');
-const moment = require('moment');
+//const moment = require('moment');
+const moment = require('moment-timezone');
 //const { MONEY } = require("../../config");
 const { escapeRegExp } = require("../../util/util");
 
@@ -215,7 +216,7 @@ const schedule = async (interaction, options) => {
         return interaction.reply({ embeds: [createError(`${dateVoulue + ' ' + heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`)] });
 
     // parse string to Moment (date)
-    let dateEvent = moment(dateVoulue + ' ' + heureVoulue, allowedDateFormat);
+    let dateEvent = moment.tz(dateVoulue + ' ' + heureVoulue, allowedDateFormat, "Europe/Paris");
     await interaction.deferReply();
 
     // si la date existe déjà, la supprimer
@@ -241,10 +242,11 @@ const schedule = async (interaction, options) => {
     grp.save();
 
     // créer/update rappel
-    if (indexDateEvent > 0)
+    if (indexDateEvent >= 0) {
         deleteRappelJob(client, grp, dateEvent.toDate());
-    else
-        createRappelJob(client, interaction.guildId, [grp]);
+    } else {
+        createRappelJob(client, interaction.guildId, grp, dateEvent.toDate());
+    }
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
