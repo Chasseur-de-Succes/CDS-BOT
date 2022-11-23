@@ -120,7 +120,7 @@
     "23": {
         "type": "text",
         "question": "Dans quel ***jeu*** peut-on entendre cette réplique ? \n> *That was a hell of a campaign son !*",
-        "reponse": ["TF2", "Team Fortress 2"]
+        "reponse": ["TF2", "Team Fortress 2", "TF 2"]
     },
     "24": {
         "type": "text",

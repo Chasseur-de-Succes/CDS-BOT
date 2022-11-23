@@ -6,6 +6,7 @@ const { BAREME_XP, BAREME_MONEY, SALON } = require("../../util/constants");
 const { addXp } = require('../../util/xp.js');
 const advent = require('../../data/advent/calendar.json');
 const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
+const moment = require('moment-timezone');
 
 module.exports = async (client, msg) => {
     const PREFIX = process.env.PREFIX;
@@ -54,7 +55,7 @@ module.exports = async (client, msg) => {
                 //    return;
                 //let index = 5;
                 // si avant 18h, on est tjs sur jours d'avant 
-                if (new Date().getHours() < 18) {
+                if (moment.tz("Europe/Paris").hour() < 18) {
                     index--
                 }
 
