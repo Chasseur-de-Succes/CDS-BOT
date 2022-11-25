@@ -384,11 +384,20 @@ const end = async (interaction, options) => {
         channel.permissionOverwrites.set([{
             id: guild.roles.everyone.id,
             deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
-        }, {
-            id: author.id,
-            allow: ['VIEW_CHANNEL'],
-            deny: ['SEND_MESSAGES']
-        }]);
+        }, //{
+        //     id: author.id,
+        //     allow: ['VIEW_CHANNEL'],
+        //     deny: ['SEND_MESSAGES']
+        // }
+        ]);
+        for (const member of grp.members) {
+            channel.permissionOverwrites.edit(member.userId, {
+                VIEW_CHANNEL: true, 
+                SEND_MESSAGES: false,
+            })
+        }
+    } else {
+        logger.error(`Le channel de discussion du groupe : ${grpName} n'existe pas ! Channel id : ${grp.channelId}`)
     }
 
     let mentionsUsers = '';
