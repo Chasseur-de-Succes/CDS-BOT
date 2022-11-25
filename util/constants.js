@@ -20,6 +20,22 @@ const MESSAGES = {
                 description: "Afficher des informations sur le bot",
                 usage: "",
             },
+            LEADERBOARD: {
+                name: "leaderboard",
+                aliases: [],
+                category: "misc",
+                cooldown: 0,
+                description: "Afficher le classement des niveaux",
+                usage: "",
+                args: [ 
+                    {
+                        name: 'page',
+                        type: 'INTEGER',
+                        description: 'Numéro de la page (défaut 1)',
+                        required: false,
+                    },
+                ]
+            },
             PING: {
                 name: "ping",
                 aliases: [],
