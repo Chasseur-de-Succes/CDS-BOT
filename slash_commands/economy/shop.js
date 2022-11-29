@@ -4,7 +4,7 @@ const { createError, createLogs } = require("../../util/envoiMsg");
 const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
 const customItems = require("../../data/customShop.json");
 const { CHECK_MARK, NO_SUCCES } = require('../../data/emojis.json');
-const { MONEY } = require('../../config.js');
+//const { MONEY } = require('../../config.js');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const { User } = require('../../models');
@@ -146,11 +146,11 @@ const list = async (interaction, options, showGame = false) => {
                 let recapEmbed = new MessageEmbed()
                     .setColor(YELLOW)
                     .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
-                    .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${MONEY}
+                    .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${process.env.MONEY}
                         ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
 
                         *En cas de problème, n'hésitez pas à contacter un **admin***.`)
-                    .setFooter({text: `💵 ${userDB.money - items.items[0].montant} ${MONEY}`});
+                    .setFooter({text: `💵 ${userDB.money - items.items[0].montant} ${process.env.MONEY}`});
                 
                 // maj du msg, en enlevant boutons actions
                 await itr.update({ 
@@ -215,7 +215,7 @@ async function createChoixCustom(interaction, userDB, type, customItems) {
         .setColor(NIGHT)
         .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
         .setDescription(`Quel élément voulez-vous acheter ?`)
-        .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+        .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
       
     let msgEmbed = await interaction.editReply({ embeds: [embed], components: [rowItem]});
 
@@ -273,7 +273,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
         .setTitle(`💰 BOUTIQUE - PROFILE - PRÉVISUALISATION 💰`)
         .setDescription(`${finalVal.name}
         💰 ${finalVal.price}`)
-        .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+        .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
     const row = new MessageActionRow()
         .addComponents(
@@ -299,7 +299,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                     .setTitle(`En attente de ta couleur..`)
                     .setDescription(`Quelle couleur souhaites-tu pour ***${customItems[type].title}*** ?
                         Réponds ta couleur au format héxadécimal ! (ex: #008000 (vert))`)
-                    .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+                    .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
                 await interaction.editReply({embeds: [embed], components: []});
 
@@ -348,7 +348,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                             .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
                             .setDescription(`***${daColor}*** pour ***${customItems[type].title}*** ${bought ? "sélectionnée" : "achetée"} !
                                 Va voir sur ton profile ! \`/profile\``)
-                            .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+                            .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
                         // reply
                         await interaction.editReply({embeds: [embed], components: []});
@@ -358,7 +358,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                             .setTitle(`Erreur`)
                             .setDescription(`La couleur n'est pas au bon format ! (format hexa)
                                 Pour retenter, il faut relancer la commande !`)
-                            .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+                            .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
     
                         await interaction.editReply({embeds: [embed], components: []});
                     }
@@ -370,7 +370,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                         .setColor(DARK_RED)
                         .setTitle(`Erreur`)
                         .setDescription(`Petit soucis, essaie de renseigner à temps ! ou bien vérifier si la couleur existe (format HEX)`)
-                        .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+                        .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
                     await interaction.editReply({embeds: [embed], components: []});
                 }
@@ -406,7 +406,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                     .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
                     .setDescription(`***${finalVal.name}*** pour ***${customItems[type].title}*** ${bought ? "sélectionnée" : "achetée"} !
                         Va voir sur ton profile ! \`/profile\``)
-                    .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+                    .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
                 // reply
                 await interaction.editReply({embeds: [embed], components: []});
@@ -442,7 +442,7 @@ function createShop(guild, infos, currentIndex = 0) {
         embed.setThumbnail(gameUrlHeader)
             .setDescription(`**${game.name}**
                             ${links}`)
-            .setFooter({ text: `💵 ${infos.money} ${MONEY} | Page ${currentIndex + 1}/${infos.items.length}`});
+            .setFooter({ text: `💵 ${infos.money} ${process.env.MONEY} | Page ${currentIndex + 1}/${infos.items.length}`});
         
         let nbItem = 0;
         const nbMax = 5;
@@ -451,7 +451,7 @@ function createShop(guild, infos, currentIndex = 0) {
             const vendeur = guild.members.cache.get(item.seller.userId);
             // on limite le nb de jeu affichable (car embed à une limite de caracteres)
             if (nbItem < nbMax) {
-                prix.push(`${item.montant} ${MONEY}`);
+                prix.push(`${item.montant} ${process.env.MONEY}`);
                 vendeurStr.push(vendeur)
                 
                 nbItem++;
@@ -483,7 +483,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     
     const game = info._id;
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
-    logger.info(`Achat jeu ${game.name} par ${acheteurDB.username} pour ${acheteurDB.money} ${MONEY}`)
+    logger.info(`Achat jeu ${game.name} par ${acheteurDB.username} pour ${acheteurDB.money} ${process.env.MONEY}`)
 
     // recup dans la BD pour pouvoir le maj
     let item = await client.findGameItemShop({ _id: info.items[0]._id }); // le 1er est le - cher
@@ -494,8 +494,8 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
         money: acheteurDB.money - item.montant,
         lastBuy: Date.now()
     });
-    // log 'Acheteur perd montant MONEY a cause vente'
-    createLogs(client, guildId, `Argent perdu`, `${author} achète **${game.name}** à **${item.montant} ${MONEY}**`, `ID vente : ${item._id}`, YELLOW);
+    // log 'Acheteur perd montant process.env.MONEY a cause vente'
+    createLogs(client, guildId, `Argent perdu`, `${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**`, `ID vente : ${item._id}`, YELLOW);
 
     // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
     await client.update(item, { 
@@ -511,7 +511,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
         .setTitle('💰 BOUTIQUE - VENTE 💰')
         .setDescription(`${author} vous a acheté ***${game.name}*** !
 
-            Pour recevoir vos ${item.montant} ${MONEY}, il faut :
+            Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
             ▶️ **appuyer sur la réaction ${CHECK_MARK} pour commencer**
             
             *En cas de problème, contactez un admin !*`);
@@ -532,7 +532,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     // maj state
     await client.update(item, { state: 'pending - key demandée' });
     // log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' 
-    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
                                         2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`, `ID vente : ${item._id}`, YELLOW);
 
     // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
@@ -546,7 +546,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     
     MPembed.setDescription(`${author} vous a acheté ***${game.name}*** !
 
-        Pour recevoir vos ${item.montant} ${MONEY}, il faut :
+        Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
         ▶️ ~~appuyer sur la réaction ${CHECK_MARK} pour commencer~~
         ▶️ **me répondre en envoyant la clé du jeu**
         
@@ -568,13 +568,13 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     // maj state
     await client.update(item, { state: 'pending - key recup' });
     // log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur'
-    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
                                         ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
                                          3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`, `ID vente : ${item._id}`, YELLOW);
 
     MPembed.setDescription(`${author} vous a acheté ***${game.name}*** !
         
-        Pour recevoir vos ${item.montant} ${MONEY}, il faut :
+        Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
         ▶️ ~~appuyer sur la réaction ${CHECK_MARK} pour commencer~~
         ▶️ ~~me répondre en envoyant la clé du jeu~~
         ▶️ **attendre la confirmation de l'acheteur**
@@ -634,7 +634,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     await User.updateOne({ userId: acheteurDB.userId}, { $inc: { "stats.shop.bought" : 1 } })
 
     // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
-    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${MONEY}**~~
+    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
                                         ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
                                         ~~3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation~~
                                         4️⃣ ${author} a confirmé la réception ! C'est terminé !`, `ID vente : ${item._id}`, YELLOW);
@@ -643,14 +643,14 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     vendeurDB.money += item.montant;
     await client.update(vendeurDB, { money: vendeurDB.money });
     // log 'Vendeur reçoit montant MONEY grâce vente'
-    createLogs(client, guildId, `Argent reçu`, `${vendeur} récupère **${item.montant} ${MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`, YELLOW);
+    createLogs(client, guildId, `Argent reçu`, `${vendeur} récupère **${item.montant} ${process.env.MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`, YELLOW);
 
     // msg pour vendeur 
     MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
         .setDescription(`${author} a reçu et confirmé l'achat du jeu ***${game.name}*** que vous aviez mis en vente !
 
-            Vous avez bien reçu vos ***${item.montant} ${MONEY}***, ce qui vous fait un total de ...
-            💰 **${vendeurDB.money} ${MONEY}** !
+            Vous avez bien reçu vos ***${item.montant} ${process.env.MONEY}***, ce qui vous fait un total de ...
+            💰 **${vendeurDB.money} ${process.env.MONEY}** !
             
             *En cas de problème, contactez un admin !*`);
     await vendeur.user.send({ embeds: [MPembed] });
@@ -669,7 +669,7 @@ async function listGames(interaction, options) {
         .setColor(YELLOW)
         .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
         .setDescription(`Liste des jeux disponibles à l'achat.`)
-        .setFooter({ text: `💵 ${userDB.money} ${MONEY}`});
+        .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
     if (items.length === 0) {
         embed.setDescription(`Liste des jeux disponibles à l'achat.
@@ -741,7 +741,7 @@ function createListGame(items, money, currentIndex = 0) {
         .setColor(YELLOW)
         .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
         //.setDescription(`Liste des jeux disponibles à l'achat.`)
-        .setFooter({ text: `💵 ${money} ${MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}` })
+        .setFooter({ text: `💵 ${money} ${process.env.MONEY} | Page ${currentIndex + 1}/${Math.ceil(items.length / NB_PAR_PAGES)}` })
 
     // on limite le nb de jeu affichable (car embed à une limite de caracteres)
     // de 0 à 10, puis de 10 à 20, etc
@@ -809,13 +809,13 @@ async function sell(interaction, options) {
         .setColor(YELLOW)
         .setTitle(`💰 BOUTIQUE - VENTE 💰`)
         .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
-        ${game.name} à ${montant} ${MONEY}`)
+        ${game.name} à ${montant} ${process.env.MONEY}`)
 
     // edit car deferReply
     interaction.editReply({embeds: [embed] });
 
     // envoie log 'Nouvel vente par @ sur jeu X' (voir avec Tobi)
-    createLogs(client, interaction.guildId, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);
+    createLogs(client, interaction.guildId, `Nouveau jeu dans le shop`, `${author} vient d'ajouter **${game.name}** à **${montant} ${process.env.MONEY}** !`, `ID : ${itemDB._id}`, YELLOW);
 }
 
 // recup la valeur d'un chemin dans un JSON

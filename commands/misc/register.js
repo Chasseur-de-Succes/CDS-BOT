@@ -1,5 +1,5 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
-const { PREFIX } = require("../../config");
+//const { PREFIX } = require("../../config");
 const {GREEN, DARK_RED} = require('../../data/colors.json');
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const { MESSAGES } = require('../../util/constants.js');
@@ -7,7 +7,7 @@ const { MESSAGES } = require('../../util/constants.js');
 module.exports.run = async (client, message, args) => {
     const dbUser = await client.getUser(message.member);
     if(dbUser) return error(`Tu es déjà inscrit !`); // Si dans la BDD
-
+    const PREFIX = process.env.PREFIX;
     if (!args[0]) return error(`Merci de renseigner ton id Steam ! \`${PREFIX}register <steam id>\`\nTu peux retrouvé ton id ici (au format : SteamId64): https://steamid.xyz/`);
     
     steamId = args[0];

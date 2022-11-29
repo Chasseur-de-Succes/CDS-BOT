@@ -6,8 +6,10 @@ const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../../util/msg/group");
 const { createRappelJob } = require("../../util/batch/batch");
 const { GuildConfig, Game } = require('../../models');
-const moment = require('moment');
-const { MONEY } = require("../../config");
+//const moment = require('moment');
+const moment = require('moment-timezone');
+//const { MONEY } = require("../../config");
+const { escapeRegExp } = require("../../util/util");
 
 module.exports.run = async (interaction) => {
     const subcommand = interaction.options.getSubcommand();
@@ -55,14 +57,16 @@ const create = async (interaction, options) => {
     
     // création de la regex sur le nom du jeu
     logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
-    let regGame = new RegExp(gameName, "i");
+    let regGame = new RegExp(escapeRegExp(gameName), "i");
 
     // "recherche.."
     await interaction.deferReply();
 
     // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
     let games = await Game.aggregate([{
-        '$match': { 'name': regGame}
+        '$match': { 'name': regGame }
+    }, {
+        '$match': { 'type': 'game' }
     }, {
         '$limit': 25
     }])
@@ -212,7 +216,7 @@ const schedule = async (interaction, options) => {
         return interaction.reply({ embeds: [createError(`${dateVoulue + ' ' + heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`)] });
 
     // parse string to Moment (date)
-    let dateEvent = moment(dateVoulue + ' ' + heureVoulue, allowedDateFormat);
+    let dateEvent = moment.tz(dateVoulue + ' ' + heureVoulue, allowedDateFormat, "Europe/Paris");
     await interaction.deferReply();
 
     // si la date existe déjà, la supprimer
@@ -238,10 +242,11 @@ const schedule = async (interaction, options) => {
     grp.save();
 
     // créer/update rappel
-    if (indexDateEvent > 0)
+    if (indexDateEvent >= 0) {
         deleteRappelJob(client, grp, dateEvent.toDate());
-    else
-        createRappelJob(client, interaction.guildId, [grp]);
+    } else {
+        createRappelJob(client, interaction.guildId, grp, dateEvent.toDate());
+    }
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
@@ -414,7 +419,7 @@ const end = async (interaction, options) => {
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
     const newMsgEmbed = new MessageEmbed()
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`)
-        .setDescription(`Vous gagnez chacun **${prize}** ${MONEY} ! 💰`);
+        .setDescription(`Vous gagnez chacun **${prize}** ${process.env.MONEY} ! 💰`);
     await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
 
     endGroup(client, interaction.guildId, grp);

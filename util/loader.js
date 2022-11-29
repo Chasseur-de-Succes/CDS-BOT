@@ -1,13 +1,14 @@
 const { Collection } = require('discord.js');
-const { readdirSync } = require('fs');
+const { readdirSync, cp } = require('fs');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
-const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper } = require('./batch/batch');
-const { createReactionCollectorGroup } = require('./msg/group');
+const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper, loadEvent } = require('./batch/batch');
+const { createReactionCollectorGroup, moveToArchive } = require('./msg/group');
 const { Group } = require('../models/index');
 const { CHANNEL, SALON } = require('./constants');
 const { Logform } = require('winston');
 const succes = require('../data/achievements.json');
 const customItems = require('../data/customShop.json');
+const { escapeRegExp } = require('./util');
 
 // Charge les commandes
 const loadCommands = (client, dir = "./commands/") => {
@@ -145,11 +146,14 @@ const loadEvents = (client, dir = "./events/") => {
                 // recherche nom exacte
                 exact = await client.findGames({
                     name: focusedValue.value,
+                    type: 'game'
                 });
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
+                    '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
+                }, {
+                    '$match': { 'type': 'game' }
                 }, {
                     '$limit': 25
                 }])
@@ -189,11 +193,14 @@ const loadEvents = (client, dir = "./events/") => {
                 // recherche nom exacte
                 exact = await client.findGames({
                     name: focusedValue.value,
+                    type: 'game'
                 });
 
                 // recup limit de 25 jeux, correspondant a la value rentré
                 filtered = await Game.aggregate([{
-                    '$match': { 'name': new RegExp(focusedValue.value, "i") }
+                    '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
+                }, {
+                    '$match': { 'type': 'game' }
                 }, {
                     '$limit': 25
                 }])
@@ -207,7 +214,7 @@ const loadEvents = (client, dir = "./events/") => {
                 filtered = await Group.find({
                     $and: [
                         { validated: false },
-                        { name: new RegExp(focusedValue.value, 'i') },
+                        { name: new RegExp(escapeRegExp(focusedValue.value), 'i') },
                         { guildId: itr.guildId }
                     ]
                 })
@@ -248,11 +255,13 @@ const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
     loadJobs(client);
 
-    //searchNewGamesJob(client);
+    searchNewGamesJob(client);
 
     resetMoneyLimit();
 
     loadJobHelper(client);
+
+    loadEvent(client);
 }
 
 // Charge les réactions des messages des groupes
@@ -271,6 +280,8 @@ const loadReactionGroup = async (client) => {
                 // filtre group encore en cours
                 if (!grp.validated)
                     await createReactionCollectorGroup(client, msg, grp);
+                else
+                    await moveToArchive(client, idListGroup, grp.idMsg)
             }).catch(async err => {
                 logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
                 // on supprime les msg qui n'existent plus
@@ -465,5 +476,5 @@ module.exports = {
     loadSlashCommands,
     loadRoleGiver,
     loadReactionMsg,
-    loadVocalCreator
+    loadVocalCreator,
 }

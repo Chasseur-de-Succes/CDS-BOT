@@ -1,9 +1,9 @@
 const { Client, Intents, Collection } = require('discord.js');
-const { TOKEN } = require('./config.js');
+//const { TOKEN } = require('./config.js');
 const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg, loadVocalCreator } = require('./util/loader');
-const axios = require('axios');
 const winston = require("winston");
 require('winston-daily-rotate-file');
+require("dotenv").config();
 
 var transport = new winston.transports.DailyRotateFile({
   filename: 'logs/app-%DATE%.log',
@@ -66,7 +66,8 @@ client.mongoose.init();
 client.on('error', console.error);
 client.on('warn', console.warn);
 
-client.login(TOKEN).then(c => {
+//client.login(TOKEN).then(c => {
+client.login(process.env.TOKEN).then(c => {
     //loadBatch(client);
     //loadReactionGroup(client);
 })

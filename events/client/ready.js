@@ -1,7 +1,8 @@
 require('date.format');
-const {VERSION} = require('../../config.js');
+//const {VERSION} = require('../../config.js');
 
 module.exports = client => {
+    const VERSION = process.env.VERSION;
     const date = new Date();
     logger.info("Logged in as "+client.user.tag+"! Version: "+VERSION+". On "+date.format("{MM}/{DD}/{Y} at {hh}:{mm}:{ss}")+".");
     //client.user.setActivity(`faire un 100% | v${VERSION}`, {type: 'PLAYING'});

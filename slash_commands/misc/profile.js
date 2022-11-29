@@ -1,5 +1,5 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
-const { MONEY } = require("../../config");
+//const { MONEY } = require("../../config");
 const succes = require('../../data/achievements.json');
 const { VERY_PALE_VIOLET, VERY_PALE_BLUE, CRIMSON } = require('../../data/colors.json');
 const { STEAM, ASTATS, CME, SH } = require('../../data/emojis.json');
@@ -9,7 +9,7 @@ const { getXpNeededForNextLevel } = require("../../util/xp");
 
 const Canvas = require('canvas');
 const path = require('path');
-const { Game } = require("../../models");
+const { Game, User } = require("../../models");
 
 //Canvas.registerFont('x.ttf', { family: ' name '});
 
@@ -245,7 +245,7 @@ module.exports.run = async (interaction) => {
 
     // MONEY
     ctx.font = '17px Impact'
-    ctx.fillText(`${money} ${MONEY}`, x, 85)
+    ctx.fillText(`${money} ${process.env.MONEY}`, x, 85)
 
     // "MEDALS" aka meta achievemnts
     x = 20
@@ -410,6 +410,49 @@ module.exports.run = async (interaction) => {
 
     // - Event communautaires
     crtX += 55;
+         // advent 2022 🎄
+    // - recup nb enigme resolu => succes participatif
+    const nbEnigme = dbUser.event[2022]?.advent?.answers ? dbUser.event[2022].advent.answers.size : 0;
+    if (nbEnigme >= 12) {
+        // - recup top 10 des user qui ont des points
+        const agg = [{
+                $match :{
+                    'event.2022.advent.score': { '$exists': true }
+                }
+            },
+            {
+                $sort: { "event.2022.advent.score": -1 }
+            }
+        ]
+        const top10 = await User.aggregate(agg);
+        let indexUser = top10.findIndex(u => u.userId === dbUser.userId);
+
+        let filename = 'advent_22';
+        let colorFill = 'grey';
+
+        if (indexUser + 1 == 1) {
+            filename += '_plat';
+            colorFill = '#1CD6CE'; // ~cyan
+        } else if (indexUser + 1 == 2) {
+            filename += '_gold';
+            colorFill = '#FAC213';
+        } else if (indexUser + 1 == 3) {
+            filename += '_silver';
+            colorFill = 'silver';
+        }
+
+        // ombre
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = colorFill;
+        roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
+        
+        // fond
+        ctx.globalAlpha = 1;
+        roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
+
+        const advent = await Canvas.loadImage(path.join(__dirname, `../../data/img/achievements/event/${filename}.png`));
+        ctx.drawImage(advent, crtX + 5, crtY, 40, 40);
+    }
     // TODO stat
     //const event = await Canvas.loadImage(path.join(__dirname, '../../data/img/achievements/event.png'));
     //ctx.drawImage(event, crtX, crtY, 40, 40);
