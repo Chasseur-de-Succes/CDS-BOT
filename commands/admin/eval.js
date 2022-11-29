@@ -1,5 +1,5 @@
 const { MESSAGES } = require("../../util/constants");
-const { DEV, PREFIX } = require('../../config');
+const { DEV } = require('../../config');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { codeBlock } = require('@discordjs/builders');
 
@@ -22,7 +22,7 @@ module.exports.run = async (client, message, args) => {
         logger.warn(message.author.tag+" a effectué la commande admin : "+MESSAGES.COMMANDS.ADMIN.EVAL.name)
         
         try {
-            if(!args[0]) throw `Pas d'argument détecté ! Syntaxe correcte : \`${PREFIX}eval <code à exécuter>\``;
+            if(!args[0]) throw `Pas d'argument détecté ! Syntaxe correcte : \`${process.env.PREFIX}eval <code à exécuter>\``;
 
             const code = args.join(" ");
             const evaled = eval(code);

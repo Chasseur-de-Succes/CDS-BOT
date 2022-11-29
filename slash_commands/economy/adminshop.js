@@ -3,7 +3,7 @@ const { MESSAGES } = require("../../util/constants");
 const { createError, createLogs } = require("../../util/envoiMsg");
 const { YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK } = require('../../data/emojis.json');
-const { MONEY } = require('../../config.js');
+//const { MONEY } = require('../../config.js');
 const mongoose = require('mongoose');
 
 module.exports.run = async (interaction) => {
@@ -102,7 +102,7 @@ async function refund(interaction, options) {
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Achat remboursé !`)
         .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
-                         ▶️ ${MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
+                         ▶️ ${process.env.MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
                          ▶️ L'item est de nouveau **disponible** dans le shop`);
     interaction.reply({ embeds: [embed] })
     createLogs(client, interaction.guildId, `Annulation vente`, `${author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`, `ID : ${id}`, YELLOW);

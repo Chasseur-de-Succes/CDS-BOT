@@ -1,6 +1,4 @@
 const { MessageEmbed } = require('discord.js');
-const { text } = require('stream/consumers');
-const { CHANNEL } = require('../config.js');
 const { User } = require('../models/index.js');
 const { THREESOLD_LVL } = require('./constants.js');
 const { GREEN } = require("../data/colors.json");

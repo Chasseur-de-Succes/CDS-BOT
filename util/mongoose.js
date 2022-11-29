@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const { DBCONNECTION } = require('../config');
+// const { DBCONNECTION } = require('../config');
 
 module.exports = {
-    init: () => {
+    init: async () => {
         const mongOptions = {
             useNewUrlParser: true,
             useUnifiedTopology: true,
@@ -15,9 +15,16 @@ module.exports = {
             family: 4 // Use IPv4, skip trying IPv6
         }
 
-        mongoose.connect(DBCONNECTION, mongOptions)
-        mongoose.Promise = global.Promise;
-        mongoose.connection.on("connected", () => logger.info({prefix:"[DB]", message:"Mongoose connected!"}));
+        try {
+            mongoose.Promise = global.Promise;
+            await mongoose.connect(process.env.DBCONNECTION, mongOptions)
+            logger.info({prefix:"[DB]", message:"Mongoose connected!"})
+            // await mongoose.connect('mongodb://localhost:27017/test');
+            //mongoose.connection.on("connected", () => logger.info({prefix:"[DB]", message:"Mongoose connected!"}));
+          } catch (error) {
+            console.log('ERROR DB CONNECT :');
+            console.log(error);
+          }
         //mongoose.connection.on("connected", () => logger.info("\x1b[35m[DB]\x1b[0m Mongoose connected!"))
     }
 }

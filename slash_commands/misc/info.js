@@ -2,13 +2,14 @@ const { Message, MessageEmbed, version } = require("discord.js");
 const { MESSAGES } = require("../../util/constants");
 const { CORNFLOWER_BLUE, GREEN} = require('../../data/colors.json');
 const { STREAMING, AMONGUS_RUNNING } = require("../../data/emojis.json");
-const { VERSION, DEV } = require("../../config.js");
+//const { VERSION, DEV } = require("../../config.js");
 const cpuStat = require('cpu-stat');
 // require('date.format');
 
 module.exports.run = async (interaction) => {
     const client = interaction.client;
     const botIcon = client.user.displayAvatarURL();
+    const VERSION = process.env.VERSION;
     //const botDate = client.user.createdAt;
     //const botDateEdit = botDate.format("{DD}/{MM}/{Y} à {hh}:{mm}");
 

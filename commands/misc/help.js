@@ -1,11 +1,12 @@
 const { MessageEmbed } = require('discord.js');
 const { DARK_RED, VERY_PALE_BLUE, CORNFLOWER_BLUE} = require('../../data/colors.json');
-const { PREFIX } = require('../../config.js');
+//const { PREFIX } = require('../../config.js');
 const { readdirSync } = require('fs');
 const { MESSAGES } = require('../../util/constants');
 const categoryList = readdirSync('./commands');
 
 module.exports.run = (client, message, args) => {
+    const PREFIX = process.env.PREFIX;
     if (!args[0]) {
         let embed = new MessageEmbed()
         .setColor(CORNFLOWER_BLUE)
