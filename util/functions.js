@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel, MsgHallHeros, MsgHallZeros, MsgDmdeAide } = require("../models/index");
+const { escapeRegExp } = require("./util");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
@@ -374,7 +375,7 @@ module.exports = client => {
 
             // filtre sur nom jeu
             if (q.game) {
-                agg.push({ $match: { 'game.name': RegExp(q.game, 'i') } })
+                agg.push({ $match: { 'game.name': RegExp(escapeRegExp(q.game), 'i') } })
             }
             // filtre sur vendeur (ID)
             if (q.seller) {

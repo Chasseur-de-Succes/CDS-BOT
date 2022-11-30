@@ -16,6 +16,7 @@ const guildConfigSchema = mongoose.Schema({
         create_vocal: String,
         cat_discussion_groupe: String,
         cat_discussion_groupe_2: String
+        advent: String
     },
     voice_channels : [String]
 })

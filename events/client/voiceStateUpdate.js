@@ -39,7 +39,7 @@ module.exports = async (client, oldState, newState) => {
         // ou si user passe d'un channel à un autre (old & newstate non null)
         if (!newState.channelId || (newState.channelId && oldState.channelId)) {
             // -- si plus personne dedans, on delete
-            if (oldState.channel.members.size === 0) {
+            if (oldState.channel?.members.size === 0) {
                 const idxVoiceSaved = config.voice_channels.indexOf(oldState.channelId.toString());
                 
                 if (idxVoiceSaved >= 0) {
@@ -51,13 +51,13 @@ module.exports = async (client, oldState, newState) => {
                         
                         // -- le supprime
                         oldState.channel.delete()
-                            .then(console.log)
+                            //.then(console.log)
                             .catch(console.error);
                     } catch (err) {
                         logger.warn('.. pb avec la suppression du channel vocal !');
                         // -- le supprime en cas d'erreur avec bdd
                         oldState.channel.delete()
-                            .then(console.log)
+                            //.then(console.log)
                             .catch(console.error);
                     }
                 }

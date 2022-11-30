@@ -2,7 +2,7 @@ const { MessageEmbed } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
-const { MONEY } = require('../../config');
+//const { MONEY } = require('../../config');
 const { createError } = require('../../util/envoiMsg');
 
 module.exports.run = async (interaction) => {
@@ -24,7 +24,7 @@ module.exports.run = async (interaction) => {
 
     const embed = new MessageEmbed()
         .setColor(GREEN)
-        .setDescription(`💰 ${member.user} possède **${dbUser.money}** ${MONEY} 💰`);
+        .setDescription(`💰 ${member.user} possède **${dbUser.money}** ${process.env.MONEY} 💰`);
 
     return interaction.reply({ embeds: [embed] });
 }

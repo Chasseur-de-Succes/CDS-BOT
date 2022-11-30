@@ -1,5 +1,5 @@
 const moment = require("moment");
-const { MONEY } = require("../config");
+//const { MONEY } = require("../config");
 
 const MESSAGES = {
     COMMANDS: {
@@ -373,6 +373,14 @@ const MESSAGES = {
                         required: true,
                     }
                 ]
+            },
+            CALENDRIERDELAVENT: {
+                name: "calendrier-de-l-avent",
+                aliases: [],
+                category: "cds",
+                cooldown: 0,
+                description: "Voir le classement des points pour le calendrier de l'avent",
+                usage: ""
             }
         },
         ECONOMY: {
@@ -498,7 +506,7 @@ const MESSAGES = {
                             }, { 
                                 name: 'prix',
                                 type: 'INTEGER',
-                                description: 'Prix du jeu (en ' + MONEY + ')',
+                                description: 'Prix du jeu (en ' + process.env.MONEY + ')',
                                 required: true,
                             }
                         ]
@@ -630,6 +638,9 @@ const CHANNEL = [
     }, {
         name: 'Catégorie des discussions de groupe 2',
         value: 'cat_discussion_groupe_2'
+    }, {
+        name: 'Salon "calendrier de l\'avent"',
+        value: 'advent'
     },
 ]
 const SALON = {
@@ -640,7 +651,8 @@ const SALON = {
     HALL_ZEROS: 'hall_zeros',
     LOGS: 'logs',
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
-    CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2"
+    CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
+    ADVENT: "advent"
 }
 
 exports.MESSAGES = MESSAGES;

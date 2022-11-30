@@ -1,5 +1,4 @@
 const { MessageEmbed } = require('discord.js');
-const { CHANNEL } = require('../config');
 const { DARK_RED } = require("../data/colors.json");
 const { CROSS_MARK } = require('../data/emojis.json');
 const { SALON } = require('./constants');
