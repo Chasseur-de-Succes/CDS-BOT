@@ -288,8 +288,7 @@ const dissolve = async (interaction, options) => {
     
     // suppression channel discussion
     if (grp.channelId) {
-        interaction.guild.channels.cache.get(grp.channelId)?.delete();
-        // if(channel) channel.delete("Groupe supprimé");
+        interaction.guild.channels.cache.get(grp.channelId)?.delete("Groupe supprimé");
     }
 
     let mentionsUsers = '';
@@ -374,8 +373,7 @@ const end = async (interaction, options) => {
 
     // suppression du channel de discussion
     if (grp.channelId) {
-        const channel = await guild.channels.cache.get(grp.channelId);
-        channel.delete("Groupe terminé");
+        interaction.guild.channels.cache.get(grp.channelId)?.delete("Groupe terminé");
     } else {
         logger.error(`Le channel de discussion du groupe : ${grpName} n'existe pas ! Channel id : ${grp.channelId}`)
     }
