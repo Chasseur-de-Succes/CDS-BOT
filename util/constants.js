@@ -636,8 +636,8 @@ const CHANNEL = [
         name: 'Catégorie des discussions de groupe',
         value: 'cat_discussion_groupe'
     }, {
-        name: 'Catégorie des archives des discussions de groupe',
-        value: 'cat_archive_discussion_groupe'
+        name: 'Catégorie des discussions de groupe 2',
+        value: 'cat_discussion_groupe_2'
     }, {
         name: 'Salon "calendrier de l\'avent"',
         value: 'advent'
@@ -651,7 +651,7 @@ const SALON = {
     HALL_ZEROS: 'hall_zeros',
     LOGS: 'logs',
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
-    CAT_ARCHIVE_DISCUSSION_GROUPE: "cat_archive_discussion_groupe",
+    CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
     ADVENT: "advent"
 }
 
