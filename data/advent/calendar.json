@@ -8,18 +8,18 @@
         "type": "img",
         "question": "***De quel jeu est tiré ce morceau d'image ?***",
         "data": "2.png",
-        "reponse": ["Witcher", "Witcher 3", "The Witcher", "The Witcher 3"]
+        "reponse": ["The Witcher 3", "Witcher", "Witcher 3", "The Witcher"]
     },
     "3": {
         "type": "text",
         "question": "> « Mes couilles sur ton nez, t’auras l’air d’un dindon ».\n***De quel jeu est tiré cette citation ?***",
-        "reponse": ["Duke Nukem", "Duke Nukem Forever"]
+        "reponse": ["Duke Nukem Forever", "Duke Nukem"]
     },
     "4": {
         "type": "img",
         "question": "***De quel jeu est tiré cette image ?***",
         "data": "4.png",
-        "reponse": ["A Plague Tale", "A Plague Tale : Innocence", "A Plague Tale: Innocence"]
+        "reponse": ["A Plague Tale : Innocence", "A Plague Tale", "A Plague Tale: Innocence"]
     },
     "5": {
         "type": "text",
@@ -35,7 +35,7 @@
     "7": {
         "type": "text",
         "question": "Dans ***quel jeu*** peut on trouver *The room of the vieux monsieur* ?",
-        "reponse": ["Watch Dogs: Legion", "Watch Dogs Legion"]
+        "reponse": ["Watch Dogs: Legion", "Watch Dogs Legion", "Watch Dogs : Legion"]
     },
     "8": {
         "type": "text",
@@ -72,10 +72,10 @@
     "14": {
         "type": "text",
         "question": "Qui sont les 2 premiers Chasseurs de Succès à avoir leurs noms dans un succès ?\n(*j'attends 2 pseudos, séparés par une virgule. ex: 'Riri, Fifi'*)",
-        "reponse": ["Skaery Rhylos", "Rhylos Skaery", 
+        "reponse": ["Skaery, Rhylos", "Rhylos, Skaery",
+                    "Skaery Rhylos", "Rhylos Skaery", 
                     "Skaery et Rhylos", "Rhylos et Skaery", 
-                    "Skaery & Rhylos", "Rhylos & Skaery", 
-                    "Skaery, Rhylos", "Rhylos, Skaery"]
+                    "Skaery & Rhylos", "Rhylos & Skaery"]
     },
     "15": {
         "type": "text",

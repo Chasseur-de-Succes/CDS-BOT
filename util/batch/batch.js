@@ -273,7 +273,19 @@ module.exports = {
                             `);
 
                         await eventChannel.send({ embeds: [embedBienvenue] });
-                    } 
+                    } else {
+                        const infosHier = advent[index - 1];
+                        if (!infosHier) 
+                            return;
+
+                        let embedReponseHier = new MessageEmbed()
+                            .setColor(VERY_PALE_BLUE)
+                            .setTitle(`***🌟 Réponse d'hier 🌟***`)
+                            .setDescription(`La réponse d'hier était :
+                               ▶️ **${infosHier.reponse[0]}**`);
+
+                        await eventChannel.send({ embeds: [embedReponseHier] });
+                    }
                     
                     const infos = advent[index];
 

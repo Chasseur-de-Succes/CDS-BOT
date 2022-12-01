@@ -70,6 +70,7 @@ module.exports = async (client, msg) => {
                         
                         // on vérifie si le message est l'une des réponses possible
                         const reponseTrouve = advent[index].reponse.some(el => el.toLowerCase() === msgContent.toLowerCase());
+                        //const reponseTrouve = advent[index].reponse.some(el => msgContent.toLowerCase().includes(el.toLowerCase()));
 
                         update.$set["event.2022.advent.answers." + index + ".valid"] = reponseTrouve;
                         update.$set["event.2022.advent.answers." + index + ".date"] = new Date();
@@ -84,14 +85,14 @@ module.exports = async (client, msg) => {
                         let point = 1;
                         let msgBonus = '';
                         if (dejaRep.length === 0) {             // 1er
-                            point = 9;
-                            msgBonus = 'Tu as répondu le **1er** ! **9 points** pour toi !';
+                            point = 4;
+                            msgBonus = 'Tu as répondu le **1er** ! **4 points** pour toi !';
                         } else if (dejaRep.length === 1) {      // 2eme
-                            point = 6;
-                            msgBonus = 'Tu as répondu le **2ème** ! **6 points** pour toi !';
-                        } else if (dejaRep.length === 2) {      // 3eme
                             point = 3;
-                            msgBonus = 'Tu as répondu le **3ème** ! **3 points** pour toi !';
+                            msgBonus = 'Tu as répondu le **2ème** ! **3 points** pour toi !';
+                        } else if (dejaRep.length === 2) {      // 3eme
+                            point = 2;
+                            msgBonus = 'Tu as répondu le **3ème** ! **2 points** pour toi !';
                         }
                         
                         update.$inc["event.2022.advent.score"] = reponseTrouve ? point : 0
