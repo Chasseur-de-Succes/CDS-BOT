@@ -13,7 +13,7 @@
     "3": {
         "type": "text",
         "question": "> « Mes couilles sur ton nez, t’auras l’air d’un dindon ».\n***De quel jeu est tiré cette citation ?***",
-        "reponse": ["Duke Nukem Forever", "Duke Nukem"]
+        "reponse": ["Duke Nukem Forever"]
     },
     "4": {
         "type": "img",
