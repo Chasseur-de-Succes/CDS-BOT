@@ -19,7 +19,7 @@
         "type": "img",
         "question": "***De quel jeu est tiré cette image ?***",
         "data": "4.png",
-        "reponse": ["A Plague Tale : Innocence", "A Plague Tale", "A Plague Tale: Innocence"]
+        "reponse": ["A Plague Tale : Innocence", "A Plague Tale: Innocence", "A Plague Tale:Innocence"]
     },
     "5": {
         "type": "text",
@@ -35,7 +35,7 @@
     "7": {
         "type": "text",
         "question": "Dans ***quel jeu*** peut on trouver *The room of the vieux monsieur* ?",
-        "reponse": ["Watch Dogs: Legion", "Watch Dogs Legion", "Watch Dogs : Legion"]
+        "reponse": ["Watch Dogs: Legion", "Watch Dogs Legion", "Watch Dogs : Legion", "Watch Dogs:Legion"]
     },
     "8": {
         "type": "text",
@@ -105,7 +105,7 @@
     "20": {
         "type": "text",
         "question": "> Une bière corellienne... dans un verre propre. \nDe quel ***jeu*** est tiré cette citation ?",
-        "reponse": ["Star Wars Jedi Knight II: Jedi Outcast", "Jedi Outcast", "Star Wars Jedi Knight II", "Star Wars Jedi Knight 2"]
+        "reponse": ["Star Wars Jedi Knight II: Jedi Outcast", "Star Wars Jedi Knight II", "Star Wars Jedi Knight 2"]
     },
     "21": {
         "type": "text",
@@ -124,7 +124,7 @@
     },
     "24": {
         "type": "text",
-        "question": "Où peut-on trouver Jolene Cranley-Evan ?",
+        "question": "Dans quel lieu peut-on trouver Jolene Cranley-Evan ?",
         "reponse": ["Mont Gordo"]
     }
 }
