@@ -8,7 +8,7 @@ const { createRappelJob } = require("../../util/batch/batch");
 const { GuildConfig, Game } = require('../../models');
 //const moment = require('moment');
 const moment = require('moment-timezone');
-//const { MONEY } = require("../../config");
+const { DEV } = require("../../config");
 const { escapeRegExp } = require("../../util/util");
 
 module.exports.run = async (interaction) => {

@@ -265,7 +265,7 @@ module.exports = {
                             .setDescription(`Cette année, un calendrier de l'avent spéciale CDS :
                                 ▶️ Tous les jours, à **18h**, une énigme vous sera proposée ! (concocté par les malicieux lutins chasseurs de succès ! 😈)
                                 ▶️ ⚠️ Vous n'avez le droit qu'à **UNE** seule réponse ! Veuillez ne répondre que sur ce **salon** ! ⚠️
-                                ▶️ **1 point** pour chaque bonne réponse, **0** sinon. Les 10 premiers à répondre **juste** auront des points **bonus** !
+                                ▶️ **1 point** pour chaque bonne réponse, **0** sinon. Les 3 premiers à répondre **juste** auront des points **bonus** !
                                 ▶️ Que gagne le 1er ? 🤔 **2️⃣4️⃣ clés Steam !** 🤩
                                 ▶️ Vous pouvez voir le classement des points grâce à la commande \`/calendrier-de-l-avent\` 
 
@@ -273,7 +273,19 @@ module.exports = {
                             `);
 
                         await eventChannel.send({ embeds: [embedBienvenue] });
-                    } 
+                    } else {
+                        const infosHier = advent[index - 1];
+                        if (!infosHier) 
+                            return;
+
+                        let embedReponseHier = new MessageEmbed()
+                            .setColor(VERY_PALE_BLUE)
+                            .setTitle(`***🌟 Réponse d'hier 🌟***`)
+                            .setDescription(`La réponse d'hier était :
+                               ▶️ **${infosHier.reponse[0]}**`);
+
+                        await eventChannel.send({ embeds: [embedReponseHier] });
+                    }
                     
                     const infos = advent[index];
 
