@@ -37,8 +37,8 @@ function getMembersList(group, members) {
     const membersStr = getMembersList(group, members);
     let color = '';
     if (group.validated) color = NIGHT;
-    else if (group.size === 1) color = GREEN;
     else if (group.size === group.nbMax) color = DARK_RED;
+    else if (group.size === 1) color = GREEN;
     else color = YELLOW;
     
     let dateEvent = "*Non définie*";
@@ -68,13 +68,22 @@ function getMembersList(group, members) {
         .setThumbnail(gameUrlHeader)
         .addFields(
             { name: 'Jeu', value: `${group.game.name}\n${links}`, inline: true },
-            //{ name: 'Nb max joueurs', value: `${group.nbMax}`, inline: true },
             { name: 'Quand ?', value: `${dateEvent}`, inline: true },
             { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
             { name: 'Capitaine', value: `${memberCaptain.user}`, inline: true },
+        );
+    
+    if (group.nbMax) {
+        newMsgEmbed.addFields(
             { name: `Membres [${group.size}/${group.nbMax}]`, value: `${membersStr}`, inline: true },
             { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
         );
+    } else {
+        newMsgEmbed.addFields(
+            { name: `${group.size} membres`, value: `${membersStr}`, inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
+        );
+    }
 
     if (group.desc)
         newMsgEmbed.setDescription(`*${group.desc}*`);
@@ -162,15 +171,21 @@ function getMembersList(group, members) {
              client.getUser(u)
              .then(async userDBJoined => {
                 const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
+                const isMaxed = grpDB.nbMax && grpDB.nbMax === grpDB.size;
 
-                // si u est enregistré, non blacklisté, non capitaine, et pas déjà présent, il peut join le group
-                if (userDBJoined && u.id !== grpDB.captain.userId && !userDBJoined.blacklisted && !grpDB.members.find(us => us.userId === u.id)) {
+                // si u est enregistré, non blacklisté, non capitaine, pas déjà présent et nbMax non atteint, il peut join le group
+                if (userDBJoined 
+                    && u.id !== grpDB.captain.userId 
+                    && !userDBJoined.blacklisted 
+                    && !grpDB.members.find(us => us.userId === u.id)
+                    && !isMaxed) {
                     await joinGroup(client, msg.guildId, grpDB, userDBJoined);
                 } else {
                     // send mp explication
                     let raison = 'Tu ne peux rejoindre le groupe car ';
                     if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande /register <steamid>`;
                     else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
+                    else if (isMaxed) raison += `celui-ci est complet !`; 
                     else raison += `tu es le capitaine du groupe !`;
 
                     // si user déjà dans event, on laisse la reaction, sinon on envoie raison
@@ -207,6 +222,8 @@ async function leaveGroup(client, guildId, grp, userDB) {
     var indexMember = grp.members.indexOf(memberGrp);
     grp.members.splice(indexMember, 1);
     grp.size--;
+        // fix au cas où
+    if (grp.size === 0) grp.size = 1;
     await client.update(grp, {
         members: grp.members,
         size: grp.size,
