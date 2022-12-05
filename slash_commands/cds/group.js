@@ -46,9 +46,6 @@ const create = async (interaction, options) => {
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
     if (nameGrp.length < 3) 
         return interaction.reply({ embeds: [createError(`Le nombre **minimum** de caractères pour le nom d'un groupe est de **3**`)] });
-    // nb max member > 2
-    if (nbMaxMember < 2)
-        return interaction.reply({ embeds: [createError(`Le nombre **minimum** de joueurs dans un groupe est de **2**`)] });
 
     // si nom groupe existe
     let grp = await client.findGroupByName(nameGrp);
@@ -191,9 +188,12 @@ const create = async (interaction, options) => {
         .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
         .addFields(
             { name: 'Jeu', value: `${game.name}`, inline: true },
-            { name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true },
             { name: 'Capitaine', value: `${captain}`, inline: true },
         );
+
+    if (nbMaxMember) {
+        newMsgEmbed.addFields({ name: 'Nb max joueurs', value: `${nbMaxMember}`, inline: true })
+    }
 
     await interaction.editReply({ embeds: [newMsgEmbed] });
 }

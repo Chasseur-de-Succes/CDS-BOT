@@ -253,16 +253,16 @@ const MESSAGES = {
                                 description: 'Nom du groupe',
                                 required: true,
                             }, { 
-                                name: 'max',
-                                type: 'INTEGER',
-                                description: 'Nombre max de membres dans le groupe',
-                                required: true,
-                            }, { 
                                 name: 'jeu',
                                 type: 'STRING',
                                 description: 'Nom du jeu',
                                 autocomplete: true,
                                 required: true,
+                            }, { 
+                                name: 'max',
+                                type: 'INTEGER',
+                                description: 'Nombre max de membres dans le groupe',
+                                required: false,
                             }, { 
                                 name: 'description',
                                 type: 'STRING',

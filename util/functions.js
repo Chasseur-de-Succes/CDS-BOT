@@ -144,32 +144,6 @@ module.exports = client => {
         if (data) return data;
         else return;
     };
-    
-    /**
-     * Cherche et retourne un {@link Group}, qui n'est pas validé, pas encore plein
-     * et dont le nom correspond au jeu du groupe
-     * en récupérant les infos liés (capitaine, membres et jeu)
-     * @param {String} name Nom du jeu
-     * @returns undefined si non trouvé, {@link Group} sinon
-     */
-    client.findGroupNotFullByGameName = async name => {
-        const games = await client.findGamesByName(name);
-        // recup array _id
-        var ids = games.map(function(g) { return g._id; });
-
-        // cherche parmis les _id & groupe non rempli
-        const data = await Group.find({
-            $and: [
-                { validated: false },
-                { game: {$in: ids} },
-                { $expr: { $lt: [ "$size", "$nbMax" ]} },
-            ]})
-            .populate('captain')
-            .populate('members')
-            .populate('game');
-        if (data) return data;
-        else return;
-    };
 
     /* GAMES */
     /**

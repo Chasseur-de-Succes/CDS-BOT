@@ -6,10 +6,7 @@ const grpSchema = mongoose.Schema({
     name: String,
     desc: String,
     idMsg: String,
-    nbMax: {
-        "type": Number,
-        "default": 2
-    },
+    nbMax: Number,
     captain : { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     members : [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     size: {
