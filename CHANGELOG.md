@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.1.2]
+### Added
+- Création de groupe : nombre maximum de participants facultatif, mais impossible de dépasser ce max s'il est utilisé !
+
 ## [v1.0.6]
 - Calendrier de l'avent !
 - Utilisation de .env pour les config !
