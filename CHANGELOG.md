@@ -6,6 +6,21 @@
 ### Added
 - Création de groupe : nombre maximum de participants facultatif, mais impossible de dépasser ce max s'il est utilisé !
 
+## [v1.1.1a]
+### Fixed
+- Petite correction mineure qui faisait crash le bot lors de la création d'un groupe
+
+## [v1.1.1]
+### Changed
+- Suppression de la catégorie archive des discussions de groupe
+
+### Added
+- Augmentation du nombre max de groupe créable possible (de 50 à 100)
+- Ajout de permissions pour les discodeurs pour voir les channels des discussions de groupe
+
+## [v1.1.0]
+- Migration du bot sur un autre serveur
+
 ## [v1.0.6]
 - Calendrier de l'avent !
 - Utilisation de .env pour les config !
