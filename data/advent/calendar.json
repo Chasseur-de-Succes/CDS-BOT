@@ -40,7 +40,7 @@
     "8": {
         "type": "text",
         "question": "***F__  _O  \\_A\\_ !***  *(compléter les points)*",
-        "reponse": ["Fus Ro Dah"]
+        "reponse": ["Fus Ro Dah", "Fus Ro Dah !"]
     },
     "9": {
         "type": "img",
