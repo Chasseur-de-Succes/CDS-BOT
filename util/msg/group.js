@@ -3,7 +3,7 @@ const { Group, User } = require('../../models');
 const { MessageEmbed } = require('discord.js');
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const { BAREME_XP, SALON } = require("../constants");
 const { addXp } = require("../xp");
 
@@ -44,10 +44,12 @@ function getMembersList(group, members) {
     let dateEvent = "*Non définie*";
     if (group.dateEvent) {
         dateEvent = "";
+        moment.locale('fr');
         group.dateEvent.sort((a, b) => b.getTime() - a.getTime())
             .forEach(date => {
                 // moment(group.dateEvent).format("ddd Do MMM HH:mm")
-                dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
+                //dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
+                dateEvent += `- ***${moment.tz(date, "Europe/Paris").format("ddd Do MMM HH:mm")}***\n`
             })
     }
     if (!dateEvent)
