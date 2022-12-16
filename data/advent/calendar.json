@@ -100,7 +100,7 @@
     "19": {
         "type": "text",
         "question": "Dans ***GTA V***, quelle mission du braquage de la fin du monde comporte un glitch qui permet d'obtenir de l'argent à l'infini ?",
-        "reponse": ["Nom de code : Bogdan", "Bogdan"]
+        "reponse": ["Nom de code : Bogdan", "Nom de code: Bogdan", "Nom de code :Bogdan", "Nom de code:Bogdan", "Bogdan"]
     },
     "20": {
         "type": "text",
