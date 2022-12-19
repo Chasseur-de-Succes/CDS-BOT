@@ -1,9 +1,9 @@
 const { DARK_RED } = require('../../data/colors.json');
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const { sendLogs } = require('../../util/envoiMsg');
 
 module.exports = async (client, ban) => {
-    const embedLog = new MessageEmbed()
+    const embedLog = new EmbedBuilder()
         .setColor(DARK_RED)
         .setAuthor(`Membre banni`, ban.user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'}))
         .setThumbnail(ban.user.displayAvatarURL({dynamic : true, size: 4096, format: 'png'}))

@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { DARK_RED } = require("../data/colors.json");
 const { CROSS_MARK } = require('../data/emojis.json');
 const { SALON } = require('./constants');
@@ -9,7 +9,7 @@ const { SALON } = require('./constants');
  * @returns un MessageEmbed
  */
 module.exports.createError = (text) => {
-    let embedError = new MessageEmbed()
+    let embedError = new EmbedBuilder()
         .setColor(DARK_RED)
         .setDescription(`${CROSS_MARK} • ${text}`);
     return embedError;
@@ -53,10 +53,12 @@ module.exports.sendLogs = async (client, guildId, embedLog) => {
  * @returns 
  */
  module.exports.createLogs = (client, guildId, title, desc, footer = '', color = DARK_RED) => {
-    let embedLog = new MessageEmbed()
+    let embedLog = new EmbedBuilder()
         .setColor(color)
         .setTitle(`${title}`)
-        .setDescription(desc)
-        .setFooter({ text: footer});
+        .setDescription(desc);
+    
+    if (footer)
+        embedLog.setFooter({ text: footer });
     this.sendLogs(client, guildId, embedLog);
 }

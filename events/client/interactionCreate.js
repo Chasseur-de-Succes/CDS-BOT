@@ -1,8 +1,38 @@
 // inspiré de https://github.com/RedSparr0w/Discord-bot-pokeclicker/blob/v13/index.js
 module.exports = async (client, interaction) => {
-    if (!interaction.isCommand()) return;
+    
+    if (interaction.isChatInputCommand()) {
+        const command = interaction.client.commands.get(interaction.commandName);
 
-    // TODO autocomplete ici ?
+        if (!command) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            return;
+        }
+
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            console.error(error);
+            // TODO Embed error
+            // TODO editReply ou reply..
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    } else if (interaction.isAutocomplete()) {
+        const command = interaction.client.commands.get(interaction.commandName);
+
+        if (!command) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            return;
+        }
+
+        try {
+            await command.autocomplete(interaction);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    // ----
+    if (!interaction.isCommand()) return;
 
     const command = client.slashCommands.find(cmd => cmd.help.name === interaction.commandName);
 

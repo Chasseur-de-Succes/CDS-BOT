@@ -1,11 +1,10 @@
-const { Collection, MessageEmbed } = require('discord.js');
-//const { PREFIX } = require('../../config.js');
+const { Collection, EmbedBuilder } = require('discord.js');
 const { CROSS_MARK } = require('../../data/emojis.json');
 const { User } = require('../../models/index.js');
 const { BAREME_XP, BAREME_MONEY, SALON } = require("../../util/constants");
 const { addXp } = require('../../util/xp.js');
 const advent = require('../../data/advent/calendar.json');
-const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
+const { GREEN, DARK_RED } = require("../../data/colors.json");
 const moment = require('moment-timezone');
 
 module.exports = async (client, msg) => {
@@ -61,7 +60,7 @@ module.exports = async (client, msg) => {
 
                 // les 24 premiers jours
                 if (index < 25) {
-                    let embed = new MessageEmbed()
+                    let embed = new EmbedBuilder()
                         .setTitle(`🌟 Énigme jour ${index} 🌟`);
                     // - si user a déjà répondu à question du jour : on ignore
                     if (userDB.event[2022].advent.answers === undefined || userDB.event[2022].advent.answers.get('' + index) === undefined) {
@@ -203,34 +202,35 @@ module.exports = async (client, msg) => {
         return;
     }
 
-    if (!msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;
+    // TODO ?
+    // if (!msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;
 
-    const args = msg.content.slice(PREFIX.length).split(/ +/);
-    const commandName = args.shift().toLowerCase();
+    // const args = msg.content.slice(PREFIX.length).split(/ +/);
+    // const commandName = args.shift().toLowerCase();
 
-    const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.help.aliases && cmd.help.aliases.includes(commandName));
+    // const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.help.aliases && cmd.help.aliases.includes(commandName));
 
-    // Vérification du channel
-    const dbGuild = await client.findGuildById(msg.guildId);
-    const whitelistList = dbGuild.whitelistChannel;
-    if (whitelistList.length != 0 && command) {
-        const category = command.help.category;
-        if (!(category == 'admin' || category == 'moderation')) {
-            const guildConf = await client.findGuildConfig({ whitelistChannel: msg.channelId });
-            if(guildConf.length === 0) {
-                return msg.react(CROSS_MARK);
-            }
-        }
-    }
+    // // Vérification du channel
+    // const dbGuild = await client.findGuildById(msg.guildId);
+    // const whitelistList = dbGuild.whitelistChannel;
+    // if (whitelistList.length != 0 && command) {
+    //     const category = command.help.category;
+    //     if (!(category == 'admin' || category == 'moderation')) {
+    //         const guildConf = await client.findGuildConfig({ whitelistChannel: msg.channelId });
+    //         if(guildConf.length === 0) {
+    //             return msg.react(CROSS_MARK);
+    //         }
+    //     }
+    // }
 
-    try {
-        await command?.run(client, msg, args).catch(e => {
-            throw(e);
-        });
-    } catch (error) {
-        logger.error(`Erreur lors exécution cmd '${commandName}' : ${error.stack}`);
-        msg.channel.send('Une erreur est survenue lors de l\'exécution de la commande !');
-    }
+    // try {
+    //     await command?.run(client, msg, args).catch(e => {
+    //         throw(e);
+    //     });
+    // } catch (error) {
+    //     logger.error(`Erreur lors exécution cmd '${commandName}' : ${error.stack}`);
+    //     msg.channel.send('Une erreur est survenue lors de l\'exécution de la commande !');
+    // }
 }
 
 const cooldowns = new Collection();

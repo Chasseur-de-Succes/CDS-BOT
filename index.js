@@ -1,4 +1,4 @@
-const { Client, Intents, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 //const { TOKEN } = require('./config.js');
 const { loadCommands, loadEvents, loadBatch, loadReactionGroup, loadSlashCommands, loadRoleGiver, loadReactionMsg, loadVocalCreator } = require('./util/loader');
 const winston = require("winston");
@@ -30,13 +30,9 @@ global.logger = winston.createLogger({
 });
 require('date.format');
 
-
-const myIntents = new Intents();
-myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_BANS, 
-  Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.GUILD_MESSAGE_TYPING, Intents.FLAGS.DIRECT_MESSAGES,
-  Intents.FLAGS.GUILD_VOICE_STATES)
-
-const client = new Client({ intents: myIntents });
+const client = new Client({ intents: [GatewayIntentBits.GuildPresences, GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildBans, 
+  GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMessageTyping, GatewayIntentBits.DirectMessages,
+  GatewayIntentBits.GuildVoiceStates] });
 require('./util/functions')(client);
 require('./util/steam')(client);
 //client.commands = new Collection();
@@ -45,23 +41,42 @@ require('./util/steam')(client);
 client.mongoose = require("./util/mongoose");
 
 loadCommands(client);
-loadEvents(client);
+//loadEvents(client);
 client.mongoose.init();
 
-// A METTRE A JOUR discord.js v12 -> v13 + -> loadEvents
-// client.on('raw', async e => {
-//     if(e.t === 'INTERACTION_CREATE'){
-//         const url = `https://discord.com/api/v8/interactions/${e.d.id}/${e.d.token}/callback`;
-//         const body = {
-//             "type": 4,
-//             "data": {
-//                 content: "test"
-//             }
-//         }
-//         const data = await axios.post(url, body, null);
-//         console.log(data);
-//     }
-// });
+// EVENTS SLASH COMMAND
+client.on(Events.InteractionCreate, async interaction => {
+  if (interaction.isChatInputCommand()) {
+    const command = interaction.client.commands.get(interaction.commandName);
+  
+    if (!command) {
+      console.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
+  
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      // TODO Embed error
+      // TODO editReply ou reply..
+      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
+  } else if (interaction.isAutocomplete()) {
+		const command = interaction.client.commands.get(interaction.commandName);
+
+    if (!command) {
+			console.error(`No command matching ${interaction.commandName} was found.`);
+			return;
+		}
+
+    try {
+			await command.autocomplete(interaction);
+		} catch (error) {
+			console.error(error);
+		}
+  }
+});
 
 client.on('error', console.error);
 client.on('warn', console.warn);
@@ -72,7 +87,7 @@ client.login(process.env.TOKEN).then(c => {
     //loadReactionGroup(client);
 })
 
-client.on('ready', async () => {
+client.once(Events.ClientReady, c => {
   console.log(`
   oooooooo8 ooooooooo    oooooooo8       oooooooooo    ooooooo   ooooooooooo 
 o888     88  888    88o 888               888    888 o888   888o 88  888  88 
@@ -80,21 +95,24 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
 888o     oo  888    888         888       888    888 888o   o888     888     
  888oooo88  o888ooo88   o88oooo888       o888ooo888    88ooo88      o888o    
     `);
-  await loadSlashCommands(client);
 
-  await loadBatch(client);
-  
-  logger.info(`Chargement des messages 'events' ..`)
-  await loadReactionGroup(client);
-  logger.info(`.. terminé`)
-  
-  logger.info(`Chargement des reactions hall héros/zéros ..`)
-  await loadReactionMsg(client);
-  logger.info(`.. terminé`)
-
-  logger.info(`Chargement du chan vocal créateur ..`)
-  await loadVocalCreator(client);
-  logger.info(`.. terminé`)
-
-  loadRoleGiver(client);
 });
+// client.on('ready', async () => {
+//   await loadSlashCommands(client);
+
+//   await loadBatch(client);
+  
+//   logger.info(`Chargement des messages 'events' ..`)
+//   await loadReactionGroup(client);
+//   logger.info(`.. terminé`)
+  
+//   logger.info(`Chargement des reactions hall héros/zéros ..`)
+//   await loadReactionMsg(client);
+//   logger.info(`.. terminé`)
+
+//   logger.info(`Chargement du chan vocal créateur ..`)
+//   await loadVocalCreator(client);
+//   logger.info(`.. terminé`)
+
+//   loadRoleGiver(client);
+// });

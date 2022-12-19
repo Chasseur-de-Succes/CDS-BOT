@@ -1,28 +1,117 @@
-const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
-const { MESSAGES } = require("../../util/constants");
-const { createError, createLogs } = require("../../util/envoiMsg");
-const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../../data/colors.json");
-const customItems = require("../../data/customShop.json");
-const { CHECK_MARK, NO_SUCCES } = require('../../data/emojis.json');
-//const { MONEY } = require('../../config.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { createError, createLogs } = require("../util/envoiMsg");
+const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../data/colors.json");
+const customItems = require("../data/customShop.json");
+const { CHECK_MARK, NO_SUCCES } = require('../data/emojis.json');
 const moment = require('moment');
-const mongoose = require('mongoose');
-const { User } = require('../../models');
+const { User, Game } = require('../models');
+const { escapeRegExp } = require('../util/util');
 
 const NB_PAR_PAGES = 10;
 
-module.exports.run = async (interaction) => {
-    const subcommand = interaction.options.getSubcommand();
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('shop')
+        .setDescription('Affiche la boutique')
+        .addSubcommand(sub =>
+            sub
+                .setName('list')
+                .setDescription("Liste les jeux achetable"))
+        .addSubcommand(sub =>
+            sub
+                .setName('jeux')
+                .setDescription("Ouvre le shop (Jeux)")
+                .addIntegerOption(option => option.setName('page').setDescription('N° de page du shop')))
+        .addSubcommand(sub =>
+            sub
+                .setName('custom')
+                .setDescription("Ouvre le shop (personnalisation)")
+                .addStringOption(option => option.setName('type').setDescription("Type d'item").setRequired(true).setAutocomplete(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('sell')
+                .setDescription("Vend une clé Steam")
+                .addStringOption(option => option.setName('jeu').setDescription("Nom du jeu").setRequired(true).setAutocomplete(true))      
+                .addIntegerOption(option => option.setName('prix').setDescription('Prix du jeu (en ' + process.env.MONEY + ')').setRequired(true)))       
+        ,
+    async autocomplete(interaction) {
+        if (interaction.commandName === 'shop') {
+            if (interaction.options.getSubcommand() === 'custom') {
+                let filtered = [];
+                for (let x in customItems) {
+                    filtered.push({
+                        name: customItems[x].title,
+                        // description: 'Description',
+                        value: '' + x
+                    });
+                }
+                
+                await interaction.respond(
+                    filtered.map(choice => ({ name: choice.name, value: choice.value })),
+                );
+            } else if (interaction.options.getSubcommand() === 'sell') {
+                const focusedValue = interaction.options.getFocused(true);
+                let filtered = [];
+                let exact = [];
+    
+                // cmd group create, autocomplete sur nom jeu
+                if (focusedValue.name === 'jeu') {
+                    // recherche nom exacte
+                    exact = await interaction.client.findGames({
+                        name: focusedValue.value,
+                        type: 'game'
+                    });
+    
+                    // recup limit de 25 jeux, correspondant a la value rentré
+                    filtered = await Game.aggregate([{
+                        '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
+                    }, {
+                        '$match': { 'type': 'game' }
+                    }, {
+                        '$limit': 25
+                    }])
+    
+                    // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                    // limit au 25 premiers
+                    // si nom jeu dépasse limite imposé par Discord (100 char)
+                    // + on prepare le résultat en tableau de {name: '', value: ''}
+                    filtered = filtered
+                        .filter(jeu => jeu.name && jeu.name !== exact[0]?.name)
+                        .slice(0, 25)
+                        .map(element => ({
+                            name: element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
+                            value: "" + element.appid
+                        }));
+                }
+    
+                // si nom exact trouvé
+                if (exact.length === 1) {
+                    const jeuExact = exact[0]
+                    // on récupère les 24 premiers
+                    filtered = filtered.slice(0, 24);
+                    // et on ajoute en 1er l'exact
+                    filtered.unshift({ name: jeuExact.name, value: "" + jeuExact.appid })
+                }
+    
+                await interaction.respond(
+                    filtered.map(choice => ({ name: choice.name, value: choice.value })),
+                );
+            }
+        }
+    },
+    async execute(interaction) {
+        const subcommand = interaction.options.getSubcommand();
 
-    if (subcommand === 'list') {
-        listGames(interaction, interaction.options);
-    } else if (subcommand === 'jeux') {
-        list(interaction, interaction.options, true);
-    } else if (subcommand === 'custom') {
-        listCustom(interaction, interaction.options);
-    } else if (subcommand === 'sell') {
-        sell(interaction, interaction.options)
-    }
+        if (subcommand === 'list') {
+            listGames(interaction, interaction.options);
+        } else if (subcommand === 'jeux') {
+            list(interaction, interaction.options, true);
+        } else if (subcommand === 'custom') {
+            listCustom(interaction, interaction.options);
+        } else if (subcommand === 'sell') {
+            sell(interaction, interaction.options)
+        }
+    },
 }
 
 const list = async (interaction, options, showGame = false) => {
@@ -40,7 +129,6 @@ const list = async (interaction, options, showGame = false) => {
 
     let infos = {};
     infos.money = userDB.money;
-    let rows = [];
     
     if (showGame) { // Si JEUX
         infos.soustitre = 'JEUX';
@@ -67,37 +155,36 @@ const list = async (interaction, options, showGame = false) => {
     let currentIndex = nbPage;
 
     // row pagination
-    const prevBtn = new MessageButton()
+    const prevBtn = new ButtonBuilder()
         .setCustomId("prev")
         .setLabel('Préc.')
         .setEmoji('⬅️')
-        .setStyle('SECONDARY')
+        .setStyle(ButtonStyle.Secondary)
         .setDisabled(nbPage == 0);
-    const nextBtn = new MessageButton()
+    const nextBtn = new ButtonBuilder()
         .setCustomId("next")
         .setLabel('Suiv.')
         .setEmoji('➡️')
-        .setStyle('SECONDARY')
+        .setStyle(ButtonStyle.Secondary)
         .setDisabled(nbPage + 1 == max);
-    const buyBtn = new MessageButton()
+    const buyBtn = new ButtonBuilder()
         .setCustomId("buy")
         .setLabel('Acheter')
         .setEmoji('💸')
-        .setStyle('DANGER')
+        .setStyle(ButtonStyle.Danger)
         // TODO a modifier une fois boutique custom faite
         .setDisabled(infos.type == 1 || (userDB.money < infos.items[currentIndex].items[0].montant))
-    const rowBuyButton = new MessageActionRow()
+    const rowBuyButton = new ActionRowBuilder()
         .addComponents(
             prevBtn,
             nextBtn,
             buyBtn
         );
-    rows.unshift(rowBuyButton);
 
     // on envoie créer et envoie le message du shop
     // TODO msg différent pour jeux / custom ?
     let shopEmbed = createShop(guild, infos, nbPage);
-    let msgShopEmbed = await interaction.editReply({embeds: [shopEmbed], components: rows, fetchReply: true});
+    let msgShopEmbed = await interaction.editReply({embeds: [shopEmbed], components: [rowBuyButton], fetchReply: true});
     
     // Collect button interactions
     const collector = msgShopEmbed.createMessageComponentCollector({
@@ -119,7 +206,7 @@ const list = async (interaction, options, showGame = false) => {
             // Respond to interaction by updating message with new embed
             await itr.update({
                 embeds: [createShop(guild, infos, currentIndex)],
-                components: [new MessageActionRow( { components: [prevBtn, nextBtn, buyBtn] } )]
+                components: [new ActionRowBuilder( { components: [prevBtn, nextBtn, buyBtn] } )]
             })
         } else {
             // achete item courant
@@ -143,7 +230,7 @@ const list = async (interaction, options, showGame = false) => {
                 buyGame(client, interaction.guildId, author, userDB, vendeur, items);
 
                 // message recap
-                let recapEmbed = new MessageEmbed()
+                let recapEmbed = new EmbedBuilder()
                     .setColor(YELLOW)
                     .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
                     .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${process.env.MONEY}
@@ -204,14 +291,14 @@ async function createChoixCustom(interaction, userDB, type, customItems) {
             value: x
         });
     }
-    const rowItem = new MessageActionRow().addComponents(
-        new MessageSelectMenu()
+    const rowItem = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
             .setCustomId('custom-item-' + type)
             .setPlaceholder(`Choisir l'élément à acheter..`)
             .addOptions(itemsSelect)
     );
     
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
         .setDescription(`Quel élément voulez-vous acheter ?`)
@@ -261,21 +348,21 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
     // - si user a déjà acheté => "Utiliser" "enabled"
     let bought = typeof getJSONValue(configProfile, dbConfig, new Map()).get(value) !== 'undefined'
 
-    const buyBtn = new MessageButton()
+    const buyBtn = new ButtonBuilder()
         .setCustomId("buy")
         .setLabel(`${bought ? 'Utiliser' : 'Acheter'}`)
         .setEmoji(`${bought ? '✅' : '💸'}`)
-        .setStyle(`${bought ? 'PRIMARY' : 'DANGER'}`)
+        .setStyle(`${bought ? ButtonStyle.Primary : ButtonStyle.Danger }`)
         .setDisabled(`${bought ? false : (userDB.money < finalVal.price) }`)
 
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`💰 BOUTIQUE - PROFILE - PRÉVISUALISATION 💰`)
         .setDescription(`${finalVal.name}
         💰 ${finalVal.price}`)
         .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}`});
 
-    const row = new MessageActionRow()
+    const row = new ActionRowBuilder()
         .addComponents(
             // backBtn,
             buyBtn
@@ -294,7 +381,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
         if (itr.customId === 'buy') {
             if (value === 'custom') {
                 // - si custom, attente d'un message de l'user
-                embed = new MessageEmbed()
+                embed = new EmbedBuilder()
                     .setColor(NIGHT)
                     .setTitle(`En attente de ta couleur..`)
                     .setDescription(`Quelle couleur souhaites-tu pour ***${customItems[type].title}*** ?
@@ -343,7 +430,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                             createLogs(interaction.client, interaction.guildId, `Argent perdu`, `${interaction.member} achète ***${finalVal.name}*** pour ***${customItems[type].title}***`);
                         }
 
-                        embed = new MessageEmbed()
+                        embed = new EmbedBuilder()
                             .setColor(GREEN)
                             .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
                             .setDescription(`***${daColor}*** pour ***${customItems[type].title}*** ${bought ? "sélectionnée" : "achetée"} !
@@ -353,7 +440,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                         // reply
                         await interaction.editReply({embeds: [embed], components: []});
                     } else {
-                        embed = new MessageEmbed()
+                        embed = new EmbedBuilder()
                             .setColor(DARK_RED)
                             .setTitle(`Erreur`)
                             .setDescription(`La couleur n'est pas au bon format ! (format hexa)
@@ -366,7 +453,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                     // TODO ajout config user
                 } catch(err) {
                     logger.error(err)
-                    embed = new MessageEmbed()
+                    embed = new EmbedBuilder()
                         .setColor(DARK_RED)
                         .setTitle(`Erreur`)
                         .setDescription(`Petit soucis, essaie de renseigner à temps ! ou bien vérifier si la couleur existe (format HEX)`)
@@ -401,7 +488,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
                     createLogs(interaction.client, interaction.guildId, `Argent perdu`, `${interaction.member} achète ***${finalVal.name}*** pour ***${customItems[type].title}***`);
                 }
 
-                embed = new MessageEmbed()
+                embed = new EmbedBuilder()
                     .setColor(GREEN)
                     .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
                     .setDescription(`***${finalVal.name}*** pour ***${customItems[type].title}*** ${bought ? "sélectionnée" : "achetée"} !
@@ -425,7 +512,7 @@ async function createAchatCustom(interaction, userDB, type, customItems, value) 
 /* --- */
 
 function createShop(guild, infos, currentIndex = 0) {
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle(`💰 BOUTIQUE - ${infos.soustitre} 💰`)
     // JEUX
@@ -505,7 +592,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
 
     // STEP 2 : envoie DM au vendeur 
     logger.info(`Envoi DM au vendeur ${vendeur.user.username}`)
-    let MPembed = new MessageEmbed()
+    let MPembed = new EmbedBuilder()
         .setThumbnail(gameUrlHeader)
         .setColor(YELLOW)
         .setTitle('💰 BOUTIQUE - VENTE 💰')
@@ -517,15 +604,15 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
             *En cas de problème, contactez un admin !*`);
             
     // envoi vendeur
-    const confBtn = new MessageButton()
+    const confBtn = new ButtonBuilder()
                 .setCustomId("confBuy")
                 .setLabel('Confirmer')
                 .setEmoji(CHECK_MARK)
-                .setStyle('SUCCESS')
+                .setStyle(ButtonStyle.Success)
     // let msgMPEmbed = await vendeur.user.send({ embeds: [MPembed] });
     let msgMPEmbed = await vendeur.user.send({ 
         embeds: [MPembed],
-        components: [new MessageActionRow( { components: [confBtn] } )] 
+        components: [new ActionRowBuilder( { components: [confBtn] } )] 
     });
     // msgMPEmbed.react(CHECK_MARK);
 
@@ -586,7 +673,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
 
     // STEP 4 : --- ENVOI CLE A ACHETEUR ---
     // DM envoyé à l'acheteur
-    let KDOembed = new MessageEmbed()
+    let KDOembed = new EmbedBuilder()
         .setThumbnail(gameUrlHeader)
         .setColor(YELLOW)
         .setTitle('💰 BOUTIQUE - VENTE 💰')
@@ -598,7 +685,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     
     let msgKDOEmbed = await author.send({ 
         embeds: [KDOembed],
-        components: [new MessageActionRow( { components: [confBtn] } )] 
+        components: [new ActionRowBuilder( { components: [confBtn] } )] 
     });
 
     // maj state
@@ -665,7 +752,7 @@ async function listGames(interaction, options) {
         return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
     
     const items = await client.findGameItemShopByGame();
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
         .setDescription(`Liste des jeux disponibles à l'achat.`)
@@ -679,19 +766,19 @@ async function listGames(interaction, options) {
     
     let rows = [];
     // row pagination
-    const prevBtn = new MessageButton()
+    const prevBtn = new ButtonBuilder()
         .setCustomId("prev")
         .setLabel('Préc.')
         .setEmoji('⬅️')
-        .setStyle('SECONDARY')
+        .setStyle(ButtonStyle.Secondary)
         .setDisabled(true);
-    const nextBtn = new MessageButton()
+    const nextBtn = new ButtonBuilder()
         .setCustomId("next")
         .setLabel('Suiv.')
         .setEmoji('➡️')
-        .setStyle('SECONDARY')
+        .setStyle(ButtonStyle.Secondary)
         .setDisabled(items.length / NB_PAR_PAGES <= 1);
-    const rowBuyButton = new MessageActionRow()
+    const rowBuyButton = new ActionRowBuilder()
         .addComponents(
             prevBtn,
             nextBtn
@@ -722,7 +809,7 @@ async function listGames(interaction, options) {
             // Respond to interaction by updating message with new embed
             await itr.update({
                 embeds: [await createListGame(items, userDB.money, currentIndex)],
-                components: [new MessageActionRow( { components: [prevBtn, nextBtn] } )]
+                components: [new ActionRowBuilder( { components: [prevBtn, nextBtn] } )]
             })
         }
     })
@@ -737,7 +824,7 @@ async function listGames(interaction, options) {
 }
 
 function createListGame(items, money, currentIndex = 0) {
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle('💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰')
         //.setDescription(`Liste des jeux disponibles à l'achat.`)
@@ -805,7 +892,7 @@ async function sell(interaction, options) {
     }
     let itemDB = await client.createGameItemShop(item);
 
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle(`💰 BOUTIQUE - VENTE 💰`)
         .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
@@ -830,6 +917,4 @@ async function sell(interaction, options) {
     } else {
       return model[parts[0]] || def;
     }
-  } 
-
-module.exports.help = MESSAGES.COMMANDS.ECONOMY.SHOP;
+  }

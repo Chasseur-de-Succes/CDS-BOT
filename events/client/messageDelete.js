@@ -1,5 +1,4 @@
-const { MessageEmbed } = require('discord.js');
-//const { PREFIX} = require('../../config.js');
+const { EmbedBuilder } = require('discord.js');
 const { ORANGE } = require('../../data/colors.json');
 const { Msg } = require('../../models/index.js');
 const { sendLogs } = require('../../util/envoiMsg');
@@ -11,7 +10,7 @@ module.exports = async (client, msg) => {
 
     if(msg.content.startsWith(PREFIX) || msg.author.bot || msg.channel.type === "dm") return;
     
-    let embedLog = new MessageEmbed()
+    let embedLog = new EmbedBuilder()
         .setTitle("Message supprimé")
         .setColor(ORANGE)
         .setDescription(`Auteur : ${msg.author}`)

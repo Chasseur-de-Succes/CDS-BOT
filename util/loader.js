@@ -1,4 +1,4 @@
-const { Collection } = require('discord.js');
+const { Collection, ChannelType } = require('discord.js');
 const { readdirSync, cp } = require('fs');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
 const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper, loadEvent } = require('./batch/batch');
@@ -10,17 +10,27 @@ const succes = require('../data/achievements.json');
 const customItems = require('../data/customShop.json');
 const { escapeRegExp } = require('./util');
 
-// Charge les commandes
-const loadCommands = (client, dir = "./commands/") => {
-    readdirSync(dir).forEach(dirs => {
-        const commands = readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"));
+const fs = require('node:fs');
+const path = require('node:path');
 
-        for (const file of commands) {
-            const getFileName = require(`../${dir}/${dirs}/${file}`);
-            client.commands.set(getFileName.help.name, getFileName);
-            logger.info("Commande chargée " + getFileName.help.name);
-        };
-    });
+// Charge les commandes
+const loadCommands = (client, dir = "./slash_commands/") => {
+    client.commands = new Collection();
+
+    const commandsPath = path.join(__dirname, '../slash_commands/');
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    
+    for (const file of commandFiles) {
+        const filePath = path.join(commandsPath, file);
+        const command = require(filePath);
+        // Set a new item in the Collection with the key as the command name and the value as the exported module
+        if ('data' in command && 'execute' in command) {
+            client.commands.set(command.data.name, command);
+        } else {
+            console.log(`[WARNING] Il manque "data" ou "execute" dans la commande ${filePath}.`);
+            logger.warn(`[WARNING] Il manque "data" ou "execute" dans la commande ${filePath}.`)
+        }
+    }
 };
 
 const loadSlashCommands = async (client, dir = "./slash_commands/") => {
@@ -87,167 +97,6 @@ const loadEvents = (client, dir = "./events/") => {
             logger.info("Évènement chargé " + evtName);
         };
     });
-
-    // TODO a revoir
-    client.on('interactionCreate', async itr => {
-        if (!itr.isAutocomplete()) return;
-        // TODO mettre dans fichier js
-        // TODO si nom jeu trop grand, ou form trop grand (lim à 100 car)
-        // TODO limiter les suggestions à 25
-        
-        if (itr.commandName === 'profile') {
-            const focusedValue = itr.options.getFocused(true);
-            let filtered = [];
-
-            if (focusedValue.name === 'succes') {
-                for (let x in succes) {
-                    filtered.push({ name: succes[x].title, value: x})
-                }
-            }
-            await itr.respond(filtered)
-        } else if (itr.commandName === 'adminshop') {
-            // cmd adminshop delete, autocomplete sur nom jeu
-            const focusedValue = itr.options.getFocused(true);
-            const vendeurId = itr.options.get('vendeur')?.value;
-
-            let filtered = [];
-            
-            if (focusedValue.name === 'jeu') {
-                if (focusedValue.value)
-                    filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true, limit: 25 });
-                else
-                    filtered = await client.findGameItemShopBy({ seller: vendeurId, notSold: true, limit: 25 });
-            }
-
-            await itr.respond(
-                // on ne prend que les 25 1er  (au cas où)
-                filtered.slice(0, 25).map(choice => ({ name: choice.game.name, value: choice._id })),
-            );
-        } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'custom') {
-            let filtered = [];
-            for (let x in customItems) {
-                filtered.push({
-                    name: customItems[x].title,
-                    // description: 'Description',
-                    value: '' + x
-                });
-            }
-            
-            await itr.respond(
-                filtered.map(choice => ({ name: choice.name, value: choice.value })),
-            );
-        } else if (itr.commandName === 'shop' && itr.options.getSubcommand() === 'sell') {
-            const focusedValue = itr.options.getFocused(true);
-            let filtered = [];
-            let exact = [];
-
-            // cmd group create, autocomplete sur nom jeu
-            if (focusedValue.name === 'jeu') {
-                // recherche nom exacte
-                exact = await client.findGames({
-                    name: focusedValue.value,
-                    type: 'game'
-                });
-
-                // recup limit de 25 jeux, correspondant a la value rentré
-                filtered = await Game.aggregate([{
-                    '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
-                }, {
-                    '$match': { 'type': 'game' }
-                }, {
-                    '$limit': 25
-                }])
-
-                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-                // limit au 25 premiers
-                // si nom jeu dépasse limite imposé par Discord (100 char)
-                // + on prepare le résultat en tableau de {name: '', value: ''}
-                filtered = filtered
-                    .filter(jeu => jeu.name && jeu.name !== exact[0]?.name)
-                    .slice(0, 25)
-                    .map(element => ({
-                        name: element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name,
-                        value: "" + element.appid
-                    }));
-            }
-
-            // si nom exact trouvé
-            if (exact.length === 1) {
-                const jeuExact = exact[0]
-                // on récupère les 24 premiers
-                filtered = filtered.slice(0, 24);
-                // et on ajoute en 1er l'exact
-                filtered.unshift({ name: jeuExact.name, value: "" + jeuExact.appid })
-            }
-
-            await itr.respond(
-                filtered.map(choice => ({ name: choice.name, value: choice.value })),
-            );
-        } else if (itr.commandName === 'group') {
-            const focusedValue = itr.options.getFocused(true);
-            let filtered = [];
-            let exact = [];
-            
-            // cmd group create, autocomplete sur nom jeu multi/coop avec succès
-            if (focusedValue.name === 'jeu') {
-                // recherche nom exacte
-                exact = await client.findGames({
-                    name: focusedValue.value,
-                    type: 'game'
-                });
-
-                // recup limit de 25 jeux, correspondant a la value rentré
-                filtered = await Game.aggregate([{
-                    '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
-                }, {
-                    '$match': { 'type': 'game' }
-                }, {
-                    '$limit': 25
-                }])
-
-                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-                filtered = filtered.filter(jeu => jeu.name && jeu.name !== exact[0]?.name);
-            }
-
-            // autocomplete sur nom groupe
-            if (focusedValue.name === 'nom') {
-                filtered = await Group.find({
-                    $and: [
-                        { validated: false },
-                        { name: new RegExp(escapeRegExp(focusedValue.value), 'i') },
-                        { guildId: itr.guildId }
-                    ]
-                })
-            }
-
-            // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
-            filtered = filtered
-                .slice(0, 25)
-                .map(element => element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name);
-
-            // si nom exact trouvé
-            if (exact.length === 1) {
-                const jeuExact = exact[0]
-                // on récupère les 24 premiers
-                filtered = filtered.slice(0, 24);
-                // et on ajoute en 1er l'exact
-                filtered.unshift(jeuExact.name)
-            }
-
-            await itr.respond(
-                filtered.map(choice => ({ name: choice, value: choice })),
-            );
-        } else if (itr.commandName === 'salon') {
-            // cmd config, autocomplete sur nom param
-            const focusedValue = itr.options.getFocused(true);
-
-            let filtered = [];
-            if (focusedValue.name === 'nom')
-                filtered = CHANNEL
-            
-            await itr.respond(filtered)
-        }
-    })
 };
 
 // Charge les 'batch'
@@ -451,8 +300,9 @@ const loadVocalCreator = async (client) => {
         if (!config.channels || !config.channels['create_vocal']) {
             // créer un voice channel
             // TODO parent ?
-            const voiceChannel = await guild.channels.create('🔧 Créer un salon vocal', {
-                type: "GUILD_VOICE"
+            const voiceChannel = await guild.channels.create({
+                name: '🔧 Créer un salon vocal', 
+                type: ChannelType.GuildVoice
             });
 
             await GuildConfig.updateOne(

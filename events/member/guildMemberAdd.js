@@ -1,10 +1,10 @@
 const { CORNFLOWER_BLUE } = require('../../data/colors.json');
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const { sendLogs } = require('../../util/envoiMsg');
 
 module.exports = async (client, member) => {
     const user = client.users.cache.get(member.id);
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
         .setColor(CORNFLOWER_BLUE)
         .setTitle(`Nouveau membre`)
         .setDescription(`<@${member.id}>`)

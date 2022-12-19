@@ -1,3 +1,4 @@
+const { ChannelType } = require("discord.js");
 const { loggers } = require("winston");
 const { GuildConfig } = require("../../models");
 
@@ -22,8 +23,9 @@ module.exports = async (client, oldState, newState) => {
             console.log('.. voice channel creator, on créé un nouveau channel ' + name);
 
             // -- créer un salon vocal dans même catégorie que original
-            const voiceChannel = await guild.channels.create(`${name}`, {
-                type: "GUILD_VOICE",
+            const voiceChannel = await guild.channels.create({
+                name: name,
+                type: ChannelType.GuildVoice,
                 // -- set meme parent que "creator"
                 parent: parent
             });

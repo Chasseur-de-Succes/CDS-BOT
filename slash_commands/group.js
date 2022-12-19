@@ -1,32 +1,130 @@
-const { MESSAGES, SALON } = require("../../util/constants");
-const { createError, createLogs, sendLogs } = require("../../util/envoiMsg");
-const { MessageActionRow, MessageSelectMenu, MessageEmbed, Permissions, Message } = require("discord.js");
-const { NIGHT } = require("../../data/colors.json");
-const { CHECK_MARK, WARNING } = require('../../data/emojis.json');
-const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../../util/msg/group");
-const { createRappelJob } = require("../../util/batch/batch");
-const { GuildConfig, Game } = require('../../models');
-//const moment = require('moment');
+const { SALON } = require("../util/constants");
+const { createError, createLogs, sendLogs } = require("../util/envoiMsg");
+const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, ComponentType, ChannelType, PermissionFlagsBits } = require("discord.js");
+const { NIGHT } = require("../data/colors.json");
+const { CHECK_MARK, WARNING } = require('../data/emojis.json');
+const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../util/msg/group");
+const { createRappelJob } = require("../util/batch/batch");
+const { GuildConfig, Game, Group } = require('../models');
 const moment = require('moment-timezone');
-const { DEV } = require("../../config");
-const { escapeRegExp } = require("../../util/util");
+const { DEV } = require("../config");
+const { escapeRegExp } = require("../util/util");
 
-module.exports.run = async (interaction) => {
-    const subcommand = interaction.options.getSubcommand();
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('group')
+        .setDescription('Gestion des groupes')
+        .addSubcommand(sub =>
+            sub
+                .setName('create')
+                .setDescription("Créer un nouveau groupe, sur un jeu Steam")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true))
+                .addStringOption(option => option.setName('jeu').setDescription("Nom du jeu").setRequired(true).setAutocomplete(true))
+                .addStringOption(option => option.setName('max').setDescription("Nombre max de membres dans le groupe"))
+                .addStringOption(option => option.setName('description').setDescription("Description du groupe, quels succès sont rechercher, spécificités, etc")))
+        .addSubcommand(sub =>
+            sub
+                .setName('session')
+                .setDescription("Ajoute/supprime une session pour un groupe. Un rappel sera envoyé aux membres 1j et 1h avant")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
+                .addStringOption(option => option.setName('jour').setDescription("Jour de l'événement, au format DD/MM/YY").setRequired(true))
+                .addStringOption(option => option.setName('heure').setDescription("Heure de l'événement, au format HH:mm").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('dissolve')
+                .setDescription("Dissoud un groupe et préviens les membres de celui-ci (👑 only)")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('transfert')
+                .setDescription("Transfert le statut de 👑capitaine à un autre membre du groupe (👑 only)")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
+                .addUserOption(option => option.setName('membre').setDescription("Membre du groupe, deviendra le nouveau capitaine 👑").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('end')
+                .setDescription("Valide et termine un groupe (👑 only)")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('kick')
+                .setDescription("Kick un membre du groupe (👑 only)")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
+                .addUserOption(option => option.setName('membre').setDescription("Membre du groupe à kick").setRequired(true)))
+        ,
+    async autocomplete(interaction) {
+        const client = interaction.client;
+        const focusedValue = interaction.options.getFocused(true);
+        let filtered = [];
+        let exact = [];
+        
+        // cmd group create, autocomplete sur nom jeu multi/coop avec succès
+        if (focusedValue.name === 'jeu') {
+            // recherche nom exacte
+            exact = await client.findGames({
+                name: focusedValue.value,
+                type: 'game'
+            });
 
-    if (subcommand === 'create') {
-        create(interaction, interaction.options)
-    } else if (subcommand === 'session') {
-        schedule(interaction, interaction.options)
-    } else if (subcommand === 'dissolve') {
-        dissolve(interaction, interaction.options)
-    } else if (subcommand === 'transfert') {
-        transfert(interaction, interaction.options)
-    } else if (subcommand === 'end') {
-        end(interaction, interaction.options)
-    } else if (subcommand === 'kick') {
-        kick(interaction, interaction.options)
-    }
+            // recup limit de 25 jeux, correspondant a la value rentré
+            filtered = await Game.aggregate([{
+                '$match': { 'name': new RegExp(escapeRegExp(focusedValue.value), "i") }
+            }, {
+                '$match': { 'type': 'game' }
+            }, {
+                '$limit': 25
+            }])
+
+            // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+            filtered = filtered.filter(jeu => jeu.name && jeu.name !== exact[0]?.name);
+        }
+
+        // autocomplete sur nom groupe
+        if (focusedValue.name === 'nom') {
+            filtered = await Group.find({
+                $and: [
+                    { validated: false },
+                    { name: new RegExp(escapeRegExp(focusedValue.value), 'i') },
+                    { guildId: interaction.guildId }
+                ]
+            })
+        }
+
+        // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
+        filtered = filtered
+            .slice(0, 25)
+            .map(element => element.name?.length > 100 ? element.name.substr(0, 96) + '...' : element.name);
+
+        // si nom exact trouvé
+        if (exact.length === 1) {
+            const jeuExact = exact[0]
+            // on récupère les 24 premiers
+            filtered = filtered.slice(0, 24);
+            // et on ajoute en 1er l'exact
+            filtered.unshift(jeuExact.name)
+        }
+
+        await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice })),
+        );
+    },
+    async execute(interaction) {
+        const subcommand = interaction.options.getSubcommand();
+    
+        if (subcommand === 'create') {
+            create(interaction, interaction.options)
+        } else if (subcommand === 'session') {
+            schedule(interaction, interaction.options)
+        } else if (subcommand === 'dissolve') {
+            dissolve(interaction, interaction.options)
+        } else if (subcommand === 'transfert') {
+            transfert(interaction, interaction.options)
+        } else if (subcommand === 'end') {
+            end(interaction, interaction.options)
+        } else if (subcommand === 'kick') {
+            kick(interaction, interaction.options)
+        }
+    },
 }
 
 const create = async (interaction, options) => {
@@ -89,14 +187,14 @@ const create = async (interaction, options) => {
     // if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
 
     // row contenant le Select menu
-    const row = new MessageActionRow().addComponents(
-        new MessageSelectMenu()
+    const row = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
             .setCustomId('select-games-' + captain)
             .setPlaceholder('Sélectionner le jeu..')
             .addOptions(items)
     );
 
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`)
         .setDescription(`Lequel est celui que tu cherchais ?`);
@@ -112,7 +210,7 @@ const create = async (interaction, options) => {
         };
         itrSelect = await msgEmbed.awaitMessageComponent({
             filter,
-            componentType: 'SELECT_MENU',
+            componentType: ComponentType.StringSelect,
             time: 30000 // 5min
         });
     } catch (error) {
@@ -147,25 +245,26 @@ const create = async (interaction, options) => {
     }
 
     // création channel de discussion
-    const channel = await interaction.guild.channels.create(nameGrp, {
-            type: "GUILD_TEXt",
+    const channel = await interaction.guild.channels.create({
+            name: nameGrp,
+            type: ChannelType.GuildText,
             parent: cat,
             permissionOverwrites: [
                 {
                     id: interaction.guild.roles.everyone.id,
-                    deny: ['VIEW_CHANNEL'],
+                    deny: [PermissionFlagsBits.ViewChannel],
                 },
                 {
                     id: captain.id,
-                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+                    allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages],
                 },
             ],
     });
 
     for (const dev of DEV) {
         channel.permissionOverwrites.edit(dev.id, {
-            VIEW_CHANNEL: true, 
-            SEND_MESSAGES: true,
+            ViewChannel: true, 
+            SendMessages: true,
         })
     }
 
@@ -184,7 +283,7 @@ const create = async (interaction, options) => {
     };
     createGroup(client, interaction.guildId, newGrp);
 
-    const newMsgEmbed = new MessageEmbed()
+    const newMsgEmbed = new EmbedBuilder()
         .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
         .addFields(
             { name: 'Jeu', value: `${game.name}`, inline: true },
@@ -205,7 +304,7 @@ const schedule = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
-    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+    const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -262,7 +361,7 @@ const schedule = async (interaction, options) => {
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
 
-    const newMsgEmbed = new MessageEmbed()
+    const newMsgEmbed = new EmbedBuilder()
         .setTitle(titreReponse)
         .setDescription(msgReponse);
     return interaction.editReply({ embeds: [newMsgEmbed] });
@@ -273,7 +372,7 @@ const dissolve = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
-    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+    const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
     
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -314,7 +413,7 @@ const transfert = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
-    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+    const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -347,7 +446,7 @@ const transfert = async (interaction, options) => {
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
     logger.info(`${author.user.tag} vient de nommer ${newCaptain.user.tag} capitaine du groupe ${grpName}`);
-    const newMsgEmbed = new MessageEmbed()
+    const newMsgEmbed = new EmbedBuilder()
         .setDescription(`${CHECK_MARK} ${newCaptain} est le nouveau capitaine du groupe **${grpName}** !`);
     await interaction.reply({ embeds: [newMsgEmbed] });
 }
@@ -358,7 +457,7 @@ const end = async (interaction, options) => {
     const author = interaction.member;
     const guild = interaction.guild;
     
-    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+    const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
     const authorDB = await client.getUser(author);
@@ -395,7 +494,7 @@ const end = async (interaction, options) => {
     let prize = ((base + (baseJoueur * nbJoueur)) * nbJoueur) + (baseSession * nbSession);
     
     logger.info(`${author.user.tag} a validé le groupe ${grp.name}`);
-    const newMsgEmbed = new MessageEmbed()
+    const newMsgEmbed = new EmbedBuilder()
         .setTitle(`${CHECK_MARK} Bravo ! Vous avez terminé l'évènement du groupe ${grp.name}`)
         .setDescription(`Vous gagnez chacun **${prize}** ${process.env.MONEY} ! 💰`);
     await interaction.reply({ content: mentionsUsers, embeds: [newMsgEmbed] });
@@ -427,7 +526,7 @@ const kick = async (interaction, options) => {
         return interaction.reply({ embeds: [createError(`Tu ne peux pas kick le capitaine du groupe **${grpName}** !`)] });
 
     // si l'author n'est pas capitaine ou non admin
-    const isAdmin = author.permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
+    const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
 
@@ -443,10 +542,10 @@ const kick = async (interaction, options) => {
     await editMsgHubGroup(client, interaction.guildId, grp);
     logger.info(`${author.user.tag} vient de kick ${toKicked.user.tag} du groupe ${grpName}`);
     
-    const kickLogEmbed = new MessageEmbed()
+    const kickLogEmbed = new EmbedBuilder()
         .setTitle(`Kick d'un groupe`)
         .setDescription(`**${author.user.tag}** vient de kick **${toKicked.user.tag}** du groupe **${grpName}**`);
-    const kickEmbed = new MessageEmbed()
+    const kickEmbed = new EmbedBuilder()
         .setDescription(`${CHECK_MARK} ${toKicked} a été kick du groupe **${grpName}** !`);
     
     // - send logs
@@ -457,8 +556,9 @@ const kick = async (interaction, options) => {
 
 // Création catégorie discussions groupes
 async function createCategory(nameCat, catConfig, interaction) {
-    let cat = await interaction.guild.channels.create(nameCat, {
-        type: "GUILD_CATEGORY"
+    let cat = await interaction.guild.channels.create({
+        name: nameCat,
+        type: ChannelType.GuildCategory
     });
     await GuildConfig.updateOne(
         { guildId: interaction.guildId },
@@ -467,5 +567,3 @@ async function createCategory(nameCat, catConfig, interaction) {
     logger.info(`Catégorie "${nameCat}" créé avec succès`);
     return cat;
 }
-
-module.exports.help = MESSAGES.COMMANDS.CDS.GROUP;

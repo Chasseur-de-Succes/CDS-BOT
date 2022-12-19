@@ -1,21 +1,61 @@
-const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require('discord.js');
-const { MESSAGES } = require("../../util/constants");
-const { createError, createLogs } = require("../../util/envoiMsg");
-const { YELLOW, NIGHT } = require("../../data/colors.json");
-const { CHECK_MARK } = require('../../data/emojis.json');
-//const { MONEY } = require('../../config.js');
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+const { createError, createLogs } = require("../util/envoiMsg");
+const { YELLOW, NIGHT } = require("../data/colors.json");
+const { CHECK_MARK } = require('../data/emojis.json');
 const mongoose = require('mongoose');
 
-module.exports.run = async (interaction) => {
-    const subcommand = interaction.options.getSubcommand();
-    
-    if (subcommand === 'cancel') {
-        cancel(interaction, interaction.options)
-    } else if (subcommand === 'refund') {
-        refund(interaction, interaction.options)
-    } else if (subcommand === 'delete') {
-        deleteItem(interaction, interaction.options)
-    }
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('adminshop')
+        .setDescription('Gestion de la boutique')
+        .addSubcommand(sub =>
+            sub
+                .setName('cancel')
+                .setDescription("Annule une transaction **en cours**")
+                .addStringOption(option => option.setName('id').setDescription("ID de la transaction (récupéré dans msg log)").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('refund')
+                .setDescription("Rembourse une transaction **terminé**")
+                .addStringOption(option => option.setName('id').setDescription("ID de la transaction (récupéré dans msg log)").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('delete')
+                .setDescription("Supprime un item du shop")
+                .addUserOption(option => option.setName('vendeur').setDescription('Le vendeur').setRequired(true))
+                .addStringOption(option => option.setName('jeu').setDescription("Nom du jeu").setAutocomplete(true).setRequired(true)))
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    async autocomplete(interaction) {
+        // cmd adminshop delete, autocomplete sur nom jeu
+        const client = interaction.client;
+        const focusedValue = interaction.options.getFocused(true);
+        const vendeurId = interaction.options.get('vendeur')?.value;
+
+        let filtered = [];
+        
+        if (focusedValue.name === 'jeu') {
+            if (focusedValue.value)
+                filtered = await client.findGameItemShopBy({ game: focusedValue.value, seller: vendeurId, notSold: true, limit: 25 });
+            else
+                filtered = await client.findGameItemShopBy({ seller: vendeurId, notSold: true, limit: 25 });
+        }
+
+        await interaction.respond(
+            // on ne prend que les 25 1er  (au cas où)
+            filtered.slice(0, 25).map(choice => ({ name: choice.game.name, value: choice._id })),
+        );
+    },
+    async execute(interaction) {
+        const subcommand = interaction.options.getSubcommand();
+        
+        if (subcommand === 'cancel') {
+            cancel(interaction, interaction.options)
+        } else if (subcommand === 'refund') {
+            refund(interaction, interaction.options)
+        } else if (subcommand === 'delete') {
+            deleteItem(interaction, interaction.options)
+        }
+    },
 }
 
 /* ADMIN */
@@ -35,8 +75,8 @@ async function cancel(interaction, options) {
     gameItem = gameItem[0];
 
     // teste si state existe et si != 'done'
-    if (!gameItem.state) return interaction.reply({ embeds: [createError(`La vente n'a pas encore **commencée** ! Utiliser \`/shop admin delete <id>\``)] });
-    if (gameItem.state === 'done') return interaction.reply({ embeds: [createError(`La vente est déjà **terminée** ! Utiliser \`/shop admin refund <id>\``)] });
+    if (!gameItem.state) return interaction.reply({ embeds: [createError(`La vente n'a pas encore **commencée** ! Utiliser \`/adminshop delete <id>\``)] });
+    if (gameItem.state === 'done') return interaction.reply({ embeds: [createError(`La vente est déjà **terminée** ! Utiliser \`/adminshop refund <id>\``)] });
 
     await client.update(gameItem, { $unset : { state : 1, buyer: 1 } } )
 
@@ -51,7 +91,7 @@ async function cancel(interaction, options) {
 
     logger.info(`Annulation vente id ${id}`);
     
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Vente annulée !`)
         .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
@@ -76,8 +116,8 @@ async function refund(interaction, options) {
     gameItem = gameItem[0];
 
     // teste si state existe et si == 'done'
-    if (!gameItem.state) return interaction.reply({ embeds: [createError(`La vente n'a pas encore **commencée** ! Utiliser \`/shop admin delete <id>\``)] });
-    if (gameItem.state !== 'done') return interaction.reply({ embeds: [createError(`La vente n'est pas encore **terminée** ! Utiliser \`/shop admin cancel <id>\``)] });
+    if (!gameItem.state) return interaction.reply({ embeds: [createError(`La vente n'a pas encore **commencée** ! Utiliser \`/adminshop delete <id>\``)] });
+    if (gameItem.state !== 'done') return interaction.reply({ embeds: [createError(`La vente n'est pas encore **terminée** ! Utiliser \`/adminshop cancel <id>\``)] });
 
     // maj statut item
     await client.update(gameItem, { $unset : { state : 1, buyer: 1 } } )
@@ -98,7 +138,7 @@ async function refund(interaction, options) {
 
     logger.info(`Remboursement vente id ${id}`);
     
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Achat remboursé !`)
         .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
@@ -120,7 +160,7 @@ async function deleteItem(interaction, options) {
     logger.info(`.. Item ${gameItem[0]._id} choisi`);
 
     // teste si state n'existe pas
-    if (gameItem[0].state) return interaction.reply({ embeds: [createError(`L'item ne doit pas être encore en cours de vente ! Utiliser \`/shop admin cancel <id>\` ou \`/shop admin refund <id>\``)] });
+    if (gameItem[0].state) return interaction.reply({ embeds: [createError(`L'item ne doit pas être encore en cours de vente ! Utiliser \`/adminshop cancel <id>\` ou \`/shop admin refund <id>\``)] });
     const gamename = gameItem[0].game.name;
 
     // suppr item boutique
@@ -132,7 +172,7 @@ async function deleteItem(interaction, options) {
 
     logger.info(`Suppression vente id ${jeu}`);
 
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Item ${gamename} supprimé`);
 
@@ -140,5 +180,3 @@ async function deleteItem(interaction, options) {
     createLogs(client, interaction.guildId, `Suppression vente`, `${author} a supprimé la vente de **${gamename}**, par **${vendeur}**`, `ID : ${idItem}`, YELLOW);
     return;    
 }
-
-module.exports.help = MESSAGES.COMMANDS.ECONOMY.ADMINSHOP;
