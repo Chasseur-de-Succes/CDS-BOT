@@ -1,14 +1,12 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
-const { TAGS, delay, crtHour, SALON } = require('../../util/constants');
+const { SALON } = require('../../util/constants');
 const advent = require('../../data/advent/calendar.json');
-const { YELLOW, NIGHT, VERY_PALE_BLUE } = require("../../data/colors.json");
-//const moment = require("moment");
+const {  NIGHT, VERY_PALE_BLUE } = require("../../data/colors.json");
 const moment = require('moment-timezone');
 const { User } = require("../../models");
 const { createLogs } = require("../envoiMsg");
-//const { MONEY } = require("../../config");
-const { MessageEmbed, MessageAttachment } = require("discord.js");
+const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
 
 module.exports = {
     /**
@@ -259,7 +257,7 @@ module.exports = {
                         return;
                     if (index === 1) {
                         // message de "bienvenue"
-                        let embedBienvenue = new MessageEmbed()
+                        let embedBienvenue = new EmbedBuilder()
                             .setColor(VERY_PALE_BLUE)
                             .setTitle(`***🎅 Oh oh oh 🎅*** - 🌟 Calendrier de l'avent des CDS 🌟`)
                             .setDescription(`Cette année, un calendrier de l'avent spéciale CDS :
@@ -278,7 +276,7 @@ module.exports = {
                         if (!infosHier) 
                             return;
 
-                        let embedReponseHier = new MessageEmbed()
+                        let embedReponseHier = new EmbedBuilder()
                             .setColor(VERY_PALE_BLUE)
                             .setTitle(`***🌟 Réponse d'hier 🌟***`)
                             .setDescription(`La réponse d'hier était :
@@ -297,23 +295,23 @@ module.exports = {
                     const color = index % 2 === 0 ? "#008000" : "#ff0000"
 
                     // preapre l'embed
-                    let embed = new MessageEmbed()
+                    let embed = new EmbedBuilder()
                         .setColor(color)
                         .setTitle(`🌟 Énigme jour ${index} 🌟`)
                         .setDescription(`${infos.question}`);
                     
                     // si type image, on ajoute l'image
                     if (infos.type === "img") {
-                        const attachment = new MessageAttachment(`data/advent/${infos.data}`)
+                        const file = new AttachmentBuilder(`data/advent/${infos.data}`)
                         embed.setImage(`attachment://data/advent/${infos.data}`)
 
-                        await eventChannel.send({ embeds: [embed], files: [attachment] });
+                        await eventChannel.send({ embeds: [embed], files: [file] });
                     } else {
                         await eventChannel.send({ embeds: [embed] });
                     }
 
                     // on renvoi un embed pour séparer
-                    embed = new MessageEmbed()
+                    embed = new EmbedBuilder()
                         .setColor(NIGHT)
                         .setTitle(`**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**`);
                     await eventChannel.send({ embeds: [embed] });
