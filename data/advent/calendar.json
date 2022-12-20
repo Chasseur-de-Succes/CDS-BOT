@@ -105,7 +105,7 @@
     "20": {
         "type": "text",
         "question": "> Une bière corellienne... dans un verre propre. \nDe quel ***jeu*** est tiré cette citation ?",
-        "reponse": ["Star Wars Jedi Knight II: Jedi Outcast", "Star Wars Jedi Knight II", "Star Wars Jedi Knight 2"]
+        "reponse": ["Star Wars Jedi Knight II: Jedi Outcast", "Star Wars Jedi Knight II : Jedi Outcast", "Star Wars : Jedi Knight II : Jedi Outcast", "Star Wars Jedi Knight II", "Star Wars Jedi Knight 2"]
     },
     "21": {
         "type": "text",
