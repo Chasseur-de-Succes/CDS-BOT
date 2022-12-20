@@ -36,15 +36,15 @@ const client = new Client({ intents: [
   GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildVoiceStates] });
 require('./util/functions')(client);
 require('./util/steam')(client);
-//client.commands = new Collection();
-//client.aliases = new Collection();
-["commands", "aliases"].forEach(x => client[x] = new Collection());
+
 client.mongoose = require("./util/mongoose");
 
 // SLASH COMMAND
 loadCommands(client);
 // EVENTS
 loadEvents(client);
+
+// MONGO DB
 client.mongoose.init();
 
 client.on('error', console.error);

@@ -1,4 +1,4 @@
-const { MessageEmbed, Permissions } = require('discord.js');
+const { Permissions, EmbedBuilder } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
@@ -41,7 +41,7 @@ module.exports.run = async (client, message, args) => {
         logger.info(memberToBlacklist.user.tag + "a été blacklisté");
         message.react(CHECK_MARK)
     } catch (err) {
-        const embedError = new MessageEmbed()
+        const embedError = new EmbedBuilder()
             .setColor(DARK_RED)
             .setTitle(`${CROSS_MARK} ${err}`);
         logger.error("Erreur blacklistuser " + args[0] + ":" + err);
