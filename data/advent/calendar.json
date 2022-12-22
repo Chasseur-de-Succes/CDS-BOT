@@ -114,7 +114,7 @@
     },
     "22": {
         "type": "text",
-        "question": "Pour quel ***jeu Dreamcast*** existe-il deux démos exclusives sur le thème de noël et le thème de l'été qui n'ont été distribuées que dans le Dreamcast Magazine officiel ?",
+        "question": "Pour quel **jeu Dreamcast** existe-il deux démos thématiques qui n'ont été distribuées que dans le Dreamcast Magazine officiel ?",
         "reponse": ["Toy Commander"]
     },
     "23": {
