@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v1.2.0]
+- Montée de version de discordjs ! (13 -> 14)
+### Fixed
+- Limitation sur le nombre de sessions affichées
+
 ## [v1.1.2]
 ### Added
 - Création de groupe : nombre maximum de participants facultatif, mais impossible de dépasser ce max s'il est utilisé !
