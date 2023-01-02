@@ -236,9 +236,9 @@ module.exports = {
         logger.info(`--  Mise en place batch event`);
 
         // tous les jours, à 18h00
-        // TODO only décembre
-        //scheduleJob({ month:10, hour: 18, minute: 00 }, async function() {
-        scheduleJob({ hour: 18, minute: 00, tz: 'Europe/Paris' }, async function() {
+        //  only décembre
+        scheduleJob({ month:11, hour: 18, minute: 00 }, async function() {
+        //scheduleJob({ hour: 18, minute: 00, tz: 'Europe/Paris' }, async function() {
             client.guilds.cache.forEach(async guild => {
                 const idAdvent = await client.getGuildChannel(guild.id, SALON.ADVENT);
                 

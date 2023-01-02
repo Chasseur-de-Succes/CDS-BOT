@@ -46,11 +46,16 @@ function getMembersList(group, members) {
         dateEvent = "";
         moment.locale('fr');
         group.dateEvent.sort((a, b) => b.getTime() - a.getTime())
+            .slice(0, 15)
             .forEach(date => {
                 // moment(group.dateEvent).format("ddd Do MMM HH:mm")
                 //dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
                 dateEvent += `- ***${moment.tz(date, "Europe/Paris").format("ddd Do MMM HH:mm")}***\n`
             })
+        
+        if (group.dateEvent.length > 15) {
+            dateEvent += `et ${group.dateEvent.length - 15} autres...`;
+        }
     }
     if (!dateEvent)
         dateEvent = "*Non définie*";
