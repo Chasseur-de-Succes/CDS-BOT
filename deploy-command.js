@@ -19,14 +19,10 @@ for (const file of commandFiles) {
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 // for guild-based commands
-// DELETE SUR DISCORD TOBI
-//rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, '879355152694394933'), { body: [] })
-// DISCORD KEK
-// rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, '562661057307344898'), { body: [] })
 // DISCORD CDS
-//rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, '378545103788048395'), { body: [] })
-	// .then(() => console.log('Successfully deleted all guild commands.'))
-	// .catch(console.error);
+// rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, '...'), { body: [] })
+// 	 .then(() => console.log('Successfully deleted all guild commands.'))
+// 	 .catch(console.error);
 
 // for global commands
 // rest.put(Routes.applicationCommands(process.env.CLIENTID), { body: [] })
@@ -42,8 +38,6 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 		const data = await rest.put(
             // GLOBAL !
 			Routes.applicationCommands(process.env.CLIENTID),
-            // SEULEMENT POUR TEST SUR LE DISCORD DE KEKWEL
-			//Routes.applicationGuildCommands(process.env.CLIENTID, '562661057307344898'),
 			{ body: commands },
 		);
 
