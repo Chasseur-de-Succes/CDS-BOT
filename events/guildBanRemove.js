@@ -4,7 +4,7 @@ const { sendLogs } = require('../util/envoiMsg');
 
 module.exports = {
 	name: Events.GuildBanRemove,
-	async execute(client, ban) {
+	async execute(ban) {
         const embedLog = new EmbedBuilder()
             .setColor(GREEN)
             .setAuthor(`Membre débanni`, ban.user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'}))
@@ -16,6 +16,6 @@ module.exports = {
             .setFooter({text: `ID: ${ban.user.id}`})
             .setTimestamp();
     
-        sendLogs(client, ban.guild.id, embedLog);
+        sendLogs(ban.client, ban.guild.id, embedLog);
     }
 };

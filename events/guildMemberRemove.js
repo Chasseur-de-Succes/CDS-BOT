@@ -4,8 +4,7 @@ const { sendLogs } = require('../util/envoiMsg');
 
 module.exports = {
 	name: Events.GuildMemberRemove,
-	async execute(client, member) {
-        const user = client.users.cache.get(member.id);
+	async execute(member) {
         const embed = new EmbedBuilder()
             .setColor(DARK_RED)
             .setTitle(`Membre parti`)
@@ -16,6 +15,6 @@ module.exports = {
                 {name: "ID", value: `${member.id}`},
             );
     
-        sendLogs(client, member.guild.id, embed);
+        sendLogs(member.client, member.guild.id, embed);
     }
 };

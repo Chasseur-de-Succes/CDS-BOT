@@ -64,7 +64,9 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
  888oooo88  o888ooo88   o88oooo888       o888ooo888    88ooo88      o888o    
     `);
 
+    logger.info(`Chargement des batchs ..`)
   await loadBatch(client);
+  logger.info(`.. terminé`)
 
   logger.info(`Chargement des messages 'events' ..`)
   await loadReactionGroup(client);

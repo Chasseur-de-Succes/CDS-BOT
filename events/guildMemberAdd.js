@@ -4,8 +4,8 @@ const { sendLogs } = require('../util/envoiMsg');
 
 module.exports = {
 	name: Events.GuildMemberAdd,
-	async execute(client, member) {
-        const user = client.users.cache.get(member.id);
+	async execute(member) {
+        const user = member.user;
         const embed = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
             .setTitle(`Nouveau membre`)
@@ -14,6 +14,6 @@ module.exports = {
                 {name: "Âge du compte", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`},
                 {name: "ID", value: `${member.id}`},
             );
-        sendLogs(client, member.guild.id, embed);
+        sendLogs(member.client, member.guild.id, embed);
     }
 };

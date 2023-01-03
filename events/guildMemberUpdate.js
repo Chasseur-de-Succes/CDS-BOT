@@ -4,7 +4,7 @@ const { sendLogs } = require('../util/envoiMsg');
 
 module.exports = {
 	name: Events.GuildMemberUpdate,
-	async execute(client, oldUser, newUser) {
+	async execute(oldUser, newUser) {
         if(oldUser.nickname != newUser.nickname) {
             let oldNickname = oldUser.nickname || '_Aucun_';
             let newNickname = newUser.nickname ||'_Aucun_';
@@ -15,7 +15,7 @@ module.exports = {
                 .setFooter({text: `ID: ${newUser.id}`})
                 .setTimestamp();
     
-            sendLogs(client, oldUser.guild.id, embed);
+            sendLogs(oldUser.client, oldUser.guild.id, embed);
         }
     }
 };
