@@ -6,6 +6,8 @@ const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment-timezone');
 const { BAREME_XP, SALON } = require("../constants");
 const { addXp } = require("../xp");
+const { getAchievement } = require("./stats");
+const { sendMPAchievement } = require("../envoiMsg");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -375,12 +377,20 @@ async function endGroup(client, guildId, grp) {
     let prize = ((base + (baseJoueur * nbJoueur)) * nbJoueur) + (baseSession * nbSession);
 
     // - Stat++ pour tous les membres
-    await User.updateMany(
-        { _id: { $in: grp.members } },
-        { $inc: { "stats.group.ended" : 1,
-                  "money" : prize } },
-        { multi: true }
-    );
+    for (const member of grp.members) {
+        const usr = await client.users.fetch(member.userId);
+        member.stats.group.ended++;
+        member.money += prize;
+
+        // test si achievement unlock
+        const achievementUnlock = await getAchievement(member, 'dmd-aide');
+        if (achievementUnlock) {
+            sendMPAchievement(client, guildId, usr, achievementUnlock);
+        }
+        // TODO money achievement
+
+        member.save();
+    }
 
     // déplacer event terminé
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
