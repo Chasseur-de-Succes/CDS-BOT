@@ -4,6 +4,7 @@
 
 ## [v1.2.0]
 - Montée de version de discordjs ! (13 -> 14)
+- Nouveaux rôle : 'Écuyer' (- 2 mois d'ancienneté) et 'Chasseur' (+ 2 mois d'ancienneté)
 ### Fixed
 - Limitation sur le nombre de sessions affichées
 
