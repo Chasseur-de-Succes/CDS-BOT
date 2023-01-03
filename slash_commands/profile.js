@@ -9,6 +9,7 @@ const { getXpNeededForNextLevel } = require("../util/xp");
 const Canvas = require('canvas');
 const path = require('path');
 const { Game, User } = require("../models");
+const { getJSONValue } = require("../util/util");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -551,17 +552,3 @@ function getByValue(map, searchValue) {
       ctx.stroke();
     }
   }
-
-  // recup la valeur d'un chemin dans un JSON
-  // ex: path = 'img.heros' dans { img: {heros: 1} } retourne '1'
-  var getJSONValue = function (model, path, def) {
-    path = path || '';
-    model = model || {};
-    def = typeof def === 'undefined' ? '' : def;
-    var parts = path.split('.');
-    if (parts.length > 1 && typeof model[parts[0]] === 'object') {
-      return getJSONValue(model[parts[0]], parts.splice(1).join('.'), def);
-    } else {
-      return model[parts[0]] || def;
-    }
-  } 

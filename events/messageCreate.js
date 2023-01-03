@@ -6,6 +6,8 @@ const { addXp } = require('../util/xp.js');
 const advent = require('../data/advent/calendar.json');
 const { GREEN, DARK_RED } = require("../data/colors.json");
 const moment = require('moment-timezone');
+const { getAchievement } = require('../util/msg/stats');
+const { sendMPAchievement } = require('../util/envoiMsg');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -21,15 +23,23 @@ module.exports = {
         if (!msg.author.bot && !msg.content.startsWith(PREFIX)) {
             const timeLeft = cooldownTimeLeft('messages', 30, msg.author.id);
             if (!timeLeft) {
-                // si pas register pas grave, ca ne passera pas
-                await User.updateOne(
-                    { userId: msg.author.id },
-                    { $inc: { "stats.msg" : 1 } },
-                );
+                const userDB = await msg.client.getUser(msg.author);
 
-                await addXp(msg.author, BAREME_XP.MSG);
+                if (userDB) {
+                    // stat ++
+                    userDB.stats.msg++;
 
-                await addMoney(msg.client, msg.author, BAREME_MONEY.MSG);
+                    // test si achievement unlock
+                    const achievementUnlock = await getAchievement(userDB, 'nbMsg');
+                    if (achievementUnlock) {
+                        sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
+                    }
+                    await userDB.save();
+
+                    await addXp(msg.author, BAREME_XP.MSG);
+    
+                    await addMoney(msg.client, msg.author, BAREME_MONEY.MSG);
+                }
             }
 
             const idAdvent = await msg.client.getGuildChannel(msg.guildId, SALON.ADVENT);
@@ -147,19 +157,22 @@ module.exports = {
                     if (msg.attachments.every(m => m.contentType?.startsWith('image'))) {
                         // si hall heros
                         if (isHallHeros) {
-                            // stat ++
-                            await User.updateOne(
-                                { userId: msg.author.id },
-                                { $inc: { "stats.img.heros" : 1 } }
-                            );
-        
-                            // reactions auto
-                            await msg.react('🏆');
-                            await msg.react('💯');
-        
-                            // save msg dans base
                             const userDB = await msg.client.getUser(msg.author);
                             if (userDB) {
+                                // stat ++
+                                userDB.stats.img.heros++;
+                                // test si achievement unlock
+                                const achievementUnlock = await getAchievement(userDB, 'heros');
+                                if (achievementUnlock) {
+                                    sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
+                                }
+                                userDB.save();
+            
+                                // reactions auto
+                                await msg.react('🏆');
+                                await msg.react('💯');
+            
+                                // save msg dans base
                                 const initReactions = new Map([['🏆', 0], ['💯', 0]])
                                 await msg.client.createMsgHallHeros({
                                     author: userDB,
@@ -172,18 +185,21 @@ module.exports = {
                             
                         // si hall zeros
                         if (isHallZeros) {
-                            // stat ++
-                            await User.updateOne(
-                                { userId: msg.author.id },
-                                { $inc: { "stats.img.zeros" : 1 } }
-                            );
-        
-                            // reaction auto
-                            await msg.react('💩');
-        
-                            // save msg dans base
                             const userDB = await msg.client.getUser(msg.author);
                             if (userDB) {
+                                // stat ++
+                                userDB.stats.img.zeros++;
+                                // test si achievement unlock
+                                const achievementUnlock = await getAchievement(userDB, 'zeros');
+                                if (achievementUnlock) {
+                                    sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
+                                }
+                                userDB.save();
+            
+                                // reaction auto
+                                await msg.react('💩');
+
+                                // save msg dans base
                                 const initReactions = new Map([['💩', 0]]);
                                 await msg.client.createMsgHallZeros({
                                     author: userDB,

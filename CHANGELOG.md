@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.2.1]
+### Added
+- Envoi d'un MP lors d'un succès "meta" débloqué (excepté le succès des 1M de points pour le moment)
+
 ## [v1.2.0]
 - Montée de version de discordjs ! (13 -> 14)
 - Nouveaux rôle : 'Écuyer' (- 2 mois d'ancienneté) et 'Chasseur' (+ 2 mois d'ancienneté)

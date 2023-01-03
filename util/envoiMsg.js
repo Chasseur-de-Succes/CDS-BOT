@@ -1,7 +1,25 @@
-const { EmbedBuilder } = require('discord.js');
-const { DARK_RED } = require("../data/colors.json");
+const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
+const { DARK_RED, CORNFLOWER_BLUE } = require("../data/colors.json");
 const { CROSS_MARK } = require('../data/emojis.json');
 const { SALON } = require('./constants');
+
+module.exports.sendMPAchievement = async (client, guildId, user, achievement) => {
+    let embedAch = new EmbedBuilder()
+        .setColor(CORNFLOWER_BLUE)
+        .setTitle(`🏆 Succès débloqué 🏆`)
+        .addFields(
+            { name: `${achievement.title}`, value: `${achievement.desc}`});
+    
+    const file = new AttachmentBuilder(`data/img/achievements/${achievement.img}.png`)
+    embedAch.setThumbnail(`attachment://${achievement.img}.png`)
+
+    await user.send({ embeds: [embedAch], files: [file] });
+
+    // - log
+    this.createLogs(client, guildId, '🏆 Succès interne débloqué', 
+        `${user} a débloqué :\n
+        ***${achievement.title}*** :\n*${achievement.desc}*`, '', CORNFLOWER_BLUE)
+}
 
 /**
  * Créer un embed de type ERREUR
