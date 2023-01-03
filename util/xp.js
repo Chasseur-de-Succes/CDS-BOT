@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { User } = require('../models/index.js');
 const { THREESOLD_LVL } = require('./constants.js');
 const { GREEN } = require("../data/colors.json");
@@ -37,7 +37,7 @@ module.exports.addXp = async (user, xp) => {
                 );
 
                 // msg
-                const embedLvlUp = new MessageEmbed()
+                const embedLvlUp = new EmbedBuilder()
                     .setColor(GREEN)
                     .setTitle(`🥳 Félicitations ${user.username} ! 🥳`)
                     .setDescription(`Tu as atteint le niveau ${userDB.level + 1} !`)

@@ -1,4 +1,4 @@
-const { MessageEmbed, Permissions } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 const { MESSAGES } = require("../../util/constants");
 //const { PREFIX } = require("../../config");
@@ -25,7 +25,7 @@ module.exports.run = async (client, message, args) => {
         } else {
             whitelistList = "Aucun channel dans la whitelist ! Les commandes sont donc acceptées dans tous les channels.";
         }
-        embed = new MessageEmbed()
+        embed = new EmbedBuilder()
             .setColor(NIGHT)
             .setTitle("Liste des channels whitelisté")
             .setDescription(whitelistList);
@@ -34,7 +34,7 @@ module.exports.run = async (client, message, args) => {
         if(!message.mentions.channels.first()) return error(`${CROSS_MARK} Merci de mentionner un channel : \`${PREFIX}whitelistchannel add <mention channel>\``);
             let whitelist = message.mentions.channels.first();
             await client.update(dbGuild, { "$addToSet": {whitelistChannel: whitelist } });
-            embed = new MessageEmbed()
+            embed = new EmbedBuilder()
                 .setColor(GREEN)
                 .setDescription(`Le channel : ${whitelist} a été ajouté à la whitelist par ${message.author}`);
 
@@ -43,7 +43,7 @@ module.exports.run = async (client, message, args) => {
             let whitelist = message.mentions.channels.first();
             
             await client.update(dbGuild, { "$pull": {whitelistChannel: whitelist } });
-            embed = new MessageEmbed()
+            embed = new EmbedBuilder()
                 .setColor(GREEN)
                 .setDescription(`Le channel : ${whitelist} a été supprimé à la whitelist par ${message.author}`);
 
@@ -55,7 +55,7 @@ module.exports.run = async (client, message, args) => {
     message.channel.send({embeds: [embed]});
 
     function error(err) {
-        const embedError = new MessageEmbed()
+        const embedError = new EmbedBuilder()
             .setColor(DARK_RED)
             .setTitle(`${err}`);
     

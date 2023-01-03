@@ -1,6 +1,6 @@
-const { scheduleJob, scheduledJobs } = require("node-schedule");
+const { scheduledJobs } = require("node-schedule");
 const { Group, User } = require('../../models');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require('../../data/emojis.json');
 const moment = require('moment-timezone');
@@ -69,7 +69,7 @@ function getMembersList(group, members) {
     // TODO icon plutot que l'image ? -> recup via API..
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
 
-    const newMsgEmbed = new MessageEmbed()
+    const newMsgEmbed = new EmbedBuilder()
         .setTitle(`${group.validated ? '🏁' : ''}${isAuthorCaptain ? '👑' : ''} **${group.name}**`)
         .setColor(color)
         .setThumbnail(gameUrlHeader)
@@ -278,8 +278,8 @@ async function leaveGroup(client, guildId, grp, userDB) {
         const channel = await guild.channels.cache.get(grp.channelId);
     
         channel.permissionOverwrites.edit(userDB.userId, {
-            VIEW_CHANNEL: true,
-            SEND_MESSAGES: true
+            ViewChannel: true,
+            SendMessages: true
         });
 
         // send message channel group
@@ -396,6 +396,7 @@ async function moveToArchive(client, idListGroup, idMsg) {
     const msgChannel = await channel.messages.cache.get(idMsg);
     msgChannel.reactions.removeAll();
 
+
     // déplacement vers thread
     let archived = await channel.threads.fetchArchived();
     let thread = archived.threads.filter(x => x.name === 'Groupes terminés');
@@ -424,7 +425,6 @@ async function moveToArchive(client, idListGroup, idMsg) {
     
     // supprime msg
     await msgChannel.delete();
-
 }
 
 /**

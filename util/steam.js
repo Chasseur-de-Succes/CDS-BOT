@@ -4,7 +4,7 @@ const { Game } = require('../models');
 const { TAGS } = require('./constants');
 const { CHECK_MARK, CROSS_MARK } = require('../data/emojis.json')
 const { GREEN } = require('../data/colors.json');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { delay, crtHour } = require('../util/constants')
 const moment = require("moment");
 
@@ -211,7 +211,7 @@ module.exports = client => {
 
         //createLogs(client, interaction.guildId, `${gameName}`, `${msgCustom}`, '', GREEN)
 
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setColor(GREEN)
             .setTitle(gameName)
             .setDescription(`${msgCustom}`)

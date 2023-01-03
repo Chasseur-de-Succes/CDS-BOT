@@ -1,14 +1,13 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
-const { TAGS, delay, crtHour, SALON } = require('../../util/constants');
+const { SALON } = require('../../util/constants');
 const advent = require('../../data/advent/calendar.json');
-const { YELLOW, NIGHT, VERY_PALE_BLUE } = require("../../data/colors.json");
-//const moment = require("moment");
+const { GREEN, NIGHT, VERY_PALE_BLUE } = require("../../data/colors.json");
 const moment = require('moment-timezone');
 const { User } = require("../../models");
 const { createLogs } = require("../envoiMsg");
-//const { MONEY } = require("../../config");
-const { MessageEmbed, MessageAttachment } = require("discord.js");
+const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const { monthDiff, daysDiff } = require("../util");
 
 module.exports = {
     /**
@@ -227,12 +226,65 @@ module.exports = {
                             createLogs(client, guild.id, `Distribution au @Helper`, `${helpers} recoivent chacun **100 ${process.env.MONEY}** pour leur aide !`);
                         }
                     })
-                    .catch(err => logger.error(`Impossible de trouver rôle @Helper ${err}`));
+                .catch(err => logger.error(`Impossible de trouver rôle @Helper ${err}`));
             });
         });
     },
 
-    loadEvent(client) {
+    async testEcuyer(client) {
+        logger.info(`--  Mise en place batch 'écuyer'`);
+        // tous les soirs à minuit
+        scheduleJob({ hour: 0, minute: 00, tz: 'Europe/Paris' }, async function() {
+            client.guilds.cache.forEach(async guild => {
+                logger.info(`.. début batch 'écuyer' pour ${guild.name}..`);
+
+                let members = await guild.members.fetch({ force: true });
+                // Chasseur
+                const chasseur = guild.roles.cache.find(r => r.name === 'Chasseur');
+                // Ecuyer 
+                const ecuyer = guild.roles.cache.find(r => r.name === 'Écuyer');
+                // Channel acces clefs
+                const askGiveaway = guild.channels.cache.find(c => c.name === '🔓accès-clefs-offertes');
+
+                if (!chasseur && !ecuyer) {
+                    console.log('.. role Écuyer et Chasseur pas encore créé pour ' + guild.name);
+                } else {
+                    // récup tous les users Discord, non bot, n'étant pas 'Chasseur'
+                    members = members.filter(m => !m._roles.includes(chasseur.id) && !m.user.bot)
+                    
+                    // si leur date d'arrivée dans le discord >= 2mois (~61 jours), on donne 'Chasseur'
+                    // sinon Ecuyer
+                    members.each(m => {
+                        if (daysDiff(m.joinedAt, new Date()) >= 61) {
+                            // - prevenir user
+                            logger.info(`.. ${m.user.tag} devient Chasseur ! (présence de +2mois)`);
+                            const embed = new EmbedBuilder()
+                                .setColor(GREEN)
+                                .setTitle(`🥳 Félicitations ${m.user.username} ! 🥳`)
+                                .setDescription(`Cela fait au moins **2 mois** que tu es sur le Discord CDS.\n
+                                                Tu es maintenant un **Chasseur** !
+                                                Tu peux maintenant :
+                                                - demander l'accès au salon des clefs offertes, via ${askGiveaway}
+                                                - participer aux événements spéciaux CDS`);
+                            
+                            m.user.send({ embeds: [embed] })
+                                .catch(err => logger.error(`Impossible d'envoyé MP à ${m.user.tag} : ${err}`));
+
+                            // - log
+                            createLogs(client, guild.id, "Nouveau 'Chasseur'", `${m.user} devient 'Chasseur.\nCompte vieux de ${daysDiff(m.joinedAt, new Date())} jours`, '', VERY_PALE_BLUE);
+
+                            m.roles.remove(ecuyer);
+                            m.roles.add(chasseur);
+                        } else {
+                            m.roles.add(ecuyer);
+                        }
+                    });
+                }
+            });
+        });
+    },
+
+    loadEventAdvent(client) {
         logger.info(`--  Mise en place batch event`);
 
         // tous les jours, à 18h00
@@ -259,7 +311,7 @@ module.exports = {
                         return;
                     if (index === 1) {
                         // message de "bienvenue"
-                        let embedBienvenue = new MessageEmbed()
+                        let embedBienvenue = new EmbedBuilder()
                             .setColor(VERY_PALE_BLUE)
                             .setTitle(`***🎅 Oh oh oh 🎅*** - 🌟 Calendrier de l'avent des CDS 🌟`)
                             .setDescription(`Cette année, un calendrier de l'avent spéciale CDS :
@@ -278,7 +330,7 @@ module.exports = {
                         if (!infosHier) 
                             return;
 
-                        let embedReponseHier = new MessageEmbed()
+                        let embedReponseHier = new EmbedBuilder()
                             .setColor(VERY_PALE_BLUE)
                             .setTitle(`***🌟 Réponse d'hier 🌟***`)
                             .setDescription(`La réponse d'hier était :
@@ -297,23 +349,23 @@ module.exports = {
                     const color = index % 2 === 0 ? "#008000" : "#ff0000"
 
                     // preapre l'embed
-                    let embed = new MessageEmbed()
+                    let embed = new EmbedBuilder()
                         .setColor(color)
                         .setTitle(`🌟 Énigme jour ${index} 🌟`)
                         .setDescription(`${infos.question}`);
                     
                     // si type image, on ajoute l'image
                     if (infos.type === "img") {
-                        const attachment = new MessageAttachment(`data/advent/${infos.data}`)
+                        const file = new AttachmentBuilder(`data/advent/${infos.data}`)
                         embed.setImage(`attachment://data/advent/${infos.data}`)
 
-                        await eventChannel.send({ embeds: [embed], files: [attachment] });
+                        await eventChannel.send({ embeds: [embed], files: [file] });
                     } else {
                         await eventChannel.send({ embeds: [embed] });
                     }
 
                     // on renvoi un embed pour séparer
-                    embed = new MessageEmbed()
+                    embed = new EmbedBuilder()
                         .setColor(NIGHT)
                         .setTitle(`**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**`);
                     await eventChannel.send({ embeds: [embed] });
