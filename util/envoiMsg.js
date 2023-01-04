@@ -55,7 +55,7 @@ module.exports.sendError = (message, text, cmd) => {
 module.exports.sendLogs = async (client, guildId, embedLog) => {
     const idLogs = await client.getGuildChannel(guildId, SALON.LOGS);
     if (idLogs)
-        client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
+        await client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
     else
         logger.error(`- Config salon logs manquante !`);
 }
@@ -70,7 +70,7 @@ module.exports.sendLogs = async (client, guildId, embedLog) => {
  * @param {*} color facultatif (defaut DARK_RED)
  * @returns 
  */
- module.exports.createLogs = (client, guildId, title, desc, footer = '', color = DARK_RED) => {
+ module.exports.createLogs = async (client, guildId, title, desc, footer = '', color = DARK_RED) => {
     let embedLog = new EmbedBuilder()
         .setColor(color)
         .setTitle(`${title}`)
@@ -78,5 +78,5 @@ module.exports.sendLogs = async (client, guildId, embedLog) => {
     
     if (footer)
         embedLog.setFooter({ text: footer });
-    this.sendLogs(client, guildId, embedLog);
+    await this.sendLogs(client, guildId, embedLog);
 }

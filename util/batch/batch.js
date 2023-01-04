@@ -254,14 +254,14 @@ module.exports = {
                     
                     // si leur date d'arrivée dans le discord >= 2mois (~61 jours), on donne 'Chasseur'
                     // sinon Ecuyer
-                    members.each(m => {
+                    members.each(async m => {
                         if (daysDiff(m.joinedAt, new Date()) >= 61) {
                             // - prevenir user
                             logger.info(`.. ${m.user.tag} devient Chasseur ! (présence de +2mois)`);
                             const embed = new EmbedBuilder()
                                 .setColor(GREEN)
                                 .setTitle(`🥳 Félicitations ${m.user.username} ! 🥳`)
-                                .setDescription(`Cela fait au moins **2 mois** que tu es sur le Discord CDS.\n
+                                .setDescription(`Cela fait (au moins) **2 mois** que tu es sur le Discord CDS.\n
                                                 Tu es maintenant un **Chasseur** !
                                                 Tu peux maintenant :
                                                 - demander l'accès au salon des clefs offertes, via ${askGiveaway}
@@ -271,12 +271,12 @@ module.exports = {
                                 .catch(err => logger.error(`Impossible d'envoyé MP à ${m.user.tag} : ${err}`));
 
                             // - log
-                            createLogs(client, guild.id, "Nouveau 'Chasseur'", `${m.user} devient 'Chasseur.\nCompte vieux de ${daysDiff(m.joinedAt, new Date())} jours`, '', VERY_PALE_BLUE);
+                            await createLogs(client, guild.id, "Nouveau 'Chasseur'", `${m.user} devient 'Chasseur.\nCompte vieux de ${daysDiff(m.joinedAt, new Date())} jours`, '', VERY_PALE_BLUE);
 
-                            m.roles.remove(ecuyer);
-                            m.roles.add(chasseur);
+                            await m.roles.remove(ecuyer);
+                            await m.roles.add(chasseur);
                         } else {
-                            m.roles.add(ecuyer);
+                            await m.roles.add(ecuyer);
                         }
                     });
                 }
