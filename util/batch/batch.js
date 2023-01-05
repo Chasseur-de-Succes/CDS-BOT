@@ -246,8 +246,8 @@ module.exports = {
                 // Channel acces clefs
                 const askGiveaway = guild.channels.cache.find(c => c.name === '🔓accès-clefs-offertes');
 
-                if (!chasseur && !ecuyer) {
-                    console.log('.. role Écuyer et Chasseur pas encore créé pour ' + guild.name);
+                if (!chasseur || !ecuyer) {
+                    console.log('.. role Écuyer ou Chasseur pas encore créé pour ' + guild.name);
                 } else {
                     // récup tous les users Discord, non bot, n'étant pas 'Chasseur'
                     members = members.filter(m => !m._roles.includes(chasseur.id) && !m.user.bot)
@@ -273,10 +273,10 @@ module.exports = {
                             // - log
                             await createLogs(client, guild.id, "Nouveau 'Chasseur'", `${m.user} devient 'Chasseur.\nCompte vieux de ${daysDiff(m.joinedAt, new Date())} jours`, '', VERY_PALE_BLUE);
 
-                            await m.roles.remove(ecuyer);
-                            await m.roles.add(chasseur);
+                            m.roles.remove(ecuyer);
+                            m.roles.add(chasseur);
                         } else {
-                            await m.roles.add(ecuyer);
+                            m.roles.add(ecuyer);
                         }
                     });
                 }

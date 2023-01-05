@@ -14,6 +14,12 @@ module.exports = {
                 {name: "Âge du compte", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`},
                 {name: "ID", value: `${member.id}`},
             );
+
+        // Ecuyer 
+        const ecuyer = member.guild.roles.cache.find(r => r.name === 'Écuyer');
+        if (ecuyer)
+            await member.roles.add(ecuyer);
+        
         sendLogs(member.client, member.guild.id, embed);
     }
 };
