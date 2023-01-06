@@ -273,10 +273,13 @@ module.exports = {
                             // - log
                             await createLogs(client, guild.id, "Nouveau 'Chasseur'", `${m.user} devient 'Chasseur.\nCompte vieux de ${daysDiff(m.joinedAt, new Date())} jours`, '', VERY_PALE_BLUE);
 
-                            m.roles.remove(ecuyer);
-                            m.roles.add(chasseur);
+                            m.roles.remove(ecuyer)
+                                .catch(err => logger.error(`Impossible de supprimer le rôle Écuyer à ${m.user.tag} : ${err}`));
+                            m.roles.add(chasseur)
+                                .catch(err => logger.error(`Impossible d'ajouter le rôle Chasseur à ${m.user.tag} : ${err}`));
                         } else {
-                            m.roles.add(ecuyer);
+                            m.roles.add(ecuyer)
+                                .catch(err => logger.error(`Impossible d'ajouter le rôle Écuyer à ${m.user.tag} : ${err}`));
                         }
                     });
                 }
