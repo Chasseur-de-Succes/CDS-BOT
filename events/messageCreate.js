@@ -7,7 +7,7 @@ const advent = require('../data/advent/calendar.json');
 const { GREEN, DARK_RED } = require("../data/colors.json");
 const moment = require('moment-timezone');
 const { getAchievement } = require('../util/msg/stats');
-const { sendMPAchievement } = require('../util/envoiMsg');
+const { feedBotMetaAch } = require('../util/envoiMsg');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -32,11 +32,11 @@ module.exports = {
                     // test si achievement unlock
                     const achievementUnlock = await getAchievement(userDB, 'nbMsg');
                     if (achievementUnlock) {
-                        sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
+                        feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
                     }
                     await userDB.save();
 
-                    await addXp(msg.author, BAREME_XP.MSG);
+                    await addXp(msg.client, msg.guildId, msg.author, BAREME_XP.MSG);
     
                     await addMoney(msg.client, msg.author, BAREME_MONEY.MSG);
                 }
@@ -168,7 +168,7 @@ module.exports = {
                                 // test si achievement unlock
                                 const achievementUnlock = await getAchievement(userDB, 'heros');
                                 if (achievementUnlock) {
-                                    sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
+                                    feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
                                 }
                                 await userDB.save();
             
@@ -195,7 +195,7 @@ module.exports = {
                                 // test si achievement unlock
                                 const achievementUnlock = await getAchievement(userDB, 'zeros');
                                 if (achievementUnlock) {
-                                    sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
+                                    feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
                                 }
                                 await userDB.save();
 

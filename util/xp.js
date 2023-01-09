@@ -1,7 +1,6 @@
-const { EmbedBuilder } = require('discord.js');
 const { User } = require('../models/index.js');
 const { THREESOLD_LVL } = require('./constants.js');
-const { GREEN } = require("../data/colors.json");
+const { feedBotLevelUp } = require('./envoiMsg.js');
 
 /**
  * Ajoute de l'xp à un utilisateur
@@ -9,7 +8,7 @@ const { GREEN } = require("../data/colors.json");
  * @param {*} user User Discord
  * @param {*} xp montant de l'xp à donner
  */
-module.exports.addXp = async (user, xp) => {
+module.exports.addXp = async (client, guildId, user, xp) => {
     const userDB = await User.findOneAndUpdate(
         { userId: user.id },
         { $inc: { experience : xp } },
@@ -36,15 +35,8 @@ module.exports.addXp = async (user, xp) => {
                     { $inc: { level : 1 } }
                 );
 
-                // msg
-                const embedLvlUp = new EmbedBuilder()
-                    .setColor(GREEN)
-                    .setTitle(`🥳 Félicitations ${user.username} ! 🥳`)
-                    .setDescription(`Tu as atteint le niveau ${userDB.level + 1} !`)
-                    .setFooter({ text: `Prochain niveau : ${userDB.experience} / ${this.getXpNeededForNextLevel(userDB.level + 1)}` });
-                
-                // envoie en MP !
-                user.send({ embeds: [embedLvlUp] });
+                // nourri feed bot
+                feedBotLevelUp(client, guildId, user, userDB, this.getXpNeededForNextLevel(userDB.level + 1))
             }
         }
     }

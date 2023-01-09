@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, ComponentType } = require('discord.js');
-const { createError, createLogs, sendMPAchievement } = require("../util/envoiMsg");
+const { createError, createLogs, feedBotMetaAch } = require("../util/envoiMsg");
 const { YELLOW, NIGHT, GREEN, DARK_RED } = require("../data/colors.json");
 const customItems = require("../data/customShop.json");
 const { CHECK_MARK, NO_SUCCES } = require('../data/emojis.json');
@@ -724,7 +724,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     // test si achievement unlock
     const achievementUnlock = await getAchievement(vendeurDB, 'shop');
     if (achievementUnlock) {
-        sendMPAchievement(client, guildId, vendeur.user, achievementUnlock);
+        feedBotMetaAch(client, guildId, vendeur.user, achievementUnlock);
     }
 
     await vendeurDB.save();

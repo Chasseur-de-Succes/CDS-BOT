@@ -7,7 +7,7 @@ const moment = require('moment-timezone');
 const { BAREME_XP, SALON } = require("../constants");
 const { addXp } = require("../xp");
 const { getAchievement } = require("./stats");
-const { sendMPAchievement } = require("../envoiMsg");
+const { feedBotMetaAch } = require("../envoiMsg");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -364,9 +364,9 @@ async function endGroup(client, guildId, grp) {
         const usr = await client.users.fetch(member.userId);
         // xp bonus captain
         if (member.equals(grp.captain))
-            addXp(usr, xp + xpBonusCaptain)
+            addXp(client, guildId, usr, xp + xpBonusCaptain)
         else if (usr)
-            addXp(usr, xp)
+            addXp(client, guildId, usr, xp)
     }
 
     // - MONEY
@@ -385,7 +385,7 @@ async function endGroup(client, guildId, grp) {
         // test si achievement unlock
         const achievementUnlock = await getAchievement(member, 'dmd-aide');
         if (achievementUnlock) {
-            sendMPAchievement(client, guildId, usr, achievementUnlock);
+            feedBotMetaAch(client, guildId, usr, achievementUnlock);
         }
         // TODO money achievement
 

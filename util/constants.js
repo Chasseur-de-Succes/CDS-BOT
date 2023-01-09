@@ -194,6 +194,9 @@ const CHANNEL = [
     }, {
         name: 'Salon "calendrier de l\'avent"',
         value: 'advent'
+    }, {
+        name: 'Feed bot 🤖',
+        value: 'feed_bot'
     },
 ]
 const SALON = {
@@ -205,7 +208,8 @@ const SALON = {
     LOGS: 'logs',
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
     CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
-    ADVENT: "advent"
+    ADVENT: "advent",
+    FEED_BOT: "feed_bot"
 }
 
 exports.MESSAGES = MESSAGES;
