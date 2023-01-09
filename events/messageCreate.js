@@ -157,6 +157,10 @@ module.exports = {
                     if (msg.attachments.every(m => m.contentType?.startsWith('image'))) {
                         // si hall heros
                         if (isHallHeros) {
+                            // reactions auto
+                            await msg.react('🏆');
+                            await msg.react('💯');
+
                             const userDB = await msg.client.getUser(msg.author);
                             if (userDB) {
                                 // stat ++
@@ -166,11 +170,7 @@ module.exports = {
                                 if (achievementUnlock) {
                                     sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
                                 }
-                                userDB.save();
-            
-                                // reactions auto
-                                await msg.react('🏆');
-                                await msg.react('💯');
+                                await userDB.save();
             
                                 // save msg dans base
                                 const initReactions = new Map([['🏆', 0], ['💯', 0]])
@@ -185,6 +185,9 @@ module.exports = {
                             
                         // si hall zeros
                         if (isHallZeros) {
+                            // reaction auto
+                            await msg.react('💩');
+
                             const userDB = await msg.client.getUser(msg.author);
                             if (userDB) {
                                 // stat ++
@@ -194,10 +197,7 @@ module.exports = {
                                 if (achievementUnlock) {
                                     sendMPAchievement(msg.client, msg.guildId, msg.author, achievementUnlock);
                                 }
-                                userDB.save();
-            
-                                // reaction auto
-                                await msg.react('💩');
+                                await userDB.save();
 
                                 // save msg dans base
                                 const initReactions = new Map([['💩', 0]]);
