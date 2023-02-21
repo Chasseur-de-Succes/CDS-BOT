@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.2.2]
+- Migration de la BDD Cloud vers la BDD de Rick
+- Mise en place du webhook pour récupérer les ajouts/suppressions de succès
+
 ## [v1.2.1]
 ### Added
 - Envoi d'un MP lors d'un succès "meta" débloqué (excepté le succès des 1M de points pour le moment)

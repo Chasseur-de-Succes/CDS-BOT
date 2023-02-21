@@ -459,9 +459,13 @@ module.exports = client => {
     };
 
     // TODO a deplacer
-    client.getGuildChannel = async (guildId, salon) => {
-        const guildDB = await client.findGuildById(guildId);
+    client.getGuildChannel = async (id, salon) => {
+        const guildDB = await client.findGuildById(id);
         return guildDB?.channels[salon];
+    }
+    client.getGuildWebhook = async (id, hook) => {
+        const guildDB = await client.findGuildById(id);
+        return guildDB?.webhook[hook];
     }
 
     // config profile
