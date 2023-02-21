@@ -1,3 +1,5 @@
+const { delay } = require("./constants");
+
 module.exports.escapeRegExp = (string) => {
     return string?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -28,4 +30,48 @@ module.exports.getJSONValue = (model, path, def) => {
     } else {
         return model[parts[0]] || def;
     }
+}
+
+// retry tous les 5 mins
+module.exports.retryAfter5min = async (fn) => {
+    while (true) {
+        try {
+            await fn();
+            break;  // 'return' would work here as well
+        } catch (err) {
+            if (err.status === 429) {
+                console.log('retry ! ', err);
+                // att 5 min
+                await delay(300000);
+            } else if (err.status === 403) {
+                console.log('forbidden ..', err.status);
+                // console.log(err);
+                break; 
+            } else {
+                break; 
+            }
+        }
+    }
+    // try {
+    //     return fn();
+    // } catch (err) {
+    //     console.log('retry ! ', err);
+    //     // att 5 min
+    //     //await delay(300000);
+    //     return this.retryAfter5min(fn); 
+    // }
+
+    // return fn().catch(async function(err) { 
+    //     console.log('retry ! ', err);
+    //     // att 5 min
+    //     //await delay(300000);
+    //     return retryAfter5min(fn); 
+    // });
+}
+
+// retry forever
+module.exports.retryForever = (fn) => {
+    return fn().catch(function(err) { 
+        return retryForever(fn); 
+    });
 }

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const gameSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     appid: Number,
+    iconHash: String,
     name: String,
     type: String,
     // TODO objet tag 'categories' ?
@@ -14,9 +15,16 @@ const gameSchema = mongoose.Schema({
     isCoop: Boolean,
     // isCoopOnline: Boolean,
     hasAchievements: Boolean, 
-    isRemoved: Boolean
+    isRemoved: Boolean,
     // TODO img url ?
-    // TODO achievements
+    // achievements
+    achievements: [{
+        apiName: String,
+        displayName: String,
+        description: String,
+        icon: String,
+        icongray: String
+    }]
 })
 
 module.exports = mongoose.model("Game", gameSchema);

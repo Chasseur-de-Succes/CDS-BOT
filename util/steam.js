@@ -7,6 +7,7 @@ const { GREEN } = require('../data/colors.json');
 const { EmbedBuilder } = require('discord.js');
 const { delay, crtHour } = require('../util/constants')
 const moment = require("moment");
+const { retryAfter5min } = require('./util');
 
 module.exports = client => {
     // TODO revoir exports, un steam.getGamesByName sera mieux qu'un client.getGamesByName
@@ -113,7 +114,6 @@ module.exports = client => {
      * Récupère les informations d'un jeu Steam en fonction de son appid
      * @param {Number} appid 
      * @returns Object JSON, au format :
-     * cf http://waikeitse.com/steam-api-tests-and-examples/ 
      */
     client.getAppDetails = async appid => {
         const response = await superagent.get('https://store.steampowered.com/api/appdetails/?')
@@ -147,32 +147,40 @@ module.exports = client => {
         return reponse;
     }
 
+    client.getSchemaForGame = async (appid) => {
+        // https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=FC01A70E34CC7AE7174C575FF8D8A07F&appid=220&l=french
+        const reponse = await superagent.get('https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?')
+            .query({
+                key: process.env.STEAM_API_KEY,
+                appid: appid,
+                l: 'french'
+            });
+        return reponse?.body?.game;
+    }
+
     /**
      * 
      */
     client.fetchGame = async (appId, tag, nameTmp) => {
+        // TODO check error 
         const app = await client.getAppDetails(appId);
-        //console.log(app.body[appId]);
+        // -- recup iconhash (et nom si pas trouvé)
+        const communitApps = await client.getCommunityApp(appId)
+        // - recup achievements (si présent)
+        const resp = await client.getSchemaForGame(appId);
 
-        let gameName = '', type = '';
+        let gameName = '', type = '', iconHash = '';
+        let lSucces = [];
         let isMulti = false, isCoop = false, hasAchievements = false, isRemoved = false;
         let update = {};
 
         if (!app?.body[appId]?.success) {
             // - chercher autre part car peut etre jeu "removed"
-            const communitApps = await client.getCommunityApp(appId)
-            
             if (communitApps[0]?.name) {
                 isRemoved = true;
                 gameName = communitApps[0]?.name;
-                try {
-                    await client.getAchievements(appId);
-                    
-                    type = 'game'
-                    hasAchievements = true;
-                } catch (err) {
-                    hasAchievements = false;
-                }
+                
+                type = 'game'
             } else {
                 gameName = nameTmp;
                 type = 'unknown'
@@ -182,13 +190,40 @@ module.exports = client => {
             type = app.body[appId].data?.type
             gameName = app.body[appId].data?.name
             let tags = app.body[appId].data?.categories
+            let totalAch = app.body[appId].data?.achievements?.total;
             // au cas où pas de tags ou undefined
             tags = tags ? tags : [];
             // on ne garde que les tags qui nous intéresse (MULTI, COOP et ACHIEVEMENTS)
             // TODO voir pour faire autrement ? récupérer tous les tags peu importe et faire recherche sur les tags via Mongo ?
             isMulti = tags.some(tag => tag.id === TAGS.MULTI.id);
             isCoop = tags.some(tag => tag.id === TAGS.COOP.id);
-            hasAchievements = tags.some(tag => tag.id === TAGS.ACHIEVEMENTS.id);
+            hasAchievements = totalAch ? true : false;
+        }
+
+        // recup icon
+        if (communitApps[0]?.icon) {
+            iconHash = communitApps[0].icon;
+        }
+
+        // si jeu a des succès
+        if (resp.availableGameStats?.achievements) {
+            console.log(`   * a des succès !`);
+            const achievements = resp.availableGameStats.achievements;
+            
+            // - ajout & save succes dans Game
+            achievements.forEach(el => {
+                el['apiName'] = el['name'];
+                delete el.name;
+                delete el.defaultvalue;
+                delete el.hidden;
+            });
+
+            lSucces = achievements;
+        } else {
+            // - save tableau vide
+            console.log('   * pas de succes');
+            hasAchievements = false;
+            lSucces = [];
         }
         
         // TODO icon plutot que l'image ? -> recup via API..
@@ -198,10 +233,12 @@ module.exports = client => {
         update = {
             name: gameName,
             type: type,
+            iconHash: iconHash,
             isMulti: isMulti,
             isCoop: isCoop,
             hasAchievements: hasAchievements,
-            isRemoved: isRemoved
+            isRemoved: isRemoved,
+            achievements: lSucces
         };
         
         // on update ou créé le jeu
@@ -280,7 +317,9 @@ module.exports = client => {
             
             console.log(` * go ${app.appid} ${app.name}`);
             try {
-                await client.fetchGame(app.appid, 'system', app.name);
+                await retryAfter5min(async function() {
+                    await client.fetchGame(app.appid, 'system', app.name);
+                })
             } catch (err) {
                 console.log('nope ' + app.name);
 
