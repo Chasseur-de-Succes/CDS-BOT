@@ -197,6 +197,9 @@ const CHANNEL = [
     }, {
         name: 'Feed bot 🤖',
         value: 'feed_bot'
+    }, {
+        name: 'Feed achievement 🆕',
+        value: 'feed_achievement'
     },
 ]
 const SALON = {
@@ -209,7 +212,18 @@ const SALON = {
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
     CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
     ADVENT: "advent",
-    FEED_BOT: "feed_bot"
+    FEED_BOT: "feed_bot",
+    FEED_ACHIEVEMENT: "feed_achievement"
+}
+
+const WEBHOOK_ARRAY = [
+    { 
+        name: 'Webhook succès',
+        value: 'feed_achievement' // channel de bienvenue, affiche les nouveaux arrivants
+    }
+]
+const WEBHOOK = {
+    FEED_ACHIEVEMENT: "feed_achievement"
 }
 
 exports.MESSAGES = MESSAGES;
@@ -222,3 +236,5 @@ exports.delay = delay;
 exports.crtHour = crtHour;
 exports.CHANNEL = CHANNEL;
 exports.SALON = SALON;
+exports.WEBHOOK_ARRAY = WEBHOOK_ARRAY;
+exports.WEBHOOK = WEBHOOK;

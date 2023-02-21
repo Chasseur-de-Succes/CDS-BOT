@@ -17,9 +17,13 @@ const guildConfigSchema = mongoose.Schema({
         cat_discussion_groupe: String,
         cat_discussion_groupe_2: String,
         advent: String,
-        feed_bot: String
+        feed_bot: String,
+        feed_achievement: String
     },
-    voice_channels : [String]
+    voice_channels : [String],
+    webhook : {
+        feed_achievement: String,
+    }
 })
 
 module.exports = mongoose.model("GuildConfig", guildConfigSchema);
