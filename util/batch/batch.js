@@ -401,9 +401,15 @@ module.exports = {
                                             } else {
                                                 avatarURL = 'https://avatars.cloudflare.steamstatic.com/cc288975bf62c132f5132bc3452960f3341b665c_full.jpg';
                                             }
+
+                                            let gamename = game.name;
+                                            // - limit 4096 caracteres
+                                            if (gamename.length > 80)
+                                                gamename = gamename.substring(0, 76) + "...";
+
                                             
                                             webhookClient.send({
-                                                username: game.name,
+                                                username: gamename,
                                                 avatarURL: avatarURL,
                                                 embeds: embeds,
                                             });
