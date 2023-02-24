@@ -161,10 +161,10 @@ module.exports = client => {
     /**
      * 
      */
-    client.fetchGame = async (appId, tag, nameTmp) => {
+    client.fetchGame = async (appId, tag, nameTmp, steamClient) => {
         // TODO check error 
         const app = await client.getAppDetails(appId);
-        // -- recup iconhash (et nom si pas trouvé)
+        // -- recup nom si pas trouvé
         const communitApps = await client.getCommunityApp(appId)
         // - recup achievements (si présent)
         const resp = await client.getSchemaForGame(appId);
@@ -200,11 +200,6 @@ module.exports = client => {
             hasAchievements = totalAch ? true : false;
         }
 
-        // recup icon
-        if (communitApps[0]?.icon) {
-            iconHash = communitApps[0].icon;
-        }
-
         // si jeu a des succès
         if (resp.availableGameStats?.achievements) {
             console.log(`   * a des succès !`);
@@ -224,6 +219,16 @@ module.exports = client => {
             console.log('   * pas de succes');
             hasAchievements = false;
             lSucces = [];
+        }
+
+        // recup icon
+        if (steamClient) {
+            // Passing true as the third argument automatically requests access tokens, which are required for some apps
+            let result = await steamClient.getProductInfo([appId], [], true); 
+            if (result.apps[appId].appinfo?.common?.clienticon)
+                iconHash = result.apps[appId].appinfo.common.clienticon;
+            else 
+                iconHash = result.apps[appId].appinfo.common.icon;
         }
         
         // TODO icon plutot que l'image ? -> recup via API..
