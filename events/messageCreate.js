@@ -228,6 +228,10 @@ module.exports = {
                 const args = msg.content.slice(PREFIX.length).split(/ +/);
                 const commandName = args.shift().toLowerCase();
 
+                // console.log('unset...');
+                // await Game.updateMany({}, {$unset: {iconHash:1}});
+                // console.log('unset ok');
+
                 // by Kekwel && !refresh <appid>
                 if (msg.author.id = '283681024360054785' && commandName === "refresh") {
                     let steamClient = new SteamUser();
@@ -244,6 +248,54 @@ module.exports = {
                                     await msg.client.fetchAllApps();
                                 } catch (err) {
                                     console.log('mais euuuuuh :(', err.status);
+                                }
+                            } else if (appid === 'icons') {
+                                let msgProgress = await msg.channel.send(`Ok c'est parti ! Cela peut prendre du temps..
+                                Récupération de tous les jeux..`);
+                                await msg.react('⌛');
+
+                                try {
+                                    // - recup TOUS les JEUX (type: 'game' ou 'demo') 
+                                    let games = await Game.find({ 
+                                        $and: [
+                                            { $or: [ {type: 'game'}, {type: 'demo'} ] },
+                                            { iconHash: {$exists: false} }
+                                        ]
+                                    }).limit(10000);
+        
+                                    await msgProgress.edit(`${games.length} à traiter...`);
+            
+                                    let crtIdx = 1
+                                    // - pour chaque jeu, faire la même chose que plus haut
+                                    for (let i = 0; i < games.length; i++) {
+                                        //games.forEach(async game => {
+                                        const game = games[i];
+                                        if (crtIdx % 100 === 0) {
+                                            logger.info(`[${crtHour()}] - ${crtIdx}/${games.length} ..`);
+                                            await msgProgress.edit(`[${crtIdx}/${games.length}] - Traitement des jeux ${".".repeat(((crtIdx/100) % 3) + 1)}`);
+                                        }
+        
+                                        console.log(` * fetch ${game.appid} ${game.name}`);
+        
+                                        try {
+                                            await retryAfter5min(async function() {
+                                                // recup icon
+                                                await recupIcon(steamClient, game.appid, game);
+                                            })
+                                        } catch (err) {
+                                            console.log('mais euh :(', err.status);
+                                        }
+                                        
+                                        crtIdx++;
+                                    };
+                                } catch (err) {
+                                    msgProgress.delete();
+                                    msg.react(CROSS_MARK);
+                                    logger.error("Erreur fetch icons : " + err);
+                                    console.log(err);
+        
+                                    console.log("Logging off of Steam");
+                                    steamClient.logOff();
                                 }
                             } else {
                                 // - recup GameDB avec appid
