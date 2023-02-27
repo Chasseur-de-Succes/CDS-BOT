@@ -360,6 +360,26 @@ const schedule = async (interaction, options) => {
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
+    
+    // notif dans salon
+    if (grp.channelId) {
+        const guild = await client.guilds.cache.get(interaction.guildId);
+        if (guild) {
+            const channel = await guild.channels.cache.get(grp.channelId);
+            
+            if (channel) {
+                // send message channel group
+                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                // rappel 1h et 1j avant
+                const dateStr = `${dateEvent.toDate().toLocaleDateString('fr-FR', options)}`;
+                if (indexDateEvent >= 0) {
+                    channel.send(`> ⚠️ La session du **${dateStr}** a été **supprimé**.`);
+                } else {
+                    channel.send(`> 🗓️ Nouvelle session le **${dateStr}** !`);
+                }
+            }
+        }
+    }
 
     const newMsgEmbed = new EmbedBuilder()
         .setTitle(titreReponse)
