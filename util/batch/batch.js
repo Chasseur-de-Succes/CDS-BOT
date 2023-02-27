@@ -2,7 +2,7 @@ const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
 const { SALON, WEBHOOK } = require('../../util/constants');
 const advent = require('../../data/advent/calendar.json');
-const { GREEN, NIGHT, VERY_PALE_BLUE, DARK_RED } = require("../../data/colors.json");
+const { GREEN, NIGHT, VERY_PALE_BLUE, DARK_RED, ORANGE } = require("../../data/colors.json");
 const moment = require('moment-timezone');
 const { User, Game } = require("../../models");
 const { createLogs } = require("../envoiMsg");
@@ -300,25 +300,28 @@ module.exports = {
         steamClient.on('changelist', async (changenumber, apps, packages) => {
             // console.log(' --- changelist ', changenumber);
             // console.log(apps);
-            apps.forEach(async appid => {
-                console.log('--- changelist ', appid);
-                // - recup jeu BDD
-                let game = await Game.findOne({ appid: appid });
-                
-                if (!game) {
-                    createNewGame(client, steamClient, appid);
-                } else {
-                    // - getProductInfo
-                    let result = await steamClient.getProductInfo([appid], [], true); // Passing true as the third argument automatically requests access tokens, which are required for some apps
-                    let appinfo = result.apps[appid].appinfo;
+            apps
+                // distinct
+                .filter((value, index, array) => array.indexOf(value) === index)
+                .forEach(async appid => {
+                    console.log('--- changelist ', appid);
+                    // - recup jeu BDD
+                    let game = await Game.findOne({ appid: appid });
+                    
+                    if (!game) {
+                        createNewGame(client, steamClient, appid);
+                    } else {
+                        // - getProductInfo
+                        let result = await steamClient.getProductInfo([appid], [], true); // Passing true as the third argument automatically requests access tokens, which are required for some apps
+                        let appinfo = result.apps[appid].appinfo;
 
-                    // si update est un jeu ou demo ?
-                    if (appinfo?.common?.type === 'Game' || appinfo?.common?.type === 'Demo') {
-                        // - recup achievements (si présent)
-                        recupAchievements(client, game);
+                        // si update est un jeu ou demo ?
+                        if (appinfo?.common?.type === 'Game' || appinfo?.common?.type === 'Demo') {
+                            // - recup achievements (si présent)
+                            recupAchievements(client, game);
+                        }
                     }
-                }
-            });
+                });
             // console.log('--------');
         });
         steamClient.on('appUpdate', async (appid, data) => {
@@ -482,8 +485,8 @@ function recupAchievements(client, game) {
                 .setColor(DARK_RED);
                 // - nouveau ? (ssi 0 succes dans game) 
             const addedEmbed = new EmbedBuilder()
-                .setTitle(game.achievements.length === 0 ? '✅ Nouveau' : '✅➕ Ajouté')
-                .setColor(GREEN);
+                .setTitle(game.achievements.length === 0 ? '✅ Nouveau' : '➕ Ajouté')
+                .setColor(game.achievements.length === 0 ? ORANGE : GREEN);
 
             if (deleted.length > 0) {
                 deletedEmbed.setDescription(`${deleted.length} succès supprimé${deleted.length > 1 ? 's' : ''}
@@ -564,12 +567,12 @@ function sendToWebhook(client, game, embeds) {
             
             let avatarURL = '';
             if (game.iconHash) {
-                avatarURL = `http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.jpg`;
+                avatarURL = `http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.ico`;
             } else {
                 avatarURL = 'https://avatars.cloudflare.steamstatic.com/cc288975bf62c132f5132bc3452960f3341b665c_full.jpg';
             }
 
-            webhookClient.send({
+            await webhookClient.send({
                 username: game.name,
                 avatarURL: avatarURL,
                 embeds: embeds,
