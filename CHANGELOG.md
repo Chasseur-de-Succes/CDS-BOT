@@ -5,6 +5,7 @@
 ## [v1.2.2]
 - Migration de la BDD Cloud vers la BDD de Rick
 - Mise en place du webhook pour récupérer les ajouts/suppressions de succès
+- Notification de l'ajout/suppression d'une session dans le channel du groupe associé
 
 ## [v1.2.1]
 ### Added
