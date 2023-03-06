@@ -368,12 +368,9 @@ const schedule = async (interaction, options) => {
             const channel = await guild.channels.cache.get(grp.channelId);
             
             if (channel) {
-                // send message channel group
-                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                // rappel 1h et 1j avant
-                const dateStr = `${dateEvent.toDate().toLocaleDateString('fr-FR', options)}`;
+                const dateStr = `${dateVoulue} à ${heureVoulue}`;
                 if (indexDateEvent >= 0) {
-                    channel.send(`> ⚠️ La session du **${dateStr}** a été **supprimé**.`);
+                    channel.send(`> ⚠️ La session du **${dateStr}** a été **supprimée**.`);
                 } else {
                     channel.send(`> 🗓️ Nouvelle session le **${dateStr}** !`);
                 }
