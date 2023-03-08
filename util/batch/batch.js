@@ -317,6 +317,9 @@ module.exports = {
 
                         // si update est un jeu ou demo ?
                         if (appinfo?.common?.type === 'Game' || appinfo?.common?.type === 'Demo') {
+                            // recup icon
+                            await recupIcon(steamClient, appid, game);
+
                             // - recup achievements (si présent)
                             recupAchievements(client, game);
                         }
@@ -335,6 +338,9 @@ module.exports = {
                 if (!game) {
                     createNewGame(client, steamClient, appid);
                 } else {
+                    // recup icon
+                    await recupIcon(steamClient, appid, game);
+                    
                     // - recup achievements (si présent)
                     recupAchievements(client, game);
                 }
@@ -431,6 +437,18 @@ module.exports = {
             });
         });
     }
+}
+
+async function recupIcon(steamClient, appId, game) {
+    // recup icon
+    // Passing true as the third argument automatically requests access tokens, which are required for some apps
+    let result = await steamClient.getProductInfo([appId], [], true); 
+    if (result.apps[appId].appinfo?.common?.clienticon)
+        game.iconHash = result.apps[appId].appinfo.common.clienticon;
+    else 
+        game.iconHash = result.apps[appId].appinfo.common.icon;
+
+    await game.save();
 }
 
 function recupAchievements(client, game) {
