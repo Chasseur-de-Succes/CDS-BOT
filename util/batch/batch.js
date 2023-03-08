@@ -443,9 +443,10 @@ async function recupIcon(steamClient, appId, game) {
     // recup icon
     // Passing true as the third argument automatically requests access tokens, which are required for some apps
     let result = await steamClient.getProductInfo([appId], [], true); 
-    if (result.apps[appId].appinfo?.common?.clienticon)
-        game.iconHash = result.apps[appId].appinfo.common.clienticon;
-    else 
+    // if (result.apps[appId].appinfo?.common?.clienticon)
+    // game.iconHash = result.apps[appId].appinfo.common.clienticon;
+    // else 
+    if (result.apps[appId].appinfo?.common?.icon)
         game.iconHash = result.apps[appId].appinfo.common.icon;
 
     await game.save();
@@ -585,7 +586,8 @@ function sendToWebhook(client, game, embeds) {
             
             let avatarURL = '';
             if (game.iconHash) {
-                avatarURL = `http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.ico`;
+                // avatarURL = `http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.ico`;
+                avatarURL = `https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.jpg`;
             } else {
                 avatarURL = 'https://avatars.cloudflare.steamstatic.com/cc288975bf62c132f5132bc3452960f3341b665c_full.jpg';
             }
