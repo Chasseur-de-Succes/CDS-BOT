@@ -34,7 +34,7 @@ function getMembersList(group, members) {
  * @param {*} isAuthorCaptain est-ce que l'auteur du msg qui a appelé cette méthode est le capitaine
  * @returns un msg embed
  */
- function createEmbedGroupInfo(members, group, isAuthorCaptain) {
+ async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
     const memberCaptain = members.get(group.captain.userId);
     const membersStr = getMembersList(group, members);
     let color = '';
@@ -94,6 +94,21 @@ function getMembersList(group, members) {
         );
     }
 
+    if (group.channelId) {
+        const guild = await client.guilds.cache.get(group.guildId);
+        if (guild) {
+            const channel = await guild.channels.cache.get(group.channelId);
+            
+            if (channel) {
+                newMsgEmbed.addFields(
+                    { name: `Salon`, value: `<#${channel.id}>`, inline: true },
+                    //{ name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
+                );
+
+            }
+        }
+    }
+
     if (group.desc)
         newMsgEmbed.setDescription(`*${group.desc}*`);
     return newMsgEmbed;
@@ -107,7 +122,7 @@ function getMembersList(group, members) {
  */
  async function sendMsgHubGroup(client, guildId, group) {
     const members = client.guilds.cache.get(guildId).members.cache;
-    const newMsgEmbed = createEmbedGroupInfo(members, group, false);
+    const newMsgEmbed = await createEmbedGroupInfo(client, members, group, false);
 
     // recuperation id message pour pouvoir l'editer par la suite
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
@@ -137,7 +152,7 @@ function getMembersList(group, members) {
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
     if (idListGroup) {
         const msg = await client.channels.cache.get(idListGroup).messages.fetch(group.idMsg);
-        const editMsgEmbed = createEmbedGroupInfo(members, group, false);
+        const editMsgEmbed = await createEmbedGroupInfo(client, members, group, false);
         const footer = `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`
         
         editMsgEmbed.setFooter({ text: `${footer}`});

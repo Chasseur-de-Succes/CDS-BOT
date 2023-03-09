@@ -179,7 +179,7 @@ module.exports = {
                 for (const member of groupe.members) {
                     const crtUser = membersGuild.get(member.userId);
                     if (crtUser) {
-                        const rappelEmbed = createEmbedGroupInfo(membersGuild, groupe, false);
+                        const rappelEmbed = await createEmbedGroupInfo(client, membersGuild, groupe, false);
                         crtUser.send({content: `**⏰ RAPPEL** dans 1 ${typeHoraire}, tu participes à un évènement : `, embeds: [rappelEmbed]});
                     }
                 }
