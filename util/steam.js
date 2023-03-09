@@ -225,9 +225,9 @@ module.exports = client => {
         if (steamClient) {
             // Passing true as the third argument automatically requests access tokens, which are required for some apps
             let result = await steamClient.getProductInfo([appId], [], true); 
-            if (result.apps[appId].appinfo?.common?.clienticon)
-                iconHash = result.apps[appId].appinfo.common.clienticon;
-            else 
+            // if (result.apps[appId].appinfo?.common?.clienticon)
+            //     iconHash = result.apps[appId].appinfo.common.clienticon;
+            if (result.apps[appId].appinfo?.common?.icon)
                 iconHash = result.apps[appId].appinfo.common.icon;
         }
         

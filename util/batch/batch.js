@@ -299,12 +299,12 @@ module.exports = {
 
         steamClient.on('changelist', async (changenumber, apps, packages) => {
             // console.log(' --- changelist ', changenumber);
-            // console.log(apps);
+            console.log(apps);
             apps
                 // distinct
                 .filter((value, index, array) => array.indexOf(value) === index)
                 .forEach(async appid => {
-                    console.log('--- changelist ', appid);
+                    // console.log('--- changelist ', appid);
                     // - recup jeu BDD
                     let game = await Game.findOne({ appid: appid });
                     
@@ -334,15 +334,16 @@ module.exports = {
             // si update est un jeu ou demo ?
             if (data?.appinfo?.common?.type === 'Game' || data?.appinfo?.common?.type === 'Demo') {
                 // - recup jeu BDD
+                // on le créé seulement, 
                 let game = await Game.findOne({ appid: appid });
                 if (!game) {
                     createNewGame(client, steamClient, appid);
                 } else {
                     // recup icon
-                    await recupIcon(steamClient, appid, game);
+                    // await recupIcon(steamClient, appid, game);
                     
-                    // - recup achievements (si présent)
-                    recupAchievements(client, game);
+                    // // - recup achievements (si présent)
+                    // recupAchievements(client, game);
                 }
             }
         });
@@ -503,9 +504,10 @@ function recupAchievements(client, game) {
                 .setTitle('❌ Supprimé')
                 .setColor(DARK_RED);
                 // - nouveau ? (ssi 0 succes dans game) 
+            const newSucces = game.achievements.length === 0;
             const addedEmbed = new EmbedBuilder()
-                .setTitle(game.achievements.length === 0 ? '✅ Nouveau' : '➕ Ajouté')
-                .setColor(game.achievements.length === 0 ? ORANGE : GREEN);
+                .setTitle(newSucces ? '✅ Nouveau' : '➕ Ajouté')
+                .setColor(newSucces ? ORANGE : GREEN);
 
             if (deleted.length > 0) {
                 deletedEmbed.setDescription(`${deleted.length} succès supprimé${deleted.length > 1 ? 's' : ''}
@@ -513,8 +515,12 @@ function recupAchievements(client, game) {
                 embeds.push(deletedEmbed);
             }
             if (added.length > 0) {
-                addedEmbed.setDescription(`${added.length} nouveau${added.length > 1 ? 'x' : ''} succès (${achievements.length} au total)
-                    ${addedStr}`);
+                if (newSucces) {
+                    addedEmbed.setDescription(`**${added.length}** nouveau${added.length > 1 ? 'x' : ''} succès !`);
+                } else {
+                    addedEmbed.setDescription(`${added.length} nouveau${added.length > 1 ? 'x' : ''} succès (${achievements.length} au total)
+                        ${addedStr}`);
+                }
                 embeds.push(addedEmbed);
             }
 
