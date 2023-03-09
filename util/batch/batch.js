@@ -158,10 +158,23 @@ module.exports = {
     envoiMpRappel: function(client, guildId, groupeId, typeHoraire) {
         const membersGuild = client.guilds.cache.get(guildId).members.cache;
         client.findGroupById(groupeId)
-        .then(groupe => {
+        .then(async groupe => {
             // TODO a filtrer depuis findGroupe
             if (!groupe?.validated) {
-                logger.info("Envoi MP rappel pour groupe "+groupe.name+" !");
+                logger.info("Envoi rappel via MP et via channel pour groupe "+groupe.name+" !");
+
+                // envoi un message dans le channel du groupe
+                if (groupe.channelId) {
+                    const guild = await client.guilds.cache.get(guildId);
+                    if (guild) {
+                        const channel = await guild.channels.cache.get(groupe.channelId);
+                        
+                        if (channel) {
+                            channel.send(`> **⏰ RAPPEL** session prévue dans 1 ${typeHoraire} !`);
+                        }
+                    }
+                }
+
                 // va MP tous les joueurs présents dans le groupe
                 for (const member of groupe.members) {
                     const crtUser = membersGuild.get(member.userId);
