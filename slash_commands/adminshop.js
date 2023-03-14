@@ -46,6 +46,10 @@ module.exports = {
         );
     },
     async execute(interaction) {
+        const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+        if (!isAdmin)
+            return interaction.reply({ embeds: [createError(`Tu n'as pas le droit d'exécuter cette commande !`)], ephemeral: true });
+
         const subcommand = interaction.options.getSubcommand();
         
         if (subcommand === 'cancel') {

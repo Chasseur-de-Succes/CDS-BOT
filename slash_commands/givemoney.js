@@ -27,6 +27,10 @@ module.exports = {
         let montant = interaction.options.get('montant')?.value;
         const MONEY = process.env.MONEY;
 
+        const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+        if (!isAdmin)
+            return interaction.reply({ embeds: [createError(`Tu n'as pas le droit d'exécuter cette commande !`)], ephemeral: true });
+
         const dbUser = await client.getUser(member);
         if (!dbUser) { // Si pas dans la BDD
             const embedErr = createError(`${user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)
@@ -42,7 +46,7 @@ module.exports = {
         const msgCustom = `${author} ${(montant > 0 ? `a donné` : `a retiré`)} **${Math.abs(montant)}** ${MONEY} à ${user}\nSon argent est désormais de : **${money}** ${MONEY}`;
     
         await client.update(dbUser, { money: money });
-        logger.warn(`${author.tag} a effectué la commande admin : ${MESSAGES.COMMANDS.ADMIN.GIVEMONEY.name} ${montant}`);
+        logger.warn(`${author.tag} a effectué la commande admin : givemoney ${montant}`);
         createLogs(client, interaction.guildId, `Modification ${MONEY}`, `${msgCustom}`, '', GREEN)
     
         const embed = new EmbedBuilder()
