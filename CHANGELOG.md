@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.2.3]
+- Possibilité de modifier le nb de participant d'un groupe avec /group nb-participant <nom> <nb>
+- Ajout sécurité sur l'exécution de certaint commandes
+
 ## [v1.2.2]
 - Migration de la BDD Cloud vers la BDD de Rick
 - Mise en place du webhook pour récupérer les ajouts/suppressions de succès
