@@ -51,6 +51,13 @@ module.exports = {
                 .setDescription("Kick un membre du groupe (👑 only)")
                 .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
                 .addUserOption(option => option.setName('membre').setDescription("Membre du groupe à kick").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('nb-participant')
+                .setDescription("Modifie le nombre de participants max (👑 only)")
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
+                .addIntegerOption(option => option.setName('max').setDescription("Nouveau nbre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true))
+            )
         ,
     async autocomplete(interaction) {
         const client = interaction.client;
@@ -123,6 +130,8 @@ module.exports = {
             end(interaction, interaction.options)
         } else if (subcommand === 'kick') {
             kick(interaction, interaction.options)
+        } else if (subcommand === 'nb-participant') {
+            editNbParticipant(interaction, interaction.options)
         }
     },
 }
@@ -569,6 +578,49 @@ const kick = async (interaction, options) => {
     sendLogs(interaction.client, interaction.guildId, kickLogEmbed)
 
     await interaction.reply({ embeds: [kickEmbed] });
+}
+
+const editNbParticipant = async (interaction, options) => {
+    const grpName = options.get('nom')?.value;
+    const nbMax = options.get('max')?.value;
+    const client = interaction.client;
+    const author = interaction.member;
+
+    // test si captain est register
+    const authorDB = await client.getUser(author);
+    if (!authorDB) // Si pas dans la BDD
+        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
+    
+    // recup le groupe
+    let grp = await client.findGroupByName(grpName);
+    if (!grp) 
+        return interaction.reply({ embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)] });
+    
+    // si l'author n'est pas capitaine ou non admin
+    const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
+    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe **${grpName}** !`)] });
+
+    // TODO tester si nbMax < size (membres)
+    if (nbMax > 0)
+        await client.update(grp, { nbMax: nbMax });
+    else
+        await Group.updateMany({_id: grp._id}, {$unset: { nbMax:1 }});
+
+    // update msg
+    await editMsgHubGroup(client, interaction.guildId, grp);
+    logger.info(`${author.user.tag} vient de modifier le nb de membres max par ${nbMax} du groupe ${grpName}`);
+    
+    const editLogEmbed = new EmbedBuilder()
+        .setTitle(`Modif nb participant d'un groupe`)
+        .setDescription(`**${author.user.tag}** vient de modifier le nb de membres max par **${nbMax}** du groupe **${grpName}**`);
+    const editEmbed = new EmbedBuilder()
+        .setDescription(`${CHECK_MARK} Nouveau nb de participant pour le groupe **${grpName}** : ${nbMax} !`);
+    
+    // - send logs
+    sendLogs(interaction.client, interaction.guildId, editLogEmbed)
+
+    await interaction.reply({ embeds: [editEmbed] });
 }
 
 // Création catégorie discussions groupes
