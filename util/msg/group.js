@@ -202,7 +202,8 @@ function getMembersList(group, members) {
                     && u.id !== grpDB.captain.userId 
                     && !userDBJoined.blacklisted 
                     && !grpDB.members.find(us => us.userId === u.id)
-                    && !isMaxed) {
+                    && !isMaxed
+                    && userDBJoined.warning !== 3) {
                     await joinGroup(client, msg.guildId, grpDB, userDBJoined);
                 } else {
                     // send mp explication
@@ -210,6 +211,7 @@ function getMembersList(group, members) {
                     if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande /register <steamid>`;
                     else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
                     else if (isMaxed) raison += `celui-ci est complet !`; 
+                    else if (userDBJoined.warning === 3) raison += 'tu es puni !'
                     else raison += `tu es le capitaine du groupe !`;
 
                     // si user déjà dans event, on laisse la reaction, sinon on envoie raison

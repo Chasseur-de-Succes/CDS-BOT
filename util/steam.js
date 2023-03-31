@@ -202,7 +202,6 @@ module.exports = client => {
 
         // si jeu a des succès
         if (resp.availableGameStats?.achievements) {
-            console.log(`   * a des succès !`);
             const achievements = resp.availableGameStats.achievements;
             
             // - ajout & save succes dans Game
@@ -216,7 +215,6 @@ module.exports = client => {
             lSucces = achievements;
         } else {
             // - save tableau vide
-            console.log('   * pas de succes');
             hasAchievements = false;
             lSucces = [];
         }

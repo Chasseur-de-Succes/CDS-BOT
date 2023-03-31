@@ -312,7 +312,7 @@ module.exports = {
 
         steamClient.on('changelist', async (changenumber, apps, packages) => {
             // console.log(' --- changelist ', changenumber);
-            console.log(apps);
+            console.log("-- appId changes " + apps.join(', '));
             apps
                 // distinct
                 .filter((value, index, array) => array.indexOf(value) === index)
@@ -546,7 +546,6 @@ function recupAchievements(client, game) {
             await game.save();
         } else {
             // TODO si genre tout supprimer ? tester si game a des succes du coup
-            console.log(` ** ${appid} plus de succès ?`);
         }
     });
 }

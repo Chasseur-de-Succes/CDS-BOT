@@ -5,3 +5,4 @@ update.txt
 note.txt
 logs/
 *.env
+/archives
