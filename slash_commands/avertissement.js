@@ -2,7 +2,7 @@ const { EmbedBuilder, SlashCommandBuilder, PermissionFlagsBits } = require('disc
 const { GREEN, ORANGE, CRIMSON } = require("../data/colors.json");
 const { Group } = require('../models');
 const { createError, createLogs } = require('../util/envoiMsg');
-const { leaveGroup } = require('../util/msg/group');
+const { leaveGroup, dissolveGroup } = require('../util/msg/group');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -93,8 +93,45 @@ module.exports = {
                                                             { validated: false }
                                                         ] });
                 
-                groupes.forEach(groupe => {
-                    leaveGroup(client, guildId, groupe, dbUser)
+                groupes.forEach(async groupe => {
+                    // TODO logs
+                    // si capitaine
+                    if (groupe.captain._id.equals(dbUser._id)) {
+                        // si groupes a encore des membres
+                        if (groupe.size > 1) {
+                            leaveGroup(client, guildId, groupe, dbUser)
+
+                            logger.info(` - ${groupe.members[0].username} est nouveau capitaine pour groupe ${groupe.name}`);
+                            groupe.captain = groupe.members[0];
+                            await groupe.save();
+
+                            // - notif groupe
+                            if (groupe.channelId) {
+                                const channel = await interaction.guild.channels.cache.get(groupe.channelId);
+
+                                // send message channel group
+                                channel.send(`> 👑 <@${groupe.captain.userId}> est le nouveau capitaine !`);
+                            }
+                        } else {
+                            logger.info(` - plus personne dans groupe ${groupe.name} .. on dissout`);
+                            dissolveGroup(client, guildId, groupe)
+    
+                            // suppression channel discussion
+                            if (groupe.channelId) {
+                                interaction.guild.channels.cache.get(groupe.channelId)?.delete("Groupe supprimé");
+                            }
+                        }
+                    } else {
+                        logger.info(` - ${dbUser.username} est kick du groupe ${groupe.name}`);
+                        // - notif groupe
+                        if (groupe.channelId) {
+                            const channel = await interaction.guild.channels.cache.get(groupe.channelId);
+
+                            // send message channel group
+                            channel.send(`> <@${dbUser.userId}> a été kick.`);
+                        }
+                        leaveGroup(client, guildId, groupe, dbUser)
+                    }
                 });
 
                 // envoyer DM pour prevenir

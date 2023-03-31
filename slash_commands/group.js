@@ -150,6 +150,10 @@ const create = async (interaction, options) => {
     if (!captainDB) // Si pas dans la BDD
         return interaction.reply({ embeds: [createError(`${captain.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
+    if (captainDB.warning >= 3) {
+        return interaction.reply({ embeds: [createError(`Tu n'as pas le droit de créer de nouveau groupe pour le moment !`)] });
+    }
+
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
     if (nameGrp.length < 3) 
         return interaction.reply({ embeds: [createError(`Le nombre **minimum** de caractères pour le nom d'un groupe est de **3**`)] });
