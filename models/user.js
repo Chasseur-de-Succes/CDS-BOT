@@ -99,6 +99,10 @@ const userSchema = mongoose.Schema({
                 of: Boolean
             }
         }
+    },
+    warning: {
+        type: Number,
+        default: 0
     }
 })
 
