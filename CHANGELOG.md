@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v1.2.4]
+- Ajout de la commande `/avertissement`, qui, au bout de 3, interdit l'utilisateur a créer/rejoindre un groupe
+
 ## [v1.2.3]
 - Possibilité de modifier le nb de participant d'un groupe avec /group nb-participant <nom> <nb>
 - Ajout sécurité sur l'exécution de certaint commandes
