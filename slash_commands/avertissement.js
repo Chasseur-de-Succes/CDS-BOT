@@ -61,7 +61,7 @@ module.exports = {
                 desc = `${user} est maintenant clean ! 👼`;
             } else {
                 color = ORANGE;
-                desc = `Encore **${3 - dbUser.warning}** avertissement et ${user} est puni ! 😈`;
+                desc = `Encore **${3 - dbUser.warning}** ${3 - dbUser.warning === 1 ? 'avertissement' : 'avertissements'} et ${user} est puni ! 😈`;
             }
 
         } else {
@@ -167,7 +167,7 @@ module.exports = {
                                 ` : ''}
                             ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 } else {
-                    titleMP = `⚠️ **${dbUser.warning}ème avertissements** ⚠️`;
+                    titleMP = `⚠️ **${dbUser.warning}ème avertissement** ⚠️`;
                     descMP = `${raison ? `**Pour la raison :**
                                 *${raison}*
                                 ` : ''}
