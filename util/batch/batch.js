@@ -272,7 +272,7 @@ module.exports = {
                     // si leur date d'arrivée dans le discord >= 2mois (~61 jours), on donne 'Chasseur'
                     // sinon Ecuyer
                     members.each(async m => {
-                        if (daysDiff(m.joinedAt, new Date()) >= 61) {
+                        if (daysDiff(m.joinedAt, new Date()) === 61) {
                             // - prevenir user
                             logger.info(`.. ${m.user.tag} devient Chasseur ! (présence de +2mois)`);
                             const embed = new EmbedBuilder()

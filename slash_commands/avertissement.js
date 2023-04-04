@@ -51,7 +51,7 @@ module.exports = {
         
         // on ignore si déja 3 warning
         if (dbUser.warning <= 3) {
-            title = `${dbUser.warning} avertissements !`;
+            title = `${dbUser.warning} ${dbUser.warning === 1 ? 'avertissement' : 'avertissements'} !`;
             
             if (dbUser.warning === 3) {
                 color = CRIMSON;
