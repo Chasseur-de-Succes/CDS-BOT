@@ -14,6 +14,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('group')
         .setDescription('Gestion des groupes')
+        .setDMPermission(false)
         .addSubcommand(sub =>
             sub
                 .setName('create')

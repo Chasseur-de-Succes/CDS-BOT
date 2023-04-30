@@ -8,6 +8,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('avertissement')
         .setDescription(`Donne ou enleve un avertissement`)
+        .setDMPermission(false)
         .addUserOption(option => 
             option
                 .setName('target')

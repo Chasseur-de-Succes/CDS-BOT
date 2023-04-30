@@ -7,6 +7,7 @@ const { createError, createLogs } = require('../util/envoiMsg');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('givemoney')
+        .setDMPermission(false)
         .setDescription("Donne ou retire à l'utilisateur mentionné, un montant d'argent")
         .addUserOption(option => 
             option

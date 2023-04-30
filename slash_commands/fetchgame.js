@@ -4,6 +4,7 @@ const { createError } = require('../util/envoiMsg');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('fetchgame')
+        .setDMPermission(false)
         .setDescription("Ajout ou maj d'un jeu dans la base de données.")
         .addIntegerOption(option =>
             option

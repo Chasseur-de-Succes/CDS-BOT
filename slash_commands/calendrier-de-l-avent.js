@@ -5,6 +5,7 @@ const { User } = require("../models");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('calendrier-de-l-avent')
+        .setDMPermission(false)
         .setDescription('Classement des points pour le calendrier de l\'avent'),
     async execute(interaction) {
         let user = interaction.user;

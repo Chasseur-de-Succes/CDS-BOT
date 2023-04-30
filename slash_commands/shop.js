@@ -14,6 +14,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('shop')
         .setDescription('Affiche la boutique')
+        .setDMPermission(false)
         .addSubcommand(sub =>
             sub
                 .setName('list')
@@ -566,9 +567,6 @@ function createShop(guild, infos, currentIndex = 0) {
 }
 
 async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
-    // recup objet DB du vendeur
-    let vendeurDB = await client.findUserById(info.items[0].seller.userId);
-    
     const game = info._id;
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
     logger.info(`Achat jeu ${game.name} par ${acheteurDB.username} pour ${acheteurDB.money} ${process.env.MONEY}`)
@@ -600,157 +598,15 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
         .setDescription(`${author} vous a acheté ***${game.name}*** !
 
             Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
-            ▶️ **appuyer sur la réaction ${CHECK_MARK} pour commencer**
+            ▶️ **Lancer la commande ** \`/envoi-cle TA-CLE-STEAM\`
+            *L'acheteur recevra directement la clé dans ses MPs !*
             
             *En cas de problème, contactez un admin !*`);
             
-    // envoi vendeur
-    const confBtn = new ButtonBuilder()
-                .setCustomId("confBuy")
-                .setLabel('Confirmer')
-                .setEmoji(CHECK_MARK)
-                .setStyle(ButtonStyle.Success)
-    // let msgMPEmbed = await vendeur.user.send({ embeds: [MPembed] });
-    let msgMPEmbed = await vendeur.user.send({ 
-        embeds: [MPembed],
-        components: [new ActionRowBuilder( { components: [confBtn] } )] 
+    // envoi vendeur, il doit maintenant utilisé /envoi-cle
+    await vendeur.user.send({ 
+        embeds: [MPembed]
     });
-    // msgMPEmbed.react(CHECK_MARK);
-
-    // maj state
-    await client.update(item, { state: 'pending - key demandée' });
-    // log 'Acheteur a acheté la clé JEU à Vendeur pour item.montant MONEY - en attente du vendeur' 
-    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
-                                        2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente`, `ID vente : ${item._id}`, YELLOW);
-
-    // STEP 3 : attend click confirmation pour pouvoir donner la clé (en cas d'achat simultané, pour pas avoir X msg)
-    let filter = m => { return m.user.id === vendeur.user.id }
-    const itrConf = await msgMPEmbed.awaitMessageComponent({
-        filter,
-        componentType: ComponentType.Button,
-        // time: 30000
-    });
-    itrConf.deferUpdate();
-    
-    MPembed.setDescription(`${author} vous a acheté ***${game.name}*** !
-
-        Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
-        ▶️ ~~appuyer sur la réaction ${CHECK_MARK} pour commencer~~
-        ▶️ **me répondre en envoyant la clé du jeu**
-        
-        *En cas de problème, contactez un admin !*`)
-    
-    await msgMPEmbed.edit({ 
-        embeds: [MPembed],
-        components: [] 
-    });
-
-    // attend une reponse, du même auteur, en DM
-    // TODO et si vendeur interdit DM ?
-    // filtre sur vendeur
-    filter = m => { return m.author.id === vendeur.user.id }
-    let response = await msgMPEmbed.channel.awaitMessages({ filter, max: 1 });
-    // TODO regex ? AAAAA-BBBBB-CCCCC[-DDDDD-EEEEE] ? autres clés ?
-    const daKey = response.first().content;
-
-    // maj state
-    await client.update(item, { state: 'pending - key recup' });
-    // log 'Vendeur a renseigné la clé JEU - en attente de confirmation de l'acheteur'
-    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
-                                        ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
-                                         3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation`, `ID vente : ${item._id}`, YELLOW);
-
-    MPembed.setDescription(`${author} vous a acheté ***${game.name}*** !
-        
-        Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
-        ▶️ ~~appuyer sur la réaction ${CHECK_MARK} pour commencer~~
-        ▶️ ~~me répondre en envoyant la clé du jeu~~
-        ▶️ **attendre la confirmation de l'acheteur**
-        ▶️ ???
-        ▶️ PROFIT !
-        
-        *En cas de problème, contactez un admin !*`);
-    await vendeur.user.send({ embeds: [MPembed] });
-
-    // STEP 4 : --- ENVOI CLE A ACHETEUR ---
-    // DM envoyé à l'acheteur
-    let KDOembed = new EmbedBuilder()
-        .setThumbnail(gameUrlHeader)
-        .setColor(YELLOW)
-        .setTitle('💰 BOUTIQUE - VENTE 💰')
-        .setDescription(`${vendeur} t'envoie la clé pour le jeu ***${game.name}***.
-
-            Si tu veux avoir accès à la clé, il suffit de **confirmer** en cliquant juste en dessous !
-            
-            *En cas de problème, contactez un admin !*`);
-    
-    let msgKDOEmbed = await author.send({ 
-        embeds: [KDOembed],
-        components: [new ActionRowBuilder( { components: [confBtn] } )] 
-    });
-
-    // maj state
-    await client.update(item, { state: 'pending - key envoyée' });
-
-    filter = m => { return m.user.id === author.id }
-    const itr = await msgKDOEmbed.awaitMessageComponent({
-        filter,
-        componentType: ComponentType.Button,
-        // time: 30000
-    })
-
-    KDOembed.setTitle('💰 BOUTIQUE - LA CLÉ 💰')
-    KDOembed.setDescription(`${vendeur} t'envoie la clé pour le jeu ***${game.name}*** :
-
-        ⬇️⬇️⬇️
-        **${daKey}**
-        ⬆️⬆️⬆️
-
-        🙏 Merci d'avoir utilisé CDS Boutique !
-        N'hésitez pas de nouveau à claquer votre pognon dans **2 jours** ! 🤑
-        
-        *En cas de problème, contactez un admin !*`)
-    await itr.update({ 
-        embeds: [KDOembed],
-        components: [] 
-    });
-    
-    // maj state
-    await client.update(item, { state: 'done' });
-    // maj stat vendeur & acheteur
-    vendeurDB.stats.shop.sold++;
-    acheteurDB.stats.shop.bought++;
-    
-    // test si achievement unlock
-    const achievementUnlock = await getAchievement(vendeurDB, 'shop');
-    if (achievementUnlock) {
-        feedBotMetaAch(client, guildId, vendeur.user, achievementUnlock);
-    }
-
-    await vendeurDB.save();
-    await acheteurDB.save();
-
-    // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
-    createLogs(client, guildId, `Achat jeu dans le shop`, `~~1️⃣ ${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
-                                        ~~2️⃣ ${vendeur} a reçu MP, **clé demandé**, en attente~~
-                                        ~~3️⃣ ${vendeur} a envoyé la clé ! En attente de confirmation~~
-                                        4️⃣ ${author} a confirmé la réception ! C'est terminé !`, `ID vente : ${item._id}`, YELLOW);
-
-    // ajoute montant du jeu au porte-monnaie du vendeur
-    vendeurDB.money += item.montant;
-    await client.update(vendeurDB, { money: vendeurDB.money });
-    // log 'Vendeur reçoit montant MONEY grâce vente'
-    createLogs(client, guildId, `Argent reçu`, `${vendeur} récupère **${item.montant} ${process.env.MONEY}** suite à la vente de **${game.name}**`, `ID vente : ${item._id}`, YELLOW);
-
-    // msg pour vendeur 
-    MPembed.setTitle('💰 BOUTIQUE - VENTE FINIE 💰')
-        .setDescription(`${author} a reçu et confirmé l'achat du jeu ***${game.name}*** que vous aviez mis en vente !
-
-            Vous avez bien reçu vos ***${item.montant} ${process.env.MONEY}***, ce qui vous fait un total de ...
-            💰 **${vendeurDB.money} ${process.env.MONEY}** !
-            
-            *En cas de problème, contactez un admin !*`);
-    await vendeur.user.send({ embeds: [MPembed] });
 }
 
 async function listGames(interaction, options) {
@@ -896,6 +752,7 @@ async function sell(interaction, options) {
     let game = await client.findGameByAppid(gameId);
 
     let item = {
+        guildId: interaction.guildId,
         montant: montant,
         game: game,
         seller: userDB
