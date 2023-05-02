@@ -14,6 +14,7 @@ const { getJSONValue } = require("../util/util");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('profile')
+        .setDMPermission(false)
         .setDescription('Affiche le profil d\'un utilisateur.')
         .addUserOption(option => 
             option

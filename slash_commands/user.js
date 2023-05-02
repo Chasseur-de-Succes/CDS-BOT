@@ -5,6 +5,7 @@ const { ONLINE_STATUS, IDLE_STATUS, DND_STATUS, OFFLINE_STATUS } = require('../d
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('user')
+        .setDMPermission(false)
         .setDescription('Informations sur un utilisateur')
         .addUserOption(option => 
             option

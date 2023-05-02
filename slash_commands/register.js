@@ -7,6 +7,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('register')
         .setDescription(`Création d'un compte CDS`)
+        .setDMPermission(false)
         .addStringOption(option => 
             option.setName('id-steam-64')
                 .setDescription('ID Steam 64 (trouvable sur steamid.xyz/)')

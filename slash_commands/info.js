@@ -5,6 +5,7 @@ const cpuStat = require('cpu-stat');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('info')
+        .setDMPermission(false)
         .setDescription('Informations sur le bot'),
     async execute(interaction) {
         const client = interaction.client;

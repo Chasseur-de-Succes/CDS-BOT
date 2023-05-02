@@ -8,6 +8,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('salon')
         .setDescription('Pour configurer les salons')
+        .setDMPermission(false)
         .addStringOption(option =>
             option
                 .setName('nom')

@@ -4,6 +4,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('serverinfo')
+        .setDMPermission(false)
         .setDescription('Informations sur le serveur'),
     async execute(interaction) {
         const client = interaction.client;

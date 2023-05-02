@@ -5,6 +5,7 @@ const { createError } = require('../util/envoiMsg');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('money')
+        .setDMPermission(false)
         .setDescription(`Combien j'ai de ${process.env.MONEY} ?`)
         .addUserOption(option => 
             option

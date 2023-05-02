@@ -4,6 +4,7 @@ const { CORNFLOWER_BLUE} = require('../data/colors.json');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('uptime')
+        .setDMPermission(false)
         .setDescription('Depuis quand le bot est up ?'),
     async execute(interaction) {
         const client = interaction.client;

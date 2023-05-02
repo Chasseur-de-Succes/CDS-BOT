@@ -8,6 +8,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('adminshop')
         .setDescription('Gestion de la boutique')
+        .setDMPermission(false)
         .addSubcommand(sub =>
             sub
                 .setName('cancel')
