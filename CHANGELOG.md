@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v1.2.5]
+- Refonte du processus de vente d'item, passe maintenat par /envoi-cle ! 
+
 ## [v1.2.4]
 - Ajout de la commande `/avertissement`, qui, au bout de 3, interdit l'utilisateur a créer/rejoindre un groupe
 
