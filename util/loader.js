@@ -63,7 +63,7 @@ const loadBatch = async (client) => {
 
     loadEventAdvent(client);
 
-    loadSteamPICS(client);
+    //loadSteamPICS(client);
 }
 
 // Charge les réactions des messages des groupes

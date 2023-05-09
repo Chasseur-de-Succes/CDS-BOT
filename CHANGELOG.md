@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v1.2.6]
+- Séparation du steam feed vers un nouveau bot
+
 ## [v1.2.5]
 - Refonte du processus de vente d'item, passe maintenat par /envoi-cle ! 
 
