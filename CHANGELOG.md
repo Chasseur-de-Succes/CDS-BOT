@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v1.2.7]
+- Ajout du systême pour les nouveaux arrivants
+
 ## [v1.2.6]
 - Séparation du steam feed vers un nouveau bot
 
