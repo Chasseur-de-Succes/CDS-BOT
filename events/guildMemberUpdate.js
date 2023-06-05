@@ -5,6 +5,28 @@ const { sendLogs } = require('../util/envoiMsg');
 module.exports = {
 	name: Events.GuildMemberUpdate,
 	async execute(oldUser, newUser) {
+        
+        // quand utilisateur a choisi role lié (auto)
+        const oldRole = oldUser.roles.cache.find(r => r.name === 'Steam ✅');
+        const newRole = newUser.roles.cache.find(r => r.name === 'Steam ✅');
+        // si ancien role ne contient pas Steam✅ et nouveau contient Steam✅
+        if (!oldRole && newRole) {
+            logger.info(`.. rôle Steam✅ pour ${newUser.displayName}`)
+            // remove role "Nouveau" 
+            const nouveau = newUser.guild.roles.cache.find(r => r.name === 'Nouveau');
+            if (nouveau) {
+                await newUser.roles.remove(nouveau);
+            }
+
+            // ajout role "Ecuyer" si pas "Chevalier"
+            const ecuyer = newUser.guild.roles.cache.find(r => r.name === 'Écuyer');
+            const chevalier = newUser.roles.cache.find(r => r.name === 'Chasseur');
+            if (ecuyer && !chevalier) {
+                await newUser.roles.add(ecuyer);
+            }
+        }
+
+        // edit nickname
         if(oldUser.nickname != newUser.nickname) {
             let oldNickname = oldUser.nickname || '_Aucun_';
             let newNickname = newUser.nickname ||'_Aucun_';
