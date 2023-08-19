@@ -1,15 +1,13 @@
-FROM node:lts-stretch-slim
+FROM node:20.5-bookworm-slim
 
 WORKDIR /app
 
-RUN apt update && apt install -y python
+RUN apt update && apt install -y python3
 
 COPY package.json .
-#COPY package-lock.json .
 
 RUN npm install
 
-COPY commands ./commands
 COPY data ./data
 COPY events ./events
 COPY models ./models
