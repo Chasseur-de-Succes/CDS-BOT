@@ -14,7 +14,7 @@ services:
     image: mongo
     restart: always
     volumes:
-      - '/opt/CDS:/bitnami/mongodb'
+      - /opt/cds:/data/db
     networks:
       - bdd
 
