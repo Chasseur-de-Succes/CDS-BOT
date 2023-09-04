@@ -2,7 +2,7 @@ FROM node:20.5-bookworm-slim
 
 WORKDIR /app
 
-RUN apt update && apt install -y python3
+RUN apt update && apt install -y python3 fontconfig
 
 COPY package.json .
 
