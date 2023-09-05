@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  bot:
+    build: .
+    restart: always
+    networks:
+      - bdd
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo
+    restart: always
+    volumes:
+      - /opt/cds:/data/db
+    networks:
+      - bdd
+
+networks:
+  bdd:
+    driver: bridge
