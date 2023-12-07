@@ -191,7 +191,7 @@ module.exports = {
         logger.info(`-- Mise en place job search new games`);
 
         // refresh games tous les soirs à 1h
-        scheduleJob({ hour: 1, minute: 00, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ hour: 1, minute: 0, tz: 'Europe/Paris' }, async function() {
             moment.updateLocale('fr', { relativeTime : Object });
             logger.info(`Début refresh games ..`);
             try {
@@ -205,7 +205,7 @@ module.exports = {
     resetMoneyLimit() {
         logger.info(`--  Mise en place batch reset limit money`);
         // refresh games tous les soirs à 0h
-        scheduleJob({ hour: 0, minute: 00, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ hour: 0, minute: 0, tz: 'Europe/Paris' }, async function() {
             logger.info(`Début reset limit money ..`);
 
             User.updateMany({}, { moneyLimit: 0 })
@@ -218,7 +218,7 @@ module.exports = {
         logger.info(`--  Mise en place batch envoi money au @helper du discord CDS (s'il existe)`);
         // 971508881165545544
         // tous les lundi, à 0h01
-        scheduleJob({ dayOfWeek: 1, hour: 0, minute: 01, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ dayOfWeek: 1, hour: 0, minute: 1, tz: 'Europe/Paris' }, async function() {
             client.guilds.cache.forEach(guild => {
                 logger.info(`.. recherche @Helper dans ${guild.name}..`);
                 
@@ -251,7 +251,7 @@ module.exports = {
     async testEcuyer(client) {
         logger.info(`--  Mise en place batch 'écuyer'`);
         // tous les soirs à minuit
-        scheduleJob({ hour: 0, minute: 00, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ hour: 0, minute: 0, tz: 'Europe/Paris' }, async function() {
             client.guilds.cache.forEach(async guild => {
                 logger.info(`.. début batch 'écuyer' pour ${guild.name}..`);
 
@@ -367,7 +367,7 @@ module.exports = {
 
         // tous les jours, à 18h00
         //  only décembre
-        scheduleJob({ month:11, hour: 18, minute: 00 }, async function() {
+        scheduleJob({ year:2022, month:11, hour: 18, minute: 0 }, async function() {
         //scheduleJob({ hour: 18, minute: 00, tz: 'Europe/Paris' }, async function() {
             client.guilds.cache.forEach(async guild => {
                 const idAdvent = await client.getGuildChannel(guild.id, SALON.ADVENT);
