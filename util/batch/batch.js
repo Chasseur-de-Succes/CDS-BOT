@@ -1,7 +1,6 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
 const { SALON, WEBHOOK } = require('../../util/constants');
-const advent = require('../../data/advent/calendar.json');
 const { GREEN, NIGHT, VERY_PALE_BLUE, DARK_RED, ORANGE } = require("../../data/colors.json");
 const moment = require('moment-timezone');
 const { User, Game } = require("../../models");
@@ -191,7 +190,7 @@ module.exports = {
         logger.info(`-- Mise en place job search new games`);
 
         // refresh games tous les soirs à 1h
-        scheduleJob({ hour: 1, minute: 00, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ hour: 1, minute: 0, tz: 'Europe/Paris' }, async function() {
             moment.updateLocale('fr', { relativeTime : Object });
             logger.info(`Début refresh games ..`);
             try {
@@ -205,7 +204,7 @@ module.exports = {
     resetMoneyLimit() {
         logger.info(`--  Mise en place batch reset limit money`);
         // refresh games tous les soirs à 0h
-        scheduleJob({ hour: 0, minute: 00, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ hour: 0, minute: 0, tz: 'Europe/Paris' }, async function() {
             logger.info(`Début reset limit money ..`);
 
             User.updateMany({}, { moneyLimit: 0 })
@@ -218,7 +217,7 @@ module.exports = {
         logger.info(`--  Mise en place batch envoi money au @helper du discord CDS (s'il existe)`);
         // 971508881165545544
         // tous les lundi, à 0h01
-        scheduleJob({ dayOfWeek: 1, hour: 0, minute: 01, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ dayOfWeek: 1, hour: 0, minute: 1, tz: 'Europe/Paris' }, async function() {
             client.guilds.cache.forEach(guild => {
                 logger.info(`.. recherche @Helper dans ${guild.name}..`);
                 
@@ -251,7 +250,7 @@ module.exports = {
     async testEcuyer(client) {
         logger.info(`--  Mise en place batch 'écuyer'`);
         // tous les soirs à minuit
-        scheduleJob({ hour: 0, minute: 00, tz: 'Europe/Paris' }, async function() {
+        scheduleJob({ hour: 0, minute: 0, tz: 'Europe/Paris' }, async function() {
             client.guilds.cache.forEach(async guild => {
                 logger.info(`.. début batch 'écuyer' pour ${guild.name}..`);
 
@@ -361,96 +360,6 @@ module.exports = {
             }
         });
     },
-
-    loadEventAdvent(client) {
-        logger.info(`--  Mise en place batch event`);
-
-        // tous les jours, à 18h00
-        //  only décembre
-        scheduleJob({ month:11, hour: 18, minute: 00 }, async function() {
-        //scheduleJob({ hour: 18, minute: 00, tz: 'Europe/Paris' }, async function() {
-            client.guilds.cache.forEach(async guild => {
-                const idAdvent = await client.getGuildChannel(guild.id, SALON.ADVENT);
-                
-                if (idAdvent) {
-                    // recupere le channel
-                    const eventChannel = await guild.channels.fetch(idAdvent);
-    
-                    let index = new Date().getDate();
-                    // on incremente pour j+1 ?
-                    /*if (index > 1)
-                        index++;*/
-                    // let index = 5;
-
-
-                    // si == 25 on arrete !
-                    // TODO si == 25 => JOYEUX NOEL !
-                    if (index >= 25)
-                        return;
-                    if (index === 1) {
-                        // message de "bienvenue"
-                        let embedBienvenue = new EmbedBuilder()
-                            .setColor(VERY_PALE_BLUE)
-                            .setTitle(`***🎅 Oh oh oh 🎅*** - 🌟 Calendrier de l'avent des CDS 🌟`)
-                            .setDescription(`Cette année, un calendrier de l'avent spéciale CDS :
-                                ▶️ Tous les jours, à **18h**, une énigme vous sera proposée ! (concocté par les malicieux lutins chasseurs de succès ! 😈)
-                                ▶️ ⚠️ Vous n'avez le droit qu'à **UNE** seule réponse ! Veuillez ne répondre que sur ce **salon** ! ⚠️
-                                ▶️ **1 point** pour chaque bonne réponse, **0** sinon. Les 3 premiers à répondre **juste** auront des points **bonus** !
-                                ▶️ Que gagne le 1er ? 🤔 **2️⃣4️⃣ clés Steam !** 🤩
-                                ▶️ Vous pouvez voir le classement des points grâce à la commande \`/calendrier-de-l-avent\` 
-
-                                C'est parti pour la 1ère énigme :
-                            `);
-
-                        await eventChannel.send({ embeds: [embedBienvenue] });
-                    } else {
-                        const infosHier = advent[index - 1];
-                        if (!infosHier) 
-                            return;
-
-                        let embedReponseHier = new EmbedBuilder()
-                            .setColor(VERY_PALE_BLUE)
-                            .setTitle(`***🌟 Réponse d'hier 🌟***`)
-                            .setDescription(`La réponse d'hier était :
-                               ▶️ **${infosHier.reponse[0]}**`);
-
-                        await eventChannel.send({ embeds: [embedReponseHier] });
-                    }
-                    
-                    const infos = advent[index];
-
-                    // en cas d'erreur sur le tableau, on ne va pas + loin (on sait jamais)
-                    if (!infos) 
-                        return;
-                    
-                    // rouge ou vert (couleur noel)
-                    const color = index % 2 === 0 ? "#008000" : "#ff0000"
-
-                    // preapre l'embed
-                    let embed = new EmbedBuilder()
-                        .setColor(color)
-                        .setTitle(`🌟 Énigme jour ${index} 🌟`)
-                        .setDescription(`${infos.question}`);
-                    
-                    // si type image, on ajoute l'image
-                    if (infos.type === "img") {
-                        const file = new AttachmentBuilder(`data/advent/${infos.data}`)
-                        embed.setImage(`attachment://data/advent/${infos.data}`)
-
-                        await eventChannel.send({ embeds: [embed], files: [file] });
-                    } else {
-                        await eventChannel.send({ embeds: [embed] });
-                    }
-
-                    // on renvoi un embed pour séparer
-                    embed = new EmbedBuilder()
-                        .setColor(NIGHT)
-                        .setTitle(`**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**:;;;;;:**☆**`);
-                    await eventChannel.send({ embeds: [embed] });
-                }
-            });
-        });
-    }
 }
 
 async function recupIcon(steamClient, appId, game) {

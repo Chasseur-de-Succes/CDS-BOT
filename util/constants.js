@@ -64,9 +64,6 @@ const CHANNEL = [
         name: 'Catégorie des discussions de groupe 2',
         value: 'cat_discussion_groupe_2'
     }, {
-        name: 'Salon "calendrier de l\'avent"',
-        value: 'advent'
-    }, {
         name: 'Feed bot 🤖',
         value: 'feed_bot'
     }, {
@@ -83,7 +80,6 @@ const SALON = {
     LOGS: 'logs',
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
     CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
-    ADVENT: "advent",
     FEED_BOT: "feed_bot",
     FEED_ACHIEVEMENT: "feed_achievement"
 }

@@ -1,6 +1,6 @@
 const { Collection, ChannelType } = require('discord.js');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
-const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper, loadEventAdvent, testEcuyer, loadSteamPICS } = require('./batch/batch');
+const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper, testEcuyer, loadSteamPICS } = require('./batch/batch');
 const { createReactionCollectorGroup, moveToArchive } = require('./msg/group');
 const { Group } = require('../models/index');
 const { SALON } = require('./constants');
@@ -60,8 +60,6 @@ const loadBatch = async (client) => {
     loadJobHelper(client);
 
     testEcuyer(client);
-
-    loadEventAdvent(client);
 
     //loadSteamPICS(client);
 }
