@@ -3,9 +3,6 @@ const { CROSS_MARK } = require('../data/emojis.json');
 const { User, Game } = require('../models/index.js');
 const { BAREME_XP, BAREME_MONEY, SALON, crtHour } = require("../util/constants");
 const { addXp } = require('../util/xp.js');
-const advent = require('../data/advent/calendar.json');
-const { GREEN, DARK_RED } = require("../data/colors.json");
-const moment = require('moment-timezone');
 const { getAchievement } = require('../util/msg/stats');
 const { feedBotMetaAch } = require('../util/envoiMsg');
 
@@ -46,177 +43,74 @@ module.exports = {
                 }
             }
 
-            const idAdvent = await msg.client.getGuildChannel(msg.guildId, SALON.ADVENT);
             const idHeros = await msg.client.getGuildChannel(msg.guildId, SALON.HALL_HEROS);
             const idZeros = await msg.client.getGuildChannel(msg.guildId, SALON.HALL_ZEROS);
 
-            const isAdvent = msg.channelId === idAdvent;
             const isHallHeros = msg.channelId === idHeros;
             const isHallZeros = msg.channelId === idZeros;
 
-            // SPECIAL CALENDRIER DE L'AVENT
-            if (isAdvent) {
-                let userDB = await User.findOne({ userId: msg.author.id });
+            const hasPJ = msg.attachments.size > 0;
+            // nb img dans hall héros
+            // si piece jointes
+            if (hasPJ) {
+                // si image
+                if (msg.attachments.every(m => m.contentType?.startsWith('image'))) {
+                    // si hall heros
+                    if (isHallHeros) {
+                        // reactions auto
+                        await msg.react('🏆');
+                        await msg.react('💯');
 
-                let author = msg.author;
-                let msgContent = msg.content;
-                await msg.delete()
-                
-                if (userDB) {
-                    // - récuperer "index" date du jour, changement à 18h
-                    let index = new Date().getDate();
-                    
-                    //if (new Date().getMonth() >= 10)
-                    //    return;
-                    //let index = 5;
-                    // si avant 18h, on est tjs sur jours d'avant 
-                    if (moment.tz("Europe/Paris").hour() < 18) {
-                        index--
+                        const userDB = await msg.client.getUser(msg.author);
+                        if (userDB) {
+                            // stat ++
+                            userDB.stats.img.heros++;
+                            // test si achievement unlock
+                            const achievementUnlock = await getAchievement(userDB, 'heros');
+                            if (achievementUnlock) {
+                                feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
+                            }
+                            await userDB.save();
+        
+                            // save msg dans base
+                            const initReactions = new Map([['🏆', 0], ['💯', 0]])
+                            await msg.client.createMsgHallHeros({
+                                author: userDB,
+                                msgId: msg.id,
+                                guildId: msg.guildId,
+                                reactions: initReactions
+                            });
+                        }
                     }
+                        
+                    // si hall zeros
+                    if (isHallZeros) {
+                        // reaction auto
+                        await msg.react('💩');
 
-                    // les 24 premiers jours
-                    if (index < 25) {
-                        let embed = new EmbedBuilder()
-                            .setTitle(`🌟 Énigme jour ${index} 🌟`);
-                        // - si user a déjà répondu à question du jour : on ignore
-                        if (userDB.event[2022].advent.answers === undefined || userDB.event[2022].advent.answers.get('' + index) === undefined) {
-                            const query = { userId: author.id };
-                            var update = { $set : {}, $inc: {} };
-                            
-                            // on vérifie si le message est l'une des réponses possible
-                            const reponseTrouve = advent[index].reponse.some(el => el.toLowerCase() === msgContent.toLowerCase());
-                            //const reponseTrouve = advent[index].reponse.some(el => msgContent.toLowerCase().includes(el.toLowerCase()));
-
-                            update.$set["event.2022.advent.answers." + index + ".valid"] = reponseTrouve;
-                            update.$set["event.2022.advent.answers." + index + ".date"] = new Date();
-
-                            // - score en fonction de la position de l'user (+ rapide, point++)
-                            const matchValid = {}, matchExist = {};
-                            const matchAgg = { $match: { $and: [matchValid, matchExist] }};
-                            matchValid["event.2022.advent.answers." + index + ".valid"] = true
-                            matchExist["event.2022.advent.answers." + index + ".date"] = { '$exists': true }
-                            const dejaRep = await User.aggregate([matchAgg, { $limit: 3 }]);
-
-                            let point = 1;
-                            let msgBonus = '';
-                            if (dejaRep.length === 0) {             // 1er
-                                point = 4;
-                                msgBonus = 'Tu as répondu le **1er** ! **4 points** pour toi !';
-                            } else if (dejaRep.length === 1) {      // 2eme
-                                point = 3;
-                                msgBonus = 'Tu as répondu le **2ème** ! **3 points** pour toi !';
-                            } else if (dejaRep.length === 2) {      // 3eme
-                                point = 2;
-                                msgBonus = 'Tu as répondu le **3ème** ! **2 points** pour toi !';
+                        const userDB = await msg.client.getUser(msg.author);
+                        if (userDB) {
+                            // stat ++
+                            userDB.stats.img.zeros++;
+                            // test si achievement unlock
+                            const achievementUnlock = await getAchievement(userDB, 'zeros');
+                            if (achievementUnlock) {
+                                feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
                             }
-                            
-                            update.$inc["event.2022.advent.score"] = reponseTrouve ? point : 0
+                            await userDB.save();
 
-                            // { $inc: { "stats.msg" : 1 } }
-                            userDB = await User.findOneAndUpdate(query, update)
-
-                            // - prevenir user
-                            embed.setColor(reponseTrouve ? GREEN : DARK_RED);
-                            if (reponseTrouve) {
-                                embed.setDescription(`Bravo ! Tu as trouvé la **bonne réponse** à l'énigme !
-                                    ${msgBonus}
-                                    Il faut attendre demain 18h pour la prochaine énigme 🕵️`)
-                            } else {
-                                embed.setDescription(`Oh non ! C'est une **mauvaise réponse** :( et il n'y a qu'un seul essai !
-                                    Il faut attendre demain 18h pour la prochaine énigme 🕵️`)
-                            }
-                        } else {
-                            // - prevenir user
-                            embed.setDescription(`Hey, tu as **déjà répondu** à cette énigme ! Il n'y a qu'un seul essai !
-                                Il faut attendre demain 18h pour la prochaine énigme 🕵️`)
-                        }
-        
-                        // on refresh l'userdb
-                        userDB = await User.findOne({ userId: author.id });
-        
-                        // nb enigme repondu
-                        const nbEnigme = userDB.event[2022].advent.answers ? userDB.event[2022].advent.answers.size : 1;
-                        let nbEnigmeSolved = 0;
-                        for (let value of userDB.event[2022].advent.answers.values()) {
-                            if (value?.valid) nbEnigmeSolved++
-                        }
-                        // nb total = index courant
-                        const nbEnigmeTotal = index;
-        
-                        embed.setFooter({ text: `BONNES RÉPONSES ✅${nbEnigmeSolved}/${nbEnigmeTotal} | TOTAL 🗒️${nbEnigme}/${nbEnigmeTotal}` });
-        
-                        // - send embed MP
-                        await author.send({ embeds: [embed] });
-                    }
-                    
-                } else {
-                    // TODO pas register
-                }
-            } else {
-                const hasPJ = msg.attachments.size > 0;
-                // nb img dans hall héros
-                // si piece jointes
-                if (hasPJ) {
-                    // si image
-                    if (msg.attachments.every(m => m.contentType?.startsWith('image'))) {
-                        // si hall heros
-                        if (isHallHeros) {
-                            // reactions auto
-                            await msg.react('🏆');
-                            await msg.react('💯');
-
-                            const userDB = await msg.client.getUser(msg.author);
-                            if (userDB) {
-                                // stat ++
-                                userDB.stats.img.heros++;
-                                // test si achievement unlock
-                                const achievementUnlock = await getAchievement(userDB, 'heros');
-                                if (achievementUnlock) {
-                                    feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
-                                }
-                                await userDB.save();
-            
-                                // save msg dans base
-                                const initReactions = new Map([['🏆', 0], ['💯', 0]])
-                                await msg.client.createMsgHallHeros({
-                                    author: userDB,
-                                    msgId: msg.id,
-                                    guildId: msg.guildId,
-                                    reactions: initReactions
-                                });
-                            }
-                        }
-                            
-                        // si hall zeros
-                        if (isHallZeros) {
-                            // reaction auto
-                            await msg.react('💩');
-
-                            const userDB = await msg.client.getUser(msg.author);
-                            if (userDB) {
-                                // stat ++
-                                userDB.stats.img.zeros++;
-                                // test si achievement unlock
-                                const achievementUnlock = await getAchievement(userDB, 'zeros');
-                                if (achievementUnlock) {
-                                    feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
-                                }
-                                await userDB.save();
-
-                                // save msg dans base
-                                const initReactions = new Map([['💩', 0]]);
-                                await msg.client.createMsgHallZeros({
-                                    author: userDB,
-                                    msgId: msg.id,
-                                    guildId: msg.guildId,
-                                    reactions: initReactions
-                                });
-                            }
+                            // save msg dans base
+                            const initReactions = new Map([['💩', 0]]);
+                            await msg.client.createMsgHallZeros({
+                                author: userDB,
+                                msgId: msg.id,
+                                guildId: msg.guildId,
+                                reactions: initReactions
+                            });
                         }
                     }
                 }
             }
-
 
             // TODO auto replies sur certains mots/phrase ?
 
