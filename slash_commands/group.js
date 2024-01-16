@@ -504,6 +504,10 @@ const end = async (interaction, options) => {
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
         return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${grp.name} !`)] });
 
+    // si un seul participant
+    if (grp.size === 1)
+        return interaction.reply({ embeds: [createError(`Tu es seul.e dans le groupe.. Utilise plutôt \`/group dissolve ${grp.name}\` !`)] });
+
     await client.update(grp, { validated: true });
 
     // suppression du channel de discussion
