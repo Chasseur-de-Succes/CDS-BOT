@@ -217,12 +217,14 @@ function getMembersList(group, members) {
                     // si user déjà dans event, on laisse la reaction, sinon on envoie raison
                     if (!grpDB.members.find(us => us.userId === u.id)) {
                         u.send(`${CROSS_MARK} ${raison}`);
-                        r.users.remove(u.id);
+                        // si on enleve la reaction, le 'remove' en dessous est exécuté et l'user n'est pas le bot..
+                        // r.users.remove(u.id);
                     }
                 }
             });
         }
     });
+
     collector.on('remove', (r, u) => {
         if (!u.bot && r.emoji.name === 'check') {
             client.getUser(u)
