@@ -11,7 +11,7 @@ services:
     depends_on:
       - mongodb
   mongodb:
-    image: mongo
+    image: mongo:7.0
     restart: always
     volumes:
       - /opt/cds:/data/db
