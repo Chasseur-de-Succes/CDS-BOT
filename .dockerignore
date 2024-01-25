@@ -1,0 +1,12 @@
+# Ignore everything, except...
+*
+
+!package.json
+!package-lock.json
+!data
+!events
+!models
+!slash_commands
+!util
+!index.js
+!config.js
