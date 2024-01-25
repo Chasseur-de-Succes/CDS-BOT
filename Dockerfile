@@ -23,7 +23,7 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-RUN clean-modules -y
+RUN clean-modules --yes "**/*.d.ts" "**/@types/**"
 RUN rm -rf ./node_modules/.cache
 
 ####################
