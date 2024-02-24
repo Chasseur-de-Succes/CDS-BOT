@@ -21,7 +21,7 @@ module.exports = {
                 .setDescription("Créer un nouveau groupe, sur un jeu Steam")
                 .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true))
                 .addStringOption(option => option.setName('jeu').setDescription("Nom du jeu").setRequired(true).setAutocomplete(true))
-                .addStringOption(option => option.setName('max').setDescription("Nombre max de membres dans le groupe"))
+                .addIntegerOption(option => option.setName('max').setDescription("Nombre max de membres dans le groupe"))
                 .addStringOption(option => option.setName('description').setDescription("Description du groupe, quels succès sont rechercher, spécificités, etc")))
         .addSubcommand(sub =>
             sub
