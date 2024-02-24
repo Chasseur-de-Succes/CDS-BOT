@@ -279,6 +279,7 @@ const create = async (interaction, options) => {
         channel.permissionOverwrites.edit(dev.id, {
             ViewChannel: true, 
             SendMessages: true,
+            MentionEveryone: true
         })
     }
 

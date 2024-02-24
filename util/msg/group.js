@@ -300,7 +300,8 @@ async function leaveGroup(client, guildId, grp, userDB) {
     
         channel.permissionOverwrites.edit(userDB.userId, {
             ViewChannel: true,
-            SendMessages: true
+            SendMessages: true,
+            MentionEveryone: true
         });
 
         // send message channel group
