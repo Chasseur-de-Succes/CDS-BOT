@@ -23,5 +23,9 @@
     "superagent": "^6.1.0",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.6.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@yarnpkg/cli": "4.0.2"
   }
 }
