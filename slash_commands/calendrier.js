@@ -7,7 +7,6 @@ module.exports = {
     .setName('calendrier')
     .setDescription(`Affiche le calendrier des prochains événements`)
     .setDMPermission(true)
-    // TODO param semaine ? ou bouton interact ?
     .addUserOption(option =>
       option
         .setName('target')
@@ -77,6 +76,14 @@ module.exports = {
         components: [row]
       })
     });
+
+    // apres 5 min, on "ferme"
+    collector.on('end', collected => {
+      message.edit({
+        embeds: [createEmbed(new Date(today), guildId, dbUser, user.username)],
+        components: []
+      })
+    });
   }
 }
 
@@ -123,7 +130,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
 
     // recup groupes qui ont la date courante
     let groups = await Group
-      .where('guildId', guildId)
+      // .where('guildId', guildId)
       .where('dateEvent').gte(new Date(date.setHours(0, 0))).lte(new Date(date.setHours(23, 59)))
       .where('members').in(dbUser)
       .populate('game')
