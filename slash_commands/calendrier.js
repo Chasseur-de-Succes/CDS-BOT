@@ -78,9 +78,9 @@ module.exports = {
     });
 
     // apres 5 min, on "ferme"
-    collector.on('end', collected => {
-      message.edit({
-        embeds: [createEmbed(new Date(today), guildId, dbUser, user.username)],
+    collector.on('end', async collected => {
+      await interaction.editReply({
+        embeds: [await createEmbed(new Date(today), guildId, dbUser, user.username)],
         components: []
       })
     });
