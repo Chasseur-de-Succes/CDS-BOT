@@ -139,7 +139,7 @@ module.exports = {
 
 const create = async (interaction, options) => {
     const nameGrp = options.get('nom')?.value;
-    const nbMaxMember = options.get('max')?.value; // INTEGER
+    const nbMaxMember = Math.max(0, options.get('max')?.value); // INTEGER
     const gameName = options.get('jeu')?.value;
     const description = options.get('description')?.value;
     const client = interaction.client;
@@ -592,7 +592,7 @@ const kick = async (interaction, options) => {
 
 const editNbParticipant = async (interaction, options) => {
     const grpName = options.get('nom')?.value;
-    const nbMax = options.get('max')?.value;
+    const nbMax = Math.max(0, options.get('max')?.value); // INTEGER
     const client = interaction.client;
     const author = interaction.member;
 
