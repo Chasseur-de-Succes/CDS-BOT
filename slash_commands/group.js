@@ -21,7 +21,7 @@ module.exports = {
                 .setDescription("Créer un nouveau groupe, sur un jeu Steam")
                 .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true))
                 .addStringOption(option => option.setName('jeu').setDescription("Nom du jeu").setRequired(true).setAutocomplete(true))
-                .addIntegerOption(option => option.setName('max').setDescription("Nombre max de membres dans le groupe"))
+                .addIntegerOption(option => option.setName('max').setMinValue(0).setDescription("Nombre max de membres dans le groupe"))
                 .addStringOption(option => option.setName('description').setDescription("Description du groupe, quels succès sont rechercher, spécificités, etc")))
         .addSubcommand(sub =>
             sub
@@ -57,7 +57,7 @@ module.exports = {
                 .setName('nb-participant')
                 .setDescription("Modifie le nombre de participants max (👑 only)")
                 .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
-                .addIntegerOption(option => option.setName('max').setDescription("Nouveau nbre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true))
+                .addIntegerOption(option => option.setName('max').setMinValue(0).setDescription("Nouveau nbre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true))
             )
         ,
     async autocomplete(interaction) {
@@ -139,7 +139,7 @@ module.exports = {
 
 const create = async (interaction, options) => {
     const nameGrp = options.get('nom')?.value;
-    const nbMaxMember = Math.max(0, options.get('max')?.value); // INTEGER
+    const nbMaxMember = options.get('max')?.value; // INTEGER
     const gameName = options.get('jeu')?.value;
     const description = options.get('description')?.value;
     const client = interaction.client;
@@ -592,7 +592,7 @@ const kick = async (interaction, options) => {
 
 const editNbParticipant = async (interaction, options) => {
     const grpName = options.get('nom')?.value;
-    const nbMax = Math.max(0, options.get('max')?.value); // INTEGER
+    const nbMax = options.get('max')?.value; // INTEGER
     const client = interaction.client;
     const author = interaction.member;
 
