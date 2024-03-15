@@ -148,11 +148,17 @@ const create = async (interaction, options) => {
     
     // test si captain est register
     const captainDB = await client.getUser(captain);
+    const nbGrps = await client.getNbGroups(captain.id);
+
     if (!captainDB) // Si pas dans la BDD
         return interaction.reply({ embeds: [createError(`${captain.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
     if (captainDB.warning >= 3) {
         return interaction.reply({ embeds: [createError(`Tu n'as pas le droit de créer de nouveau groupe pour le moment !`)] });
+    }
+
+    if (nbGrps >= process.env.MAX_GRPS) {
+        return interaction.reply({ embeds: [createError(`Tu as rejoins trop de groupes !`)] });
     }
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb

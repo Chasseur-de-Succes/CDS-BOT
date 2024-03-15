@@ -509,4 +509,10 @@ module.exports = client => {
 
         return configProfile;
     }
+
+    client.getNbGroups = async (userid) => {
+        const tmp = await User.findOne({ userId: userid });
+        const ret = await Group.find({ members: tmp }).countDocuments();
+        return ret;
+    };
 }
