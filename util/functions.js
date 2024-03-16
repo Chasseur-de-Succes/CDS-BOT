@@ -510,9 +510,9 @@ module.exports = client => {
         return configProfile;
     }
 
-    client.getNbGroups = async (userid) => {
+    client.getNbOngoingGroups = async (userid) => {
         const tmp = await User.findOne({ userId: userid });
-        const ret = await Group.find({ members: tmp }).countDocuments();
+        const ret = await Group.find({ members: tmp, validated: false }).countDocuments();
         return ret;
     };
 }

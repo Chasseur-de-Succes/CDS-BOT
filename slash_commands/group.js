@@ -148,7 +148,7 @@ const create = async (interaction, options) => {
     
     // test si captain est register
     const captainDB = await client.getUser(captain);
-    const nbGrps = await client.getNbGroups(captain.id);
+    const nbGrps = await client.getNbOngoingGroups(captain.id);
 
     if (!captainDB) // Si pas dans la BDD
         return interaction.reply({ embeds: [createError(`${captain.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });

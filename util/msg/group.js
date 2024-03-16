@@ -196,7 +196,7 @@ function getMembersList(group, members) {
              .then(async userDBJoined => {
                 const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
                 const isMaxed = grpDB.nbMax && grpDB.nbMax === grpDB.size;
-                const nbGrps = await client.getNbGroups(u.id);
+                const nbGrps = await client.getNbOngoingGroups(u.id);
 
 
                 // si u est enregistré, non blacklisté, non capitaine, pas déjà présent et nbMax non atteint, il peut join le group
