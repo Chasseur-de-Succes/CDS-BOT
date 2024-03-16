@@ -283,7 +283,7 @@ const create = async (interaction, options) => {
     }
 
     channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
-    channel.send(`> <@${captain.id}> a créé le groupe`);
+    channel.send(`> ${captain} a créé le groupe`);
 
     // creation groupe
     let newGrp = {

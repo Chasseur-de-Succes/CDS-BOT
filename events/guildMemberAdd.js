@@ -10,7 +10,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
             .setTitle(`Nouveau membre`)
-            .setDescription(`<@${member.id}>`)
+            .setDescription(member)
             .addFields(
                 {name: "Âge du compte", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`},
                 {name: "ID", value: `${member.id}`},

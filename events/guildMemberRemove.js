@@ -12,7 +12,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(DARK_RED)
             .setTitle(`Membre parti`)
-            .setDescription(`<@${member.id}>`)
+            .setDescription(member)
             .addFields(
                 {name: "Rejoint le", value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:D>`, inline: true},
                 {name: `Parti le `, value: `<t:${Math.floor(Date.now() / 1000)}:D>`, inline: true},
