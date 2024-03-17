@@ -231,7 +231,7 @@ function getMembersList(group, members) {
             .then(async userDBLeaved => {
                 const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
                 // si u est capitaine, on remet? la reaction
-                if (u.id !== grpDB.captain.userId && userDBLeaved) 
+                if (u.id !== grpDB.captain.userId && grp.members.filter(us => us.userId === u.id).length >= 1)
                     await leaveGroup(client, msg.guildId, grpDB, userDBLeaved);
             });
         }
