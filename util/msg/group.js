@@ -196,6 +196,8 @@ function getMembersList(group, members) {
              .then(async userDBJoined => {
                 const grpDB = await Group.findOne({ _id: grp._id }).populate('captain members game');
                 const isMaxed = grpDB.nbMax && grpDB.nbMax === grpDB.size;
+                const nbGrps = await client.getNbOngoingGroups(u.id);
+
 
                 // si u est enregistré, non blacklisté, non capitaine, pas déjà présent et nbMax non atteint, il peut join le group
                 if (userDBJoined 
@@ -203,6 +205,7 @@ function getMembersList(group, members) {
                     && !userDBJoined.blacklisted 
                     && !grpDB.members.find(us => us.userId === u.id)
                     && !isMaxed
+                    && nbGrps < process.env.MAX_GRPS
                     && userDBJoined.warning !== 3) {
                     await joinGroup(client, msg.guildId, grpDB, userDBJoined);
                 } else {
@@ -211,6 +214,7 @@ function getMembersList(group, members) {
                     if (!userDBJoined) raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande /register <steamid>`;
                     else if (userDBJoined.blacklisted) raison += `tu es blacklisté.`;
                     else if (isMaxed) raison += `celui-ci est complet !`; 
+                    else if (nbGrps >= process.env.MAX_GRPS) raison += `tu as rejoins trop de groupes.`;
                     else if (userDBJoined.warning === 3) raison += 'tu es puni !'
                     else raison += `tu es le capitaine du groupe !`;
 

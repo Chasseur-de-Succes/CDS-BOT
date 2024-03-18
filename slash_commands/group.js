@@ -3,7 +3,7 @@ const { createError, createLogs, sendLogs } = require("../util/envoiMsg");
 const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, ComponentType, ChannelType, PermissionFlagsBits } = require("discord.js");
 const { NIGHT } = require("../data/colors.json");
 const { CHECK_MARK, WARNING } = require('../data/emojis.json');
-const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob } = require("../util/msg/group");
+const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob, joinGroup } = require("../util/msg/group");
 const { createRappelJob } = require("../util/batch/batch");
 const { GuildConfig, Game, Group } = require('../models');
 const moment = require('moment-timezone');
@@ -57,9 +57,14 @@ module.exports = {
                 .setName('nb-participant')
                 .setDescription("Modifie le nombre de participants max (👑 only)")
                 .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
-                .addIntegerOption(option => option.setName('max').setMinValue(0).setDescription("Nouveau nbre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true))
-            )
-        ,
+                .addIntegerOption(option => option.setName('max').setMinValue(0).setDescription("Nouveau nbre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName('add')
+                .setDescription("Ajoute un participant dans un groupe complet ou s'il a trop de groupes.")
+                .addUserOption(option => option.setName('membre').setDescription("Membre à ajouter").setRequired(true))
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true)))
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
@@ -133,6 +138,8 @@ module.exports = {
             kick(interaction, interaction.options)
         } else if (subcommand === 'nb-participant') {
             editNbParticipant(interaction, interaction.options)
+        } else if (subcommand === 'add') {
+            forceAdd(interaction, interaction.options)
         }
     },
 }
@@ -148,11 +155,17 @@ const create = async (interaction, options) => {
     
     // test si captain est register
     const captainDB = await client.getUser(captain);
+    const nbGrps = await client.getNbOngoingGroups(captain.id);
+
     if (!captainDB) // Si pas dans la BDD
         return interaction.reply({ embeds: [createError(`${captain.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
 
     if (captainDB.warning >= 3) {
         return interaction.reply({ embeds: [createError(`Tu n'as pas le droit de créer de nouveau groupe pour le moment !`)] });
+    }
+
+    if (nbGrps >= process.env.MAX_GRPS) {
+        return interaction.reply({ embeds: [createError(`Tu as rejoins trop de groupes !`)] });
     }
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
@@ -631,6 +644,23 @@ const editNbParticipant = async (interaction, options) => {
     sendLogs(interaction.client, interaction.guildId, editLogEmbed)
 
     await interaction.reply({ embeds: [editEmbed] });
+}
+
+const forceAdd = async (interaction, options) => {
+    const grpName = options.get('nom')?.value;
+    const toAdd = options.get('membre')?.member;
+    const client = interaction.client;
+    const author = interaction.member;
+
+    const userDB = await client.getUser(toAdd);
+    const grp = await Group.findOne({ name: grpName }).populate('captain members game');
+
+    if (grp.members.filter(u => u.userId === toAdd.id).length >= 1) {
+        interaction.reply({ content: `L'utilisateur ${toAdd} est déjà dans ${grpName}`, ephemeral: true });
+    } else {
+        await joinGroup(client, interaction.guildId, grp, userDB);
+        interaction.reply({ content: `L'utilisateur ${toAdd} a été rajouté dans le groupe ${grpName}`, ephemeral: true });
+    }
 }
 
 // Création catégorie discussions groupes
