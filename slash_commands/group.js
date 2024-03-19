@@ -7,7 +7,6 @@ const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, delet
 const { createRappelJob } = require("../util/batch/batch");
 const { GuildConfig, Game, Group } = require('../models');
 const moment = require('moment-timezone');
-const { DEV } = require("../config");
 const { escapeRegExp } = require("../util/util");
 
 module.exports = {
@@ -275,8 +274,8 @@ const create = async (interaction, options) => {
             ],
     });
 
-    for (const dev of DEV) {
-        channel.permissionOverwrites.edit(dev.id, {
+    for (const devID of process.env.DEVELOPERS.split(',')) {
+        channel.permissionOverwrites.edit(devID, {
             ViewChannel: true, 
             SendMessages: true,
             MentionEveryone: true
