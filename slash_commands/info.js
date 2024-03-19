@@ -26,7 +26,7 @@ module.exports = {
             .setDescription(`La version actuelle est ${VERSION}`)
             .setThumbnail(botIcon)
             .addFields(
-                { name: 'Développeur', value: developers },
+                { name: 'Développeurs', value: developers },
                 { name: 'Créé le', value: `<t:${Math.floor(client.user.createdTimestamp / 1000)}:f>` },
                 { name: 'Langage', value: `JavaScript`, inline: true},
                 { name: 'Library', value: `discord.js`, inline: true },
