@@ -1,7 +1,7 @@
 const { Collection, ChannelType } = require('discord.js');
 const { RolesChannel, MsgHallHeros, MsgHallZeros, Msg, MsgDmdeAide, Game, GuildConfig } = require('../models');
 const { loadJobs, searchNewGamesJob, resetMoneyLimit, loadJobHelper, testEcuyer, loadSteamPICS } = require('./batch/batch');
-const { createReactionCollectorGroup, moveToArchive } = require('./msg/group');
+const { createCollectorGroup, moveToArchive, createRowGroupButtons } = require('./msg/group');
 const { Group } = require('../models/index');
 const { SALON } = require('./constants');
 
@@ -78,14 +78,18 @@ const loadReactionGroup = async (client) => {
             .then(async msg => {
                 const grp = await Group.findOne({ idMsg: msg.id });
                 // filtre group encore en cours
-                if (!grp.validated)
-                    await createReactionCollectorGroup(client, msg, grp);
-                else
+                if (!grp.validated) {
+                    // TODO enlever réactions
+                    // "maj" msg group pour ajouter boutons + collector
+                    const row = await createRowGroupButtons(grp);
+                    await msg.edit({components: [row]})
+                    await createCollectorGroup(client, msg);
+                } else
                     await moveToArchive(client, idListGroup, grp.idMsg)
             }).catch(async err => {
                 logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
                 // on supprime les msg qui n'existent plus
-                await Msg.deleteOne({ _id: msgDB._id });
+                // await Msg.deleteOne({ _id: msgDB._id });
             })
         } else {
             logger.error('- Config salon msg groupe non défini !')
