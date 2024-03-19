@@ -68,10 +68,3 @@ module.exports.retryAfter5min = async (fn) => {
     //     return retryAfter5min(fn); 
     // });
 }
-
-// retry forever
-module.exports.retryForever = (fn) => {
-    return fn().catch(function(err) { 
-        return retryForever(fn); 
-    });
-}
