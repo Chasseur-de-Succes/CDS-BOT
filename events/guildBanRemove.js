@@ -9,7 +9,7 @@ module.exports = {
             .setColor(GREEN)
             .setAuthor(`Membre débanni`, ban.user.displayAvatarURL({dynamic: true, size: 4096, format: 'png'}))
             .setThumbnail(ban.user.displayAvatarURL({dynamic : true, size: 4096, format: 'png'}))
-            .setDescription(`${ban.user}\n`)
+            .setDescription(`${ban.user}`)
             .addFields(
                 {name: "Membre", value: `\`${ban.user.tag}\` - ${ban.user}`, inline: true},
             )
