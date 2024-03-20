@@ -158,12 +158,10 @@ function getMembersList(group, members) {
         const footer = `${group.validated ? 'TERMINÉ - ' : ''}Dernière modif. ${moment().format('ddd Do MMM HH:mm')}`
         
         editMsgEmbed.setFooter({ text: `${footer}`});
-
-        await msg.edit({embeds: [editMsgEmbed]});
-
         // "maj" component row
-      const row = await createRowGroupButtons(group);
-      await msg.edit({components: [row]})
+        const row = await createRowGroupButtons(group);
+        
+        await msg.edit({embeds: [editMsgEmbed], components: [row]});
     } else {
         logger.error(`Le channel de list group n'existe pas !`);
     }
