@@ -6,7 +6,7 @@ module.exports = {
     name: Events.GuildBanRemove,
     async execute(ban) {
         const embedLog = new EmbedBuilder()
-            .setColor(GREEN)
+            .setColor(GREEN
             .setAuthor({
                 name: "Membre débanni",
                 iconURL: ban.user.displayAvatarURL({
@@ -22,10 +22,10 @@ module.exports = {
                     format: "png",
                 }),
             )
-            .setDescription(`<@${ban.user.id}>\n`)
+            .setDescription(ban.user.toString())
             .addFields({
                 name: "Membre",
-                value: `\`${ban.user.tag}\` - <@${ban.user.id}>`,
+                value: `\`${ban.user.tag}\` - ${ban.user}`,
                 inline: true,
             })
             .setFooter({ text: `ID: ${ban.user.id}` })
