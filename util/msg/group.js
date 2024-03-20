@@ -399,7 +399,7 @@ async function createGroup(client, guildId, newGrp) {
     if (idListGroup) {
         const msgChannel = await client.channels.cache.get(idListGroup).messages.fetch(grpDB.idMsg);
 
-        // filtre reaction sur emoji
+        // Création du collecteur pour les boutons
         await createCollectorGroup(client, msgChannel);
     } else {
         logger.error(`Le channel de list group n'existe pas !`);
