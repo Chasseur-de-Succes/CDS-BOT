@@ -33,7 +33,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(ORANGE)
                 .setTitle(`Surnom modifier`)
-                .setDescription(`<@${newUser.id}>\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`)
+                .setDescription(`${newUser}\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`)
                 .setFooter({text: `ID: ${newUser.id}`})
                 .setTimestamp();
     
