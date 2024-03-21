@@ -3,7 +3,6 @@ note.txt
 archives
 
 .env
-package-lock.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,vim,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,vim,visualstudiocode

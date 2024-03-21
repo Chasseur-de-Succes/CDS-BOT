@@ -1,19 +1,38 @@
-FROM node:20.5-bookworm-slim
+FROM node:20.11.0-alpine3.19 AS base
+WORKDIR /home/node
 
-WORKDIR /app
+RUN apk add --no-cache ttf-dejavu
 
-RUN apt update && apt install -y python3 fontconfig
+########################
+FROM base AS build
 
-COPY package.json .
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    build-base \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev
 
-RUN npm install
+RUN npm i -g clean-modules@3
 
-COPY data ./data
-COPY events ./events
-COPY models ./models
-COPY slash_commands ./slash_commands
-COPY util ./util
-COPY index.js .
-COPY config.js .
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY . .
+
+RUN clean-modules --yes "**/*.d.ts" "**/@types/**"
+RUN rm -rf ./node_modules/.cache
+
+####################
+FROM base
+RUN apk add --no-cache cairo jpeg pango giflib
+
+USER node
+
+COPY --chown=node:node . .
+COPY --chown=node:node --from=build /home/node/node_modules node_modules
 
 CMD ["node", "index.js"]

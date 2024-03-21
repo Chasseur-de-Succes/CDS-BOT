@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "TobiBiotex",
-  "license": "GPL3",
+  "license": "AGPL-3.0",
   "dependencies": {
     "canvas": "^2.9.3",
     "cpu-stat": "^2.0.1",
@@ -23,5 +23,8 @@
     "superagent": "^6.1.0",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.6.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3"
   }
 }

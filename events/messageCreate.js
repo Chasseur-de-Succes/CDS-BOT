@@ -127,7 +127,7 @@ module.exports = {
                 // console.log('unset ok');
 
                 // by Kekwel && !refresh <appid>
-                if (msg.author.id = '283681024360054785' && commandName === "refresh") {
+                if (msg.author.id === '283681024360054785' && commandName === "refresh") {
                     let steamClient = new SteamUser();
                     steamClient.logOn({anonymous: true}); // Log onto Steam anonymously
 
