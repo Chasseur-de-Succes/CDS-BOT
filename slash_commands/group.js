@@ -1,8 +1,10 @@
 const { SALON } = require("../util/constants");
 const { createError, createLogs, sendLogs } = require("../util/envoiMsg");
-const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, ComponentType, ChannelType, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, ComponentType, ChannelType, PermissionFlagsBits,
+    PermissionsBitField
+} = require("discord.js");
 const { NIGHT } = require("../data/colors.json");
-const { CHECK_MARK, WARNING } = require('../data/emojis.json');
+const { CROSS_MARK, CHECK_MARK, WARNING } = require('../data/emojis.json');
 const { editMsgHubGroup, endGroup, createGroup, dissolveGroup, leaveGroup, deleteRappelJob, joinGroup } = require("../util/msg/group");
 const { createRappelJob } = require("../util/batch/batch");
 const { GuildConfig, Game, Group } = require('../models');
@@ -63,8 +65,7 @@ module.exports = {
                 .setName('add')
                 .setDescription("Ajoute un participant dans un groupe complet ou s'il a trop de groupes.")
                 .addUserOption(option => option.setName('membre').setDescription("Membre à ajouter").setRequired(true))
-                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true)))
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+                .addStringOption(option => option.setName('nom').setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))),
     async autocomplete(interaction) {
         const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
@@ -651,6 +652,14 @@ const forceAdd = async (interaction, options) => {
     const toAdd = options.get('membre')?.member;
     const client = interaction.client;
     const author = interaction.member;
+
+    // fix temporaire pour n'autoriser que les admin a exécuter cette sous commande
+    try {
+        // si l'utilisateur n'a pas le droit admin, ca lance une erreur, je sais pas pk mais voila
+        author.permissions.any(PermissionsBitField.ADMINISTRATOR)
+    } catch (err) {
+        return interaction.reply({ content: `${CROSS_MARK} Tu n'as pas les droits pour effectuer cette commande`, ephemeral: true });
+    }
 
     const userDB = await client.getUser(toAdd);
     const grp = await Group.findOne({ name: grpName }).populate('captain members game');
