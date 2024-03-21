@@ -79,13 +79,16 @@ const loadReactionGroup = async (client) => {
                 const grp = await Group.findOne({ idMsg: msg.id });
                 // filtre group encore en cours
                 if (!grp.validated) {
-                    // TODO enlever réactions
+                    // enleve réactions
+                    await msg.reactions.removeAll();
+
                     // "maj" msg group pour ajouter boutons + collector
                     const row = await createRowGroupButtons(grp);
                     await msg.edit({components: [row]})
                     await createCollectorGroup(client, msg);
-                } else
+                } else {
                     await moveToArchive(client, idListGroup, grp.idMsg)
+                }
             }).catch(async err => {
                 logger.error(`Erreur load listener reaction groupes ${err}, suppression msg`);
                 // on supprime les msg qui n'existent plus
