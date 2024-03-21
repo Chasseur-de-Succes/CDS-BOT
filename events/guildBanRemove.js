@@ -6,7 +6,7 @@ module.exports = {
     name: Events.GuildBanRemove,
     async execute(ban) {
         const embedLog = new EmbedBuilder()
-            .setColor(GREEN
+            .setColor(GREEN)
             .setAuthor({
                 name: "Membre débanni",
                 iconURL: ban.user.displayAvatarURL({
