@@ -146,7 +146,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
         let infos = [];
 
         for (const foundElement of found) {
-          infos.push('**| ' + foundElement.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + ' |**')
+          infos.push(`**| <t:${foundElement.getTime() / 1000}:t> |**`)
           infos.push(`*${game}*`)
           infos.push(`<#${channelId}>`)
         }
