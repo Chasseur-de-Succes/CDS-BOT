@@ -1,6 +1,6 @@
 const { Group } = require("../../../models");
 const { PermissionsBitField } = require("discord.js");
-const { joinGroup } = require("../util/msg/group");
+const { joinGroup } = require("../../../util/msg/group");
 
 const add = async (interaction, options) => {
     const grpName = options.get('nom')?.value;

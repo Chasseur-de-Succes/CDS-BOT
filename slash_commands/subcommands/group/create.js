@@ -1,6 +1,6 @@
 const { createError } = require("../../../util/envoiMsg");
 const { escapeRegExp } = require("../../../util/util");
-const { Game } = require("../../../models");
+const { Game, GuildConfig } = require("../../../models");
 const {
     ActionRowBuilder,
     StringSelectMenuBuilder,
@@ -22,7 +22,7 @@ const create = async (interaction, options) => {
     const client = interaction.client;
     const captain = interaction.member;
     const guildId = interaction.guildId;
-    
+
     // test si captain est register
     const captainDB = await client.getUser(captain);
     const nbGrps = await client.getNbOngoingGroups(captain.id);
@@ -39,14 +39,14 @@ const create = async (interaction, options) => {
     }
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
-    if (nameGrp.length < 3) 
+    if (nameGrp.length < 3)
         return interaction.reply({ embeds: [createError(`Le nombre **minimum** de caractères pour le nom d'un groupe est de **3**`)] });
 
     // si nom groupe existe
     let grp = await client.findGroupByName(nameGrp);
-    if (grp) 
+    if (grp)
         return interaction.reply({ embeds: [createError(`Le nom du groupe existe déjà. Veuillez en choisir un autre.`)] });
-    
+
     // création de la regex sur le nom du jeu
     logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
     let regGame = new RegExp(escapeRegExp(gameName), "i");
@@ -95,7 +95,7 @@ const create = async (interaction, options) => {
         .setColor(NIGHT)
         .setTitle(`J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`)
         .setDescription(`Lequel est celui que tu cherchais ?`);
-    
+
     let msgEmbed = await interaction.editReply({embeds: [embed], components: [row] });
 
     // attend une interaction bouton de l'auteur de la commande
@@ -160,7 +160,7 @@ const create = async (interaction, options) => {
 
     for (const devID of process.env.DEVELOPERS.split(',')) {
         channel.permissionOverwrites.edit(devID, {
-            ViewChannel: true, 
+            ViewChannel: true,
             SendMessages: true,
             MentionEveryone: true
         })
