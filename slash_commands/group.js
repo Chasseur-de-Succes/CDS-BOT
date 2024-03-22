@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { escapeRegExp } = require("../util/util");
-const { create, dissolve, end, kick, schedule, transfert, editNbParticipant } = require("./subcommands/group");
+const { create, dissolve, end, kick, schedule, transfert, editNbParticipant, add } = require("./subcommands/group");
 const { Game, Group } = require("../models");
 
 module.exports = {
@@ -50,9 +50,13 @@ module.exports = {
                 .setName("nb-participant")
                 .setDescription("Modifie le nombre de participants max (👑 only)")
                 .addStringOption(option => option.setName("nom").setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))
-                .addIntegerOption(option => option.setName("max").setDescription("Nouveau nombre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true))
-        )
-    ,
+                .addIntegerOption(option => option.setName("max").setMinValue(0).setDescription("Nouveau nbre max de membres dans le groupe. Mettre 0 si infini.").setRequired(true)))
+        .addSubcommand(sub =>
+            sub
+                .setName("add")
+                .setDescription("Ajoute un participant dans un groupe complet ou s'il a trop de groupes.")
+                .addUserOption(option => option.setName("membre").setDescription("Membre à ajouter").setRequired(true))
+                .addStringOption(option => option.setName("nom").setDescription("Nom du groupe").setRequired(true).setAutocomplete(true))),
     async autocomplete(interaction) {
         const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
@@ -126,6 +130,8 @@ module.exports = {
             kick(interaction, interaction.options)
         } else if (subcommand === "nb-participant") {
             editNbParticipant(interaction, interaction.options)
+        } else if (subcommand === 'add') {
+            add(interaction, interaction.options)
         }
     },
 }
