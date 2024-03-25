@@ -1,6 +1,7 @@
-const {SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder} = require("discord.js");
+const {SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, time} = require("discord.js");
 const {createError} = require("../util/envoiMsg");
 const {Group} = require("../models");
+const {TimestampStyles} = require("@discordjs/formatters");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -146,7 +147,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
         let infos = [];
 
         for (const foundElement of found) {
-          infos.push(`**| <t:${foundElement.getTime() / 1000}:t> |**`)
+          infos.push(`**| ${time(foundElement, TimestampStyles.ShortTime)} |**`)
           infos.push(`*${game}*`)
           infos.push(`<#${channelId}>`)
         }
