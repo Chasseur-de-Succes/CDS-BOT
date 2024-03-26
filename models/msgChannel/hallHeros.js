@@ -1,13 +1,15 @@
-const mongoose = require('mongoose');
-const Message = require('./msg');
+const mongoose = require("mongoose");
+const Message = require("./msg");
 
-const herosSchema = Message.discriminator('MsgHallHeros', new mongoose.Schema({
+const herosSchema = Message.discriminator(
+    "MsgHallHeros",
+    new mongoose.Schema({
         // nb 🏆, 💯 et custom ou autre
-        reactions: { 
+        reactions: {
             type: Map,
-            of: Number
-        }
-    })
+            of: Number,
+        },
+    }),
 );
 
 module.exports = mongoose.model("MsgHallHeros");
