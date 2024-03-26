@@ -8,12 +8,12 @@ const {
 } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { Group } = require("../models");
-const {TimestampStyles} = require("@discordjs/formatters");
+const { TimestampStyles } = require("@discordjs/formatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("calendrier")
-        .setDescription(`Affiche le calendrier des prochains événements`)
+        .setDescription("Affiche le calendrier des prochains événements")
         .setDMPermission(true)
         .addUserOption((option) =>
             option
@@ -26,7 +26,7 @@ module.exports = {
         // si aucun argument pour target, on prend l'utilisateur qui a envoyé la commande
         const user = interaction.options.getUser("target") ?? interaction.user;
 
-        let dbUser = await client.findUserById(user.id);
+        const dbUser = await client.findUserById(user.id);
 
         if (!dbUser) {
             // Si pas dans la BDD
@@ -105,7 +105,7 @@ module.exports = {
         });
 
         // apres 5 min, on "ferme"
-        collector.on("end", async (collected) => {
+        collector.on("end", async () => {
             await interaction.editReply({
                 embeds: [
                     await createEmbed(
@@ -145,7 +145,7 @@ async function createEmbed(date, guildId, dbUser, username) {
         day: "numeric",
         month: "short",
     });
-    const titre = `🗓️  ${weekStart} ➡️ ${weekEnd}`;
+    const titre = `🗓  ${weekStart} ➡ ${weekEnd}`;
 
     const footer = `planning de ${username}`;
 
@@ -163,7 +163,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
         month: "short",
         day: "numeric",
     };
-    console.log(
+    logger.info(
         `.. recherche event du ${lundi.toLocaleDateString(
             "fr-FR",
             options,
@@ -171,15 +171,15 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
     );
 
     // parcours de la semaine
-    let jours = [];
+    const jours = [];
     for (let i = 0; i < 7; i++) {
         // nouvelle instance de Date à partir du lundi
-        let date = new Date(lundi);
+        const date = new Date(lundi);
         // +i jour
         date.setDate(date.getDate() + i);
 
         // recup groupes qui ont la date courante
-        let groups = await Group
+        const groups = await Group
             // .where('guildId', guildId)
             .where("dateEvent")
             .gte(new Date(date.setHours(0, 0)))
@@ -189,7 +189,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
             .populate("game")
             .exec();
 
-        let fieldValue = `◾◾◾`;
+        let fieldValue = "◾◾◾";
         for (const group of groups) {
             // TODO is captain ?
             const {
@@ -204,16 +204,14 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
                     date.getDay() === d.getDay(),
             );
             if (found.length) {
-                let infos = [];
+                const infos = [];
 
                 for (const foundElement of found) {
                     infos.push(
-                        "**| " +
-                            foundElement.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }) +
-                            " |**",
+                        `**| ${time(
+                            foundElement,
+                            TimestampStyles.ShortTime,
+                        )} |**`,
                     );
                     infos.push(`*${game}*`);
                     infos.push(`<#${channelId}>`);
