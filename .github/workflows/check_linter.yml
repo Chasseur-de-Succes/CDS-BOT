@@ -1,0 +1,17 @@
+name: Vérifie si le linter a été passé sur une branche
+
+on:
+  pull_request:
+    branches:
+      - 'dev'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check linter
+        run: |
+          npx @biomejs/biome format .
