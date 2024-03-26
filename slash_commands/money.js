@@ -15,7 +15,7 @@ module.exports = {
     async execute(interaction) {
         const client = interaction.client;
         const user = interaction.options.getUser("target") ?? interaction.user;
-        let member = interaction.guild.members.cache.get(user.id);
+        const member = interaction.guild.members.cache.get(user.id);
 
         const dbUser = await client.getUser(member);
         if (!dbUser)

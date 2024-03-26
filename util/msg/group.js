@@ -36,7 +36,7 @@ function getMembersList(group, members) {
 async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
     const memberCaptain = members.get(group.captain.userId);
     const membersStr = getMembersList(group, members);
-    let color = "";
+    let color;
     if (group.validated) color = NIGHT;
     else if (group.size === group.nbMax) color = DARK_RED;
     else if (group.size === 1) color = GREEN;
@@ -147,7 +147,7 @@ async function sendMsgHubGroup(client, guildId, group) {
     // recuperation id message pour pouvoir l'editer par la suite
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
     if (idListGroup) {
-        let msg = await client.channels.cache
+        const msg = await client.channels.cache
             .get(idListGroup)
             .send({ embeds: [newMsgEmbed] });
         await client.update(group, { idMsg: msg.id });
@@ -293,8 +293,8 @@ async function createReactionCollectorGroup(client, msg, grp) {
  */
 async function leaveGroup(client, guildId, grp, userDB) {
     // update du groupe : size -1, remove de l'user dans members
-    let memberGrp = grp.members.find((u) => u._id.equals(userDB._id));
-    var indexMember = grp.members.indexOf(memberGrp);
+    const memberGrp = grp.members.find((u) => u._id.equals(userDB._id));
+    const indexMember = grp.members.indexOf(memberGrp);
     grp.members.splice(indexMember, 1);
     grp.size--;
     // fix au cas où
@@ -375,7 +375,7 @@ async function joinGroup(client, guildId, grp, userDB) {
 
 async function createGroup(client, guildId, newGrp) {
     newGrp.guildId = guildId;
-    let grpDB = await client.createGroup(newGrp);
+    const grpDB = await client.createGroup(newGrp);
 
     // stat ++
     await User.updateOne(
@@ -431,9 +431,9 @@ async function endGroup(client, guildId, grp) {
     // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
     // TODO xp variable en fonction nb de personnes, autre..
     // TODO que faire si end sans qu'il y ai eu qqchose de fait ? comment vérifier ?
-    let xp = BAREME_XP.EVENT_END;
+    const xp = BAREME_XP.EVENT_END;
     // TODO bonus captain
-    let xpBonusCaptain = BAREME_XP.CAPTAIN;
+    const xpBonusCaptain = BAREME_XP.CAPTAIN;
 
     // xp pour tous les membres (captain inclus)
     for (const member of grp.members) {
@@ -451,7 +451,7 @@ async function endGroup(client, guildId, grp) {
         baseSession = 50;
     const nbSession = grp.dateEvent.length;
     const nbJoueur = grp.size;
-    let prize =
+    const prize =
         (base + baseJoueur * nbJoueur) * nbJoueur + baseSession * nbSession;
 
     // - Stat++ pour tous les membres
@@ -485,12 +485,12 @@ async function moveToArchive(client, idListGroup, idMsg) {
     msgChannel.reactions.removeAll();
 
     // déplacement vers thread
-    let archived = await channel.threads.fetchArchived();
+    const archived = await channel.threads.fetchArchived();
     let thread = archived.threads.filter((x) => x.name === "Groupes terminés");
 
     // si pas archivé, on regarde s'il est actif
     if (thread.size === 0) {
-        let active = await channel.threads.fetchActive();
+        const active = await channel.threads.fetchActive();
         thread = active.threads.filter((x) => x.name === "Groupes terminés");
     }
 
@@ -561,7 +561,7 @@ function deleteRappelJob(client, groupe, date) {
     // si job existe -> delete
     client.findJob({ name: jobName1h }).then((jobs) => {
         if (jobs.length > 0) {
-            let jobDB = jobs[0];
+            const jobDB = jobs[0];
             logger.info(
                 "-- Suppression " +
                     jobDB.name +
@@ -574,7 +574,7 @@ function deleteRappelJob(client, groupe, date) {
     });
     client.findJob({ name: jobName1d }).then((jobs) => {
         if (jobs.length > 0) {
-            let jobDB = jobs[0];
+            const jobDB = jobs[0];
             logger.info(
                 "-- Suppression " +
                     jobDB.name +

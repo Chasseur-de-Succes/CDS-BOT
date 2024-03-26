@@ -6,7 +6,6 @@ const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
 const { GREEN } = require("../data/colors.json");
 const { EmbedBuilder } = require("discord.js");
 const { delay, crtHour } = require("../util/constants");
-const moment = require("moment");
 const { retryAfter5min } = require("./util");
 
 module.exports = (client) => {
@@ -73,7 +72,7 @@ module.exports = (client) => {
     client.getAchievements = async (appid) => {
         // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=xxx&gameid=xxx
         // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=FC01A70E34CC7AE7174C575FF8D8A07F&gameid=321040
-        const search = await superagent
+        return await superagent
             .get(
                 "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/",
             )
@@ -81,7 +80,6 @@ module.exports = (client) => {
                 key: process.env.STEAM_API_KEY,
                 gameid: appid,
             });
-        return search;
     };
 
     /**
@@ -97,7 +95,7 @@ module.exports = (client) => {
     client.getAppList = async (lastappid = 0) => {
         // TODO passer à v2 https://stackoverflow.com/questions/46330864/steam-api-all-games
         // https://steamapi.xpaw.me/#IStoreService/GetAppList
-        const response = await superagent
+        return await superagent
             .get("https://api.steampowered.com/IStoreService/GetAppList/v1/?")
             .query({
                 key: process.env.STEAM_API_KEY,
@@ -113,8 +111,6 @@ module.exports = (client) => {
             .query({
                 key: STEAM_API_KEY,
             }); */
-
-        return response;
     };
 
     /**
@@ -123,14 +119,12 @@ module.exports = (client) => {
      * @returns Object JSON, au format :
      */
     client.getAppDetails = async (appid) => {
-        const response = await superagent
+        return await superagent
             .get("https://store.steampowered.com/api/appdetails/?")
             .query({
                 key: process.env.STEAM_API_KEY,
                 appids: appid,
             });
-
-        return response;
     };
 
     /**
@@ -147,15 +141,14 @@ module.exports = (client) => {
      * Fournit un résumé complet du joueur
      */
     client.getPlayerSummaries = async (userid) => {
-        const reponse = await superagent
+        return await superagent
             .get(
-                "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?",
+                "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?",
             )
             .query({
                 key: process.env.STEAM_API_KEY,
                 steamids: userid,
             });
-        return reponse;
     };
 
     client.getSchemaForGame = async (appid) => {
@@ -183,15 +176,15 @@ module.exports = (client) => {
         // - recup achievements (si présent)
         const resp = await client.getSchemaForGame(appId);
 
-        let gameName = "",
-            type = "",
-            iconHash = "";
-        let lSucces = [];
-        let isMulti = false,
-            isCoop = false,
-            hasAchievements = false,
-            isRemoved = false;
-        let update = {};
+        let gameName;
+        let type;
+        let iconHash = "";
+        let lSucces;
+        let isMulti = false;
+        let isCoop = false;
+        let hasAchievements = false;
+        let isRemoved = false;
+        let update;
 
         if (!app?.body[appId]?.success) {
             // - chercher autre part car peut etre jeu "removed"
@@ -209,14 +202,14 @@ module.exports = (client) => {
             type = app.body[appId].data?.type;
             gameName = app.body[appId].data?.name;
             let tags = app.body[appId].data?.categories;
-            let totalAch = app.body[appId].data?.achievements?.total;
+            const totalAch = app.body[appId].data?.achievements?.total;
             // au cas où pas de tags ou undefined
             tags = tags ? tags : [];
             // on ne garde que les tags qui nous intéresse (MULTI, COOP et ACHIEVEMENTS)
             // TODO voir pour faire autrement ? récupérer tous les tags peu importe et faire recherche sur les tags via Mongo ?
             isMulti = tags.some((tag) => tag.id === TAGS.MULTI.id);
             isCoop = tags.some((tag) => tag.id === TAGS.COOP.id);
-            hasAchievements = totalAch ? true : false;
+            hasAchievements = totalAch;
         }
 
         // si jeu a des succès
@@ -224,12 +217,12 @@ module.exports = (client) => {
             const achievements = resp.availableGameStats.achievements;
 
             // - ajout & save succes dans Game
-            achievements.forEach((el) => {
-                el["apiName"] = el["name"];
-                delete el.name;
-                delete el.defaultvalue;
-                delete el.hidden;
-            });
+            for (el of achievements) {
+                el.apiName = el.name;
+                el.name = undefined;
+                el.defaultvalue = undefined;
+                el.hidden = undefined;
+            }
 
             lSucces = achievements;
         } else {
@@ -241,7 +234,7 @@ module.exports = (client) => {
         // recup icon
         if (steamClient) {
             // Passing true as the third argument automatically requests access tokens, which are required for some apps
-            let result = await steamClient.getProductInfo([appId], [], true);
+            const result = await steamClient.getProductInfo([appId], [], true);
             // if (result.apps[appId].appinfo?.common?.clienticon)
             //     iconHash = result.apps[appId].appinfo.common.clienticon;
             if (result.apps[appId].appinfo?.common?.icon)
@@ -302,11 +295,8 @@ module.exports = (client) => {
     };
 
     client.fetchAllApps = async (msgProgress) => {
-        let crtIdx = 1,
-            cptGame = 0;
-        let nbTotal = 0,
-            nbDistinct = 0,
-            nbNoType = 0;
+        let crtIdx = 1;
+        let cptGame = 0;
 
         let apps = await client.getAllApps();
         console.log(`trouvé ${apps.length}`);
@@ -319,7 +309,6 @@ module.exports = (client) => {
         // TODO je crois ?
         apps = apps.filter((item) => item.appid % 10 === 0);
         console.log(`aftr mod 10 ${apps.length}`);
-        nbTotal = apps.length;
 
         // - remove appids déjà dans la bdd
         // - recup tous les appids de la bdd
@@ -328,14 +317,12 @@ module.exports = (client) => {
             (item) => !appidsDB.includes(item.appid),
         );
         console.log(` distinct ${appsDistinct.length}`);
-        nbDistinct = appsDistinct.length;
 
         // ne garde que ceux qui n'ont pas de 'type'
         const noTypeObj = await Game.find({ type: null });
         const noType = noTypeObj.map((obj) => obj.appid);
         const appsNoType = apps.filter((item) => noType.includes(item.appid));
         console.log(` no type ${appsNoType.length}`);
-        nbNoType = appsNoType.length;
 
         // fusion des nouvelles appid et des jeux n'ayant pas de type
         apps = appsNoType.concat(appsDistinct);
@@ -361,19 +348,15 @@ module.exports = (client) => {
 
             console.log(` * go ${app.appid} ${app.name}`);
             try {
-                await retryAfter5min(async function () {
+                await retryAfter5min(async () => {
                     await client.fetchGame(app.appid, "system", app.name);
                 });
             } catch (err) {
-                console.log("nope " + app.name);
+                console.log(`nope ${app.name}`);
 
                 if (err.status === 429) {
                     logger.info(
-                        "\x1b[34m[INFO]\x1b[0m [" +
-                            crtHour() +
-                            "] - " +
-                            err +
-                            ", on attend 5 min ..",
+                        `\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${err}, on attend 5 min ..`,
                     );
 
                     if (msgProgress)
@@ -398,7 +381,7 @@ module.exports = (client) => {
             crtIdx++;
         }
 
-        logger.info(".. Fin refresh games, " + cptGame + " jeux ajoutés");
+        logger.info(`.. Fin refresh games, ${cptGame} jeux ajoutés`);
         return `Import des jeux terminés, ${cptGame} jeux ajoutés 👏`;
     };
 };

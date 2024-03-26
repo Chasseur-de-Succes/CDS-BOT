@@ -1,10 +1,9 @@
-const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
+const { Client, GatewayIntentBits, Events } = require("discord.js");
 const {
     loadCommands,
     loadEvents,
     loadBatch,
     loadReactionGroup,
-    loadRoleGiver,
     loadReactionMsg,
     loadVocalCreator,
 } = require("./util/loader");
@@ -12,7 +11,7 @@ const winston = require("winston");
 require("winston-daily-rotate-file");
 require("dotenv").config();
 
-var transport = new winston.transports.DailyRotateFile({
+const transport = new winston.transports.DailyRotateFile({
     filename: "logs/app-%DATE%.log",
     datePattern: "YYYY-MM-DD-HH",
     zippedArchive: true,
@@ -72,7 +71,7 @@ client.login(process.env.TOKEN).then((c) => {
     //loadReactionGroup(client);
 });
 
-client.once(Events.ClientReady, async (c) => {
+client.once(Events.ClientReady, async () => {
     console.log(`
   oooooooo8 ooooooooo    oooooooo8       oooooooooo    ooooooo   ooooooooooo 
 o888     88  888    88o 888               888    888 o888   888o 88  888  88 

@@ -11,8 +11,8 @@ const end = async (interaction, options) => {
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
-    const authorDB = await client.getUser(author);
-    if (!authorDB)
+    const authorDb = await client.getUser(author);
+    if (!authorDb)
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -30,7 +30,7 @@ const end = async (interaction, options) => {
         });
 
     // Si l'auteur n'est pas admin et n'est pas capitaine
-    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+    if (!isAdmin && !grp.captain._id.equals(authorDb._id))
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${grp.name} !`),
@@ -65,9 +65,9 @@ const end = async (interaction, options) => {
 
     // - MONEY
     // X = [[(Valeur du joueur de base (20)+ (5 par joueur supplémentaire)] X par le nombre de joueurs total inscrit]] + 50 par session
-    const base = 20,
-        baseJoueur = 5,
-        baseSession = 50;
+    const base = 20;
+    const baseJoueur = 5;
+    const baseSession = 50;
     const nbSession = grp.dateEvent.length;
     const nbJoueur = grp.size;
     const prize =

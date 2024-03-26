@@ -8,19 +8,17 @@ async function cancel(interaction, options) {
     const client = interaction.client;
     const author = interaction.member;
 
-    let gameItem;
-    try {
-        // On récupère le premier élement car findGameItemShop retourne un tableau...
-        gameItem = await client.findGameItemShop({ _id: id })[0];
-        if (gameItem.length === 0) throw "Non trouvée";
-    } catch (error) {
+    // On récupère le premier élement car findGameItemShop retourne un tableau...
+    const gameItem = await client.findGameItemShop({ _id: id })[0];
+
+    if (gameItem.length === 0) {
         return interaction.reply({
             embeds: [createError("Vente non trouvée")],
         });
     }
 
     // Test si state existe et si != 'done'
-    if (!gameItem.state)
+    if (!gameItem.state) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -28,7 +26,9 @@ async function cancel(interaction, options) {
                 ),
             ],
         });
-    if (gameItem.state === "done")
+    }
+
+    if (gameItem.state === "done") {
         return interaction.reply({
             embeds: [
                 createError(
@@ -36,6 +36,7 @@ async function cancel(interaction, options) {
                 ),
             ],
         });
+    }
 
     await client.update(gameItem, { $unset: { state: 1, buyer: 1 } });
 
@@ -59,16 +60,16 @@ async function cancel(interaction, options) {
 
     logger.info(`Annulation vente id ${id}`);
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Vente annulée !`)
-        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
-                         ▶️ L'item est de nouveau **disponible** dans le shop`);
+        .setDescription(`▶ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
+                         ▶ L'item est de nouveau **disponible** dans le shop`);
     interaction.reply({ embeds: [embed] });
     createLogs(
         client,
         interaction.guildId,
-        `Annulation vente`,
+        "Annulation vente",
         `${author} a annulé la vente en cours de **${gameItem.game.name}**, par **${gameItem.seller.username}**`,
         `ID : ${id}`,
         YELLOW,

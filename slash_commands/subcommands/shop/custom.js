@@ -12,15 +12,14 @@ const { NIGHT, GREEN, DARK_RED } = require("../../../data/colors.json");
 const customItems = require("../../../data/customShop.json");
 
 async function custom(interaction, options) {
-    let type = options.get("type").value;
+    const type = options.get("type").value;
     const client = interaction.client;
-    const guild = interaction.guild;
-    let author = interaction.member;
+    const author = interaction.member;
 
     // "Bot réfléchit.."
     await interaction.deferReply();
 
-    let userDB = await client.getUser(author);
+    const userDB = await client.getUser(author);
     if (!userDB)
         return interaction.editReply({
             embeds: [
@@ -39,8 +38,8 @@ async function custom(interaction, options) {
 }
 
 async function createChoixCustom(interaction, userDB, type, customItems) {
-    let itemsSelect = [];
-    for (let x in customItems[type].values) {
+    const itemsSelect = [];
+    for (const x in customItems[type].values) {
         const nom = customItems[type].values[x].name;
         const prix = customItems[type].values[x].price;
 
@@ -56,13 +55,13 @@ async function createChoixCustom(interaction, userDB, type, customItems) {
             .addOptions(itemsSelect),
     );
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`💰 BOUTIQUE - PROFILE 💰`)
         .setDescription(`Quel élément voulez-vous acheter ?`)
         .setFooter({ text: `💵 ${userDB.money} ${process.env.MONEY}` });
 
-    let msgEmbed = await interaction.editReply({
+    const msgEmbed = await interaction.editReply({
         embeds: [embed],
         components: [rowItem],
     });
@@ -108,7 +107,7 @@ async function createAchatCustom(
     // const backBtn = new MessageButton()
     //     .setCustomId("back")
     //     .setLabel('Retour')
-    //     .setEmoji('⬅️')
+    //     .setEmoji('⬅')
     //     .setStyle('PRIMARY')
 
     // recup settings de l'user
@@ -137,7 +136,7 @@ async function createAchatCustom(
         buyBtn,
     );
 
-    let msgCustomEmbed = await interaction.editReply({
+    const msgCustomEmbed = await interaction.editReply({
         embeds: [embed],
         components: [row],
         fetchReply: true,
@@ -170,14 +169,16 @@ async function createAchatCustom(
 
                 // TODO refactor.. doublons un peu
                 try {
-                    let filter = (m) => {
+                    const filter = (m) => {
                         return m.author.id === interaction.member.id;
                     };
-                    let response = await msgCustomEmbed.channel.awaitMessages({
-                        filter,
-                        max: 1,
-                        time: 300000,
-                    });
+                    const response = await msgCustomEmbed.channel.awaitMessages(
+                        {
+                            filter,
+                            max: 1,
+                            time: 300000,
+                        },
+                    );
                     let daColor = response.first().content;
 
                     // regex #000 ou #000000
@@ -195,7 +196,7 @@ async function createAchatCustom(
 
                         // sinon on achete/utilise
                         const query = { userId: userDB.userId };
-                        var update = { $set: {} };
+                        let update = { $set: {} };
 
                         // on met a false toutes les options (s'il y en a)
                         getJSONValue(
@@ -282,7 +283,7 @@ async function createAchatCustom(
             } else {
                 // sinon on achete/utilise
                 const query = { userId: userDB.userId };
-                var update = { $set: {} };
+                let update = { $set: {} };
 
                 // on met a false toutes les options (s'il y en a)
                 getJSONValue(configProfile, dbConfig, new Map()).forEach(
@@ -333,7 +334,7 @@ async function createAchatCustom(
     });
 
     // apres 5 min, on "ferme"
-    collector.on("end", (collected) => {
+    collector.on("end", () => {
         msgCustomEmbed.edit({
             embeds: [embed],
             components: [],

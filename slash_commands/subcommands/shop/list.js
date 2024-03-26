@@ -8,11 +8,11 @@ const { createError } = require("../../../util/envoiMsg");
 const { YELLOW } = require("../../../data/colors.json");
 const NB_PAR_PAGES = 10;
 
-async function list(interaction, options) {
+async function list(interaction) {
     const client = interaction.client;
     const author = interaction.member;
 
-    let userDB = await client.getUser(author);
+    const userDB = await client.getUser(author);
     if (!userDB)
         return interaction.reply({
             embeds: [
@@ -37,19 +37,19 @@ async function list(interaction, options) {
         return interaction.reply({ embeds: [embed] });
     }
 
-    let rows = [];
+    const rows = [];
     // row pagination
     const prevBtn = new ButtonBuilder()
         .setCustomId("prev")
         .setLabel("Préc.")
-        .setEmoji("⬅️")
+        .setEmoji("⬅")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(true);
 
     const nextBtn = new ButtonBuilder()
         .setCustomId("next")
         .setLabel("Suiv.")
-        .setEmoji("➡️")
+        .setEmoji("➡")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(items.length / NB_PAR_PAGES <= 1);
 
@@ -59,7 +59,7 @@ async function list(interaction, options) {
 
     /* 1ere page liste */
     embed = createListGame(items, userDB.money);
-    let msgListEmbed = await interaction.reply({
+    const msgListEmbed = await interaction.reply({
         embeds: [embed],
         components: rows,
         fetchReply: true,
@@ -95,7 +95,7 @@ async function list(interaction, options) {
     });
 
     // apres 5 min, on "ferme" la boutique
-    collector.on("end", (collected) => {
+    collector.on("end", () => {
         msgListEmbed.edit({
             embeds: [createListGame(items, userDB.money, currentIndex)],
             components: [],
@@ -104,7 +104,7 @@ async function list(interaction, options) {
 }
 
 function createListGame(items, money, currentIndex = 0) {
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle("💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰")
         //.setDescription(`Liste des jeux disponibles à l'achat.`)
@@ -117,10 +117,10 @@ function createListGame(items, money, currentIndex = 0) {
     // on limite le nb de jeu affichable (car embed à une limite de caracteres)
     // de 0 à 10, puis de 10 à 20, etc
     // on garde l'index courant (page du shop), le nom du jeu et le prix min
-    let pages = [],
+    const pages = [],
         jeux = [],
         prixMin = [];
-    for (let i = 0 + currentIndex * 10; i < 10 + currentIndex * 10; i++) {
+    for (let i = currentIndex * 10; i < 10 + currentIndex * 10; i++) {
         const item = items[i];
         if (item) {
             // TODO revoir affichage item (couleur ?)

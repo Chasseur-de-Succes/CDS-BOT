@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const customItems = require("../data/customShop.json");
-const { User, Game } = require("../models");
-const { escapeRegExp, getJSONValue } = require("../util/util");
+const { Game } = require("../models");
+const { escapeRegExp } = require("../util/util");
 const { jeux, list, custom, sell } = require("./subcommands/shop");
 
 module.exports = {
@@ -53,8 +53,8 @@ module.exports = {
     async autocomplete(interaction) {
         if (interaction.commandName === "shop") {
             if (interaction.options.getSubcommand() === "custom") {
-                let filtered = [];
-                for (let x in customItems) {
+                const filtered = [];
+                for (const x in customItems) {
                     filtered.push({
                         name: customItems[x].title,
                         // description: 'Description',
@@ -111,7 +111,7 @@ module.exports = {
                         .map((element) => ({
                             name:
                                 element.name?.length > 100
-                                    ? element.name.substr(0, 96) + "..."
+                                    ? element.name.substring(0, 96) + "..."
                                     : element.name,
                             value: "" + element.appid,
                         }));

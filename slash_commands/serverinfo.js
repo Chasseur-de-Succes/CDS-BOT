@@ -1,4 +1,4 @@
-const colors = require("../data/colors.json");
+const { NIGHT } = require("../data/colors.json");
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
         const owner = await client.users.fetch(guild.ownerId);
 
         const embed = new EmbedBuilder()
-            .setColor(colors.NIGHT)
+            .setColor(NIGHT)
             .setTitle(guild.name)
             .setDescription(`ID: ` + guild.id)
             .setThumbnail(guild.iconURL())
@@ -44,7 +44,7 @@ module.exports = {
                 },
             )
             .setTimestamp(new Date())
-            .setFooter({ text: "Demandé par " + user.username });
+            .setFooter({ text: `Demandé par ${user.username}` });
 
         await interaction.reply({ embeds: [embed] });
     },

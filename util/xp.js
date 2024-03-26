@@ -53,8 +53,6 @@ module.exports.addXp = async (client, guildId, user, xp) => {
  */
 module.exports.getXpNeededForNextLevel = (lvl) => {
     if (lvl === 1) return 100;
-    else
-        return (
-            this.getXpNeededForNextLevel(lvl - 1) + THREESOLD_LVL * (lvl - 1)
-        );
+
+    return this.getXpNeededForNextLevel(lvl - 1) + THREESOLD_LVL * (lvl - 1);
 };

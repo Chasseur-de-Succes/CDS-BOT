@@ -8,20 +8,19 @@ async function refund(interaction, options) {
     const client = interaction.client;
     const author = interaction.member;
 
-    let gameItem;
-    try {
-        gameItem = await client.findGameItemShop({ _id: id });
-        if (gameItem.length === 0) throw "Non trouvée";
-    } catch (error) {
+    let gameItem = await client.findGameItemShop({ _id: id });
+
+    if (gameItem.length === 0) {
         return interaction.reply({
             embeds: [createError("Vente non trouvée")],
         });
     }
-    // on recup [0] car findGameItemShop retourne un array..
+
+    // on recup [0] car findGameItemShop retourne un array...
     gameItem = gameItem[0];
 
     // teste si state existe et si == 'done'
-    if (!gameItem.state)
+    if (!gameItem.state) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -29,7 +28,9 @@ async function refund(interaction, options) {
                 ),
             ],
         });
-    if (gameItem.state !== "done")
+    }
+
+    if (gameItem.state !== "done") {
         return interaction.reply({
             embeds: [
                 createError(
@@ -37,6 +38,7 @@ async function refund(interaction, options) {
                 ),
             ],
         });
+    }
 
     // maj statut item
     await client.update(gameItem, { $unset: { state: 1, buyer: 1 } });
@@ -73,12 +75,12 @@ async function refund(interaction, options) {
 
     logger.info(`Remboursement vente id ${id}`);
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Achat remboursé !`)
-        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
-                         ▶️ ${process.env.MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
-                         ▶️ L'item est de nouveau **disponible** dans le shop`);
+        .setDescription(`▶ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
+                         ▶ ${process.env.MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
+                         ▶ L'item est de nouveau **disponible** dans le shop`);
     interaction.reply({ embeds: [embed] });
     createLogs(
         client,

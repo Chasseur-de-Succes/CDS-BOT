@@ -15,7 +15,7 @@ module.exports = {
     async execute(interaction) {
         const appId = interaction.options.get("appid")?.value;
         const client = interaction.client;
-        let user = interaction.user;
+        const user = interaction.user;
 
         await interaction.deferReply();
 
@@ -25,7 +25,7 @@ module.exports = {
         } catch (err) {
             console.log(err);
             return interaction.editReply({
-                embeds: [createError(`Jeu introuvable !`)],
+                embeds: [createError("Jeu introuvable !")],
             });
         }
     },

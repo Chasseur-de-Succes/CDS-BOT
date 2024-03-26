@@ -2,6 +2,7 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
     AttachmentBuilder,
+    ActivityType,
 } = require("discord.js");
 const succes = require("../data/achievements.json");
 const {
@@ -10,7 +11,6 @@ const {
     CRIMSON,
 } = require("../data/colors.json");
 const { STEAM, ASTATS, CME, SH } = require("../data/emojis.json");
-const { MESSAGES } = require("../util/constants.js");
 const { createError } = require("../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../util/xp");
 
@@ -37,10 +37,10 @@ module.exports = {
         ),
     async autocomplete(interaction) {
         const focusedValue = interaction.options.getFocused(true);
-        let filtered = [];
+        const filtered = [];
 
         if (focusedValue.name === "succes") {
-            for (let x in succes) {
+            for (const x in succes) {
                 filtered.push({ name: succes[x].title, value: x });
             }
         }
@@ -49,10 +49,10 @@ module.exports = {
     async execute(interaction) {
         const client = interaction.client;
         const user = interaction.options.getUser("target") ?? interaction.user;
-        let member = interaction.guild.members.cache.get(user.id);
-        let typeSucces = interaction.options.get("succes")?.value;
+        const member = interaction.guild.members.cache.get(user.id);
+        const typeSucces = interaction.options.get("succes")?.value;
 
-        let dbUser = await client.getUser(member);
+        const dbUser = await client.getUser(member);
 
         if (!dbUser) {
             // Si pas dans la BDD
@@ -82,8 +82,8 @@ module.exports = {
                     ? money
                     : getJSONValue(userStat, infoSucces.db, "");
             let desc = ``;
-            for (let x in infoSucces.succes) {
-                const achieved = nbStat >= parseInt(x);
+            for (const x in infoSucces.succes) {
+                const achieved = nbStat >= Number.parseInt(x);
 
                 if (achieved) desc += `✅ `;
                 else desc += `⬛ `;
@@ -101,7 +101,7 @@ module.exports = {
         }
 
         // AFFICHAVE CANVAS
-        const urlSteam = `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})`;
+        const urlSteam = `[Steam](https://steamcommunity.com/profiles/${dbUser.steamId})`;
         const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
         const urlCME = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
         const urlSH = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
@@ -210,19 +210,19 @@ module.exports = {
         if (member.presence) {
             let activities = member.presence.activities;
             // - filtre 'type' sur 'PLAYING'
-            activities = activities.filter((act) => act.type === "PLAYING");
+            activities = activities.filter(
+                (act) => act.type === ActivityType.Playing,
+            );
             if (activities.length === 1) {
                 const act = activities[0];
 
                 const game = act.name;
-                //const game = 'Half-Life Deathmatch: Source';
-                const width = ctx.measureText(game).width;
 
                 const gameDB = await Game.findOne({ name: game });
                 if (gameDB) {
                     const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDB.appid}/capsule_184x69.jpg`;
                     try {
-                        let gameImg = await Canvas.loadImage(gameUrlHeader);
+                        const gameImg = await Canvas.loadImage(gameUrlHeader);
                         ctx.drawImage(
                             gameImg,
                             canvas.width - 194 - 10,
@@ -319,7 +319,7 @@ module.exports = {
         // - recup stats OU achievements lié à user
         const stats = dbUser.stats;
         let crtX = x;
-        let crtY = 140;
+        const crtY = 140;
 
         // d'abord l'ombre, puis le fond, puis le trophée (si besoin est)
         // - Hall héros 🏆
@@ -516,18 +516,20 @@ module.exports = {
                 },
             ];
             const top10 = await User.aggregate(agg);
-            let indexUser = top10.findIndex((u) => u.userId === dbUser.userId);
+            const indexUser = top10.findIndex(
+                (u) => u.userId === dbUser.userId,
+            );
 
             let filename = "advent_22";
             let colorFill = "grey";
 
-            if (indexUser + 1 == 1) {
+            if (indexUser + 1 === 1) {
                 filename += "_plat";
                 colorFill = "#1CD6CE"; // ~cyan
-            } else if (indexUser + 1 == 2) {
+            } else if (indexUser + 1 === 2) {
                 filename += "_gold";
                 colorFill = "#FAC213";
-            } else if (indexUser + 1 == 3) {
+            } else if (indexUser + 1 === 3) {
                 filename += "_silver";
                 colorFill = "silver";
             }
@@ -570,7 +572,7 @@ module.exports = {
         });
         //const attachment = new MessageAttachment(canvas.toBuffer(), `profile_${pseudo}.png`);
 
-        let embed = new EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setColor(VERY_PALE_VIOLET)
             .setDescription(`${msg}`);
 
@@ -581,7 +583,7 @@ module.exports = {
 
 // TODO a deplacer dans utils..
 function getByValue(map, searchValue) {
-    for (let [key, value] of map.entries()) {
+    for (const [key, value] of map.entries()) {
         if (value === searchValue) return key;
     }
 }

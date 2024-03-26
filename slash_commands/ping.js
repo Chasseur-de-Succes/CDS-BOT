@@ -5,12 +5,12 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 module.exports = {
     data: new SlashCommandBuilder().setName("ping").setDescription("Pong !"),
     async execute(interaction) {
-        let customMsg = [
+        const customMsg = [
             `*Ma latence est suffisament faible pour jouer à Among Us ${AMONGUS_RUNNING}*`,
-            `*Ma latence est suffisament faible pour jouer à TF2*`,
+            "*Ma latence est suffisament faible pour jouer à TF2*",
             `*Je n'ai pas de lag, je peux regarder mon stream ${STREAMING}*`,
         ];
-        let customMsgNumber = Math.floor(Math.random() * customMsg.length);
+        const customMsgNumber = Math.floor(Math.random() * customMsg.length);
         const createdTime = Date.now();
 
         const embed = new EmbedBuilder()

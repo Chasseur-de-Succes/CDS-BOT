@@ -5,7 +5,6 @@ const {
     MsgHallZeros,
     Msg,
     MsgDmdeAide,
-    Game,
     GuildConfig,
 } = require("../models");
 const {
@@ -14,7 +13,6 @@ const {
     resetMoneyLimit,
     loadJobHelper,
     testEcuyer,
-    loadSteamPICS,
 } = require("./batch/batch");
 const { createReactionCollectorGroup, moveToArchive } = require("./msg/group");
 const { Group } = require("../models/index");
@@ -146,7 +144,7 @@ const loadReactionMsg = async (client) => {
             client.channels.cache
                 .get(channelHall)
                 .messages.fetch(msgDB.msgId)
-                .catch(async (err) => {
+                .catch(async () => {
                     // on supprime les msg qui n'existent plus
                     await Msg.deleteOne({ _id: msgDB._id });
                 });
@@ -160,7 +158,7 @@ const loadReactionMsg = async (client) => {
 const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     // TODO cooldown
     // pour chaque guild
-    client.guilds.cache.forEach(async (guild) => {
+    for (guild of client.guilds.cache.values()) {
         const idRole = await client.getGuildChannel(guild.id, SALON.ROLE);
         if (!idRole) {
             logger.error("- Config salon rôle non défini !");
@@ -183,7 +181,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
 
         content += roles
             .map((item) => {
-                return item.emoji + " : `" + item.name + "`";
+                return `${item.emoji} : \`${item.name}\``;
             })
             .join("\n");
 
@@ -194,7 +192,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
 
             msg = await roleChannel.send({ content: content });
         } else if (msgs.size === 1 && msgs.first().author.bot) {
-            logger.warn(`Le message des rôles existe ! Maj de celui-ci...`);
+            logger.warn("Le message des rôles existe ! Maj de celui-ci...");
             // un seul, et celui du bot, on maj (?)
             msg = await msgs.first().edit({ content: content });
             // TODO quid des réactions ?
@@ -209,7 +207,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
         }
 
         // ajout réactions, au cas où nouvel emoji
-        roles.forEach(async (item) => {
+        for (item of roles) {
             // custom emoji
             if (item.emoji.startsWith("<")) {
                 // regex emoji custom
@@ -217,12 +215,12 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
                 if (matches)
                     await msg.react(client.emojis.cache.get(matches[3]));
             } else await msg.react(item.emoji);
-        });
+        }
 
         // on enleve tous les émojis (dans le cas ou il y a eu un delete)
         if (emojiDeleted) {
             // recupere array des keys = emojis des reactions
-            let keys = [...msg.reactions.cache.keys()];
+            const keys = [...msg.reactions.cache.keys()];
 
             // recupere l'id de l'emoji custom deleted
             if (emojiDeleted.startsWith("<")) {
@@ -233,10 +231,10 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
             const reactionsToDelete = keys.filter((x) => x === emojiDeleted);
 
             // et on supprime ces réactions !
-            reactionsToDelete.forEach(async (element) => {
+            for (element of reactionsToDelete) {
                 logger.info(`.. suppression des réactions ${element}`);
                 await msg.reactions.cache.get(element).remove();
-            });
+            }
         }
 
         // sinon collector sur reactions une seule fois, pour eviter X reactions
@@ -273,7 +271,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
             // suppression rôle
             collector.on("remove", async (r, u) => {
                 if (!u.bot) {
-                    // referesh role
+                    // refresh role
                     roles = await RolesChannel.find({});
                     // unicode ou custom
                     const item = roles.find(
@@ -297,16 +295,16 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
                 }
             });
         }
-    });
+    }
 };
 
 const loadVocalCreator = async (client) => {
     // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
-    client.guilds.cache.forEach(async (guild) => {
+    for (guild of client.guilds.cache.values()) {
         // si le chan vocal n'existe pas, on le créé + save
-        let config = await GuildConfig.findOne({ guildId: guild.id });
+        const config = await GuildConfig.findOne({ guildId: guild.id });
 
-        if (!config.channels || !config.channels["create_vocal"]) {
+        if (!config.channels || !config.channels.create_vocal) {
             // créer un voice channel
             // TODO parent ?
             const voiceChannel = await guild.channels.create({
@@ -316,7 +314,7 @@ const loadVocalCreator = async (client) => {
 
             await GuildConfig.updateOne(
                 { guildId: guild.id },
-                { $set: { ["channels.create_vocal"]: voiceChannel.id } },
+                { $set: { [channels.create_vocal]: voiceChannel.id } },
             );
 
             logger.warn(`.. salon vocal 'créateur' créé`);
@@ -324,7 +322,7 @@ const loadVocalCreator = async (client) => {
             // TODO test si le salon existe bien
             // s'il n'existe pas, on supprime la valeur dans la bdd
         }
-    });
+    }
 };
 
 module.exports = {

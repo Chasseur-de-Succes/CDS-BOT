@@ -12,7 +12,7 @@ module.exports.feedBotLevelUp = async (
     nextPalier,
 ) => {
     const idFeedBot = await client.getGuildChannel(guildId, SALON.FEED_BOT);
-    let feed = await client.channels.cache.get(idFeedBot);
+    const feed = await client.channels.cache.get(idFeedBot);
 
     if (!feed) {
         logger.warn("Salon feed bot non configuré..");
@@ -34,12 +34,12 @@ module.exports.feedBotLevelUp = async (
 /* Nourri feed bot - Meta Succès */
 module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
     const idFeedBot = await client.getGuildChannel(guildId, SALON.FEED_BOT);
-    let feed = await client.channels.cache.get(idFeedBot);
+    const feed = await client.channels.cache.get(idFeedBot);
 
     if (!feed) {
         logger.warn("Salon feed bot non configuré..");
     } else {
-        let embedAch = new EmbedBuilder()
+        const embedAch = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
             .setTitle(`🏆 Succès débloqué 🏆`)
             .setDescription(`${user} a débloqué :`)
@@ -74,10 +74,9 @@ module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
  * @returns un MessageEmbed
  */
 module.exports.createError = (text) => {
-    let embedError = new EmbedBuilder()
+    return new EmbedBuilder()
         .setColor(DARK_RED)
         .setDescription(`${CROSS_MARK} • ${text}`);
-    return embedError;
 };
 
 /**
@@ -88,7 +87,7 @@ module.exports.createError = (text) => {
  * @returns
  */
 module.exports.sendError = (message, text, cmd) => {
-    let embedError = this.createError(text);
+    const embedError = this.createError(text);
     logger.error(`${message.author.username} - ${cmd} : ${text}`);
     return message.channel.send({ embeds: [embedError] });
 };
@@ -124,7 +123,7 @@ module.exports.createLogs = async (
     footer = "",
     color = DARK_RED,
 ) => {
-    let embedLog = new EmbedBuilder()
+    const embedLog = new EmbedBuilder()
         .setColor(color)
         .setTitle(`${title}`)
         .setDescription(desc);

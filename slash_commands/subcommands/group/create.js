@@ -24,10 +24,10 @@ const create = async (interaction, options) => {
     const guildId = interaction.guildId;
 
     // test si captain est register
-    const captainDB = await client.getUser(captain);
+    const captainDb = await client.getUser(captain);
     const nbGrps = await client.getNbOngoingGroups(captain.id);
 
-    if (!captainDB)
+    if (!captainDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -36,8 +36,9 @@ const create = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
-    if (captainDB.warning >= 3) {
+    if (captainDb.warning >= 3) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -64,7 +65,7 @@ const create = async (interaction, options) => {
         });
 
     // si nom groupe existe
-    let grp = await client.findGroupByName(nameGrp);
+    const grp = await client.findGroupByName(nameGrp);
     if (grp)
         return interaction.reply({
             embeds: [
@@ -76,13 +77,13 @@ const create = async (interaction, options) => {
 
     // création de la regex sur le nom du jeu
     logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
-    let regGame = new RegExp(escapeRegExp(gameName), "i");
+    const regGame = new RegExp(escapeRegExp(gameName), "i");
 
     // "recherche.."
     await interaction.deferReply();
 
     // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    let games = await Game.aggregate([
+    const games = await Game.aggregate([
         {
             $match: { name: regGame },
         },
@@ -107,9 +108,9 @@ const create = async (interaction, options) => {
         });
 
     // values pour Select Menu
-    let items = [];
+    const items = [];
     for (let i = 0; i < games.length; i++) {
-        let crtGame = games[i];
+        const crtGame = games[i];
         if (crtGame) {
             items.unshift({
                 label: crtGame.name,
@@ -130,14 +131,14 @@ const create = async (interaction, options) => {
             .addOptions(items),
     );
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(
             `J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`,
         )
         .setDescription(`Lequel est celui que tu cherchais ?`);
 
-    let msgEmbed = await interaction.editReply({
+    const msgEmbed = await interaction.editReply({
         embeds: [embed],
         components: [row],
     });
@@ -175,7 +176,7 @@ const create = async (interaction, options) => {
         SALON.CAT_DISCUSSION_GROUPE_2,
     );
     let cat = await client.channels.cache.get(idDiscussionGroupe);
-    let cat2 = await client.channels.cache.get(idDiscussionGroupe2);
+    const cat2 = await client.channels.cache.get(idDiscussionGroupe2);
     if (!cat) {
         logger.info(
             "Catégorie des discussions de groupe n'existe pas ! Création en cours...",
@@ -224,8 +225,8 @@ const create = async (interaction, options) => {
         ],
     });
 
-    for (const devID of process.env.DEVELOPERS.split(",")) {
-        channel.permissionOverwrites.edit(devID, {
+    for (const devId of process.env.DEVELOPERS.split(",")) {
+        channel.permissionOverwrites.edit(devId, {
             ViewChannel: true,
             SendMessages: true,
             MentionEveryone: true,
@@ -236,12 +237,12 @@ const create = async (interaction, options) => {
     channel.send(`> ${captain} a créé le groupe`);
 
     // creation groupe
-    let newGrp = {
+    const newGrp = {
         name: nameGrp,
         desc: description,
         nbMax: nbMaxMember,
-        captain: captainDB._id,
-        members: [captainDB._id],
+        captain: captainDb._id,
+        members: [captainDb._id],
         game: game,
         channelId: channel.id,
     };

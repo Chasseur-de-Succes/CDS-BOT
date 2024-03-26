@@ -37,7 +37,7 @@ module.exports = {
                 embeds: [createError(`Tu es déjà inscrit !`)],
             });
 
-        if (steamID64.length != 17)
+        if (steamID64.length !== 17)
             return interaction.reply({
                 embeds: [
                     createError(
@@ -47,7 +47,7 @@ module.exports = {
             });
 
         // récupère l'utilisateur steam
-        let userSteam = await client.getPlayerSummaries(steamID64);
+        const userSteam = await client.getPlayerSummaries(steamID64);
 
         if (!userSteam || userSteam.body.response.players.length === 0)
             // vérification de si l'id steam existe
@@ -59,7 +59,7 @@ module.exports = {
                 ],
             });
 
-        let row = new ActionRowBuilder().addComponents(
+        const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId("confirm")
                 .setLabel("Confirmer")
@@ -136,9 +136,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(DARK_RED)
                 .setTitle(`${CROSS_MARK} Inscription annulée`);
-            interaction
-                .editReply({ embeds: [embed], components: [] })
-                .catch((O_o) => {});
+            interaction.editReply({ embeds: [embed], components: [] });
         });
     },
 };

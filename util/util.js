@@ -5,7 +5,7 @@ module.exports.escapeRegExp = (string) => {
 };
 
 module.exports.monthDiff = (d1, d2) => {
-    var months;
+    let months;
     months = (d2.getFullYear() - d1.getFullYear()) * 12;
     months -= d1.getMonth();
     months += d2.getMonth();
@@ -20,20 +20,18 @@ module.exports.daysDiff = (d1, d2) => {
 
 // recup la valeur d'un chemin dans un JSON
 // ex: path = 'img.heros' dans { img: {heros: 1} } retourne '1'
-module.exports.getJSONValue = (model, path, def) => {
-    path = path || "";
-    model = model || {};
-    def = typeof def === "undefined" ? "" : def;
-    var parts = path.split(".");
+module.exports.getJSONValue = (model = {}, path = "", def = "") => {
+    const parts = path.split(".");
+
     if (parts.length > 1 && typeof model[parts[0]] === "object") {
         return this.getJSONValue(
             model[parts[0]],
             parts.splice(1).join("."),
             def,
         );
-    } else {
-        return model[parts[0]] || def;
     }
+
+    return model[parts[0]] || def;
 };
 
 // retry tous les 5 mins

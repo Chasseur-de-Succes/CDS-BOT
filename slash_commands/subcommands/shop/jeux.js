@@ -10,15 +10,15 @@ const { YELLOW } = require("../../../data/colors.json");
 const moment = require("moment");
 
 async function jeux(interaction, options, showGame = false) {
-    let nbPage = options.get("page") ? options.get("page").value - 1 : 0;
+    const nbPage = options.get("page") ? options.get("page").value - 1 : 0;
     const client = interaction.client;
     const guild = interaction.guild;
-    let author = interaction.member;
+    const author = interaction.member;
 
     // "Bot réfléchit.."
     await interaction.deferReply();
 
-    let userDB = await client.getUser(author);
+    const userDB = await client.getUser(author);
     if (!userDB)
         return interaction.editReply({
             embeds: [
@@ -28,7 +28,7 @@ async function jeux(interaction, options, showGame = false) {
             ],
         });
 
-    let infos = {};
+    const infos = {};
     infos.money = userDB.money;
 
     if (showGame) {
@@ -69,15 +69,15 @@ async function jeux(interaction, options, showGame = false) {
     const prevBtn = new ButtonBuilder()
         .setCustomId("prev")
         .setLabel("Préc.")
-        .setEmoji("⬅️")
+        .setEmoji("⬅")
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(nbPage == 0);
+        .setDisabled(nbPage === 0);
     const nextBtn = new ButtonBuilder()
         .setCustomId("next")
         .setLabel("Suiv.")
-        .setEmoji("➡️")
+        .setEmoji("➡")
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(nbPage + 1 == max);
+        .setDisabled(nbPage + 1 === max);
     const buyBtn = new ButtonBuilder()
         .setCustomId("buy")
         .setLabel("Acheter")
@@ -85,7 +85,7 @@ async function jeux(interaction, options, showGame = false) {
         .setStyle(ButtonStyle.Danger)
         // TODO a modifier une fois boutique custom faite
         .setDisabled(
-            infos.type == 1 ||
+            infos.type === 1 ||
                 userDB.money < infos.items[currentIndex].items[0].montant,
         );
     const rowBuyButton = new ActionRowBuilder().addComponents(
@@ -96,8 +96,8 @@ async function jeux(interaction, options, showGame = false) {
 
     // on envoie créer et envoie le message du shop
     // TODO msg différent pour jeux / custom ?
-    let shopEmbed = createShop(guild, infos, nbPage);
-    let msgShopEmbed = await interaction.editReply({
+    const shopEmbed = createShop(guild, infos, nbPage);
+    const msgShopEmbed = await interaction.editReply({
         embeds: [shopEmbed],
         components: [rowBuyButton],
         fetchReply: true,
@@ -114,9 +114,9 @@ async function jeux(interaction, options, showGame = false) {
         if (itr.customId !== "buy") {
             itr.customId === "prev" ? (currentIndex -= 1) : (currentIndex += 1);
             // disable si 1ere page
-            prevBtn.setDisabled(currentIndex == 0);
+            prevBtn.setDisabled(currentIndex === 0);
             // disable next si derniere page
-            nextBtn.setDisabled(currentIndex + 1 == max);
+            nextBtn.setDisabled(currentIndex + 1 === max);
             // disable buy si pas assez argent
             buyBtn.setDisabled(
                 userDB.money < infos.items[currentIndex].items[0].montant,
@@ -133,7 +133,7 @@ async function jeux(interaction, options, showGame = false) {
             });
         } else {
             // achete item courant
-            if (infos.type == 0) {
+            if (infos.type === 0) {
                 const items = infos.items[currentIndex];
                 const vendeur = guild.members.cache.get(
                     items.items[0].seller.userId,
@@ -178,7 +178,7 @@ async function jeux(interaction, options, showGame = false) {
                 );
 
                 // message recap
-                let recapEmbed = new EmbedBuilder()
+                const recapEmbed = new EmbedBuilder()
                     .setColor(YELLOW)
                     .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
                     .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${process.env.MONEY}
@@ -196,14 +196,14 @@ async function jeux(interaction, options, showGame = false) {
                     embeds: [recapEmbed],
                     components: [],
                 });
-            } else if (infos.type == 1) {
+            } else if (infos.type === 1) {
                 // achat custom
             }
         }
     });
 
     // apres 5 min, on "ferme" la boutique
-    collector.on("end", (collected) => {
+    collector.on("end", () => {
         msgShopEmbed.edit({
             embeds: [createShop(guild, infos, currentIndex)],
             components: [],
@@ -212,11 +212,11 @@ async function jeux(interaction, options, showGame = false) {
 }
 
 function createShop(guild, infos, currentIndex = 0) {
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle(`💰 BOUTIQUE - ${infos.soustitre} 💰`);
     // JEUX
-    if (infos.type == 0) {
+    if (infos.type === 0) {
         const game = infos.items[currentIndex]._id;
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
         const items = infos.items[currentIndex].items;
@@ -238,7 +238,7 @@ function createShop(guild, infos, currentIndex = 0) {
 
         let nbItem = 0;
         const nbMax = 5;
-        let prix = [],
+        const prix = [],
             vendeurStr = [];
         for (const item of items) {
             const vendeur = guild.members.cache.get(item.seller.userId);
@@ -264,7 +264,7 @@ function createShop(guild, infos, currentIndex = 0) {
                 value: `${items.length - nbItem}`,
             });
         }
-    } else if (infos.type == 1) {
+    } else if (infos.type === 1) {
         // TUNNNG
         embed.setDescription(`***🚧 En construction 🚧***`);
     }
@@ -305,14 +305,14 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
 
     // STEP 2 : envoie DM au vendeur
     logger.info(`Envoi DM au vendeur ${vendeur.user.username}`);
-    let MPembed = new EmbedBuilder()
+    const MPembed = new EmbedBuilder()
         .setThumbnail(gameUrlHeader)
         .setColor(YELLOW)
         .setTitle("💰 BOUTIQUE - VENTE 💰")
         .setDescription(`${author} vous a acheté ***${game.name}*** !
 
             Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
-            ▶️ **Lancer la commande ** \`/envoi-cle TA-CLE-STEAM\`
+            ▶ **Lancer la commande ** \`/envoi-cle TA-CLE-STEAM\`
             *L'acheteur recevra directement la clé dans ses MPs !*
             
             *En cas de problème, contactez un admin !*`);

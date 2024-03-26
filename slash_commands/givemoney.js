@@ -4,7 +4,6 @@ const {
     PermissionFlagsBits,
 } = require("discord.js");
 
-const { MESSAGES } = require("../util/constants");
 const { GREEN } = require("../data/colors.json");
 const { createError, createLogs } = require("../util/envoiMsg");
 
@@ -32,7 +31,7 @@ module.exports = {
         const client = interaction.client;
         const author = interaction.user;
         const user = interaction.options.getUser("target") ?? interaction.user;
-        let member = interaction.guild.members.cache.get(user.id);
+        const member = interaction.guild.members.cache.get(user.id);
         let montant = interaction.options.get("montant")?.value;
         const MONEY = process.env.MONEY;
 
@@ -74,7 +73,8 @@ module.exports = {
         logger.warn(
             `${author.tag} a effectué la commande admin : givemoney ${montant}`,
         );
-        createLogs(
+
+        await createLogs(
             client,
             interaction.guildId,
             `Modification ${MONEY}`,

@@ -32,9 +32,9 @@ module.exports = {
         }
 
         // edit nickname
-        if (oldUser.nickname != newUser.nickname) {
-            let oldNickname = oldUser.nickname || "_Aucun_";
-            let newNickname = newUser.nickname || "_Aucun_";
+        if (oldUser.nickname !== newUser.nickname) {
+            const oldNickname = oldUser.nickname || "_Aucun_";
+            const newNickname = newUser.nickname || "_Aucun_";
             const embed = new EmbedBuilder()
                 .setColor(ORANGE)
                 .setTitle(`Surnom modifier`)

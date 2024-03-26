@@ -23,7 +23,7 @@ module.exports = (client) => {
      * Mets à jour un élément data avec les paramètres settings
      * @param {Object} data l'élément à mettre à jour
      * @param {Object} settings le(s) paramètre(s) à modifier (format JSON {...})
-     * @returns https://docs.mongodb.com/manual/reference/method/db.collection.updateOne/#returns
+     * @returns {Promise<any>} https://docs.mongodb.com/manual/reference/method/db.collection.updateOne/#returns
      */
     client.update = async (data, settings) => {
         if (typeof data !== "object") data = {};
@@ -45,7 +45,7 @@ module.exports = (client) => {
         const usr = await createUser.save();
         logger.info({
             prefix: "[DB]",
-            message: "Nouvel utilisateur : " + usr.username,
+            message: `Nouvel utilisateur : ${usr.username}`,
         });
         return usr;
     };
@@ -58,7 +58,6 @@ module.exports = (client) => {
     client.findUserById = async (id) => {
         const data = await User.findOne({ userId: id });
         if (data) return data;
-        else return;
     };
 
     /**
@@ -81,11 +80,11 @@ module.exports = (client) => {
     client.createGroup = async (group) => {
         const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, group);
         const createGroup = await new Group(merged);
-        let grp = await createGroup.save();
+        const grp = await createGroup.save();
         await grp.populate("captain members").execPopulate();
         logger.info({
             prefix: "[DB]",
-            message: "Nouveau groupe : " + grp.name,
+            message: `Nouveau groupe : ${grp.name}`,
         });
         return grp;
     };
@@ -99,7 +98,7 @@ module.exports = (client) => {
         Group.deleteOne({ _id: group._id }).then((grp) =>
             logger.info({
                 prefix: "[DB]",
-                message: "Delete groupe : " + group.name,
+                message: `Delete groupe : ${group.name}`,
             }),
         );
     };
@@ -112,7 +111,6 @@ module.exports = (client) => {
     client.findGroup = async (query) => {
         const data = await Group.find(query).populate("captain members game");
         if (data) return data;
-        else return;
     };
 
     /**
@@ -140,7 +138,6 @@ module.exports = (client) => {
             ],
         }).populate("captain members game");
         if (data) return data;
-        else return;
     };
 
     /**
@@ -154,7 +151,6 @@ module.exports = (client) => {
             $and: [{ validated: false }, { name: name }],
         }).populate("captain members game");
         if (data) return data;
-        else return;
     };
 
     /* GAMES */
@@ -167,7 +163,7 @@ module.exports = (client) => {
         const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, game);
         const createGame = await new Game(merged);
         await createGame.save();
-        logger.info({ prefix: "[DB]", message: "Nouveau game : " + game.name });
+        logger.info({ prefix: "[DB]", message: `Nouveau game : ${game.name}` });
     };
 
     /**
@@ -178,7 +174,6 @@ module.exports = (client) => {
     client.findGameByAppid = async (appid) => {
         const data = await Game.findOne({ appid: appid });
         if (data) return data;
-        else return;
     };
     client.findMaxAppId = async () => {
         const data = await Game.find({})
@@ -186,7 +181,6 @@ module.exports = (client) => {
             .limit(1)
             .then((game) => game[0].appid);
         if (data) return data;
-        else return;
     };
 
     /**
@@ -207,7 +201,6 @@ module.exports = (client) => {
         const data = await Game.find(query);
         // .populate('');
         if (data) return data;
-        else return;
     };
 
     /* GUILD CONFIG */
@@ -219,7 +212,6 @@ module.exports = (client) => {
     client.findGuildById = async (guildId) => {
         const data = await GuildConfig.findOne({ guildId: guildId });
         if (data) return data;
-        else return;
     };
 
     /**
@@ -233,7 +225,7 @@ module.exports = (client) => {
         const gld = await createGuild.save();
         logger.info({
             prefix: "[DB]",
-            message: "Nouvelle guild : " + gld.guildId,
+            message: `Nouvelle guild : ${gld.guildId}`,
         });
         return gld;
     };
@@ -246,7 +238,6 @@ module.exports = (client) => {
     client.findGuildConfig = async (query) => {
         const data = await GuildConfig.find(query);
         if (data) return data;
-        else return;
     };
 
     /* JOB */
@@ -272,7 +263,7 @@ module.exports = (client) => {
         Job.deleteOne({ _id: job._id }).then((j) =>
             logger.info({
                 prefix: "[DB]",
-                message: "Delete job : " + job.name,
+                message: `Delete job : ${job.name}`,
             }),
         );
     };
@@ -286,7 +277,6 @@ module.exports = (client) => {
         const data = await Job.find(query);
         // .populate('');
         if (data) return data;
-        else return;
     };
 
     client.updateJob = async (job, settings) => {
@@ -306,7 +296,7 @@ module.exports = (client) => {
 
         logger.info({
             prefix: "[DB]",
-            message: "Nouveau Game Item (shop) : " + item.game.name,
+            message: `Nouveau Game Item (shop) : ${item.game.name}`,
         });
         return g;
     };
@@ -317,7 +307,7 @@ module.exports = (client) => {
      */
     client.deleteGameItem = async (gameItem) => {
         // TODO return ? callback ?
-        let item = await GameItem.deleteOne({ _id: gameItem._id });
+        await GameItem.deleteOne({ _id: gameItem._id });
         logger.info({ prefix: "[DB]", message: "Delete game item" });
     };
     /**
@@ -325,7 +315,7 @@ module.exports = (client) => {
      * @param {Object} id
      */
     client.deleteGameItemById = async (id) => {
-        let item = await GameItem.findOneAndDelete({
+        await GameItem.findOneAndDelete({
             _id: new mongoose.Types.ObjectId(id),
         });
         logger.info({ prefix: "[DB]", message: "Delete game item" });
@@ -334,7 +324,6 @@ module.exports = (client) => {
     client.findGameItemShop = async (query) => {
         const data = await GameItem.find(query).populate("game seller buyer");
         if (data) return data;
-        else return;
     };
 
     client.findGameItemShopBy = async (q) => {
@@ -398,7 +387,6 @@ module.exports = (client) => {
 
         const data = await GameItem.aggregate(agg);
         if (data) return data;
-        else return;
     };
 
     client.findGameItemShopByGame = async (query) => {
@@ -463,7 +451,6 @@ module.exports = (client) => {
 
         const data = await GameItem.aggregate(agg);
         if (data) return data;
-        else return;
     };
 
     /* ROLE CHANNEL */
@@ -474,7 +461,7 @@ module.exports = (client) => {
 
         logger.info({
             prefix: "[DB]",
-            message: "Nouveau Role Channel : " + item.name,
+            message: `Nouveau Role Channel : ${item.name}`,
         });
         return g;
     };
@@ -487,7 +474,7 @@ module.exports = (client) => {
 
         logger.info({
             prefix: "[DB]",
-            message: "Nouveau Hall 🏆 Héros, de : " + item.author.username,
+            message: `Nouveau Hall 🏆 Héros, de : ${item.author.username}`,
         });
         return g;
     };
@@ -498,7 +485,7 @@ module.exports = (client) => {
 
         logger.info({
             prefix: "[DB]",
-            message: "Nouveau Hall 💩 Zéros, de : " + item.author.username,
+            message: `Nouveau Hall 💩 Zéros, de : ${item.author.username}`,
         });
         return g;
     };
@@ -565,10 +552,10 @@ module.exports = (client) => {
 
     client.getNbOngoingGroups = async (userid) => {
         const tmp = await User.findOne({ userId: userid });
-        const ret = await Group.find({
+
+        return Group.find({
             members: tmp,
             validated: false,
         }).countDocuments();
-        return ret;
     };
 };

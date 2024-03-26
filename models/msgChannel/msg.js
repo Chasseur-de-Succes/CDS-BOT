@@ -6,7 +6,7 @@ const baseOptions = {
 };
 
 // propriétés partagées avec autres item du shop
-const msg = mongoose.model(
+module.exports = mongoose.model(
     "Message",
     new mongoose.Schema(
         {
@@ -18,5 +18,3 @@ const msg = mongoose.model(
         baseOptions,
     ),
 );
-
-module.exports = mongoose.model("Message");

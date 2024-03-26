@@ -1,9 +1,8 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
-const { SALON, WEBHOOK } = require("../../util/constants");
+const { WEBHOOK } = require("../../util/constants");
 const {
     GREEN,
-    NIGHT,
     VERY_PALE_BLUE,
     DARK_RED,
     ORANGE,
@@ -11,16 +10,11 @@ const {
 const moment = require("moment-timezone");
 const { User, Game } = require("../../models");
 const { createLogs } = require("../envoiMsg");
-const {
-    EmbedBuilder,
-    AttachmentBuilder,
-    WebhookClient,
-} = require("discord.js");
-const { monthDiff, daysDiff, retryAfter5min } = require("../util");
+const { EmbedBuilder, WebhookClient } = require("discord.js");
+const { daysDiff, retryAfter5min } = require("../util");
 
 const SteamUser = require("steam-user");
-let steamClient = new SteamUser();
-const FS = require("fs");
+const steamClient = new SteamUser();
 
 module.exports = {
     /**
@@ -38,16 +32,16 @@ module.exports = {
                 hour: "2-digit",
                 minute: "2-digit",
             };
-            let d = moment.tz(date, "Europe/Paris");
+            const d = moment.tz(date, "Europe/Paris");
 
             // 1j avant
             let jobName = `rappel_1d_${groupe.name}_${date.toLocaleDateString(
                 "fr-FR",
                 options,
             )}`;
-            let minus1day = d.subtract(1, "days");
+            const minus1day = d.subtract(1, "days");
 
-            let job1j = {
+            const job1j = {
                 name: jobName,
                 guildId: guildId,
                 when: minus1day,
@@ -73,9 +67,9 @@ module.exports = {
                 "fr-FR",
                 options,
             )}`;
-            let minus1hour = d.subtract(1, "hours");
+            const minus1hour = d.subtract(1, "hours");
 
-            let job1h = {
+            const job1h = {
                 name: jobName,
                 guildId: guildId,
                 when: minus1hour,
@@ -103,10 +97,6 @@ module.exports = {
      */
     async updateOrCreateRappelJob(client, job, groupe, when) {
         try {
-            const jobs = await client.findJob({ name: job.name });
-
-            // si job existe -> update date, sinon créé
-            //if (jobs.length == 0) {
             // cancel ancien job si existe
             if (scheduledJobs[job.name]) scheduledJobs[job.name].cancel();
 
@@ -121,8 +111,8 @@ module.exports = {
                     "..",
             );
             logger.info("** " + when.toDate());
-            //scheduleJob("*/10 * * * * *", function() {
-            scheduleJob(job.name, when.toDate(), function () {
+
+            scheduleJob(job.name, when.toDate(), () => {
                 module.exports.envoiMpRappel(
                     client,
                     job.guildId,
@@ -133,24 +123,6 @@ module.exports = {
                 jobDB.pending = false;
                 client.update(jobDB, { pending: false });
             });
-            // } else {
-            //     let jobDB = jobs[0];
-            //     logger.info("-- Update "+jobDB.name+" pour groupe "+groupe.name+"..");
-            //     // update job
-            //     await client.update(jobDB, {when: when});
-
-            //     // cancel ancien job si existe
-            //     if (scheduledJobs[job.name])
-            //         scheduledJobs[job.name].cancel();
-
-            //     // pour le relancer
-            //     scheduleJob(job.name, when.toDate(), function(){
-            //         module.exports.envoiMpRappel(client, job.guildId, groupe, job.args[1]);
-            //         // update job
-            //         jobDB.pending = false;
-            //         client.update(jobDB, {pending: false});
-            //     });
-            // }
         } catch (error) {
             console.log("ERREUR lors creation rappel job", error);
         }
@@ -166,7 +138,7 @@ module.exports = {
             logger.info("-- Chargement de " + jobs.length + " jobs..");
             // lancement jobs
             for (const job of jobs) {
-                scheduleJob(job.name, job.when, function () {
+                scheduleJob(job.name, job.when, () => {
                     require("./batch")[job.what](
                         client,
                         job.guildId,
@@ -178,7 +150,7 @@ module.exports = {
         });
 
         // clean ceux qui sont terminés ou qui ont dates dépassées, à minuit
-        scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, function () {
+        scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, () => {
             client
                 .findJob({
                     $or: [{ pending: false }, { when: { $lte: new Date() } }],
@@ -202,7 +174,7 @@ module.exports = {
      * @param {*} groupeId l'id du groupe
      * @param {*} typeHoraire le type d'horaire (jours/heures)
      */
-    envoiMpRappel: function (client, guildId, groupeId, typeHoraire) {
+    envoiMpRappel: (client, guildId, groupeId, typeHoraire) => {
         const membersGuild = client.guilds.cache.get(guildId).members.cache;
         client.findGroupById(groupeId).then(async (groupe) => {
             // TODO a filtrer depuis findGroupe
@@ -253,35 +225,29 @@ module.exports = {
         logger.info(`-- Mise en place job search new games`);
 
         // refresh games tous les soirs à 1h
-        scheduleJob(
-            { hour: 1, minute: 0, tz: "Europe/Paris" },
-            async function () {
-                moment.updateLocale("fr", { relativeTime: Object });
-                logger.info(`Début refresh games ..`);
-                try {
-                    await client.fetchAllApps();
-                } catch (error) {
-                    logger.error(`error lors job refresh games : ${error}`);
-                }
-            },
-        );
+        scheduleJob({ hour: 1, minute: 0, tz: "Europe/Paris" }, async () => {
+            moment.updateLocale("fr", { relativeTime: Object });
+            logger.info(`Début refresh games ..`);
+            try {
+                await client.fetchAllApps();
+            } catch (error) {
+                logger.error(`error lors job refresh games : ${error}`);
+            }
+        });
     },
 
     resetMoneyLimit() {
         logger.info(`--  Mise en place batch reset limit money`);
         // refresh games tous les soirs à 0h
-        scheduleJob(
-            { hour: 0, minute: 0, tz: "Europe/Paris" },
-            async function () {
-                logger.info(`Début reset limit money ..`);
+        scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, async () => {
+            logger.info(`Début reset limit money ..`);
 
-                User.updateMany({}, { moneyLimit: 0 })
-                    .then((res) => logger.info(`..reset limit money ok`))
-                    .catch((err) =>
-                        logger.error(`Erreur lors reset limit money ${err}`),
-                    );
-            },
-        );
+            User.updateMany({}, { moneyLimit: 0 })
+                .then(() => logger.info(`..reset limit money ok`))
+                .catch((err) =>
+                    logger.error(`Erreur lors reset limit money ${err}`),
+                );
+        });
     },
 
     loadJobHelper(client) {
@@ -292,7 +258,7 @@ module.exports = {
         // tous les lundi, à 0h01
         scheduleJob(
             { dayOfWeek: 1, hour: 0, minute: 1, tz: "Europe/Paris" },
-            async function () {
+            async () => {
                 client.guilds.cache.forEach((guild) => {
                     logger.info(`.. recherche @Helper dans ${guild.name}..`);
 
@@ -300,7 +266,7 @@ module.exports = {
                         .fetch("971508881165545544")
                         .then((roleHelper) => {
                             if (roleHelper?.members) {
-                                let helpers = roleHelper.members
+                                const helpers = roleHelper.members
                                     .map((m) => m.toString())
                                     .join(", ");
                                 roleHelper.members.each(async (member) => {
@@ -340,108 +306,104 @@ module.exports = {
     async testEcuyer(client) {
         logger.info(`--  Mise en place batch 'écuyer'`);
         // tous les soirs à minuit
-        scheduleJob(
-            { hour: 0, minute: 0, tz: "Europe/Paris" },
-            async function () {
-                client.guilds.cache.forEach(async (guild) => {
-                    logger.info(`.. début batch 'écuyer' pour ${guild.name}..`);
+        scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, async () => {
+            client.guilds.cache.forEach(async (guild) => {
+                logger.info(`.. début batch 'écuyer' pour ${guild.name}..`);
 
-                    let members = await guild.members.fetch({ force: true });
-                    // Chasseur
-                    const chasseur = guild.roles.cache.find(
-                        (r) => r.name === "Chasseur",
+                let members = await guild.members.fetch({ force: true });
+                // Chasseur
+                const chasseur = guild.roles.cache.find(
+                    (r) => r.name === "Chasseur",
+                );
+                // Ecuyer
+                const ecuyer = guild.roles.cache.find(
+                    (r) => r.name === "Écuyer",
+                );
+                // Channel acces clefs
+                const askGiveaway = guild.channels.cache.find(
+                    (c) => c.name === "🔓accès-clefs-offertes",
+                );
+
+                if (!chasseur || !ecuyer) {
+                    console.log(
+                        ".. role Écuyer ou Chasseur pas encore créé pour " +
+                            guild.name,
                     );
-                    // Ecuyer
-                    const ecuyer = guild.roles.cache.find(
-                        (r) => r.name === "Écuyer",
-                    );
-                    // Channel acces clefs
-                    const askGiveaway = guild.channels.cache.find(
-                        (c) => c.name === "🔓accès-clefs-offertes",
+                } else {
+                    // récup tous les users Discord, non bot, n'étant pas 'Chasseur'
+                    members = members.filter(
+                        (m) => !m._roles.includes(chasseur.id) && !m.user.bot,
                     );
 
-                    if (!chasseur || !ecuyer) {
-                        console.log(
-                            ".. role Écuyer ou Chasseur pas encore créé pour " +
-                                guild.name,
-                        );
-                    } else {
-                        // récup tous les users Discord, non bot, n'étant pas 'Chasseur'
-                        members = members.filter(
-                            (m) =>
-                                !m._roles.includes(chasseur.id) && !m.user.bot,
-                        );
-
-                        // si leur date d'arrivée dans le discord >= 2mois (~61 jours), on donne 'Chasseur'
-                        // sinon Ecuyer
-                        members.each(async (m) => {
-                            if (daysDiff(m.joinedAt, new Date()) === 61) {
-                                // - prevenir user
-                                logger.info(
-                                    `.. ${m.user.tag} devient Chasseur ! (présence de +2mois)`,
-                                );
-                                const embed = new EmbedBuilder()
-                                    .setColor(GREEN)
-                                    .setTitle(
-                                        `🥳 Félicitations ${m.user.username} ! 🥳`,
-                                    )
-                                    .setDescription(`Cela fait (au moins) **2 mois** que tu es sur le Discord CDS.\n
+                    // si leur date d'arrivée dans le discord >= 2mois (~61 jours), on donne 'Chasseur'
+                    // sinon Ecuyer
+                    members.each(async (m) => {
+                        if (daysDiff(m.joinedAt, new Date()) === 61) {
+                            // - prevenir user
+                            logger.info(
+                                `.. ${m.user.tag} devient Chasseur ! (présence de +2mois)`,
+                            );
+                            const embed = new EmbedBuilder()
+                                .setColor(GREEN)
+                                .setTitle(
+                                    `🥳 Félicitations ${m.user.username} ! 🥳`,
+                                )
+                                .setDescription(`Cela fait (au moins) **2 mois** que tu es sur le Discord CDS.\n
                                                 Tu es maintenant un **Chasseur** !
                                                 Tu peux maintenant :
                                                 - demander l'accès au salon des clefs offertes, via ${askGiveaway}
                                                 - participer aux événements spéciaux CDS`);
 
-                                m.user
-                                    .send({ embeds: [embed] })
-                                    .catch((err) =>
-                                        logger.error(
-                                            `Impossible d'envoyé MP à ${m.user.tag} : ${err}`,
-                                        ),
-                                    );
-
-                                // - log
-                                await createLogs(
-                                    client,
-                                    guild.id,
-                                    "Nouveau 'Chasseur'",
-                                    `${
-                                        m.user
-                                    } devient 'Chasseur.\nCompte vieux de ${daysDiff(
-                                        m.joinedAt,
-                                        new Date(),
-                                    )} jours`,
-                                    "",
-                                    VERY_PALE_BLUE,
+                            m.user
+                                .send({ embeds: [embed] })
+                                .catch((err) =>
+                                    logger.error(
+                                        `Impossible d'envoyé MP à ${m.user.tag} : ${err}`,
+                                    ),
                                 );
 
-                                m.roles
-                                    .remove(ecuyer)
-                                    .catch((err) =>
-                                        logger.error(
-                                            `Impossible de supprimer le rôle Écuyer à ${m.user.tag} : ${err}`,
-                                        ),
-                                    );
-                                m.roles
-                                    .add(chasseur)
-                                    .catch((err) =>
-                                        logger.error(
-                                            `Impossible d'ajouter le rôle Chasseur à ${m.user.tag} : ${err}`,
-                                        ),
-                                    );
-                            } else {
-                                m.roles
-                                    .add(ecuyer)
-                                    .catch((err) =>
-                                        logger.error(
-                                            `Impossible d'ajouter le rôle Écuyer à ${m.user.tag} : ${err}`,
-                                        ),
-                                    );
-                            }
-                        });
-                    }
-                });
-            },
-        );
+                            // - log
+                            await createLogs(
+                                client,
+                                guild.id,
+                                "Nouveau 'Chasseur'",
+                                `${
+                                    m.user
+                                } devient 'Chasseur.\nCompte vieux de ${daysDiff(
+                                    m.joinedAt,
+                                    new Date(),
+                                )} jours`,
+                                "",
+                                VERY_PALE_BLUE,
+                            );
+
+                            m.roles
+                                .remove(ecuyer)
+                                .catch((err) =>
+                                    logger.error(
+                                        `Impossible de supprimer le rôle Écuyer à ${m.user.tag} : ${err}`,
+                                    ),
+                                );
+                            m.roles
+                                .add(chasseur)
+                                .catch((err) =>
+                                    logger.error(
+                                        `Impossible d'ajouter le rôle Chasseur à ${m.user.tag} : ${err}`,
+                                    ),
+                                );
+                        } else {
+                            m.roles
+                                .add(ecuyer)
+                                .catch((err) =>
+                                    logger.error(
+                                        `Impossible d'ajouter le rôle Écuyer à ${m.user.tag} : ${err}`,
+                                    ),
+                                );
+                        }
+                    });
+                }
+            });
+        });
     },
 
     async loadSteamPICS(client) {
@@ -450,7 +412,7 @@ module.exports = {
         //steamClient.setOption('changelistUpdateInterval', 1000)
         steamClient.logOn(); // Log onto Steam anonymously
 
-        steamClient.on("changelist", async (changenumber, apps, packages) => {
+        steamClient.on("changelist", async (changenumber, apps) => {
             // console.log(' --- changelist ', changenumber);
             console.log("-- appId changes " + apps.join(", "));
             apps
@@ -459,18 +421,18 @@ module.exports = {
                 .forEach(async (appid) => {
                     // console.log('--- changelist ', appid);
                     // - recup jeu BDD
-                    let game = await Game.findOne({ appid: appid });
+                    const game = await Game.findOne({ appid: appid });
 
                     if (!game) {
                         createNewGame(client, steamClient, appid);
                     } else {
                         // - getProductInfo
-                        let result = await steamClient.getProductInfo(
+                        const result = await steamClient.getProductInfo(
                             [appid],
                             [],
                             true,
                         ); // Passing true as the third argument automatically requests access tokens, which are required for some apps
-                        let appinfo = result.apps[appid].appinfo;
+                        const appinfo = result.apps[appid].appinfo;
 
                         // si update est un jeu ou demo ?
                         if (
@@ -498,7 +460,7 @@ module.exports = {
             ) {
                 // - recup jeu BDD
                 // on le créé seulement,
-                let game = await Game.findOne({ appid: appid });
+                const game = await Game.findOne({ appid: appid });
                 if (!game) {
                     createNewGame(client, steamClient, appid);
                 } else {
@@ -515,7 +477,7 @@ module.exports = {
 async function recupIcon(steamClient, appId, game) {
     // recup icon
     // Passing true as the third argument automatically requests access tokens, which are required for some apps
-    let result = await steamClient.getProductInfo([appId], [], true);
+    const result = await steamClient.getProductInfo([appId], [], true);
     // if (result.apps[appId].appinfo?.common?.clienticon)
     // game.iconHash = result.apps[appId].appinfo.common.clienticon;
     // else
@@ -527,7 +489,7 @@ async function recupIcon(steamClient, appId, game) {
 
 function recupAchievements(client, game) {
     // - si trop de requete (error 429) => timeout 5min, et on recommence
-    retryAfter5min(async function () {
+    retryAfter5min(async () => {
         const resp = await client.getSchemaForGame(game.appid);
 
         // si jeu a des succès
@@ -639,13 +601,13 @@ function createGameLinks(appid) {
 function createNewGame(client, steamClient, appid) {
     console.log(` ** ${appid} pas dans bdd, on créé`);
 
-    retryAfter5min(async function () {
+    retryAfter5min(async () => {
         await client.fetchGame(appid, "system", "unknown", steamClient);
 
         // si pas de succès, balek
         if (game.achievements.length !== 0) {
             // - recup GameDB récemment créé
-            let game = await Game.findOne({ appid: appid });
+            const game = await Game.findOne({ appid: appid });
             let gamename = game.name;
 
             // - limit 80 caracteres
@@ -682,7 +644,7 @@ function sendToWebhook(client, game, embeds) {
         if (webhookUrl) {
             const webhookClient = new WebhookClient({ url: webhookUrl });
 
-            let avatarURL = "";
+            let avatarURL;
             if (game.iconHash) {
                 // avatarURL = `http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.ico`;
                 avatarURL = `https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.jpg`;

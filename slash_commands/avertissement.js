@@ -4,14 +4,13 @@ const {
     PermissionFlagsBits,
 } = require("discord.js");
 const { GREEN, ORANGE, CRIMSON } = require("../data/colors.json");
-const { Group } = require("../models");
 const { createError, createLogs } = require("../util/envoiMsg");
 const { leaveGroup, dissolveGroup } = require("../util/msg/group");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("avertissement")
-        .setDescription(`Donne ou enleve un avertissement`)
+        .setDescription("Donne ou enleve un avertissement")
         .setDMPermission(false)
         .addUserOption((option) =>
             option
@@ -38,10 +37,10 @@ module.exports = {
         const user = interaction.options.getUser("target");
         const nb = interaction.options.getInteger("nb");
         const raison = interaction.options.getString("raison");
-        let member = interaction.guild.members.cache.get(user.id);
+        const member = interaction.guild.members.cache.get(user.id);
 
         const dbUser = await client.getUser(member);
-        if (!dbUser)
+        if (!dbUser) {
             // Si pas dans la BDD
             return interaction.reply({
                 embeds: [
@@ -50,6 +49,7 @@ module.exports = {
                     ),
                 ],
             });
+        }
 
         // si nb defini, on set
         if (nb || nb === 0) {
@@ -101,12 +101,7 @@ module.exports = {
         const role404 = interaction.guild.roles.cache.find(
             (r) => r.name === "Erreur 404",
         );
-        if (!role404) {
-            console.log(
-                ".. role Erreur 404 pas encore créé pour " +
-                    interaction.guild.name,
-            );
-        } else {
+        if (role404) {
             // si warning == 3 => on donne le role
             // sinon, si <= 2 on l'enleve (si a le role)
             if (dbUser.warning === 3) {
@@ -116,13 +111,13 @@ module.exports = {
                     $and: [{ members: dbUser._id }, { validated: false }],
                 });
 
-                groupes.forEach(async (groupe) => {
+                for (const groupe of groupes) {
                     // TODO logs
                     // si capitaine
                     if (groupe.captain._id.equals(dbUser._id)) {
                         // si groupes a encore des membres
                         if (groupe.size > 1) {
-                            leaveGroup(client, guildId, groupe, dbUser);
+                            await leaveGroup(client, guildId, groupe, dbUser);
 
                             logger.info(
                                 ` - ${groupe.members[0].username} est nouveau capitaine pour groupe ${groupe.name}`,
@@ -146,7 +141,7 @@ module.exports = {
                             logger.info(
                                 ` - plus personne dans groupe ${groupe.name} .. on dissout`,
                             );
-                            dissolveGroup(client, guildId, groupe);
+                            await dissolveGroup(client, guildId, groupe);
 
                             // suppression channel discussion
                             if (groupe.channelId) {
@@ -169,24 +164,20 @@ module.exports = {
                             // send message channel group
                             channel.send(`> <@${dbUser.userId}> a été kick.`);
                         }
-                        leaveGroup(client, guildId, groupe, dbUser);
+                        await leaveGroup(client, guildId, groupe, dbUser);
                     }
-                });
+                }
 
                 // envoyer DM pour prevenir
                 const mp = new EmbedBuilder()
                     .setColor(color)
-                    .setTitle(`⚠️ Tu as reçu **3 avertissements** ⚠️`)
+                    .setTitle(`! Tu as reçu **3 avertissements** !`)
                     .setDescription(`${
-                        raison
-                            ? `Pour la raison : 
-                                                        *${raison}*
-                                                        `
-                            : ""
+                        raison ? `Pour la raison : \n*${raison}*` : ""
                     }
                                                      Tu es **"puni"** temporairement :
-                                                     ▶️ Tu as été **ejecté** de tous tes groupes
-                                                     ▶️ Tu ne peux **plus rejoindre** un groupe
+                                                     ▶ Tu as été **ejecté** de tous tes groupes
+                                                     ▶ Tu ne peux **plus rejoindre** un groupe
                                                      
                                                      Si cela est une erreur, n'hésite pas à contacter un administrateur.`);
                 user.send({ embeds: [mp] });
@@ -195,47 +186,52 @@ module.exports = {
                 member.roles.remove(role404);
 
                 // envoi mp
-                let titleMP = ``,
-                    descMP = ``;
+                let titleMp = ``,
+                    descMp = ``;
 
                 if (dbUser.warning === 0) {
-                    titleMP = `👼 Tu n'es plus **puni** 👼`;
-                    descMP = `${
+                    titleMp = `👼 Tu n'es plus **puni** 👼`;
+                    descMp = `${
                         raison
                             ? `**Pour la raison :**
                                 *${raison}*
                                 `
                             : ""
                     }
-                            ▶️ Tu peux de nouveau rejoindre un groupe`;
+                            ▶ Tu peux de nouveau rejoindre un groupe`;
                 } else if (dbUser === 1) {
-                    titleMP = `⚠️ **${dbUser.warning}er avertissement** ⚠️`;
-                    descMP = `${
+                    titleMp = `! **${dbUser.warning}er avertissement** !`;
+                    descMp = `${
                         raison
                             ? `**Pour la raison :**
                                 *${raison}*
                                 `
                             : ""
                     }
-                            ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
+                            ▶ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 } else {
-                    titleMP = `⚠️ **${dbUser.warning}ème avertissement** ⚠️`;
-                    descMP = `${
+                    titleMp = `! **${dbUser.warning}ème avertissement** !`;
+                    descMp = `${
                         raison
                             ? `**Pour la raison :**
                                 *${raison}*
                                 `
                             : ""
                     }
-                            ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
+                            ▶ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 }
 
                 const mp = new EmbedBuilder()
                     .setColor(color)
-                    .setTitle(titleMP)
-                    .setDescription(descMP);
+                    .setTitle(titleMp)
+                    .setDescription(descMp);
                 user.send({ embeds: [mp] });
             }
+        } else {
+            console.log(
+                ".. role Erreur 404 pas encore créé pour " +
+                    interaction.guild.name,
+            );
         }
 
         const embed = new EmbedBuilder()
@@ -245,10 +241,10 @@ module.exports = {
 
         await dbUser.save();
 
-        createLogs(
+        await createLogs(
             client,
             guildId,
-            `⚠️ ${title}`,
+            `! ${title}`,
             desc,
             `par ${interaction.member.user.tag}`,
             color,

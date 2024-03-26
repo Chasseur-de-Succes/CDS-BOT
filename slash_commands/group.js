@@ -235,7 +235,7 @@ module.exports = {
             .slice(0, 25)
             .map((element) =>
                 element.name?.length > 100
-                    ? element.name.substr(0, 96) + "..."
+                    ? element.name.substring(0, 96) + "..."
                     : element.name,
             );
 
@@ -256,21 +256,21 @@ module.exports = {
         const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === "create") {
-            create(interaction, interaction.options);
+            await create(interaction, interaction.options);
         } else if (subcommand === "session") {
-            schedule(interaction, interaction.options);
+            await schedule(interaction, interaction.options);
         } else if (subcommand === "dissolve") {
-            dissolve(interaction, interaction.options);
+            await dissolve(interaction, interaction.options);
         } else if (subcommand === "transfert") {
-            transfert(interaction, interaction.options);
+            await transfert(interaction, interaction.options);
         } else if (subcommand === "end") {
-            end(interaction, interaction.options);
+            await end(interaction, interaction.options);
         } else if (subcommand === "kick") {
-            kick(interaction, interaction.options);
+            await kick(interaction, interaction.options);
         } else if (subcommand === "nb-participant") {
-            editNbParticipant(interaction, interaction.options);
+            await editNbParticipant(interaction, interaction.options);
         } else if (subcommand === "add") {
-            add(interaction, interaction.options);
+            await add(interaction, interaction.options);
         }
     },
 };

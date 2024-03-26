@@ -16,7 +16,7 @@ module.exports = {
         .addStringOption((option) =>
             option
                 .setName("nom")
-                .setDescription(`Nom du paramètre`)
+                .setDescription("Nom du paramètre")
                 .setRequired(true)
                 .setAutocomplete(true),
         )
@@ -26,7 +26,7 @@ module.exports = {
                 .setDescription("Nom du channel correspondant au paramètre"),
         )
         .addStringOption((option) =>
-            option.setName("hook").setDescription(`URL du webhook`),
+            option.setName("hook").setDescription("URL du webhook"),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
@@ -46,7 +46,7 @@ module.exports = {
 
         const guildId = interaction.guildId;
         const client = interaction.client;
-        let user = interaction.user;
+        const user = interaction.user;
 
         const isAdmin = interaction.member.permissions.has(
             PermissionFlagsBits.Administrator,
@@ -68,7 +68,7 @@ module.exports = {
 
             await GuildConfig.updateOne(
                 { guildId: guildId },
-                { $set: { ["channels." + nomConfig]: salon.value } },
+                { $set: { [`channels.${nomConfig}`]: salon.value } },
             );
             // await client.update(guildDB, { channels: val });
             logger.warn(
@@ -87,7 +87,7 @@ module.exports = {
 
             await GuildConfig.updateOne(
                 { guildId: guildId },
-                { $set: { ["webhook." + nomConfig]: hook } },
+                { $set: { [`webhook.${nomConfig}`]: hook } },
             );
 
             logger.warn(

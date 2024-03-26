@@ -11,8 +11,8 @@ const dissolve = async (interaction, options) => {
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
-    const authorDB = await client.getUser(author);
-    if (!authorDB)
+    const authorDb = await client.getUser(author);
+    if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -21,21 +21,24 @@ const dissolve = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // recup le groupe
     const grp = await client.findGroupByName(grpName);
-    if (!grp)
+    if (!grp) {
         return interaction.reply({
             embeds: [createError(`Le groupe ${grpName} n'existe pas !`)],
         });
+    }
 
     // si l'author n'est pas capitaine et non admin
-    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+    if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${grpName} !`),
             ],
         });
+    }
 
     await dissolveGroup(client, interaction.guildId, grp);
 
@@ -47,7 +50,9 @@ const dissolve = async (interaction, options) => {
     }
 
     let mentionsUsers = "";
-    for (const member of grp.members) mentionsUsers += `<@${member.userId}> `;
+    for (const member of grp.members) {
+        mentionsUsers += `<@${member.userId}> `;
+    }
 
     // envoi dans channel log
     await createLogs(
