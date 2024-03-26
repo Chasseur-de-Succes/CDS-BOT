@@ -1,22 +1,32 @@
-const { Collection, EmbedBuilder, Events, WebhookClient } = require('discord.js');
-const { CROSS_MARK } = require('../data/emojis.json');
-const { User, Game } = require('../models/index.js');
-const { BAREME_XP, BAREME_MONEY, SALON, crtHour } = require("../util/constants");
-const { addXp } = require('../util/xp.js');
-const { getAchievement } = require('../util/msg/stats');
-const { feedBotMetaAch } = require('../util/envoiMsg');
+const {
+    Collection,
+    EmbedBuilder,
+    Events,
+    WebhookClient,
+} = require("discord.js");
+const { CROSS_MARK } = require("../data/emojis.json");
+const { User, Game } = require("../models/index.js");
+const {
+    BAREME_XP,
+    BAREME_MONEY,
+    SALON,
+    crtHour,
+} = require("../util/constants");
+const { addXp } = require("../util/xp.js");
+const { getAchievement } = require("../util/msg/stats");
+const { feedBotMetaAch } = require("../util/envoiMsg");
 
-const SteamUser = require('steam-user');
-const FS = require('fs');
-const { retryAfter5min } = require('../util/util');
+const SteamUser = require("steam-user");
+const FS = require("fs");
+const { retryAfter5min } = require("../util/util");
 
 module.exports = {
-	name: Events.MessageCreate,
-	async execute(msg) {
+    name: Events.MessageCreate,
+    async execute(msg) {
         /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
         /* et money par jour */
         if (!msg.author.bot) {
-            const timeLeft = cooldownTimeLeft('messages', 30, msg.author.id);
+            const timeLeft = cooldownTimeLeft("messages", 30, msg.author.id);
             if (!timeLeft) {
                 const userDB = await msg.client.getUser(msg.author);
 
@@ -25,20 +35,39 @@ module.exports = {
                     userDB.stats.msg++;
 
                     // test si achievement unlock
-                    const achievementUnlock = await getAchievement(userDB, 'nbMsg');
+                    const achievementUnlock = await getAchievement(
+                        userDB,
+                        "nbMsg",
+                    );
                     if (achievementUnlock) {
-                        feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
+                        feedBotMetaAch(
+                            msg.client,
+                            msg.guildId,
+                            msg.author,
+                            achievementUnlock,
+                        );
                     }
                     await userDB.save();
 
-                    await addXp(msg.client, msg.guildId, msg.author, BAREME_XP.MSG);
-    
+                    await addXp(
+                        msg.client,
+                        msg.guildId,
+                        msg.author,
+                        BAREME_XP.MSG,
+                    );
+
                     await addMoney(msg.client, msg.author, BAREME_MONEY.MSG);
                 }
             }
 
-            const idHeros = await msg.client.getGuildChannel(msg.guildId, SALON.HALL_HEROS);
-            const idZeros = await msg.client.getGuildChannel(msg.guildId, SALON.HALL_ZEROS);
+            const idHeros = await msg.client.getGuildChannel(
+                msg.guildId,
+                SALON.HALL_HEROS,
+            );
+            const idZeros = await msg.client.getGuildChannel(
+                msg.guildId,
+                SALON.HALL_ZEROS,
+            );
 
             const isHallHeros = msg.channelId === idHeros;
             const isHallZeros = msg.channelId === idZeros;
@@ -48,58 +77,81 @@ module.exports = {
             // si piece jointes
             if (hasPJ) {
                 // si image
-                if (msg.attachments.every(m => m.contentType?.startsWith('image'))) {
+                if (
+                    msg.attachments.every((m) =>
+                        m.contentType?.startsWith("image"),
+                    )
+                ) {
                     // si hall heros
                     if (isHallHeros) {
                         // reactions auto
-                        await msg.react('🏆');
-                        await msg.react('💯');
+                        await msg.react("🏆");
+                        await msg.react("💯");
 
                         const userDB = await msg.client.getUser(msg.author);
                         if (userDB) {
                             // stat ++
                             userDB.stats.img.heros++;
                             // test si achievement unlock
-                            const achievementUnlock = await getAchievement(userDB, 'heros');
+                            const achievementUnlock = await getAchievement(
+                                userDB,
+                                "heros",
+                            );
                             if (achievementUnlock) {
-                                feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
+                                feedBotMetaAch(
+                                    msg.client,
+                                    msg.guildId,
+                                    msg.author,
+                                    achievementUnlock,
+                                );
                             }
                             await userDB.save();
-        
+
                             // save msg dans base
-                            const initReactions = new Map([['🏆', 0], ['💯', 0]])
+                            const initReactions = new Map([
+                                ["🏆", 0],
+                                ["💯", 0],
+                            ]);
                             await msg.client.createMsgHallHeros({
                                 author: userDB,
                                 msgId: msg.id,
                                 guildId: msg.guildId,
-                                reactions: initReactions
+                                reactions: initReactions,
                             });
                         }
                     }
-                        
+
                     // si hall zeros
                     if (isHallZeros) {
                         // reaction auto
-                        await msg.react('💩');
+                        await msg.react("💩");
 
                         const userDB = await msg.client.getUser(msg.author);
                         if (userDB) {
                             // stat ++
                             userDB.stats.img.zeros++;
                             // test si achievement unlock
-                            const achievementUnlock = await getAchievement(userDB, 'zeros');
+                            const achievementUnlock = await getAchievement(
+                                userDB,
+                                "zeros",
+                            );
                             if (achievementUnlock) {
-                                feedBotMetaAch(msg.client, msg.guildId, msg.author, achievementUnlock);
+                                feedBotMetaAch(
+                                    msg.client,
+                                    msg.guildId,
+                                    msg.author,
+                                    achievementUnlock,
+                                );
                             }
                             await userDB.save();
 
                             // save msg dans base
-                            const initReactions = new Map([['💩', 0]]);
+                            const initReactions = new Map([["💩", 0]]);
                             await msg.client.createMsgHallZeros({
                                 author: userDB,
                                 msgId: msg.id,
                                 guildId: msg.guildId,
-                                reactions: initReactions
+                                reactions: initReactions,
                             });
                         }
                     }
@@ -111,19 +163,18 @@ module.exports = {
             // stop
             return;
         }
-    }
+    },
 };
 
 const recupIcon = async (steamClient, appid, game) => {
     // Passing true as the third argument automatically requests access tokens, which are required for some apps
-    let result = await steamClient.getProductInfo([parseInt(appid)], [], true); 
+    let result = await steamClient.getProductInfo([parseInt(appid)], [], true);
     if (result.apps[parseInt(appid)].appinfo?.common?.clienticon)
         game.iconHash = result.apps[parseInt(appid)].appinfo.common.clienticon;
-    else 
-        game.iconHash = result.apps[parseInt(appid)].appinfo.common.icon;
-    
+    else game.iconHash = result.apps[parseInt(appid)].appinfo.common.icon;
+
     await game.save();
-}
+};
 
 const recupAchievements = async (client, appid, game) => {
     // - recup achievements (si présent)
@@ -132,17 +183,17 @@ const recupAchievements = async (client, appid, game) => {
     if (resp.availableGameStats?.achievements) {
         console.log(`   * a des succès !`);
         const achievements = resp.availableGameStats.achievements;
-        
+
         // - ajout & save succes dans Game
-        achievements.forEach(el => {
-            el['apiName'] = el['name'];
+        achievements.forEach((el) => {
+            el["apiName"] = el["name"];
             delete el.name;
             delete el.defaultvalue;
             delete el.hidden;
         });
 
         game.achievements = achievements;
-        
+
         await game.save();
     } else {
         // - save tableau vide
@@ -150,7 +201,7 @@ const recupAchievements = async (client, appid, game) => {
         game.achievements = [];
         await game.save();
     }
-}
+};
 
 const cooldowns = new Collection();
 
@@ -168,8 +219,8 @@ const cooldownTimeLeft = (type, seconds, userID) => {
         const expirationTime = timestamps.get(userID) + cooldownAmount;
 
         if (now < expirationTime) {
-        const timeLeft = (expirationTime - now) / 1000;
-        return timeLeft;
+            const timeLeft = (expirationTime - now) / 1000;
+            return timeLeft;
         }
     }
 
@@ -186,11 +237,8 @@ const addMoney = async (client, user, money) => {
         // si pas register pas grave, ca ne passera pas
         await User.updateOne(
             { userId: user.id },
-            { $inc: { moneyLimit : money } }
+            { $inc: { moneyLimit: money } },
         );
-        await User.updateOne(
-            { userId: user.id },
-            { $inc: { money : money } }
-        );
+        await User.updateOne({ userId: user.id }, { $inc: { money: money } });
     }
-}
+};

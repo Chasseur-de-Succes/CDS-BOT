@@ -16,4 +16,4 @@ module.exports = {
     kick,
     editNbParticipant,
     add,
-}
+};

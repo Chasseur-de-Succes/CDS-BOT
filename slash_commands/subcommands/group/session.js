@@ -16,29 +16,60 @@ const schedule = async (interaction, options) => {
 
     // Test si le capitaine est inscrit
     const authorDB = await client.getUser(author);
-    if (!authorDB) // Si pas dans la BDD
-        return interaction.reply({ embeds: [createError(`${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``)] });
+    if (!authorDB)
+        // Si pas dans la BDD
+        return interaction.reply({
+            embeds: [
+                createError(
+                    `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
+                ),
+            ],
+        });
 
     // Récupération du groupe
     const grp = await client.findGroupByName(nameGrp);
     if (!grp)
-        return interaction.reply({ embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)] });
+        return interaction.reply({
+            embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)],
+        });
 
     // Si l'auteur n'est pas capitaine ou admin
     if (!isAdmin && !grp.captain._id.equals(authorDB._id))
-        return interaction.reply({ embeds: [createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`)] });
+        return interaction.reply({
+            embeds: [
+                createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`),
+            ],
+        });
 
     // Test si date bon format
     const allowedDateFormat = ["DD/MM/YY HH:mm", "DD/MM/YYYY HH:mm"];
-    if (!moment(`${dateVoulue} ${heureVoulue}`, allowedDateFormat, true).isValid())
-        return interaction.reply({ embeds: [createError(`${dateVoulue} ${heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`)] });
+    if (
+        !moment(
+            `${dateVoulue} ${heureVoulue}`,
+            allowedDateFormat,
+            true,
+        ).isValid()
+    )
+        return interaction.reply({
+            embeds: [
+                createError(
+                    `${dateVoulue} ${heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`,
+                ),
+            ],
+        });
 
     // Parse string to Moment (date)
-    const dateEvent = moment.tz(`${dateVoulue} ${heureVoulue}`, allowedDateFormat, "Europe/Paris");
+    const dateEvent = moment.tz(
+        `${dateVoulue} ${heureVoulue}`,
+        allowedDateFormat,
+        "Europe/Paris",
+    );
     await interaction.deferReply();
 
     // Si la date existe déjà, la supprimer
-    const indexDateEvent = grp.dateEvent.findIndex(d => d.getTime() === dateEvent.valueOf());
+    const indexDateEvent = grp.dateEvent.findIndex(
+        (d) => d.getTime() === dateEvent.valueOf(),
+    );
     let titreReponse = `${CHECK_MARK} `;
     let msgReponse = "▶️ ";
     if (indexDateEvent >= 0) {
@@ -63,7 +94,12 @@ const schedule = async (interaction, options) => {
     if (indexDateEvent >= 0) {
         deleteRappelJob(client, grp, dateEvent.toDate());
     } else {
-        await createRappelJob(client, interaction.guildId, grp, dateEvent.toDate());
+        await createRappelJob(
+            client,
+            interaction.guildId,
+            grp,
+            dateEvent.toDate(),
+        );
     }
 
     // update msg
@@ -78,7 +114,9 @@ const schedule = async (interaction, options) => {
             if (channel) {
                 const dateStr = `${dateVoulue} à ${heureVoulue}`;
                 if (indexDateEvent >= 0) {
-                    channel.send(`> ⚠️ La session du **${dateStr}** a été **supprimée**.`);
+                    channel.send(
+                        `> ⚠️ La session du **${dateStr}** a été **supprimée**.`,
+                    );
                 } else {
                     channel.send(`> 🗓️ Nouvelle session le **${dateStr}** !`);
                 }
@@ -90,6 +128,6 @@ const schedule = async (interaction, options) => {
         .setTitle(titreReponse)
         .setDescription(msgReponse);
     return interaction.editReply({ embeds: [newMsgEmbed] });
-}
+};
 
 exports.schedule = schedule;
