@@ -106,9 +106,17 @@ const loadReactionGroup = async (client) => {
                 .then(async (msg) => {
                     const grp = await Group.findOne({ idMsg: msg.id });
                     // filtre group encore en cours
-                    if (!grp.validated)
-                        await createReactionCollectorGroup(client, msg, grp);
-                    else await moveToArchive(client, idListGroup, grp.idMsg);
+                    if (!grp.validated) {
+                        // enleve réactions
+                        await msg.reactions.removeAll();
+
+                        // "maj" msg group pour ajouter boutons + collector
+                        const row = await createRowGroupButtons(grp);
+                        await msg.edit({ components: [row] });
+                        await createCollectorGroup(client, msg);
+                    } else {
+                        await moveToArchive(client, idListGroup, grp.idMsg);
+                    }
                 })
                 .catch(async (err) => {
                     logger.error(
@@ -222,7 +230,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
         // on enleve tous les émojis (dans le cas ou il y a eu un delete)
         if (emojiDeleted) {
             // recupere array des keys = emojis des reactions
-            let keys = [...msg.reactions.cache.keys()];
+            const keys = [...msg.reactions.cache.keys()];
 
             // recupere l'id de l'emoji custom deleted
             if (emojiDeleted.startsWith("<")) {
@@ -304,7 +312,7 @@ const loadVocalCreator = async (client) => {
     // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
     client.guilds.cache.forEach(async (guild) => {
         // si le chan vocal n'existe pas, on le créé + save
-        let config = await GuildConfig.findOne({ guildId: guild.id });
+        const config = await GuildConfig.findOne({ guildId: guild.id });
 
         if (!config.channels || !config.channels["create_vocal"]) {
             // créer un voice channel
