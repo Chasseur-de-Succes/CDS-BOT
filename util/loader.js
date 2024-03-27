@@ -104,9 +104,17 @@ const loadReactionGroup = async (client) => {
                 .then(async (msg) => {
                     const grp = await Group.findOne({ idMsg: msg.id });
                     // filtre group encore en cours
-                    if (!grp.validated)
-                        await createReactionCollectorGroup(client, msg, grp);
-                    else await moveToArchive(client, idListGroup, grp.idMsg);
+                    if (!grp.validated) {
+                        // enleve réactions
+                        await msg.reactions.removeAll();
+
+                        // "maj" msg group pour ajouter boutons + collector
+                        const row = await createRowGroupButtons(grp);
+                        await msg.edit({ components: [row] });
+                        await createCollectorGroup(client, msg);
+                    } else {
+                        await moveToArchive(client, idListGroup, grp.idMsg);
+                    }
                 })
                 .catch(async (err) => {
                     logger.error(

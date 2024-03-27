@@ -15,6 +15,7 @@ const guildConfigSchema = mongoose.Schema({
         cat_discussion_groupe_2: String,
         feed_bot: String,
         feed_achievement: String,
+        tickets: String,
     },
     voice_channels: [String],
     webhook: {
