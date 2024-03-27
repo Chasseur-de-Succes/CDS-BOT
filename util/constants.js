@@ -79,6 +79,10 @@ const CHANNEL = [
         name: "Feed achievement 🆕",
         value: "feed_achievement",
     },
+    {
+        name: "Salon de tickets",
+        value: "tickets",
+    },
 ];
 const SALON = {
     WELCOME: "welcome",
@@ -91,6 +95,7 @@ const SALON = {
     CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
     FEED_BOT: "feed_bot",
     FEED_ACHIEVEMENT: "feed_achievement",
+    TICKETS: "tickets",
 };
 
 const WEBHOOK_ARRAY = [
