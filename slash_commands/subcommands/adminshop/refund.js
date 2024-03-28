@@ -78,9 +78,9 @@ async function refund(interaction, options) {
     const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Achat remboursé !`)
-        .setDescription(`▶ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
-                         ▶ ${process.env.MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
-                         ▶ L'item est de nouveau **disponible** dans le shop`);
+        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
+                         ▶️ ${process.env.MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
+                         ▶️ L'item est de nouveau **disponible** dans le shop`);
     interaction.reply({ embeds: [embed] });
     createLogs(
         client,

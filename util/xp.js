@@ -9,15 +9,15 @@ const { feedBotLevelUp } = require("./envoiMsg.js");
  * @param {*} xp montant de l'xp à donner
  */
 module.exports.addXp = async (client, guildId, user, xp) => {
-    const userDB = await User.findOneAndUpdate(
+    const userDb = await User.findOneAndUpdate(
         { userId: user.id },
         { $inc: { experience: xp } },
         { new: true },
     ).exec();
 
     // si update ok
-    if (userDB) {
-        const crtLvl = userDB.level;
+    if (userDb) {
+        const crtLvl = userDb.level;
 
         if (crtLvl === 0) {
             // nivo 1 direct, au cas où
@@ -25,7 +25,7 @@ module.exports.addXp = async (client, guildId, user, xp) => {
         } else {
             const palier = this.getXpNeededForNextLevel(crtLvl);
 
-            if (userDB.experience >= palier) {
+            if (userDb.experience >= palier) {
                 // youpi niveau sup.
                 await User.updateOne(
                     { userId: user.id },
@@ -37,8 +37,8 @@ module.exports.addXp = async (client, guildId, user, xp) => {
                     client,
                     guildId,
                     user,
-                    userDB,
-                    this.getXpNeededForNextLevel(userDB.level + 1),
+                    userDb,
+                    this.getXpNeededForNextLevel(userDb.level + 1),
                 );
             }
         }
@@ -52,7 +52,9 @@ module.exports.addXp = async (client, guildId, user, xp) => {
  * @returns le nb d'exp
  */
 module.exports.getXpNeededForNextLevel = (lvl) => {
-    if (lvl === 1) return 100;
+    if (lvl === 1) {
+        return 100;
+    }
 
     return this.getXpNeededForNextLevel(lvl - 1) + THREESOLD_LVL * (lvl - 1);
 };

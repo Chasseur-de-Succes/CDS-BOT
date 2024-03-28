@@ -12,10 +12,12 @@ const { GREEN } = require("../../data/colors.json");
 module.exports = {
     async execute(interaction) {
         if (interaction.isButton()) {
-            if (interaction.channel.type !== ChannelType.PrivateThread) return;
+            if (interaction.channel.type !== ChannelType.PrivateThread) {
+                return;
+            }
 
             switch (interaction.customId.split("-")[1]) {
-                case "close":
+                case "close": {
                     await interaction.reply(
                         `Le ticket a été clos par ${interaction.user}.`,
                     );
@@ -24,7 +26,8 @@ module.exports = {
                     await interaction.channel.setLocked(true);
                     await interaction.channel.setArchived(true);
                     break;
-                case "resolve":
+                }
+                case "resolve": {
                     await interaction.reply(
                         `Le ticket a été marqué comme résolu par ${interaction.user}.`,
                     );
@@ -32,6 +35,7 @@ module.exports = {
                     // Archivage du ticket
                     await interaction.channel.setArchived(true);
                     break;
+                }
             }
         } else if (interaction.isModalSubmit()) {
             // Création de ticket
@@ -49,11 +53,12 @@ module.exports = {
                     );
 
                 // Gestion d'erreur si aucun salon de ticket n'est défini
-                if (!ticketChannelId)
+                if (!ticketChannelId) {
                     return await interaction.reply({
                         content: `Aucun salon de ticket n'a été trouvé.`,
                         ephemeral: true,
                     });
+                }
 
                 const ticketChannel =
                     interaction.client.channels.cache.get(ticketChannelId);

@@ -20,14 +20,15 @@ module.exports = {
         await interaction.reply({ embeds: [embed] });
         const ping = Date.now() - createdTime;
 
-        if (ping < 750)
+        if (ping < 750) {
             embed.setDescription(
                 `Pong: **${ping}** ms. ${customMsg[customMsgNumber]}`,
             );
-        else
+        } else {
             embed.setDescription(
                 `Pong! ${ping} ms. Mon ping est mauvais :cry:`,
             );
+        }
 
         await interaction.editReply({ embeds: [embed] });
     },

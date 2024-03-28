@@ -18,7 +18,7 @@ module.exports = {
         const member = interaction.guild.members.cache.get(user.id);
 
         const dbUser = await client.getUser(member);
-        if (!dbUser)
+        if (!dbUser) {
             // Si pas dans la BDD
             return interaction.reply({
                 embeds: [
@@ -27,6 +27,7 @@ module.exports = {
                     ),
                 ],
             });
+        }
 
         const embed = new EmbedBuilder()
             .setColor(GREEN)

@@ -12,7 +12,7 @@ const end = async (interaction, options) => {
 
     // test si captain est register
     const authorDb = await client.getUser(author);
-    if (!authorDb)
+    if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -21,24 +21,27 @@ const end = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // Récupération du groupe
     const grp = await client.findGroupByName(grpName);
-    if (!grp)
+    if (!grp) {
         return interaction.reply({
             embeds: [createError(`Le groupe ${grpName} n'existe pas !`)],
         });
+    }
 
     // Si l'auteur n'est pas admin et n'est pas capitaine
-    if (!isAdmin && !grp.captain._id.equals(authorDb._id))
+    if (!(isAdmin || grp.captain._id.equals(authorDb._id))) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${grp.name} !`),
             ],
         });
+    }
 
     // si un seul participant
-    if (grp.size === 1)
+    if (grp.size === 1) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -46,6 +49,7 @@ const end = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     await client.update(grp, { validated: true });
 
@@ -61,7 +65,9 @@ const end = async (interaction, options) => {
     }
 
     let mentionsUsers = "";
-    for (const member of grp.members) mentionsUsers += `<@${member.userId}> `;
+    for (const member of grp.members) {
+        mentionsUsers += `<@${member.userId}> `;
+    }
 
     // - MONEY
     // X = [[(Valeur du joueur de base (20)+ (5 par joueur supplémentaire)] X par le nombre de joueurs total inscrit]] + 50 par session

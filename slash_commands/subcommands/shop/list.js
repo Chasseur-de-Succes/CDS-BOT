@@ -12,8 +12,8 @@ async function list(interaction) {
     const client = interaction.client;
     const author = interaction.member;
 
-    const userDB = await client.getUser(author);
-    if (!userDB)
+    const userDb = await client.getUser(author);
+    if (!userDb) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -21,6 +21,7 @@ async function list(interaction) {
                 ),
             ],
         });
+    }
 
     const items = await client.findGameItemShopByGame();
     let embed = new EmbedBuilder()
@@ -28,7 +29,7 @@ async function list(interaction) {
         .setTitle("💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰")
         .setDescription("Liste des jeux disponibles à l'achat.")
         .setFooter({
-            text: `💵 ${userDB.money} ${process.env.MONEY}`,
+            text: `💵 ${userDb.money} ${process.env.MONEY}`,
         });
 
     if (items.length === 0) {
@@ -42,14 +43,14 @@ async function list(interaction) {
     const prevBtn = new ButtonBuilder()
         .setCustomId("prev")
         .setLabel("Préc.")
-        .setEmoji("⬅")
+        .setEmoji("⬅️")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(true);
 
     const nextBtn = new ButtonBuilder()
         .setCustomId("next")
         .setLabel("Suiv.")
-        .setEmoji("➡")
+        .setEmoji("➡️")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(items.length / NB_PAR_PAGES <= 1);
 
@@ -58,7 +59,7 @@ async function list(interaction) {
     rows.unshift(rowBuyButton);
 
     /* 1ere page liste */
-    embed = createListGame(items, userDB.money);
+    embed = createListGame(items, userDb.money);
     const msgListEmbed = await interaction.reply({
         embeds: [embed],
         components: rows,
@@ -74,7 +75,7 @@ async function list(interaction) {
     collector.on("collect", async (itr) => {
         // si bouton 'prev' ou 'next' (donc pas 'buy')
         if (itr.customId === "prev" || itr.customId === "next") {
-            itr.customId === "prev" ? (currentIndex -= 1) : (currentIndex += 1);
+            currentIndex += itr.customId === "prev" ? -1 : 1;
 
             const max = items.length;
             // disable si 1ere page
@@ -85,7 +86,7 @@ async function list(interaction) {
             // Respond to interaction by updating message with new embed
             await itr.update({
                 embeds: [
-                    await createListGame(items, userDB.money, currentIndex),
+                    await createListGame(items, userDb.money, currentIndex),
                 ],
                 components: [
                     new ActionRowBuilder({ components: [prevBtn, nextBtn] }),
@@ -97,7 +98,7 @@ async function list(interaction) {
     // apres 5 min, on "ferme" la boutique
     collector.on("end", () => {
         msgListEmbed.edit({
-            embeds: [createListGame(items, userDB.money, currentIndex)],
+            embeds: [createListGame(items, userDb.money, currentIndex)],
             components: [],
         });
     });
@@ -117,9 +118,9 @@ function createListGame(items, money, currentIndex = 0) {
     // on limite le nb de jeu affichable (car embed à une limite de caracteres)
     // de 0 à 10, puis de 10 à 20, etc
     // on garde l'index courant (page du shop), le nom du jeu et le prix min
-    const pages = [],
-        jeux = [],
-        prixMin = [];
+    const pages = [];
+    const jeux = [];
+    const prixMin = [];
     for (let i = currentIndex * 10; i < 10 + currentIndex * 10; i++) {
         const item = items[i];
         if (item) {

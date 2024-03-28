@@ -15,9 +15,9 @@ const { createError } = require("../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../util/xp");
 
 const Canvas = require("canvas");
-const path = require("path");
+const path = require("node:path");
 const { Game, User } = require("../models");
-const { getJSONValue } = require("../util/util");
+const { getJsonValue } = require("../util/util");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,7 +32,7 @@ module.exports = {
         .addStringOption((option) =>
             option
                 .setName("succes")
-                .setDescription(`Affiche les succès du profile`)
+                .setDescription("Affiche les succès du profile")
                 .setAutocomplete(true),
         ),
     async autocomplete(interaction) {
@@ -80,17 +80,23 @@ module.exports = {
             const nbStat =
                 typeSucces === "money"
                     ? money
-                    : getJSONValue(userStat, infoSucces.db, "");
-            let desc = ``;
+                    : getJsonValue(userStat, infoSucces.db, "");
+            let desc = "";
             for (const x in infoSucces.succes) {
                 const achieved = nbStat >= Number.parseInt(x);
 
-                if (achieved) desc += `✅ `;
-                else desc += `⬛ `;
+                if (achieved) {
+                    desc += "✅ ";
+                } else {
+                    desc += "⬛ ";
+                }
                 desc += `**${infoSucces.succes[x].title}**\n`;
 
-                if (achieved) desc += `> ${infoSucces.succes[x].desc}\n`;
-                else desc += `> ||${infoSucces.succes[x].desc}||\n`;
+                if (achieved) {
+                    desc += `> ${infoSucces.succes[x].desc}\n`;
+                } else {
+                    desc += `> ||${infoSucces.succes[x].desc}||\n`;
+                }
             }
             const embed = new EmbedBuilder()
                 .setColor(colorEmbed)
@@ -103,10 +109,10 @@ module.exports = {
         // AFFICHAVE CANVAS
         const urlSteam = `[Steam](https://steamcommunity.com/profiles/${dbUser.steamId})`;
         const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
-        const urlCME = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
-        const urlSH = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
+        const urlCme = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
+        const urlSh = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
 
-        const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCME} | ${SH} ${urlSH} ]`;
+        const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
 
         // recup settings de l'user
         const configProfile = await client.getOrInitProfile(dbUser);
@@ -154,9 +160,6 @@ module.exports = {
 
         if (borderStyle === "double") {
             ctx.lineWidth = 2;
-            // TODO a revoir
-            if (borderStyle === "dashed") ctx.setLineDash([10]);
-            else if (borderStyle === "dotted") ctx.setLineDash([2, 5]);
 
             // fond couleur (pas derriere meta succes)
             roundRect(ctx, 5, 5, canvas.width - 10, 120, 10, true, false);
@@ -183,8 +186,11 @@ module.exports = {
             );
         } else {
             ctx.lineWidth = 3;
-            if (borderStyle === "dashed") ctx.setLineDash([10]);
-            else if (borderStyle === "dotted") ctx.setLineDash([2, 5]);
+            if (borderStyle === "dashed") {
+                ctx.setLineDash([10]);
+            } else if (borderStyle === "dotted") {
+                ctx.setLineDash([2, 5]);
+            }
 
             // fond couleur (pas derriere meta succes)
             roundRect(ctx, 5, 5, canvas.width - 10, 120, 10, true, false);
@@ -218,9 +224,9 @@ module.exports = {
 
                 const game = act.name;
 
-                const gameDB = await Game.findOne({ name: game });
-                if (gameDB) {
-                    const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDB.appid}/capsule_184x69.jpg`;
+                const gameDb = await Game.findOne({ name: game });
+                if (gameDb) {
+                    const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDb.appid}/capsule_184x69.jpg`;
                     try {
                         const gameImg = await Canvas.loadImage(gameUrlHeader);
                         ctx.drawImage(
@@ -237,7 +243,7 @@ module.exports = {
                     }
                 }
 
-                ctx.fillText(`actuellement sur`, canvas.width - 194 - 10, 25);
+                ctx.fillText("actuellement sur", canvas.width - 194 - 10, 25);
                 ctx.fillText(`${game}`, canvas.width - 194 - 10, 45);
             }
         }
@@ -584,7 +590,9 @@ module.exports = {
 // TODO a deplacer dans utils..
 function getByValue(map, searchValue) {
     for (const [key, value] of map.entries()) {
-        if (value === searchValue) return key;
+        if (value === searchValue) {
+            return key;
+        }
     }
 }
 

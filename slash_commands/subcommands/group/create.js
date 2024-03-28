@@ -50,12 +50,12 @@ const create = async (interaction, options) => {
 
     if (nbGrps >= process.env.MAX_GRPS) {
         return interaction.reply({
-            embeds: [createError(`Tu as rejoins trop de groupes !`)],
+            embeds: [createError("Tu as rejoins trop de groupes !")],
         });
     }
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
-    if (nameGrp.length < 3)
+    if (nameGrp.length < 3) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -63,17 +63,19 @@ const create = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // si nom groupe existe
     const grp = await client.findGroupByName(nameGrp);
-    if (grp)
+    if (grp) {
         return interaction.reply({
             embeds: [
                 createError(
-                    `Le nom du groupe existe déjà. Veuillez en choisir un autre.`,
+                    "Le nom du groupe existe déjà. Veuillez en choisir un autre.",
                 ),
             ],
         });
+    }
 
     // création de la regex sur le nom du jeu
     logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
@@ -96,26 +98,27 @@ const create = async (interaction, options) => {
     ]);
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games)
+    if (!games) {
         return await interaction.editReply({
-            embeds: [createError(`Erreur lors de la recherche du jeu`)],
+            embeds: [createError("Erreur lors de la recherche du jeu")],
         });
-    if (games.length === 0)
+    }
+    if (games.length === 0) {
         return await interaction.editReply({
             embeds: [
                 createError(`Pas de résultat trouvé pour **${gameName}** !`),
             ],
         });
+    }
 
     // values pour Select Menu
     const items = [];
-    for (let i = 0; i < games.length; i++) {
-        const crtGame = games[i];
-        if (crtGame) {
+    for (const game of games) {
+        if (game) {
             items.unshift({
-                label: crtGame.name,
+                label: game.name,
                 // description: 'Description',
-                value: "" + crtGame.appid,
+                value: `${game.appid}`,
             });
         }
     }
@@ -126,7 +129,7 @@ const create = async (interaction, options) => {
     // row contenant le Select menu
     const row = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
-            .setCustomId("select-games-" + captain)
+            .setCustomId(`select-games-${captain}`)
             .setPlaceholder("Sélectionner le jeu..")
             .addOptions(items),
     );
@@ -136,7 +139,7 @@ const create = async (interaction, options) => {
         .setTitle(
             `J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`,
         )
-        .setDescription(`Lequel est celui que tu cherchais ?`);
+        .setDescription("Lequel est celui que tu cherchais ?");
 
     const msgEmbed = await interaction.editReply({
         embeds: [embed],
@@ -144,7 +147,8 @@ const create = async (interaction, options) => {
     });
 
     // attend une interaction bouton de l'auteur de la commande
-    let filter, itrSelect;
+    let filter;
+    let itrSelect;
     try {
         filter = (i) => {
             i.deferUpdate();

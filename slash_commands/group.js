@@ -235,7 +235,7 @@ module.exports = {
             .slice(0, 25)
             .map((element) =>
                 element.name?.length > 100
-                    ? element.name.substring(0, 96) + "..."
+                    ? `${element.name.substring(0, 96)}...`
                     : element.name,
             );
 

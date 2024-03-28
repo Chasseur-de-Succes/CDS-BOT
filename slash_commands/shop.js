@@ -58,7 +58,7 @@ module.exports = {
                     filtered.push({
                         name: customItems[x].title,
                         // description: 'Description',
-                        value: "" + x,
+                        value: `${x}`,
                     });
                 }
 
@@ -111,9 +111,9 @@ module.exports = {
                         .map((element) => ({
                             name:
                                 element.name?.length > 100
-                                    ? element.name.substring(0, 96) + "..."
+                                    ? `${element.name.substring(0, 96)}...`
                                     : element.name,
-                            value: "" + element.appid,
+                            value: `${element.appid}`,
                         }));
                 }
 
@@ -125,7 +125,7 @@ module.exports = {
                     // et on ajoute en 1er l'exact
                     filtered.unshift({
                         name: jeuExact.name,
-                        value: "" + jeuExact.appid,
+                        value: `${jeuExact.appid}`,
                     });
                 }
 
@@ -142,13 +142,13 @@ module.exports = {
         const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === "list") {
-            list(interaction, interaction.options);
+            await list(interaction, interaction.options);
         } else if (subcommand === "jeux") {
-            jeux(interaction, interaction.options, true);
+            await jeux(interaction, interaction.options, true);
         } else if (subcommand === "custom") {
-            custom(interaction, interaction.options);
+            await custom(interaction, interaction.options);
         } else if (subcommand === "sell") {
-            sell(interaction, interaction.options);
+            await sell(interaction, interaction.options);
         }
     },
 };

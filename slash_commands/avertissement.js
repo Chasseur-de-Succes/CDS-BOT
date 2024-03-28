@@ -171,7 +171,7 @@ module.exports = {
                 // envoyer DM pour prevenir
                 const mp = new EmbedBuilder()
                     .setColor(color)
-                    .setTitle(`! Tu as reçu **3 avertissements** !`)
+                    .setTitle("⚠️ Tu as reçu **3 avertissements** ⚠️")
                     .setDescription(`${
                         raison ? `Pour la raison : \n*${raison}*` : ""
                     }
@@ -186,8 +186,8 @@ module.exports = {
                 member.roles.remove(role404);
 
                 // envoi mp
-                let titleMp = ``,
-                    descMp = ``;
+                let titleMp = "";
+                let descMp = "";
 
                 if (dbUser.warning === 0) {
                     titleMp = `👼 Tu n'es plus **puni** 👼`;
@@ -200,7 +200,7 @@ module.exports = {
                     }
                             ▶ Tu peux de nouveau rejoindre un groupe`;
                 } else if (dbUser === 1) {
-                    titleMp = `! **${dbUser.warning}er avertissement** !`;
+                    titleMp = `⚠️ **${dbUser.warning}er avertissement** ⚠️`;
                     descMp = `${
                         raison
                             ? `**Pour la raison :**
@@ -210,7 +210,7 @@ module.exports = {
                     }
                             ▶ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 } else {
-                    titleMp = `! **${dbUser.warning}ème avertissement** !`;
+                    titleMp = `⚠️ **${dbUser.warning}ème avertissement** ⚠️`;
                     descMp = `${
                         raison
                             ? `**Pour la raison :**
@@ -228,9 +228,8 @@ module.exports = {
                 user.send({ embeds: [mp] });
             }
         } else {
-            console.log(
-                ".. role Erreur 404 pas encore créé pour " +
-                    interaction.guild.name,
+            logger.info(
+                `.. role Erreur 404 pas encore créé pour ${interaction.guild.name}`,
             );
         }
 
@@ -244,7 +243,7 @@ module.exports = {
         await createLogs(
             client,
             guildId,
-            `! ${title}`,
+            `⚠️ ${title}`,
             desc,
             `par ${interaction.member.user.tag}`,
             color,

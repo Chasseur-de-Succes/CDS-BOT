@@ -10,8 +10,8 @@ const kick = async (interaction, options) => {
     const author = interaction.member;
 
     // test si captain est register
-    const authorDB = await client.getUser(author);
-    if (!authorDB)
+    const authorDb = await client.getUser(author);
+    if (!authorDb)
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -20,8 +20,8 @@ const kick = async (interaction, options) => {
                 ),
             ],
         });
-    const toKickedDB = await client.getUser(toKicked);
-    if (!toKickedDB)
+    const toKickedDb = await client.getUser(toKicked);
+    if (!toKickedDb)
         return interaction.reply({
             embeds: [
                 createError(
@@ -38,7 +38,7 @@ const kick = async (interaction, options) => {
         });
 
     // si user a kick est capitaine
-    if (grp.captain._id.equals(toKickedDB._id))
+    if (grp.captain._id.equals(toKickedDb._id))
         return interaction.reply({
             embeds: [
                 createError(
@@ -49,7 +49,7 @@ const kick = async (interaction, options) => {
 
     // Si l'auteur n'est pas capitaine ou non admin
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
-    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+    if (!isAdmin && !grp.captain._id.equals(authorDb._id))
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe **${grpName}** !`),
@@ -57,7 +57,7 @@ const kick = async (interaction, options) => {
         });
 
     // Si l'utilisateur à kick fait partie du groupe
-    const memberGrp = grp.members.find((u) => u._id.equals(toKickedDB._id));
+    const memberGrp = grp.members.find((u) => u._id.equals(toKickedDb._id));
     if (!memberGrp)
         return interaction.reply({
             embeds: [
@@ -68,7 +68,7 @@ const kick = async (interaction, options) => {
         });
 
     // update du groupe : size -1 et maj members
-    await leaveGroup(interaction.client, interaction.guildId, grp, toKickedDB);
+    await leaveGroup(interaction.client, interaction.guildId, grp, toKickedDb);
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);

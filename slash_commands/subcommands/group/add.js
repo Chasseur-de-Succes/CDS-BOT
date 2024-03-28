@@ -20,7 +20,7 @@ const add = async (interaction, options) => {
         });
     }
 
-    const userDB = await client.getUser(toAdd);
+    const userDb = await client.getUser(toAdd);
     const grp = await Group.findOne({ name: grpName }).populate(
         "captain members game",
     );
@@ -31,7 +31,7 @@ const add = async (interaction, options) => {
             ephemeral: true,
         });
     } else {
-        await joinGroup(client, interaction.guildId, grp, userDB);
+        await joinGroup(client, interaction.guildId, grp, userDb);
         interaction.reply({
             content: `L'utilisateur ${toAdd} a été rajouté dans le groupe ${grpName}`,
             ephemeral: true,

@@ -11,7 +11,7 @@ const { Group } = require("../models");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("calendrier")
-        .setDescription(`Affiche le calendrier des prochains événements`)
+        .setDescription("Affiche le calendrier des prochains événements")
         .setDMPermission(true)
         .addUserOption((option) =>
             option
@@ -143,7 +143,7 @@ async function createEmbed(date, guildId, dbUser, username) {
         day: "numeric",
         month: "short",
     });
-    const titre = `🗓  ${weekStart} ➡ ${weekEnd}`;
+    const titre = `🗓️ ${weekStart} ➡️ ${weekEnd}`;
 
     const footer = `planning de ${username}`;
 
@@ -161,7 +161,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
         month: "short",
         day: "numeric",
     };
-    console.log(
+    logger.info(
         `.. recherche event du ${lundi.toLocaleDateString(
             "fr-FR",
             options,
@@ -187,7 +187,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
             .populate("game")
             .exec();
 
-        let fieldValue = `◾◾◾`;
+        let fieldValue = "◾◾◾";
         for (const group of groups) {
             // TODO is captain ?
             const {
@@ -206,12 +206,10 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
 
                 for (const foundElement of found) {
                     infos.push(
-                        "**| " +
-                            foundElement.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }) +
-                            " |**",
+                        `**| ${foundElement.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })} |**`,
                     );
                     infos.push(`*${game}*`);
                     infos.push(`<#${channelId}>`);

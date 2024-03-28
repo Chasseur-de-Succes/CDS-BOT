@@ -23,7 +23,7 @@ module.exports = {
             const embed = await client.fetchGame(appId, user.tag);
             return interaction.editReply({ embeds: [embed] });
         } catch (err) {
-            console.log(err);
+            logger.error(err);
             return interaction.editReply({
                 embeds: [createError("Jeu introuvable !")],
             });

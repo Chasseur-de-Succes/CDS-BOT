@@ -37,7 +37,7 @@ module.exports = {
             const newNickname = newUser.nickname || "_Aucun_";
             const embed = new EmbedBuilder()
                 .setColor(ORANGE)
-                .setTitle(`Surnom modifier`)
+                .setTitle("Surnom modifier")
                 .setDescription(
                     `${newUser}\nAncien surnom: ${oldNickname}\nNouveau surnom: ${newNickname}`,
                 )

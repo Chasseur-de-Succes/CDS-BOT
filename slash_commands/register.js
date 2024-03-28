@@ -23,7 +23,7 @@ module.exports = {
                 .setRequired(true),
         ),
     async execute(interaction) {
-        const steamID64 =
+        const steamId64 =
             interaction.options.getString("id-steam-64") ??
             "Aucune id64 renseignée.";
         const client = interaction.client;
@@ -34,27 +34,27 @@ module.exports = {
         if (dbUser)
             // Si dans la BDD
             return interaction.reply({
-                embeds: [createError(`Tu es déjà inscrit !`)],
+                embeds: [createError("Tu es déjà inscrit !")],
             });
 
-        if (steamID64.length !== 17)
+        if (steamId64.length !== 17)
             return interaction.reply({
                 embeds: [
                     createError(
-                        `ID Steam non valide !\nID trouvable, au format SteamID64, ici : https://steamid.xyz/`,
+                        "ID Steam non valide !\nID trouvable, au format SteamID64, ici : https://steamid.xyz/",
                     ),
                 ],
             });
 
         // récupère l'utilisateur steam
-        const userSteam = await client.getPlayerSummaries(steamID64);
+        const userSteam = await client.getPlayerSummaries(steamId64);
 
         if (!userSteam || userSteam.body.response.players.length === 0)
             // vérification de si l'id steam existe
             return interaction.reply({
                 embeds: [
                     createError(
-                        `ID Steam non existant !\nID trouvable, au format SteamID64, ici : https://steamid.xyz/`,
+                        "ID Steam non existant !\nID trouvable, au format SteamID64, ici : https://steamid.xyz/",
                     ),
                 ],
             });
@@ -87,9 +87,9 @@ module.exports = {
         });
 
         const confirmFilter = (i) =>
-            i.customId === `confirm` && i.user.id === interaction.user.id;
+            i.customId === "confirm" && i.user.id === interaction.user.id;
         const cancelFilter = (i) =>
-            i.customId === `cancel` && i.user.id === interaction.user.id;
+            i.customId === "cancel" && i.user.id === interaction.user.id;
 
         // COLLECTOR sur le message créé
         const timer = 30000; // (30 seconds)
@@ -109,7 +109,7 @@ module.exports = {
             await client.createUser({
                 userId: member.id,
                 username: user.tag,
-                steamId: steamID64,
+                steamId: steamId64,
             });
 
             const embed = new EmbedBuilder()

@@ -63,8 +63,8 @@ async function cancel(interaction, options) {
     const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Vente annulée !`)
-        .setDescription(`▶ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
-                         ▶ L'item est de nouveau **disponible** dans le shop`);
+        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
+                         ▶️ L'item est de nouveau **disponible** dans le shop`);
     interaction.reply({ embeds: [embed] });
     createLogs(
         client,

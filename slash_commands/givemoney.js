@@ -38,7 +38,7 @@ module.exports = {
         const isAdmin = interaction.member.permissions.has(
             PermissionFlagsBits.Administrator,
         );
-        if (!isAdmin)
+        if (!isAdmin) {
             return interaction.reply({
                 embeds: [
                     createError(
@@ -47,6 +47,7 @@ module.exports = {
                 ],
                 ephemeral: true,
             });
+        }
 
         const dbUser = await client.getUser(member);
         if (!dbUser) {
@@ -64,7 +65,7 @@ module.exports = {
             money = 0;
         }
         const msgCustom = `${author} ${
-            montant > 0 ? `a donné` : `a retiré`
+            montant > 0 ? "a donné" : "a retiré"
         } **${Math.abs(
             montant,
         )}** ${MONEY} à ${user}\nSon argent est désormais de : **${money}** ${MONEY}`;

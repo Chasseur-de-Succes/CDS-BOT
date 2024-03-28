@@ -14,7 +14,11 @@ const {
     loadJobHelper,
     testEcuyer,
 } = require("./batch/batch");
-const { createReactionCollectorGroup, moveToArchive } = require("./msg/group");
+const {
+    moveToArchive,
+    createRowGroupButtons,
+    createCollectorGroup,
+} = require("./msg/group");
 const { Group } = require("../models/index");
 const { SALON } = require("./constants");
 
@@ -38,9 +42,6 @@ const loadCommands = (client, dir = "./slash_commands/") => {
             client.commands.set(command.data.name, command);
             logger.info(`Commande ${command.data.name} chargé`);
         } else {
-            console.log(
-                `[WARNING] Il manque "data" ou "execute" dans la commande ${filePath}.`,
-            );
             logger.warn(
                 `[WARNING] Il manque "data" ou "execute" dans la commande ${filePath}.`,
             );
@@ -50,7 +51,7 @@ const loadCommands = (client, dir = "./slash_commands/") => {
 };
 
 // Charge les événements
-const loadEvents = (client, dir = "./events") => {
+const loadEvents = (client) => {
     const eventsPath = path.join(__dirname, "../events");
     const eventFiles = fs
         .readdirSync(eventsPath)
@@ -72,15 +73,15 @@ const loadEvents = (client, dir = "./events") => {
 // Charge les 'batch'
 const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
-    loadJobs(client);
+    await loadJobs(client);
 
-    searchNewGamesJob(client);
+    await searchNewGamesJob(client);
 
-    resetMoneyLimit();
+    await resetMoneyLimit();
 
-    loadJobHelper(client);
+    await loadJobHelper(client);
 
-    testEcuyer(client);
+    await testEcuyer(client);
 
     //loadSteamPICS(client);
 };
@@ -90,9 +91,9 @@ const loadReactionGroup = async (client) => {
     const lMsgGrp = await MsgDmdeAide.find();
 
     // recupere TOUS les messages du channel de listage des groupes
-    for (const msgDB of lMsgGrp) {
+    for (const msgDb of lMsgGrp) {
         const idListGroup = await client.getGuildChannel(
-            msgDB.guildId,
+            msgDb.guildId,
             SALON.LIST_GROUP,
         );
 
@@ -100,11 +101,13 @@ const loadReactionGroup = async (client) => {
             // recup msg sur bon channel
             client.channels.cache
                 .get(idListGroup)
-                .messages.fetch(msgDB.msgId)
+                .messages.fetch(msgDb.msgId)
                 .then(async (msg) => {
                     const grp = await Group.findOne({ idMsg: msg.id });
                     // filtre group encore en cours
-                    if (!grp.validated) {
+                    if (grp.validated) {
+                        await moveToArchive(client, idListGroup, grp.idMsg);
+                    } else {
                         // enleve réactions
                         await msg.reactions.removeAll();
 
@@ -112,8 +115,6 @@ const loadReactionGroup = async (client) => {
                         const row = await createRowGroupButtons(grp);
                         await msg.edit({ components: [row] });
                         await createCollectorGroup(client, msg);
-                    } else {
-                        await moveToArchive(client, idListGroup, grp.idMsg);
                     }
                 })
                 .catch(async (err) => {
@@ -121,7 +122,7 @@ const loadReactionGroup = async (client) => {
                         `Erreur load listener reaction groupes ${err}, suppression msg`,
                     );
                     // on supprime les msg qui n'existent plus
-                    await Msg.deleteOne({ _id: msgDB._id });
+                    await Msg.deleteOne({ _id: msgDb._id });
                 });
         } else {
             logger.error("- Config salon msg groupe non défini !");
@@ -135,26 +136,26 @@ const loadReactionMsg = async (client) => {
     // merge les 2 array
     const lMsg = [...lMsgHeros, ...lMsgZeros];
 
-    for (const msgDB of lMsg) {
+    for (const msgDb of lMsg) {
         const idHeros = await client.getGuildChannel(
-            msgDB.guildId,
+            msgDb.guildId,
             SALON.HALL_HEROS,
         );
         const idZeros = await client.getGuildChannel(
-            msgDB.guildId,
+            msgDb.guildId,
             SALON.HALL_ZEROS,
         );
 
         if (idHeros && idZeros) {
             // recup msg sur bon channel
             const channelHall =
-                msgDB.msgType === "MsgHallHeros" ? idHeros : idZeros;
+                msgDb.msgType === "MsgHallHeros" ? idHeros : idZeros;
             client.channels.cache
                 .get(channelHall)
-                .messages.fetch(msgDB.msgId)
+                .messages.fetch(msgDb.msgId)
                 .catch(async () => {
                     // on supprime les msg qui n'existent plus
-                    await Msg.deleteOne({ _id: msgDB._id });
+                    await Msg.deleteOne({ _id: msgDb._id });
                 });
         } else {
             logger.error("- Config salons héros & zéros non définis !");
@@ -166,7 +167,7 @@ const loadReactionMsg = async (client) => {
 const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     // TODO cooldown
     // pour chaque guild
-    for (guild of client.guilds.cache.values()) {
+    for (const guild of client.guilds.cache.values()) {
         const idRole = await client.getGuildChannel(guild.id, SALON.ROLE);
         if (!idRole) {
             logger.error("- Config salon rôle non défini !");
@@ -215,14 +216,17 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
         }
 
         // ajout réactions, au cas où nouvel emoji
-        for (item of roles) {
+        for (const item of roles) {
             // custom emoji
             if (item.emoji.startsWith("<")) {
                 // regex emoji custom
                 const matches = item.emoji.match(/(<a?)?:\w+:((\d{18})>)?/);
-                if (matches)
+                if (matches) {
                     await msg.react(client.emojis.cache.get(matches[3]));
-            } else await msg.react(item.emoji);
+                }
+            } else {
+                await msg.react(item.emoji);
+            }
         }
 
         // on enleve tous les émojis (dans le cas ou il y a eu un delete)
@@ -239,7 +243,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
             const reactionsToDelete = keys.filter((x) => x === emojiDeleted);
 
             // et on supprime ces réactions !
-            for (element of reactionsToDelete) {
+            for (const element of reactionsToDelete) {
                 logger.info(`.. suppression des réactions ${element}`);
                 await msg.reactions.cache.get(element).remove();
             }
@@ -308,7 +312,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
 
 const loadVocalCreator = async (client) => {
     // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
-    for (guild of client.guilds.cache.values()) {
+    for (const guild of client.guilds.cache.values()) {
         // si le chan vocal n'existe pas, on le créé + save
         const config = await GuildConfig.findOne({ guildId: guild.id });
 
@@ -322,7 +326,7 @@ const loadVocalCreator = async (client) => {
 
             await GuildConfig.updateOne(
                 { guildId: guild.id },
-                { $set: { [channels.create_vocal]: voiceChannel.id } },
+                { $set: { [config.channels.create_vocal]: voiceChannel.id } },
             );
 
             logger.warn(`.. salon vocal 'créateur' créé`);

@@ -32,7 +32,7 @@ const dissolve = async (interaction, options) => {
     }
 
     // si l'author n'est pas capitaine et non admin
-    if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
+    if (!(isAdmin || grp.captain._id.equals(authorDb._id))) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${grpName} !`),

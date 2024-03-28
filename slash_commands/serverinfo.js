@@ -15,7 +15,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(NIGHT)
             .setTitle(guild.name)
-            .setDescription(`ID: ` + guild.id)
+            .setDescription(`ID: ${guild.id}`)
             .setThumbnail(guild.iconURL())
             .addFields(
                 {

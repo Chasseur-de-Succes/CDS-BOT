@@ -70,7 +70,7 @@ module.exports = {
             itemsSelect.push({
                 label: i.game.name,
                 description: `acheté par ${i.buyer.username}`,
-                value: "" + i._id,
+                value: `${i._id}`,
             });
         }
 
@@ -148,9 +148,9 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
             .setColor(YELLOW)
             .setDescription(`${vendeur} t'envoie la clé pour le jeu ***${game.name}*** :
 
-            ⬇⬇⬇
+            ⬇️⬇️⬇️
             **${daKey}**
-            ⬆⬆⬆
+            ⬆️⬆️⬆️
 
             🙏 Merci d'avoir utilisé CDS Boutique !
             N'hésitez pas de nouveau à claquer votre pognon dans **2 jours** ! 🤑
@@ -182,8 +182,8 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
             client,
             guildId,
             "Achat jeu dans le shop",
-            `~~1 ${acheteur} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
-                                            2 ${vendeur} a envoyé la clé & ${acheteur} a reçu la clé ! C'est terminé !`,
+            `~~1️⃣ ${acheteur} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
+            2️⃣ ${vendeur} a envoyé la clé & ${acheteur} a reçu la clé ! C'est terminé !`,
             `ID vente : ${item._id}`,
             YELLOW,
         );

@@ -5,7 +5,7 @@ const {
 } = require("discord.js");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { GREEN } = require("../data/colors.json");
-const { createLogs } = require("../util/envoiMsg");
+const { createLogs, createError } = require("../util/envoiMsg");
 const { GuildConfig } = require("../models");
 
 module.exports = {
@@ -34,8 +34,9 @@ module.exports = {
         const focusedValue = interaction.options.getFocused(true);
 
         let filtered = [];
-        if (focusedValue.name === "nom")
+        if (focusedValue.name === "nom") {
             filtered = CHANNEL.concat(WEBHOOK_ARRAY);
+        }
 
         await interaction.respond(filtered);
     },
@@ -51,7 +52,7 @@ module.exports = {
         const isAdmin = interaction.member.permissions.has(
             PermissionFlagsBits.Administrator,
         );
-        if (!isAdmin)
+        if (!isAdmin) {
             return interaction.reply({
                 embeds: [
                     createError(
@@ -60,6 +61,7 @@ module.exports = {
                 ],
                 ephemeral: true,
             });
+        }
 
         let msgCustom = "";
 

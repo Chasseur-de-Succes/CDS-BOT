@@ -186,19 +186,7 @@ module.exports = (client) => {
         let isRemoved = false;
         let update;
 
-        if (!app?.body[appId]?.success) {
-            // - chercher autre part car peut etre jeu "removed"
-            if (communitApps[0]?.name) {
-                isRemoved = true;
-                gameName = communitApps[0]?.name;
-
-                type = "game";
-            } else {
-                gameName = nameTmp;
-                type = "unknown";
-                //throw 'Jeu introuvable !'
-            }
-        } else {
+        if (app?.body[appId]?.success) {
             type = app.body[appId].data?.type;
             gameName = app.body[appId].data?.name;
             let tags = app.body[appId].data?.categories;
@@ -210,6 +198,16 @@ module.exports = (client) => {
             isMulti = tags.some((tag) => tag.id === TAGS.MULTI.id);
             isCoop = tags.some((tag) => tag.id === TAGS.COOP.id);
             hasAchievements = totalAch;
+        } else if (communitApps[0]?.name) {
+            // - chercher autre part car peut etre jeu "removed"
+            isRemoved = true;
+            gameName = communitApps[0]?.name;
+
+            type = "game";
+        } else {
+            gameName = nameTmp;
+            type = "unknown";
+            //throw 'Jeu introuvable !'
         }
 
         // si jeu a des succès
@@ -217,7 +215,7 @@ module.exports = (client) => {
             const achievements = resp.availableGameStats.achievements;
 
             // - ajout & save succes dans Game
-            for (el of achievements) {
+            for (const el of achievements) {
                 el.apiName = el.name;
                 el.name = undefined;
                 el.defaultvalue = undefined;
@@ -237,8 +235,9 @@ module.exports = (client) => {
             const result = await steamClient.getProductInfo([appId], [], true);
             // if (result.apps[appId].appinfo?.common?.clienticon)
             //     iconHash = result.apps[appId].appinfo.common.clienticon;
-            if (result.apps[appId].appinfo?.common?.icon)
+            if (result.apps[appId].appinfo?.common?.icon) {
                 iconHash = result.apps[appId].appinfo.common.icon;
+            }
         }
 
         // TODO icon plutot que l'image ? -> recup via API..
@@ -288,8 +287,9 @@ module.exports = (client) => {
             )
             .setFooter({ text: `par ${tag}` });
 
-        if (isRemoved)
+        if (isRemoved) {
             embed.addFields({ name: "🚫 Removed", value: CHECK_MARK });
+        }
 
         return embed;
     };
@@ -299,41 +299,43 @@ module.exports = (client) => {
         let cptGame = 0;
 
         let apps = await client.getAllApps();
-        console.log(`trouvé ${apps.length}`);
+        logger.info(`trouvé ${apps.length}`);
 
         // - remove name empty
         apps = apps.filter((item) => item.name !== "");
-        console.log(`aftr name empty ${apps.length}`);
+        logger.info(`aftr name empty ${apps.length}`);
 
         // - garde seulement les appid divisible par 10 (autres ne sont pas des jeux)
         // TODO je crois ?
         apps = apps.filter((item) => item.appid % 10 === 0);
-        console.log(`aftr mod 10 ${apps.length}`);
+        logger.info(`aftr mod 10 ${apps.length}`);
 
         // - remove appids déjà dans la bdd
         // - recup tous les appids de la bdd
-        const appidsDB = await Game.distinct("appid");
+        const appidsDb = await Game.distinct("appid");
         const appsDistinct = apps.filter(
-            (item) => !appidsDB.includes(item.appid),
+            (item) => !appidsDb.includes(item.appid),
         );
-        console.log(` distinct ${appsDistinct.length}`);
+        logger.info(` distinct ${appsDistinct.length}`);
 
         // ne garde que ceux qui n'ont pas de 'type'
         const noTypeObj = await Game.find({ type: null });
         const noType = noTypeObj.map((obj) => obj.appid);
         const appsNoType = apps.filter((item) => noType.includes(item.appid));
-        console.log(` no type ${appsNoType.length}`);
+        logger.info(` no type ${appsNoType.length}`);
 
         // fusion des nouvelles appid et des jeux n'ayant pas de type
         apps = appsNoType.concat(appsDistinct);
         // TODO remove encore d'autres ?
 
-        if (msgProgress) await msgProgress.edit(`Trouvé ${nbApps}`);
+        if (msgProgress) {
+            await msgProgress.edit(`Trouvé ${nbApps}`);
+        }
 
-        for (let i = 0; i < apps.length; i++) {
+        for (const i in apps) {
             if (crtIdx % 100 === 0) {
                 logger.info(`[${crtHour()}] - ${crtIdx}/${apps.length} ..`);
-                if (msgProgress)
+                if (msgProgress) {
                     await msgProgress.edit(
                         `[${crtIdx}/${
                             apps.length
@@ -341,28 +343,30 @@ module.exports = (client) => {
                             ((crtIdx / 100) % 3) + 1,
                         )}`,
                     );
+                }
             }
 
             const app = apps[i];
             cptGame++;
 
-            console.log(` * go ${app.appid} ${app.name}`);
+            logger.info(` * go ${app.appid} ${app.name}`);
             try {
                 await retryAfter5min(async () => {
                     await client.fetchGame(app.appid, "system", app.name);
                 });
             } catch (err) {
-                console.log(`nope ${app.name}`);
+                logger.info(`nope ${app.name}`);
 
                 if (err.status === 429) {
                     logger.info(
                         `\x1b[34m[INFO]\x1b[0m [${crtHour()}] - ${err}, on attend 5 min ..`,
                     );
 
-                    if (msgProgress)
+                    if (msgProgress) {
                         await msgProgress.edit(
                             `${crtIdx}/${apps.length} - Trop de requêtes vers l'API Steam ! On attends 5 min ⏳`,
                         );
+                    }
 
                     // att 5 min
                     await delay(300000);
