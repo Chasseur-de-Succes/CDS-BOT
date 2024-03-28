@@ -12,8 +12,8 @@ const transfert = async (interaction, options) => {
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // Test si le capitaine est inscrit
-    const authorDB = await client.getUser(author);
-    if (!authorDB)
+    const authorDb = await client.getUser(author);
+    if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -22,8 +22,9 @@ const transfert = async (interaction, options) => {
                 ),
             ],
         });
-    const newCaptainDB = await client.getUser(newCaptain);
-    if (!newCaptainDB)
+    }
+    const newCaptainDb = await client.getUser(newCaptain);
+    if (!newCaptainDb) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -31,25 +32,28 @@ const transfert = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // Récupération du groupe
     const grp = await client.findGroupByName(grpName);
-    if (!grp)
+    if (!grp) {
         return interaction.reply({
             embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)],
         });
+    }
 
     // Si l'auteur n'est pas admin et n'est pas capitaine
-    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+    if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe **${grpName}** !`),
             ],
         });
+    }
 
     // si le nouveau capitaine fait parti du groupe
-    const memberGrp = grp.members.find((u) => u._id.equals(newCaptainDB._id));
-    if (!memberGrp)
+    const memberGrp = grp.members.find((u) => u._id.equals(newCaptainDb._id));
+    if (!memberGrp) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -57,10 +61,11 @@ const transfert = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // update du groupe : captain
     await client.update(grp, {
-        captain: newCaptainDB,
+        captain: newCaptainDb,
         dateUpdated: Date.now(),
     });
 

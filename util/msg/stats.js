@@ -1,16 +1,16 @@
 const succes = require("../../data/achievements.json");
-const { getJSONValue } = require("../util");
+const { getJsonValue } = require("../util");
 
-async function getAchievement(userDB, typeSucces) {
-    const money = userDB.money;
-    const userStat = userDB.stats;
+function getAchievement(userDb, typeSucces) {
+    const money = userDb.money;
+    const userStat = userDb.stats;
 
     const infoSucces = succes[typeSucces];
     // on test si 'money' car non présent dans stat.
     const nbStat =
         typeSucces === "money"
             ? money
-            : getJSONValue(userStat, infoSucces.db, "");
+            : getJsonValue(userStat, infoSucces.db, "");
 
     // TODO a revoir, actuellement ca fonctionne car stat + 1, on passera forcément par là
     // mais par exemple pour money ca ne sera pas, car pas précis

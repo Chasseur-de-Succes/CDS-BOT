@@ -1,24 +1,9 @@
-const {
-    Collection,
-    EmbedBuilder,
-    Events,
-    WebhookClient,
-} = require("discord.js");
-const { CROSS_MARK } = require("../data/emojis.json");
-const { User, Game } = require("../models/index.js");
-const {
-    BAREME_XP,
-    BAREME_MONEY,
-    SALON,
-    crtHour,
-} = require("../util/constants");
+const { Collection, Events } = require("discord.js");
+const { User } = require("../models/index.js");
+const { BAREME_XP, BAREME_MONEY, SALON } = require("../util/constants");
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
 const { feedBotMetaAch } = require("../util/envoiMsg");
-
-const SteamUser = require("steam-user");
-const FS = require("fs");
-const { retryAfter5min } = require("../util/util");
 
 module.exports = {
     name: Events.MessageCreate,
@@ -159,48 +144,8 @@ module.exports = {
             }
 
             // TODO auto replies sur certains mots/phrase ?
-
-            // stop
-            return;
         }
     },
-};
-
-const recupIcon = async (steamClient, appid, game) => {
-    // Passing true as the third argument automatically requests access tokens, which are required for some apps
-    let result = await steamClient.getProductInfo([parseInt(appid)], [], true);
-    if (result.apps[parseInt(appid)].appinfo?.common?.clienticon)
-        game.iconHash = result.apps[parseInt(appid)].appinfo.common.clienticon;
-    else game.iconHash = result.apps[parseInt(appid)].appinfo.common.icon;
-
-    await game.save();
-};
-
-const recupAchievements = async (client, appid, game) => {
-    // - recup achievements (si présent)
-    const resp = await client.getSchemaForGame(appid);
-    // si jeu a des succès
-    if (resp.availableGameStats?.achievements) {
-        console.log(`   * a des succès !`);
-        const achievements = resp.availableGameStats.achievements;
-
-        // - ajout & save succes dans Game
-        achievements.forEach((el) => {
-            el["apiName"] = el["name"];
-            delete el.name;
-            delete el.defaultvalue;
-            delete el.hidden;
-        });
-
-        game.achievements = achievements;
-
-        await game.save();
-    } else {
-        // - save tableau vide
-        // console.log('pas de succes');
-        game.achievements = [];
-        await game.save();
-    }
 };
 
 const cooldowns = new Collection();
@@ -219,8 +164,7 @@ const cooldownTimeLeft = (type, seconds, userID) => {
         const expirationTime = timestamps.get(userID) + cooldownAmount;
 
         if (now < expirationTime) {
-            const timeLeft = (expirationTime - now) / 1000;
-            return timeLeft;
+            return (expirationTime - now) / 1000;
         }
     }
 

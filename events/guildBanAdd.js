@@ -4,7 +4,7 @@ const { sendLogs } = require("../util/envoiMsg");
 
 module.exports = {
     name: Events.GuildBanAdd,
-    async execute(ban) {
+    execute(ban) {
         const embedLog = new EmbedBuilder()
             .setColor(DARK_RED)
             .setAuthor({

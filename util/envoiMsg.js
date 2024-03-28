@@ -8,40 +8,38 @@ module.exports.feedBotLevelUp = async (
     client,
     guildId,
     user,
-    userDB,
+    userDb,
     nextPalier,
 ) => {
     const idFeedBot = await client.getGuildChannel(guildId, SALON.FEED_BOT);
-    let feed = await client.channels.cache.get(idFeedBot);
+    const feed = await client.channels.cache.get(idFeedBot);
 
-    if (!feed) {
-        logger.warn("Salon feed bot non configuré..");
-    } else {
+    if (feed) {
         const embedLvlUp = new EmbedBuilder()
             .setColor(GREEN)
-            .setTitle(`🥳 Félicitations ! 🥳`)
+            .setTitle("🥳 Félicitations ! 🥳")
             .setDescription(
-                `${user} a atteint le niveau **${userDB.level + 1}** !`,
+                `${user} a atteint le niveau **${userDb.level + 1}** !`,
             )
             .setFooter({
-                text: `Prochain niveau : ${userDB.experience} / ${nextPalier}`,
+                text: `Prochain niveau : ${userDb.experience} / ${nextPalier}`,
             });
 
         await feed.send({ embeds: [embedLvlUp] });
+    } else {
+        logger.warn("Salon feed bot non configuré..");
     }
 };
 
 /* Nourri feed bot - Meta Succès */
 module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
     const idFeedBot = await client.getGuildChannel(guildId, SALON.FEED_BOT);
-    let feed = await client.channels.cache.get(idFeedBot);
+    const feed = await client.channels.cache.get(idFeedBot);
 
-    if (!feed) {
-        logger.warn("Salon feed bot non configuré..");
-    } else {
-        let embedAch = new EmbedBuilder()
+    if (feed) {
+        const embedAch = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
-            .setTitle(`🏆 Succès débloqué 🏆`)
+            .setTitle("🏆 Succès débloqué 🏆")
             .setDescription(`${user} a débloqué :`)
             .addFields({
                 name: `${achievement.title}`,
@@ -54,6 +52,8 @@ module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
         embedAch.setThumbnail(`attachment://${achievement.img}.png`);
 
         await feed.send({ embeds: [embedAch], files: [file] });
+    } else {
+        logger.warn("Salon feed bot non configuré..");
     }
 
     // - log
@@ -74,10 +74,9 @@ module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
  * @returns un MessageEmbed
  */
 module.exports.createError = (text) => {
-    let embedError = new EmbedBuilder()
+    return new EmbedBuilder()
         .setColor(DARK_RED)
         .setDescription(`${CROSS_MARK} • ${text}`);
-    return embedError;
 };
 
 /**
@@ -88,7 +87,7 @@ module.exports.createError = (text) => {
  * @returns
  */
 module.exports.sendError = (message, text, cmd) => {
-    let embedError = this.createError(text);
+    const embedError = this.createError(text);
     logger.error(`${message.author.username} - ${cmd} : ${text}`);
     return message.channel.send({ embeds: [embedError] });
 };
@@ -101,9 +100,11 @@ module.exports.sendError = (message, text, cmd) => {
  */
 module.exports.sendLogs = async (client, guildId, embedLog) => {
     const idLogs = await client.getGuildChannel(guildId, SALON.LOGS);
-    if (idLogs)
+    if (idLogs) {
         await client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
-    else logger.error(`- Config salon logs manquante !`);
+    } else {
+        logger.error("- Config salon logs manquante !");
+    }
 };
 
 /**
@@ -124,11 +125,13 @@ module.exports.createLogs = async (
     footer = "",
     color = DARK_RED,
 ) => {
-    let embedLog = new EmbedBuilder()
+    const embedLog = new EmbedBuilder()
         .setColor(color)
         .setTitle(`${title}`)
         .setDescription(desc);
 
-    if (footer) embedLog.setFooter({ text: footer });
+    if (footer) {
+        embedLog.setFooter({ text: footer });
+    }
     await this.sendLogs(client, guildId, embedLog);
 };

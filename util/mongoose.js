@@ -22,8 +22,8 @@ module.exports = {
             // await mongoose.connect('mongodb://localhost:27017/test');
             //mongoose.connection.on("connected", () => logger.info({prefix:"[DB]", message:"Mongoose connected!"}));
         } catch (error) {
-            console.log("ERROR DB CONNECT :");
-            console.log(error);
+            logger.error("ERROR DB CONNECT :");
+            logger.error(error);
         }
         //mongoose.connection.on("connected", () => logger.info("\x1b[35m[DB]\x1b[0m Mongoose connected!"))
     },

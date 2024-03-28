@@ -61,19 +61,20 @@ module.exports = {
         let filtered = [];
 
         if (focusedValue.name === "jeu") {
-            if (focusedValue.value)
+            if (focusedValue.value) {
                 filtered = await client.findGameItemShopBy({
                     game: focusedValue.value,
                     seller: vendeurId,
                     notSold: true,
                     limit: 25,
                 });
-            else
+            } else {
                 filtered = await client.findGameItemShopBy({
                     seller: vendeurId,
                     notSold: true,
                     limit: 25,
                 });
+            }
         }
 
         await interaction.respond(
@@ -90,7 +91,7 @@ module.exports = {
         const isAdmin = interaction.member.permissions.has(
             PermissionFlagsBits.Administrator,
         );
-        if (!isAdmin)
+        if (!isAdmin) {
             return interaction.reply({
                 embeds: [
                     createError(
@@ -99,15 +100,16 @@ module.exports = {
                 ],
                 ephemeral: true,
             });
+        }
 
         const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === "cancel") {
-            cancel(interaction, interaction.options);
+            await cancel(interaction, interaction.options);
         } else if (subcommand === "refund") {
-            refund(interaction, interaction.options);
+            await refund(interaction, interaction.options);
         } else if (subcommand === "delete") {
-            deleteItem(interaction, interaction.options);
+            await deleteItem(interaction, interaction.options);
         }
     },
 };

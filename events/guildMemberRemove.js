@@ -15,7 +15,7 @@ module.exports = {
 
         const embed = new EmbedBuilder()
             .setColor(DARK_RED)
-            .setTitle(`Membre parti`)
+            .setTitle("Membre parti")
             .setDescription(member.toString())
             .addFields(
                 {
@@ -24,7 +24,7 @@ module.exports = {
                     inline: true,
                 },
                 {
-                    name: `Parti le `,
+                    name: "Parti le ",
                     value: `<t:${Math.floor(Date.now() / 1000)}:D>`,
                     inline: true,
                 },
@@ -37,15 +37,15 @@ module.exports = {
         const userDB = await client.getUser(member);
         const groups = await client.findGroupByUser(userDB);
 
-        for (let group of groups) {
+        for (const group of groups) {
             if (group.captain.userId === userDB.userId) {
                 if (group.members.length === 1) {
                     await dissolveGroup(client, guildId, group);
                 } else {
-                    let memberGrp = group.members.find((u) =>
+                    const memberGrp = group.members.find((u) =>
                         u._id.equals(userDB._id),
                     );
-                    let indexMember = group.members.indexOf(memberGrp);
+                    const indexMember = group.members.indexOf(memberGrp);
                     group.members.splice(indexMember, 1);
                     group.size--;
                     const newCaptainDB = group.members[0];

@@ -18,7 +18,7 @@ async function deleteItem(interaction, options) {
     logger.info(`.. Item ${gameItem[0]._id} choisi`);
 
     // Test si state n'existe pas
-    if (gameItem[0].state)
+    if (gameItem[0].state) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -26,6 +26,8 @@ async function deleteItem(interaction, options) {
                 ),
             ],
         });
+    }
+
     const gamename = gameItem[0].game.name;
 
     // Supprimer item boutique
@@ -39,7 +41,7 @@ async function deleteItem(interaction, options) {
 
     logger.info(`Suppression vente id ${jeu}`);
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Item ${gamename} supprimé`);
 

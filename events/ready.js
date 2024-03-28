@@ -8,13 +8,11 @@ module.exports = {
         const VERSION = process.env.VERSION;
         const date = new Date();
         logger.info(
-            "Logged in as " +
-                client.user.tag +
-                "! Version: " +
-                VERSION +
-                ". On " +
-                date.format("{MM}/{DD}/{Y} at {hh}:{mm}:{ss}") +
-                ".",
+            `Logged in as ${
+                client.user.tag
+            }! Version: ${VERSION}. On ${date.format(
+                "{MM}/{DD}/{Y} at {hh}:{mm}:{ss}",
+            )}.`,
         );
 
         client.user.setPresence({

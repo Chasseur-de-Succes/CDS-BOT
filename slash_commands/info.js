@@ -13,8 +13,8 @@ module.exports = {
         const VERSION = process.env.VERSION;
 
         let developers = "";
-        for (const devID of process.env.DEVELOPERS.split(",")) {
-            const dev = client.users.cache.get(devID);
+        for (const devId of process.env.DEVELOPERS.split(",")) {
+            const dev = client.users.cache.get(devId);
             if (dev) developers += `- ${dev.tag}\n`;
         }
 

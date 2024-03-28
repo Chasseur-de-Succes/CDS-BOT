@@ -13,17 +13,16 @@ module.exports = {
         // si old et new rempli => passe de old à new
 
         // si le channel vocal 'creator' est bien save dans bdd
-        if (config?.channels && config.channels["create_vocal"]) {
+        if (config?.channels?.create_vocal) {
             // si user arrive sur le channel 'créateur'
-            if (config.channels["create_vocal"] === newState.channelId) {
+            if (config.channels.create_vocal === newState.channelId) {
                 // ici newState est le 'creator'
                 const parent = newState.channel.parent;
 
                 // -- trouver un nom random parmis liste
-                let name = getChannelName();
-                console.log(
-                    ".. voice channel creator, on créé un nouveau channel " +
-                        name,
+                const name = getChannelName();
+                logger.info(
+                    `.. voice channel creator, on créé un nouveau channel ${name}`,
                 );
 
                 // -- créer un salon vocal dans même catégorie que original
