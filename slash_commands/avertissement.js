@@ -176,8 +176,8 @@ module.exports = {
                         raison ? `Pour la raison : \n*${raison}*` : ""
                     }
                                                      Tu es **"puni"** temporairement :
-                                                     ▶ Tu as été **ejecté** de tous tes groupes
-                                                     ▶ Tu ne peux **plus rejoindre** un groupe
+                                                     ▶️ Tu as été **ejecté** de tous tes groupes
+                                                     ▶️ Tu ne peux **plus rejoindre** un groupe
                                                      
                                                      Si cela est une erreur, n'hésite pas à contacter un administrateur.`);
                 user.send({ embeds: [mp] });
@@ -190,35 +190,17 @@ module.exports = {
                 let descMp = "";
 
                 if (dbUser.warning === 0) {
-                    titleMp = `👼 Tu n'es plus **puni** 👼`;
-                    descMp = `${
-                        raison
-                            ? `**Pour la raison :**
-                                *${raison}*
-                                `
-                            : ""
-                    }
-                            ▶ Tu peux de nouveau rejoindre un groupe`;
+                    titleMp = "👼 Tu n'es plus **puni** 👼";
+                    descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
+                             ▶️ Tu peux de nouveau rejoindre un groupe`;
                 } else if (dbUser === 1) {
-                    titleMp = `⚠️ **${dbUser.warning}er avertissement** ⚠️`;
-                    descMp = `${
-                        raison
-                            ? `**Pour la raison :**
-                                *${raison}*
-                                `
-                            : ""
-                    }
-                            ▶ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
+                    titleMp = "⚠️ **${dbUser.warning}er avertissement** ⚠️";
+                    descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
+                             ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 } else {
-                    titleMp = `⚠️ **${dbUser.warning}ème avertissement** ⚠️`;
-                    descMp = `${
-                        raison
-                            ? `**Pour la raison :**
-                                *${raison}*
-                                `
-                            : ""
-                    }
-                            ▶ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
+                    titleMp = "⚠️ **${dbUser.warning}ème avertissement** ⚠️";
+                    descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
+                             ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 }
 
                 const mp = new EmbedBuilder()

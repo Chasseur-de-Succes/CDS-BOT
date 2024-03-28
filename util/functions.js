@@ -72,7 +72,7 @@ module.exports = (client) => {
      * @returns undefined si non trouvé, {@link User} sinon
      */
     client.getUser = async (user) => {
-        return await client.findUserById(user.id);
+        return client.findUserById(user.id);
     };
 
     /* Guild ? Créer d'autres fichiers de fonctions ? */
@@ -128,7 +128,7 @@ module.exports = (client) => {
      * @returns undefined si non trouvé, {@link Group} sinon
      */
     client.findGroupById = async (id) => {
-        return await Group.findById(id).populate("captain members game");
+        return Group.findById(id).populate("captain members game");
     };
 
     /**
@@ -206,7 +206,7 @@ module.exports = (client) => {
      * @returns undefined si non trouvé, tableau de {@link Game} sinon
      */
     client.findGamesByName = async (name) => {
-        return await client.findGames({ name: new RegExp(name, "i") });
+        return client.findGames({ name: new RegExp(name, "i") });
     };
 
     /**
@@ -312,7 +312,7 @@ module.exports = (client) => {
         for (const key in settings) {
             if (data[key] !== settings[key]) data[key] = settings[key];
         }
-        return await data.updateOne(settings);
+        return data.updateOne(settings);
     };
 
     /* SHOP */

@@ -72,7 +72,7 @@ module.exports = (client) => {
     client.getAchievements = async (appid) => {
         // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=xxx&gameid=xxx
         // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=FC01A70E34CC7AE7174C575FF8D8A07F&gameid=321040
-        return await superagent
+        return superagent
             .get(
                 "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/",
             )
@@ -95,7 +95,7 @@ module.exports = (client) => {
     client.getAppList = async (lastappid = 0) => {
         // TODO passer à v2 https://stackoverflow.com/questions/46330864/steam-api-all-games
         // https://steamapi.xpaw.me/#IStoreService/GetAppList
-        return await superagent
+        return superagent
             .get("https://api.steampowered.com/IStoreService/GetAppList/v1/?")
             .query({
                 key: process.env.STEAM_API_KEY,
@@ -119,7 +119,7 @@ module.exports = (client) => {
      * @returns Object JSON, au format :
      */
     client.getAppDetails = async (appid) => {
-        return await superagent
+        return superagent
             .get("https://store.steampowered.com/api/appdetails/?")
             .query({
                 key: process.env.STEAM_API_KEY,
@@ -141,7 +141,7 @@ module.exports = (client) => {
      * Fournit un résumé complet du joueur
      */
     client.getPlayerSummaries = async (userid) => {
-        return await superagent
+        return superagent
             .get(
                 "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?",
             )

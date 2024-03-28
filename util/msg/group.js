@@ -277,7 +277,7 @@ async function createCollectorGroup(client, msg) {
         if (action === "join") {
             // Utilisateur non enregistré
             if (!userDb) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe, car tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande \`/register <steamid>\`.`,
                     ephemeral: true,
                 });
@@ -285,7 +285,7 @@ async function createCollectorGroup(client, msg) {
 
             // Utilisateur blacklisté
             if (userDb.blacklisted) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es blacklisté.`,
                     ephemeral: true,
                 });
@@ -293,7 +293,7 @@ async function createCollectorGroup(client, msg) {
 
             // Groupe complet (le bouton est normalement grisé, mais on le garde au cas où)
             if (group.nbMax === group.size) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car celui-ci est complet.`,
                     ephemeral: true,
                 });
@@ -301,7 +301,7 @@ async function createCollectorGroup(client, msg) {
 
             // Utilisateur puni
             if (userDb.warning === 3) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es puni.`,
                     ephemeral: true,
                 });
@@ -309,7 +309,7 @@ async function createCollectorGroup(client, msg) {
 
             // Utilisateur déjà dans le groupe
             if (group.members.find((us) => us.userId === userDb.userId)) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es déjà membre de ce groupe.`,
                     ephemeral: true,
                 });
@@ -318,7 +318,7 @@ async function createCollectorGroup(client, msg) {
             // Utilisateur a trop d'événement en cours
             const nbGrps = await client.getNbOngoingGroups(userDb.userId);
             if (nbGrps === process.env.MAX_GRPS) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu as rejoins trop de groupes.`,
                     ephemeral: true,
                 });
@@ -335,7 +335,7 @@ async function createCollectorGroup(client, msg) {
         if (action === "leave") {
             // Le capitaine ne peut pas quitter le groupe
             if (userDb.userId === group.captain.userId) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu es le capitaine. \nTu peux toujours transférer le statut de 👑capitaine vers un autre membre du groupe.`,
                     ephemeral: true,
                 });
@@ -343,7 +343,7 @@ async function createCollectorGroup(client, msg) {
 
             // Utilisateur hors du groupe
             if (!group.members.find((us) => us.userId === userDb.userId)) {
-                return await i.editReply({
+                return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
                     ephemeral: true,
                 });

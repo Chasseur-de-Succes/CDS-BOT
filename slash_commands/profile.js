@@ -103,7 +103,7 @@ module.exports = {
                 .setTitle(`${infoSucces.title} de ${user.tag}`)
                 .setDescription(`${desc}`);
 
-            return await interaction.editReply({ embeds: [embed] });
+            return interaction.editReply({ embeds: [embed] });
         }
 
         // AFFICHAVE CANVAS

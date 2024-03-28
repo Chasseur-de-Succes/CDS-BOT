@@ -99,12 +99,12 @@ const create = async (interaction, options) => {
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
     if (!games) {
-        return await interaction.editReply({
+        return interaction.editReply({
             embeds: [createError("Erreur lors de la recherche du jeu")],
         });
     }
     if (games.length === 0) {
-        return await interaction.editReply({
+        return interaction.editReply({
             embeds: [
                 createError(`Pas de résultat trouvé pour **${gameName}** !`),
             ],
@@ -124,7 +124,7 @@ const create = async (interaction, options) => {
     }
 
     // SELECT n'accepte que 25 max
-    // if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
+    // if (items.length > 25) return interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
 
     // row contenant le Select menu
     const row = new ActionRowBuilder().addComponents(

@@ -54,7 +54,7 @@ module.exports = {
 
                 // Gestion d'erreur si aucun salon de ticket n'est défini
                 if (!ticketChannelId) {
-                    return await interaction.reply({
+                    return interaction.reply({
                         content: `Aucun salon de ticket n'a été trouvé.`,
                         ephemeral: true,
                     });
