@@ -10,16 +10,16 @@ const { YELLOW } = require("../../../data/colors.json");
 const moment = require("moment");
 
 async function jeux(interaction, options, showGame = false) {
-    let nbPage = options.get("page") ? options.get("page").value - 1 : 0;
+    const nbPage = options.get("page") ? options.get("page").value - 1 : 0;
     const client = interaction.client;
     const guild = interaction.guild;
-    let author = interaction.member;
+    const author = interaction.member;
 
     // "Bot réfléchit.."
     await interaction.deferReply();
 
-    let userDB = await client.getUser(author);
-    if (!userDB)
+    const userDb = await client.getUser(author);
+    if (!userDb) {
         return interaction.editReply({
             embeds: [
                 createError(
@@ -27,9 +27,10 @@ async function jeux(interaction, options, showGame = false) {
                 ),
             ],
         });
+    }
 
-    let infos = {};
-    infos.money = userDB.money;
+    const infos = {};
+    infos.money = userDb.money;
 
     if (showGame) {
         // Si JEUX
@@ -49,20 +50,22 @@ async function jeux(interaction, options, showGame = false) {
 
     const max = infos.items?.length ?? 0;
     // si 0 item dispo
-    if (showGame && max === 0)
+    if (showGame && max === 0) {
         return interaction.editReply({
             embeds: [
                 createError(`Désolé, aucun item n'est actuellement en vente !`),
             ],
         });
+    }
 
     // teste si index nbPages existe
-    if (nbPage < 0 || nbPage >= max)
+    if (nbPage < 0 || nbPage >= max) {
         return interaction.editReply({
             embeds: [
                 createError(`Oh là, il n'y a pas autant de pages que ça !`),
             ],
         });
+    }
     let currentIndex = nbPage;
 
     // row pagination
@@ -71,13 +74,13 @@ async function jeux(interaction, options, showGame = false) {
         .setLabel("Préc.")
         .setEmoji("⬅️")
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(nbPage == 0);
+        .setDisabled(nbPage === 0);
     const nextBtn = new ButtonBuilder()
         .setCustomId("next")
         .setLabel("Suiv.")
         .setEmoji("➡️")
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(nbPage + 1 == max);
+        .setDisabled(nbPage + 1 === max);
     const buyBtn = new ButtonBuilder()
         .setCustomId("buy")
         .setLabel("Acheter")
@@ -85,8 +88,8 @@ async function jeux(interaction, options, showGame = false) {
         .setStyle(ButtonStyle.Danger)
         // TODO a modifier une fois boutique custom faite
         .setDisabled(
-            infos.type == 1 ||
-                userDB.money < infos.items[currentIndex].items[0].montant,
+            infos.type === 1 ||
+                userDb.money < infos.items[currentIndex].items[0].montant,
         );
     const rowBuyButton = new ActionRowBuilder().addComponents(
         prevBtn,
@@ -96,8 +99,8 @@ async function jeux(interaction, options, showGame = false) {
 
     // on envoie créer et envoie le message du shop
     // TODO msg différent pour jeux / custom ?
-    let shopEmbed = createShop(guild, infos, nbPage);
-    let msgShopEmbed = await interaction.editReply({
+    const shopEmbed = createShop(guild, infos, nbPage);
+    const msgShopEmbed = await interaction.editReply({
         embeds: [shopEmbed],
         components: [rowBuyButton],
         fetchReply: true,
@@ -112,14 +115,14 @@ async function jeux(interaction, options, showGame = false) {
     collector.on("collect", async (itr) => {
         // si bouton 'prev' ou 'next' (donc pas 'buy')
         if (itr.customId !== "buy") {
-            itr.customId === "prev" ? (currentIndex -= 1) : (currentIndex += 1);
+            currentIndex += itr.customId === "prev" ? -1 : 1;
             // disable si 1ere page
-            prevBtn.setDisabled(currentIndex == 0);
+            prevBtn.setDisabled(currentIndex === 0);
             // disable next si derniere page
-            nextBtn.setDisabled(currentIndex + 1 == max);
+            nextBtn.setDisabled(currentIndex + 1 === max);
             // disable buy si pas assez argent
             buyBtn.setDisabled(
-                userDB.money < infos.items[currentIndex].items[0].montant,
+                userDb.money < infos.items[currentIndex].items[0].montant,
             );
 
             // Respond to interaction by updating message with new embed
@@ -131,79 +134,74 @@ async function jeux(interaction, options, showGame = false) {
                     }),
                 ],
             });
-        } else {
-            // achete item courant
-            if (infos.type == 0) {
-                const items = infos.items[currentIndex];
-                const vendeur = guild.members.cache.get(
-                    items.items[0].seller.userId,
-                );
+        } else if (infos.type === 0) {
+            const items = infos.items[currentIndex];
+            const vendeur = guild.members.cache.get(
+                items.items[0].seller.userId,
+            );
 
-                // empeche l'achat de son propre jeu
-                if (items.items[0].seller.userId === userDB.userId) {
-                    return itr.reply({
-                        embeds: [
-                            createError(
-                                `Tu ne peux pas acheter ton propre jeu !`,
-                            ),
-                        ],
-                        ephemeral: true,
-                    });
-                }
+            // empeche l'achat de son propre jeu
+            if (items.items[0].seller.userId === userDb.userId) {
+                return itr.reply({
+                    embeds: [
+                        createError("Tu ne peux pas acheter ton propre jeu !"),
+                    ],
+                    ephemeral: true,
+                });
+            }
 
-                // empeche l'achat si - de 2j
-                const nbDiffDays = Math.abs(
-                    moment(userDB.lastBuy).diff(moment(), "days"),
-                );
-                if (userDB.lastBuy && nbDiffDays <= 2) {
-                    collector.stop();
-                    return itr.reply({
-                        embeds: [
-                            createError(
-                                `Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !`,
-                            ),
-                        ],
-                        ephemeral: true,
-                    });
-                }
+            // empeche l'achat si - de 2j
+            const nbDiffDays = Math.abs(
+                moment(userDb.lastBuy).diff(moment(), "days"),
+            );
+            if (userDb.lastBuy && nbDiffDays <= 2) {
+                collector.stop();
+                return itr.reply({
+                    embeds: [
+                        createError(
+                            "Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !",
+                        ),
+                    ],
+                    ephemeral: true,
+                });
+            }
 
-                // ACHETE !
-                buyGame(
-                    client,
-                    interaction.guildId,
-                    author,
-                    userDB,
-                    vendeur,
-                    items,
-                );
+            // ACHETE !
+            buyGame(
+                client,
+                interaction.guildId,
+                author,
+                userDb,
+                vendeur,
+                items,
+            );
 
-                // message recap
-                let recapEmbed = new EmbedBuilder()
-                    .setColor(YELLOW)
-                    .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
-                    .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${process.env.MONEY}
+            // message recap
+            const recapEmbed = new EmbedBuilder()
+                .setColor(YELLOW)
+                .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
+                .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${process.env.MONEY}
                         ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
 
                         *En cas de problème, n'hésitez pas à contacter un **admin***.`)
-                    .setFooter({
-                        text: `💵 ${userDB.money - items.items[0].montant} ${
-                            process.env.MONEY
-                        }`,
-                    });
-
-                // maj du msg, en enlevant boutons actions
-                await itr.update({
-                    embeds: [recapEmbed],
-                    components: [],
+                .setFooter({
+                    text: `💵 ${userDb.money - items.items[0].montant} ${
+                        process.env.MONEY
+                    }`,
                 });
-            } else if (infos.type == 1) {
-                // achat custom
-            }
+
+            // maj du msg, en enlevant boutons actions
+            await itr.update({
+                embeds: [recapEmbed],
+                components: [],
+            });
+        } else if (infos.type === 1) {
+            // achat custom
         }
     });
 
     // apres 5 min, on "ferme" la boutique
-    collector.on("end", (collected) => {
+    collector.on("end", () => {
         msgShopEmbed.edit({
             embeds: [createShop(guild, infos, currentIndex)],
             components: [],
@@ -212,11 +210,11 @@ async function jeux(interaction, options, showGame = false) {
 }
 
 function createShop(guild, infos, currentIndex = 0) {
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle(`💰 BOUTIQUE - ${infos.soustitre} 💰`);
     // JEUX
-    if (infos.type == 0) {
+    if (infos.type === 0) {
         const game = infos.items[currentIndex]._id;
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
         const items = infos.items[currentIndex].items;
@@ -238,8 +236,8 @@ function createShop(guild, infos, currentIndex = 0) {
 
         let nbItem = 0;
         const nbMax = 5;
-        let prix = [],
-            vendeurStr = [];
+        const prix = [];
+        const vendeurStr = [];
         for (const item of items) {
             const vendeur = guild.members.cache.get(item.seller.userId);
             // on limite le nb de jeu affichable (car embed à une limite de caracteres)
@@ -264,18 +262,18 @@ function createShop(guild, infos, currentIndex = 0) {
                 value: `${items.length - nbItem}`,
             });
         }
-    } else if (infos.type == 1) {
+    } else if (infos.type === 1) {
         // TUNNNG
-        embed.setDescription(`***🚧 En construction 🚧***`);
+        embed.setDescription("***🚧 En construction 🚧***");
     }
     return embed;
 }
 
-async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
+async function buyGame(client, guildId, author, acheteurDb, vendeur, info) {
     const game = info._id;
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
     logger.info(
-        `Achat jeu ${game.name} par ${acheteurDB.username} pour ${acheteurDB.money} ${process.env.MONEY}`,
+        `Achat jeu ${game.name} par ${acheteurDb.username} pour ${acheteurDb.money} ${process.env.MONEY}`,
     );
 
     // recup dans la BD pour pouvoir le maj
@@ -283,15 +281,15 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
     item = item[0];
 
     // STEP 1 : retire le montant du jeu au "porte-monnaie" de l'acheteur + date dernier achat
-    await client.update(acheteurDB, {
-        money: acheteurDB.money - item.montant,
+    await client.update(acheteurDb, {
+        money: acheteurDb.money - item.montant,
         lastBuy: Date.now(),
     });
     // log 'Acheteur perd montant process.env.MONEY a cause vente'
     createLogs(
         client,
         guildId,
-        `Argent perdu`,
+        "Argent perdu",
         `${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**`,
         `ID vente : ${item._id}`,
         YELLOW,
@@ -299,13 +297,13 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
 
     // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
     await client.update(item, {
-        buyer: acheteurDB,
+        buyer: acheteurDb,
         state: "pending",
     });
 
     // STEP 2 : envoie DM au vendeur
     logger.info(`Envoi DM au vendeur ${vendeur.user.username}`);
-    let MPembed = new EmbedBuilder()
+    const mPembed = new EmbedBuilder()
         .setThumbnail(gameUrlHeader)
         .setColor(YELLOW)
         .setTitle("💰 BOUTIQUE - VENTE 💰")
@@ -319,7 +317,7 @@ async function buyGame(client, guildId, author, acheteurDB, vendeur, info) {
 
     // envoi vendeur, il doit maintenant utilisé /envoi-cle
     await vendeur.user.send({
-        embeds: [MPembed],
+        embeds: [mPembed],
     });
 }
 

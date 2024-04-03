@@ -9,8 +9,8 @@ async function sell(interaction, options) {
     const client = interaction.client;
     const author = interaction.member;
 
-    let userDB = await client.getUser(author);
-    if (!userDB)
+    const userDb = await client.getUser(author);
+    if (!userDb) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -18,18 +18,21 @@ async function sell(interaction, options) {
                 ),
             ],
         });
+    }
 
-    if (!parseInt(gameId))
+    if (!Number.parseInt(gameId)) {
         return interaction.reply({
             embeds: [
                 createError("Jeu non trouvé ou donne trop de résultats !"),
             ],
         });
+    }
 
-    if (montant < 0)
+    if (montant < 0) {
         return interaction.reply({
             embeds: [createError("Montant négatif !")],
         });
+    }
     // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
     // "Bot réfléchit.."
@@ -38,19 +41,19 @@ async function sell(interaction, options) {
     // Jeu déjà recherché via autocomplete
 
     // On récupère le custom id "APPID_GAME"
-    let game = await client.findGameByAppid(gameId);
+    const game = await client.findGameByAppid(gameId);
 
-    let item = {
+    const item = {
         guildId: interaction.guildId,
         montant: montant,
         game: game,
-        seller: userDB,
+        seller: userDb,
     };
-    let itemDB = await client.createGameItemShop(item);
+    const itemDb = await client.createGameItemShop(item);
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(YELLOW)
-        .setTitle(`💰 BOUTIQUE - VENTE 💰`)
+        .setTitle("💰 BOUTIQUE - VENTE 💰")
         .setDescription(`${CHECK_MARK} Ordre de vente bien reçu !
         ${game.name} à ${montant} ${process.env.MONEY}`);
 
@@ -61,9 +64,9 @@ async function sell(interaction, options) {
     createLogs(
         client,
         interaction.guildId,
-        `Nouveau jeu dans le shop`,
+        "Nouveau jeu dans le shop",
         `${author} vient d'ajouter **${game.name}** à **${montant} ${process.env.MONEY}** !`,
-        `ID : ${itemDB._id}`,
+        `ID : ${itemDb._id}`,
         YELLOW,
     );
 }

@@ -4,7 +4,7 @@ const { SALON } = require("../util/constants.js");
 
 module.exports = {
     name: Events.MessageReactionAdd,
-    async execute(msgReaction, user) {
+    async execute(msgReaction) {
         try {
             const msg = msgReaction.message;
             const emoji = msgReaction.emoji;

@@ -5,7 +5,7 @@ const {
 } = require("discord.js");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { GREEN } = require("../data/colors.json");
-const { createLogs } = require("../util/envoiMsg");
+const { createLogs, createError } = require("../util/envoiMsg");
 const { GuildConfig } = require("../models");
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
         .addStringOption((option) =>
             option
                 .setName("nom")
-                .setDescription(`Nom du paramètre`)
+                .setDescription("Nom du paramètre")
                 .setRequired(true)
                 .setAutocomplete(true),
         )
@@ -26,7 +26,7 @@ module.exports = {
                 .setDescription("Nom du channel correspondant au paramètre"),
         )
         .addStringOption((option) =>
-            option.setName("hook").setDescription(`URL du webhook`),
+            option.setName("hook").setDescription("URL du webhook"),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
@@ -34,8 +34,9 @@ module.exports = {
         const focusedValue = interaction.options.getFocused(true);
 
         let filtered = [];
-        if (focusedValue.name === "nom")
+        if (focusedValue.name === "nom") {
             filtered = CHANNEL.concat(WEBHOOK_ARRAY);
+        }
 
         await interaction.respond(filtered);
     },
@@ -46,12 +47,12 @@ module.exports = {
 
         const guildId = interaction.guildId;
         const client = interaction.client;
-        let user = interaction.user;
+        const user = interaction.user;
 
         const isAdmin = interaction.member.permissions.has(
             PermissionFlagsBits.Administrator,
         );
-        if (!isAdmin)
+        if (!isAdmin) {
             return interaction.reply({
                 embeds: [
                     createError(
@@ -60,6 +61,7 @@ module.exports = {
                 ],
                 ephemeral: true,
             });
+        }
 
         let msgCustom = "";
 
@@ -68,7 +70,7 @@ module.exports = {
 
             await GuildConfig.updateOne(
                 { guildId: guildId },
-                { $set: { ["channels." + nomConfig]: salon.value } },
+                { $set: { [`channels.${nomConfig}`]: salon.value } },
             );
             // await client.update(guildDB, { channels: val });
             logger.warn(
@@ -87,7 +89,7 @@ module.exports = {
 
             await GuildConfig.updateOne(
                 { guildId: guildId },
-                { $set: { ["webhook." + nomConfig]: hook } },
+                { $set: { [`webhook.${nomConfig}`]: hook } },
             );
 
             logger.warn(

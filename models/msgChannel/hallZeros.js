@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Message = require("./msg");
 
-const zerosSchema = Message.discriminator(
+module.exports = Message.discriminator(
     "MsgHallZeros",
     new mongoose.Schema({
         // nb 💩 et custom ou autre
@@ -11,5 +11,3 @@ const zerosSchema = Message.discriminator(
         },
     }),
 );
-
-module.exports = mongoose.model("MsgHallZeros");

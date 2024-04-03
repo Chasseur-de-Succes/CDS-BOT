@@ -2,6 +2,7 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
     AttachmentBuilder,
+    ActivityType,
 } = require("discord.js");
 const succes = require("../data/achievements.json");
 const {
@@ -10,14 +11,13 @@ const {
     CRIMSON,
 } = require("../data/colors.json");
 const { STEAM, ASTATS, CME, SH } = require("../data/emojis.json");
-const { MESSAGES } = require("../util/constants.js");
 const { createError } = require("../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../util/xp");
 
 const Canvas = require("canvas");
-const path = require("path");
+const path = require("node:path");
 const { Game, User } = require("../models");
-const { getJSONValue } = require("../util/util");
+const { getJsonValue } = require("../util/util");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,15 +32,15 @@ module.exports = {
         .addStringOption((option) =>
             option
                 .setName("succes")
-                .setDescription(`Affiche les succès du profile`)
+                .setDescription("Affiche les succès du profile")
                 .setAutocomplete(true),
         ),
     async autocomplete(interaction) {
         const focusedValue = interaction.options.getFocused(true);
-        let filtered = [];
+        const filtered = [];
 
         if (focusedValue.name === "succes") {
-            for (let x in succes) {
+            for (const x in succes) {
                 filtered.push({ name: succes[x].title, value: x });
             }
         }
@@ -49,10 +49,10 @@ module.exports = {
     async execute(interaction) {
         const client = interaction.client;
         const user = interaction.options.getUser("target") ?? interaction.user;
-        let member = interaction.guild.members.cache.get(user.id);
-        let typeSucces = interaction.options.get("succes")?.value;
+        const member = interaction.guild.members.cache.get(user.id);
+        const typeSucces = interaction.options.get("succes")?.value;
 
-        let dbUser = await client.getUser(member);
+        const dbUser = await client.getUser(member);
 
         if (!dbUser) {
             // Si pas dans la BDD
@@ -80,33 +80,39 @@ module.exports = {
             const nbStat =
                 typeSucces === "money"
                     ? money
-                    : getJSONValue(userStat, infoSucces.db, "");
-            let desc = ``;
-            for (let x in infoSucces.succes) {
-                const achieved = nbStat >= parseInt(x);
+                    : getJsonValue(userStat, infoSucces.db, "");
+            let desc = "";
+            for (const x in infoSucces.succes) {
+                const achieved = nbStat >= Number.parseInt(x);
 
-                if (achieved) desc += `✅ `;
-                else desc += `⬛ `;
+                if (achieved) {
+                    desc += "✅ ";
+                } else {
+                    desc += "⬛ ";
+                }
                 desc += `**${infoSucces.succes[x].title}**\n`;
 
-                if (achieved) desc += `> ${infoSucces.succes[x].desc}\n`;
-                else desc += `> ||${infoSucces.succes[x].desc}||\n`;
+                if (achieved) {
+                    desc += `> ${infoSucces.succes[x].desc}\n`;
+                } else {
+                    desc += `> ||${infoSucces.succes[x].desc}||\n`;
+                }
             }
             const embed = new EmbedBuilder()
                 .setColor(colorEmbed)
                 .setTitle(`${infoSucces.title} de ${user.tag}`)
                 .setDescription(`${desc}`);
 
-            return await interaction.editReply({ embeds: [embed] });
+            return interaction.editReply({ embeds: [embed] });
         }
 
         // AFFICHAVE CANVAS
-        const urlSteam = `[Steam](http://steamcommunity.com/profiles/${dbUser.steamId})`;
+        const urlSteam = `[Steam](https://steamcommunity.com/profiles/${dbUser.steamId})`;
         const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
-        const urlCME = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
-        const urlSH = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
+        const urlCme = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
+        const urlSh = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
 
-        const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCME} | ${SH} ${urlSH} ]`;
+        const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
 
         // recup settings de l'user
         const configProfile = await client.getOrInitProfile(dbUser);
@@ -154,9 +160,6 @@ module.exports = {
 
         if (borderStyle === "double") {
             ctx.lineWidth = 2;
-            // TODO a revoir
-            if (borderStyle === "dashed") ctx.setLineDash([10]);
-            else if (borderStyle === "dotted") ctx.setLineDash([2, 5]);
 
             // fond couleur (pas derriere meta succes)
             roundRect(ctx, 5, 5, canvas.width - 10, 120, 10, true, false);
@@ -183,8 +186,11 @@ module.exports = {
             );
         } else {
             ctx.lineWidth = 3;
-            if (borderStyle === "dashed") ctx.setLineDash([10]);
-            else if (borderStyle === "dotted") ctx.setLineDash([2, 5]);
+            if (borderStyle === "dashed") {
+                ctx.setLineDash([10]);
+            } else if (borderStyle === "dotted") {
+                ctx.setLineDash([2, 5]);
+            }
 
             // fond couleur (pas derriere meta succes)
             roundRect(ctx, 5, 5, canvas.width - 10, 120, 10, true, false);
@@ -210,19 +216,19 @@ module.exports = {
         if (member.presence) {
             let activities = member.presence.activities;
             // - filtre 'type' sur 'PLAYING'
-            activities = activities.filter((act) => act.type === "PLAYING");
+            activities = activities.filter(
+                (act) => act.type === ActivityType.Playing,
+            );
             if (activities.length === 1) {
                 const act = activities[0];
 
                 const game = act.name;
-                //const game = 'Half-Life Deathmatch: Source';
-                const width = ctx.measureText(game).width;
 
-                const gameDB = await Game.findOne({ name: game });
-                if (gameDB) {
-                    const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDB.appid}/capsule_184x69.jpg`;
+                const gameDb = await Game.findOne({ name: game });
+                if (gameDb) {
+                    const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDb.appid}/capsule_184x69.jpg`;
                     try {
-                        let gameImg = await Canvas.loadImage(gameUrlHeader);
+                        const gameImg = await Canvas.loadImage(gameUrlHeader);
                         ctx.drawImage(
                             gameImg,
                             canvas.width - 194 - 10,
@@ -237,7 +243,7 @@ module.exports = {
                     }
                 }
 
-                ctx.fillText(`actuellement sur`, canvas.width - 194 - 10, 25);
+                ctx.fillText("actuellement sur", canvas.width - 194 - 10, 25);
                 ctx.fillText(`${game}`, canvas.width - 194 - 10, 45);
             }
         }
@@ -319,7 +325,7 @@ module.exports = {
         // - recup stats OU achievements lié à user
         const stats = dbUser.stats;
         let crtX = x;
-        let crtY = 140;
+        const crtY = 140;
 
         // d'abord l'ombre, puis le fond, puis le trophée (si besoin est)
         // - Hall héros 🏆
@@ -516,18 +522,20 @@ module.exports = {
                 },
             ];
             const top10 = await User.aggregate(agg);
-            let indexUser = top10.findIndex((u) => u.userId === dbUser.userId);
+            const indexUser = top10.findIndex(
+                (u) => u.userId === dbUser.userId,
+            );
 
             let filename = "advent_22";
             let colorFill = "grey";
 
-            if (indexUser + 1 == 1) {
+            if (indexUser + 1 === 1) {
                 filename += "_plat";
                 colorFill = "#1CD6CE"; // ~cyan
-            } else if (indexUser + 1 == 2) {
+            } else if (indexUser + 1 === 2) {
                 filename += "_gold";
                 colorFill = "#FAC213";
-            } else if (indexUser + 1 == 3) {
+            } else if (indexUser + 1 === 3) {
                 filename += "_silver";
                 colorFill = "silver";
             }
@@ -570,7 +578,7 @@ module.exports = {
         });
         //const attachment = new MessageAttachment(canvas.toBuffer(), `profile_${pseudo}.png`);
 
-        let embed = new EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setColor(VERY_PALE_VIOLET)
             .setDescription(`${msg}`);
 
@@ -581,8 +589,10 @@ module.exports = {
 
 // TODO a deplacer dans utils..
 function getByValue(map, searchValue) {
-    for (let [key, value] of map.entries()) {
-        if (value === searchValue) return key;
+    for (const [key, value] of map.entries()) {
+        if (value === searchValue) {
+            return key;
+        }
     }
 }
 

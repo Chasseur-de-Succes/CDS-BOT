@@ -19,7 +19,7 @@ module.exports = {
         ),
     async execute(interaction) {
         const user = interaction.options.getUser("target") ?? interaction.user;
-        let member = interaction.guild.members.cache.get(user.id);
+        const member = interaction.guild.members.cache.get(user.id);
 
         const bot = {
             false: "👤 Humain",
@@ -51,25 +51,25 @@ module.exports = {
                 }),
             )
             .addFields(
-                { name: `> Pseudonyme`, value: nickname, inline: true },
-                { name: `> ID`, value: user.id, inline: true },
+                { name: "> Pseudonyme", value: nickname, inline: true },
+                { name: "> ID", value: user.id, inline: true },
                 { name: "\u200B", value: "\u200B", inline: true },
                 {
-                    name: `> Statut`,
+                    name: "> Statut",
                     value: member.presence
                         ? status[member.presence.status]
-                        : status["offline"],
+                        : status.offline,
                     inline: true,
                 },
-                { name: `> Humain ?`, value: bot[user.bot], inline: true },
+                { name: "> Humain ?", value: bot[user.bot], inline: true },
                 { name: "\u200B", value: "\u200B", inline: true },
                 {
-                    name: `> Compte créé le`,
+                    name: "> Compte créé le",
                     value: `<t:${Math.floor(user.createdTimestamp / 1000)}:f>`,
                     inline: true,
                 },
                 {
-                    name: `> À rejoint le`,
+                    name: "> À rejoint le",
                     value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:f>`,
                     inline: true,
                 },

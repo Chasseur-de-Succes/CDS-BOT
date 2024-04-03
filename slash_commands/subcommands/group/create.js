@@ -24,10 +24,10 @@ const create = async (interaction, options) => {
     const guildId = interaction.guildId;
 
     // test si captain est register
-    const captainDB = await client.getUser(captain);
+    const captainDb = await client.getUser(captain);
     const nbGrps = await client.getNbOngoingGroups(captain.id);
 
-    if (!captainDB)
+    if (!captainDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -36,8 +36,9 @@ const create = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
-    if (captainDB.warning >= 3) {
+    if (captainDb.warning >= 3) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -49,12 +50,12 @@ const create = async (interaction, options) => {
 
     if (nbGrps >= process.env.MAX_GRPS) {
         return interaction.reply({
-            embeds: [createError(`Tu as rejoins trop de groupes !`)],
+            embeds: [createError("Tu as rejoins trop de groupes !")],
         });
     }
 
     // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
-    if (nameGrp.length < 3)
+    if (nameGrp.length < 3) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -62,27 +63,29 @@ const create = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // si nom groupe existe
-    let grp = await client.findGroupByName(nameGrp);
-    if (grp)
+    const grp = await client.findGroupByName(nameGrp);
+    if (grp) {
         return interaction.reply({
             embeds: [
                 createError(
-                    `Le nom du groupe existe déjà. Veuillez en choisir un autre.`,
+                    "Le nom du groupe existe déjà. Veuillez en choisir un autre.",
                 ),
             ],
         });
+    }
 
     // création de la regex sur le nom du jeu
     logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
-    let regGame = new RegExp(escapeRegExp(gameName), "i");
+    const regGame = new RegExp(escapeRegExp(gameName), "i");
 
     // "recherche.."
     await interaction.deferReply();
 
     // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    let games = await Game.aggregate([
+    const games = await Game.aggregate([
         {
             $match: { name: regGame },
         },
@@ -95,55 +98,57 @@ const create = async (interaction, options) => {
     ]);
 
     logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games)
-        return await interaction.editReply({
-            embeds: [createError(`Erreur lors de la recherche du jeu`)],
+    if (!games) {
+        return interaction.editReply({
+            embeds: [createError("Erreur lors de la recherche du jeu")],
         });
-    if (games.length === 0)
-        return await interaction.editReply({
+    }
+    if (games.length === 0) {
+        return interaction.editReply({
             embeds: [
                 createError(`Pas de résultat trouvé pour **${gameName}** !`),
             ],
         });
+    }
 
     // values pour Select Menu
-    let items = [];
-    for (let i = 0; i < games.length; i++) {
-        let crtGame = games[i];
-        if (crtGame) {
+    const items = [];
+    for (const game of games) {
+        if (game) {
             items.unshift({
-                label: crtGame.name,
+                label: game.name,
                 // description: 'Description',
-                value: "" + crtGame.appid,
+                value: `${game.appid}`,
             });
         }
     }
 
     // SELECT n'accepte que 25 max
-    // if (items.length > 25) return await interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
+    // if (items.length > 25) return interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
 
     // row contenant le Select menu
     const row = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
-            .setCustomId("select-games-" + captain)
+            .setCustomId(`select-games-${captain}`)
             .setPlaceholder("Sélectionner le jeu..")
             .addOptions(items),
     );
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(
             `J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`,
         )
-        .setDescription(`Lequel est celui que tu cherchais ?`);
+        .setDescription("Lequel est celui que tu cherchais ?");
 
-    let msgEmbed = await interaction.editReply({
+    const msgEmbed = await interaction.editReply({
         embeds: [embed],
         components: [row],
     });
 
     // attend une interaction bouton de l'auteur de la commande
-    let filter, itrSelect;
+    let filter;
+    let itrSelect;
     try {
         filter = (i) => {
             i.deferUpdate();
@@ -175,7 +180,7 @@ const create = async (interaction, options) => {
         SALON.CAT_DISCUSSION_GROUPE_2,
     );
     let cat = await client.channels.cache.get(idDiscussionGroupe);
-    let cat2 = await client.channels.cache.get(idDiscussionGroupe2);
+    const cat2 = await client.channels.cache.get(idDiscussionGroupe2);
     if (!cat) {
         logger.info(
             "Catégorie des discussions de groupe n'existe pas ! Création en cours...",
@@ -224,8 +229,8 @@ const create = async (interaction, options) => {
         ],
     });
 
-    for (const devID of process.env.DEVELOPERS.split(",")) {
-        channel.permissionOverwrites.edit(devID, {
+    for (const devId of process.env.DEVELOPERS.split(",")) {
+        channel.permissionOverwrites.edit(devId, {
             ViewChannel: true,
             SendMessages: true,
             MentionEveryone: true,
@@ -236,12 +241,12 @@ const create = async (interaction, options) => {
     channel.send(`> ${captain} a créé le groupe`);
 
     // creation groupe
-    let newGrp = {
+    const newGrp = {
         name: nameGrp,
         desc: description,
         nbMax: nbMaxMember,
-        captain: captainDB._id,
-        members: [captainDB._id],
+        captain: captainDb._id,
+        members: [captainDb._id],
         game: game,
         channelId: channel.id,
     };

@@ -11,8 +11,8 @@ const editNbParticipant = async (interaction, options) => {
     const author = interaction.member;
 
     // Test si le capitaine est inscrit
-    const authorDB = await client.getUser(author);
-    if (!authorDB)
+    const authorDb = await client.getUser(author);
+    if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -21,26 +21,32 @@ const editNbParticipant = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // Récupération du groupe
     const grp = await client.findGroupByName(grpName);
-    if (!grp)
+    if (!grp) {
         return interaction.reply({
             embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)],
         });
+    }
 
     // Si l'auteur n'est pas capitaine ou non admin
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
-    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+    if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe **${grpName}** !`),
             ],
         });
+    }
 
     // TODO tester si nbMax < size (membres)
-    if (nbMax > 0) await client.update(grp, { nbMax: nbMax });
-    else await Group.updateMany({ _id: grp._id }, { $unset: { nbMax: 1 } });
+    if (nbMax > 0) {
+        await client.update(grp, { nbMax: nbMax });
+    } else {
+        await Group.updateMany({ _id: grp._id }, { $unset: { nbMax: 1 } });
+    }
 
     // Update message
     await editMsgHubGroup(client, interaction.guildId, grp);
