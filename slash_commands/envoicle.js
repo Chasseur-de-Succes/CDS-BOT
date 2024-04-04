@@ -41,7 +41,6 @@ module.exports = {
         }
 
         // cherche l'item en 'pending'
-        // TODO mettre les items en 'pending' lors de l'achat
         const items = await client.findGameItemShop({
             seller: vendeurDb,
             state: "pending",
@@ -62,9 +61,6 @@ module.exports = {
             return interaction.reply({ embeds: [embed], ephemeral: isInGuild });
         }
 
-        //await interaction.deferReply();
-
-        // TODO si plusieurs item
         const itemsSelect = [];
         for (const i of items) {
             itemsSelect.push({
@@ -191,8 +187,6 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
         // ajoute montant du jeu au porte-monnaie du vendeur
         vendeurDb.money += item.montant;
         await client.update(vendeurDb, { money: vendeurDb.money });
-
-        // TODO demander confirmation à l'acheteur ?
 
         embed
             .setTitle("💰 BOUTIQUE - VENTE FINIE 💰")

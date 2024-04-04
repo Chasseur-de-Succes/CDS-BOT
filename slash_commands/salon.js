@@ -109,7 +109,6 @@ module.exports = {
             .setColor(GREEN)
             .setDescription(`${msgCustom}`);
 
-        // TODO : APPELER EVENT CUSTOM POUR ENVOYER LOG
         return interaction.reply({ embeds: [embed], ephemeral: true });
     },
 };

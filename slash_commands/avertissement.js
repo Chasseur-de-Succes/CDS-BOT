@@ -112,7 +112,6 @@ module.exports = {
                 });
 
                 for (const groupe of groupes) {
-                    // TODO logs
                     // si capitaine
                     if (groupe.captain._id.equals(dbUser._id)) {
                         // si groupes a encore des membres

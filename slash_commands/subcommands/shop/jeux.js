@@ -44,8 +44,6 @@ async function jeux(interaction, options, showGame = false) {
         // Si CUSTOM
         infos.soustitre = "TUNNING";
         infos.type = 1;
-        // TODO définir fonction à appeler lorsqu'on achete ? similaire à Job
-        // TODO pas pareil que game
     }
 
     const max = infos.items?.length ?? 0;
@@ -86,7 +84,6 @@ async function jeux(interaction, options, showGame = false) {
         .setLabel("Acheter")
         .setEmoji("💸")
         .setStyle(ButtonStyle.Danger)
-        // TODO a modifier une fois boutique custom faite
         .setDisabled(
             infos.type === 1 ||
                 userDb.money < infos.items[currentIndex].items[0].montant,
@@ -98,7 +95,6 @@ async function jeux(interaction, options, showGame = false) {
     );
 
     // on envoie créer et envoie le message du shop
-    // TODO msg différent pour jeux / custom ?
     const shopEmbed = createShop(guild, infos, nbPage);
     const msgShopEmbed = await interaction.editReply({
         embeds: [shopEmbed],

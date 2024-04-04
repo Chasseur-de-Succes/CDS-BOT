@@ -33,7 +33,6 @@ async function sell(interaction, options) {
             embeds: [createError("Montant négatif !")],
         });
     }
-    // TODO divers test : si rang ok (TODO), si montant pas trop bas ni élevé en fonction rang (TODO)
 
     // "Bot réfléchit.."
     await interaction.deferReply();
