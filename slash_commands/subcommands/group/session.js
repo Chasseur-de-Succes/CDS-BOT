@@ -15,8 +15,8 @@ const schedule = async (interaction, options) => {
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // Test si le capitaine est inscrit
-    const authorDB = await client.getUser(author);
-    if (!authorDB)
+    const authorDb = await client.getUser(author);
+    if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
@@ -25,21 +25,24 @@ const schedule = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // Récupération du groupe
     const grp = await client.findGroupByName(nameGrp);
-    if (!grp)
+    if (!grp) {
         return interaction.reply({
             embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)],
         });
+    }
 
     // Si l'auteur n'est pas capitaine ou admin
-    if (!isAdmin && !grp.captain._id.equals(authorDB._id))
+    if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`),
             ],
         });
+    }
 
     // Test si date bon format
     const allowedDateFormat = ["DD/MM/YY HH:mm", "DD/MM/YYYY HH:mm"];
@@ -49,7 +52,7 @@ const schedule = async (interaction, options) => {
             allowedDateFormat,
             true,
         ).isValid()
-    )
+    ) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -57,6 +60,7 @@ const schedule = async (interaction, options) => {
                 ),
             ],
         });
+    }
 
     // Parse string to Moment (date)
     const dateEvent = moment.tz(
@@ -82,7 +86,7 @@ const schedule = async (interaction, options) => {
         // Sinon, on l'ajoute, dans le bon ordre
         grp.dateEvent.push(dateEvent);
 
-        titreReponse += "Rdv ajouté 🗓️";
+        titreReponse += "Rdv ajouté 🗓";
         msgReponse += `Session ajoutée, le **${dateVoulue} à ${heureVoulue}** !`;
         logger.info(`.. date ${dateEvent} ajouté`);
     }
@@ -115,10 +119,10 @@ const schedule = async (interaction, options) => {
                 const dateStr = `${dateVoulue} à ${heureVoulue}`;
                 if (indexDateEvent >= 0) {
                     channel.send(
-                        `> ⚠️ La session du **${dateStr}** a été **supprimée**.`,
+                        `> ! La session du **${dateStr}** a été **supprimée**.`,
                     );
                 } else {
-                    channel.send(`> 🗓️ Nouvelle session le **${dateStr}** !`);
+                    channel.send(`> 🗓 Nouvelle session le **${dateStr}** !`);
                 }
             }
         }

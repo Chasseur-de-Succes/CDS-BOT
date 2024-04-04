@@ -1,11 +1,7 @@
 const { GREEN } = require("../../data/colors.json");
 const { createError } = require("../../util/envoiMsg");
 const { loadRoleGiver } = require("../../util/loader");
-const {
-    Permissions,
-    SlashCommandBuilder,
-    EmbedBuilder,
-} = require("discord.js");
+const { Permissions, SlashCommandBuilder } = require("discord.js");
 const { RolesChannel } = require("../../models");
 
 module.exports = {

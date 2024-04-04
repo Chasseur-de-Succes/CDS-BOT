@@ -1,6 +1,7 @@
 const { Group } = require("../../../models");
 const { PermissionsBitField } = require("discord.js");
 const { joinGroup } = require("../../../util/msg/group");
+const { CROSS_MARK } = require("../../../data/emojis.json");
 
 const add = async (interaction, options) => {
     const grpName = options.get("nom")?.value;
@@ -8,9 +9,9 @@ const add = async (interaction, options) => {
     const client = interaction.client;
     const author = interaction.member;
 
-    // fix temporaire pour n'autoriser que les admin a exécuter cette sous commande
+    // fix temporaire pour n'autoriser que les admins à exécuter cette sous commande
     try {
-        // si l'utilisateur n'a pas le droit admin, ca lance une erreur, je sais pas pk mais voila
+        // si l'utilisateur n'a pas le droit admin, ça lance une erreur, je ne sais pas pourquoi mais voila
         author.permissions.any(PermissionsBitField.ADMINISTRATOR);
     } catch (err) {
         return interaction.reply({
@@ -19,7 +20,7 @@ const add = async (interaction, options) => {
         });
     }
 
-    const userDB = await client.getUser(toAdd);
+    const userDb = await client.getUser(toAdd);
     const grp = await Group.findOne({ name: grpName }).populate(
         "captain members game",
     );
@@ -30,7 +31,7 @@ const add = async (interaction, options) => {
             ephemeral: true,
         });
     } else {
-        await joinGroup(client, interaction.guildId, grp, userDB);
+        await joinGroup(client, interaction.guildId, grp, userDb);
         interaction.reply({
             content: `L'utilisateur ${toAdd} a été rajouté dans le groupe ${grpName}`,
             ephemeral: true,

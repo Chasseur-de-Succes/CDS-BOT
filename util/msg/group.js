@@ -1,8 +1,14 @@
 const { scheduledJobs } = require("node-schedule");
 const { Group, User } = require("../../models");
-const { EmbedBuilder } = require("discord.js");
+const {
+    EmbedBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ActionRowBuilder,
+    ComponentType,
+} = require("discord.js");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
-const { CHECK_MARK, CROSS_MARK } = require("../../data/emojis.json");
+const { WARNING, CHECK_MARK, CROSS_MARK } = require("../../data/emojis.json");
 const moment = require("moment-timezone");
 const { BAREME_XP, SALON } = require("../constants");
 const { addXp } = require("../xp");
@@ -17,7 +23,7 @@ const { feedBotMetaAch } = require("../envoiMsg");
  */
 function getMembersList(group, members) {
     const memberCaptain = members.get(group.captain.userId);
-    let membersStr = ``;
+    let membersStr = "";
     // récupère les @ des membres
     for (const member of group.members) {
         const crtMember = members.get(member.userId);
@@ -36,32 +42,38 @@ function getMembersList(group, members) {
 async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
     const memberCaptain = members.get(group.captain.userId);
     const membersStr = getMembersList(group, members);
-    let color = "";
-    if (group.validated) color = NIGHT;
-    else if (group.size === group.nbMax) color = DARK_RED;
-    else if (group.size === 1) color = GREEN;
-    else color = YELLOW;
+    let color;
+    if (group.validated) {
+        color = NIGHT;
+    } else if (group.size === group.nbMax) {
+        color = DARK_RED;
+    } else if (group.size === 1) {
+        color = GREEN;
+    } else {
+        color = YELLOW;
+    }
 
     let dateEvent = "*Non définie*";
     if (group.dateEvent) {
         dateEvent = "";
         moment.locale("fr");
-        group.dateEvent
+        for (const date of group.dateEvent
             .sort((a, b) => b.getTime() - a.getTime())
-            .slice(0, 15)
-            .forEach((date) => {
-                // moment(group.dateEvent).format("ddd Do MMM HH:mm")
-                //dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
-                dateEvent += `- ***${moment
-                    .tz(date, "Europe/Paris")
-                    .format("ddd Do MMM HH:mm")}***\n`;
-            });
+            .slice(0, 15)) {
+            // moment(group.dateEvent).format("ddd Do MMM HH:mm")
+            //dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
+            dateEvent += `- ***${moment
+                .tz(date, "Europe/Paris")
+                .format("ddd Do MMM HH:mm")}***\n`;
+        }
 
         if (group.dateEvent.length > 15) {
             dateEvent += `et ${group.dateEvent.length - 15} autres...`;
         }
     }
-    if (!dateEvent) dateEvent = "*Non définie*";
+    if (!dateEvent) {
+        dateEvent = "*Non définie*";
+    }
 
     const gameAppid = group.game.appid;
     const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
@@ -118,14 +130,16 @@ async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
 
             if (channel) {
                 newMsgEmbed.addFields(
-                    { name: `Salon`, value: `<#${channel.id}>`, inline: true },
+                    { name: "Salon", value: `<#${channel.id}>`, inline: true },
                     //{ name: '\u200B', value: '\u200B', inline: true },                  // 'vide' pour remplir le 3eme field et passé à la ligne
                 );
             }
         }
     }
 
-    if (group.desc) newMsgEmbed.setDescription(`*${group.desc}*`);
+    if (group.desc) {
+        newMsgEmbed.setDescription(`*${group.desc}*`);
+    }
     return newMsgEmbed;
 }
 
@@ -147,9 +161,12 @@ async function sendMsgHubGroup(client, guildId, group) {
     // recuperation id message pour pouvoir l'editer par la suite
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
     if (idListGroup) {
-        let msg = await client.channels.cache
+        const msg = await client.channels.cache
             .get(idListGroup)
             .send({ embeds: [newMsgEmbed] });
+        const row = await createRowGroupButtons(group);
+        await msg.edit({ components: [row] });
+
         await client.update(group, { idMsg: msg.id });
 
         // nvx msg aide, pour recup + facilement
@@ -188,7 +205,10 @@ async function editMsgHubGroup(client, guildId, group) {
 
         editMsgEmbed.setFooter({ text: `${footer}` });
 
-        await msg.edit({ embeds: [editMsgEmbed] });
+        // "maj" component row
+        const row = await createRowGroupButtons(group);
+
+        await msg.edit({ embeds: [editMsgEmbed], components: [row] });
     } else {
         logger.error(`Le channel de list group n'existe pas !`);
     }
@@ -211,79 +231,131 @@ async function deleteMsgHubGroup(client, guildId, group) {
     }
 }
 
+function createRowGroupButtons(group) {
+    const isFull = group.nbMax === group.members.length;
+    const join = new ButtonBuilder()
+        .setCustomId(`group-${group.id}-join`)
+        .setEmoji(isFull ? WARNING : CHECK_MARK)
+        .setLabel(isFull ? "Complet !" : "Rejoindre")
+        .setStyle(ButtonStyle.Success)
+        // disabled si max atteint
+        .setDisabled(isFull);
+
+    const leave = new ButtonBuilder()
+        .setCustomId(`group-${group.id}-leave`)
+        .setEmoji(CROSS_MARK)
+        .setLabel("Quitter")
+        .setStyle(ButtonStyle.Danger);
+
+    return new ActionRowBuilder().addComponents(join, leave);
+}
+
 /**
- * Créer un collecteur de réactions pour les messages Groupes
- * Si l'on clique sur la reaction, on s'ajoute au groupe (ssi on y est pas déjà et qu'on est pas le capitaine)
- * Sinon on se retire du groupe (sauf si on est le capitaine)
+ * Créer un collecteur (components) pour les messages Groupes
+ * Si l'on clique sur le bouton "Rejoindre"', on s'ajoute au groupe (ssi on y est pas déjà et qu'on est pas le capitaine)
+ * Si l'on clique sur le bouton "Quitter", on se retire du groupe (sauf si on est le capitaine)
  * @param {*} client
  * @param {*} msg le message
- * @param {*} grp le groupe provenant de la bdd
  */
-async function createReactionCollectorGroup(client, msg, grp) {
-    // TODO recup grpDB a la volee ! pb lors d'un transfert
-    // TOOD a revoir quand capitaine fait reaction
-    const collector = await msg.createReactionCollector({ dispose: true });
-    collector.on("collect", (r, u) => {
-        if (!u.bot && r.emoji.name === "check") {
-            client.getUser(u).then(async (userDBJoined) => {
-                const grpDB = await Group.findOne({ _id: grp._id }).populate(
-                    "captain members game",
-                );
-                const isMaxed = grpDB.nbMax && grpDB.nbMax === grpDB.size;
-                const nbGrps = await client.getNbOngoingGroups(u.id);
+async function createCollectorGroup(client, msg) {
+    const collector = msg.createMessageComponentCollector({
+        componentType: ComponentType.Button,
+    });
 
-                // si u est enregistré, non blacklisté, non capitaine, pas déjà présent et nbMax non atteint, il peut join le group
-                if (
-                    userDBJoined &&
-                    u.id !== grpDB.captain.userId &&
-                    !userDBJoined.blacklisted &&
-                    !grpDB.members.find((us) => us.userId === u.id) &&
-                    !isMaxed &&
-                    nbGrps < process.env.MAX_GRPS &&
-                    userDBJoined.warning !== 3
-                ) {
-                    await joinGroup(client, msg.guildId, grpDB, userDBJoined);
-                } else {
-                    // send mp explication
-                    let raison = "Tu ne peux rejoindre le groupe car ";
-                    if (!userDBJoined)
-                        raison += `tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande /register <steamid>`;
-                    else if (userDBJoined.blacklisted)
-                        raison += `tu es blacklisté.`;
-                    else if (isMaxed) raison += `celui-ci est complet !`;
-                    else if (nbGrps >= process.env.MAX_GRPS)
-                        raison += `tu as rejoins trop de groupes.`;
-                    else if (userDBJoined.warning === 3)
-                        raison += "tu es puni !";
-                    else raison += `tu es le capitaine du groupe !`;
+    collector.on("collect", async (i) => {
+        await i.deferReply({ ephemeral: true });
 
-                    // si user déjà dans event, on laisse la reaction, sinon on envoie raison
-                    if (!grpDB.members.find((us) => us.userId === u.id)) {
-                        u.send(`${CROSS_MARK} ${raison}`);
-                        // si on enleve la reaction, le 'remove' en dessous est exécuté et l'user n'est pas le bot..
-                        // r.users.remove(u.id);
-                    }
-                }
+        // récup info customID group-<id>-<action>
+        const groupId = i.customId.split("-")[1];
+        const action = i.customId.split("-")[2];
+        const group = await Group.findOne({ _id: groupId }).populate(
+            "captain members game",
+        );
+        const userDb = await client.findUserById(i.user.id);
+
+        // Rejoindre le groupe
+        if (action === "join") {
+            // Utilisateur non enregistré
+            if (!userDb) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe, car tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande \`/register <steamid>\`.`,
+                    ephemeral: true,
+                });
+            }
+
+            // Utilisateur blacklisté
+            if (userDb.blacklisted) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es blacklisté.`,
+                    ephemeral: true,
+                });
+            }
+
+            // Groupe complet (le bouton est normalement grisé, mais on le garde au cas où)
+            if (group.nbMax === group.size) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car celui-ci est complet.`,
+                    ephemeral: true,
+                });
+            }
+
+            // Utilisateur puni
+            if (userDb.warning === 3) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es puni.`,
+                    ephemeral: true,
+                });
+            }
+
+            // Utilisateur déjà dans le groupe
+            if (group.members.find((us) => us.userId === userDb.userId)) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es déjà membre de ce groupe.`,
+                    ephemeral: true,
+                });
+            }
+
+            // Utilisateur a trop d'événement en cours
+            const nbGrps = await client.getNbOngoingGroups(userDb.userId);
+            if (nbGrps === process.env.MAX_GRPS) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu as rejoins trop de groupes.`,
+                    ephemeral: true,
+                });
+            }
+
+            await joinGroup(client, msg.guildId, group, userDb);
+            await i.editReply({
+                content: "🥳 Tu as bien rejoint le groupe !",
+                ephemeral: true,
+            });
+        }
+
+        // Quitter le groupe
+        if (action === "leave") {
+            // Le capitaine ne peut pas quitter le groupe
+            if (userDb.userId === group.captain.userId) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu es le capitaine. \nTu peux toujours transférer le statut de 👑capitaine vers un autre membre du groupe.`,
+                    ephemeral: true,
+                });
+            }
+
+            // Utilisateur hors du groupe
+            if (!group.members.find((us) => us.userId === userDb.userId)) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
+                    ephemeral: true,
+                });
+            }
+
+            await leaveGroup(client, msg.guildId, group, userDb);
+            await i.editReply({
+                content: "🥲 Tu as bien quitter le groupe !",
+                ephemeral: true,
             });
         }
     });
-
-    collector.on("remove", (r, u) => {
-        if (!u.bot && r.emoji.name === "check") {
-            client.getUser(u).then(async (userDBLeaved) => {
-                const grpDB = await Group.findOne({ _id: grp._id }).populate(
-                    "captain members game",
-                );
-                // si u est capitaine, on remet? la reaction
-                if (
-                    u.id !== grpDB.captain.userId &&
-                    grp.members.filter((us) => us.userId === u.id).length >= 1
-                )
-                    await leaveGroup(client, msg.guildId, grpDB, userDBLeaved);
-            });
-        }
-    });
-    // collector.on('end', collected => msgChannel.clearReactions());
 }
 
 /**
@@ -291,14 +363,17 @@ async function createReactionCollectorGroup(client, msg, grp) {
  * @param {*} grp Le groupe
  * @param {*} userDB L'utilisateur a enlever
  */
-async function leaveGroup(client, guildId, grp, userDB) {
+async function leaveGroup(client, guildId, grp, userDb) {
     // update du groupe : size -1, remove de l'user dans members
-    let memberGrp = grp.members.find((u) => u._id.equals(userDB._id));
-    var indexMember = grp.members.indexOf(memberGrp);
+    const memberGrp = grp.members.find((u) => u._id.equals(userDb._id));
+    const indexMember = grp.members.indexOf(memberGrp);
+
     grp.members.splice(indexMember, 1);
     grp.size--;
     // fix au cas où
-    if (grp.size === 0) grp.size = 1;
+    if (grp.size === 0) {
+        grp.size = 1;
+    }
     await client.update(grp, {
         members: grp.members,
         size: grp.size,
@@ -310,25 +385,25 @@ async function leaveGroup(client, guildId, grp, userDB) {
         const guild = await client.guilds.cache.get(guildId);
         const channel = await guild.channels.cache.get(grp.channelId);
         channel.permissionOverwrites?.delete(
-            userDB.userId,
+            userDb.userId,
             "Membre a quitté le groupe",
         );
 
         // send message channel group
         channel.send(
-            `> <@${userDB.userId}> a quitté le groupe (total : ${grp.size})`,
+            `> <@${userDb.userId}> a quitté le groupe (total : ${grp.size})`,
         );
     }
 
     // stat ++
     await User.updateOne(
-        { _id: userDB._id },
+        { _id: userDb._id },
         { $inc: { "stats.group.left": 1 } },
     );
 
     // update msg
     await editMsgHubGroup(client, guildId, grp);
-    logger.info(userDB.username + " vient de quitter groupe " + grp.name);
+    logger.info(`${userDb.username} vient de quitter groupe ${grp.name}`);
 }
 
 /**
@@ -336,8 +411,8 @@ async function leaveGroup(client, guildId, grp, userDB) {
  * @param {*} grp Le groupe
  * @param {*} userDB L'utilisateur
  */
-async function joinGroup(client, guildId, grp, userDB) {
-    grp.members.push(userDB);
+async function joinGroup(client, guildId, grp, userDb) {
+    grp.members.push(userDb);
     grp.size++;
     await client.update(grp, {
         members: grp.members,
@@ -350,7 +425,7 @@ async function joinGroup(client, guildId, grp, userDB) {
         const guild = await client.guilds.cache.get(guildId);
         const channel = await guild.channels.cache.get(grp.channelId);
 
-        channel.permissionOverwrites.edit(userDB.userId, {
+        channel.permissionOverwrites.edit(userDb.userId, {
             ViewChannel: true,
             SendMessages: true,
             MentionEveryone: true,
@@ -358,24 +433,24 @@ async function joinGroup(client, guildId, grp, userDB) {
 
         // send message channel group
         channel.send(
-            `> <@${userDB.userId}> a rejoint le groupe (total : ${grp.size})`,
+            `> <@${userDb.userId}> a rejoint le groupe (total : ${grp.size})`,
         );
     }
 
     // stat ++
     await User.updateOne(
-        { _id: userDB._id },
+        { _id: userDb._id },
         { $inc: { "stats.group.joined": 1 } },
     );
 
     // update msg
     await editMsgHubGroup(client, guildId, grp);
-    logger.info(userDB.username + " vient de rejoindre groupe " + grp.name);
+    logger.info(`${userDb.username} vient de rejoindre groupe ${grp.name}`);
 }
 
 async function createGroup(client, guildId, newGrp) {
     newGrp.guildId = guildId;
-    let grpDB = await client.createGroup(newGrp);
+    const grpDb = await client.createGroup(newGrp);
 
     // stat ++
     await User.updateOne(
@@ -384,17 +459,16 @@ async function createGroup(client, guildId, newGrp) {
     );
 
     // creation msg channel
-    await sendMsgHubGroup(client, guildId, grpDB);
+    await sendMsgHubGroup(client, guildId, grpDb);
 
     const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
     if (idListGroup) {
         const msgChannel = await client.channels.cache
             .get(idListGroup)
-            .messages.fetch(grpDB.idMsg);
-        msgChannel.react(CHECK_MARK);
+            .messages.fetch(grpDb.idMsg);
 
-        // filtre reaction sur emoji
-        await createReactionCollectorGroup(client, msgChannel, grpDB);
+        // Création du collecteur pour les boutons
+        await createCollectorGroup(client, msgChannel);
     } else {
         logger.error(`Le channel de list group n'existe pas !`);
     }
@@ -431,27 +505,29 @@ async function endGroup(client, guildId, grp) {
     // TODO faire une demande d'xp et c'est les admins qui disent "ok" ? en cas de fraude ?
     // TODO xp variable en fonction nb de personnes, autre..
     // TODO que faire si end sans qu'il y ai eu qqchose de fait ? comment vérifier ?
-    let xp = BAREME_XP.EVENT_END;
+    const xp = BAREME_XP.EVENT_END;
     // TODO bonus captain
-    let xpBonusCaptain = BAREME_XP.CAPTAIN;
+    const xpBonusCaptain = BAREME_XP.CAPTAIN;
 
     // xp pour tous les membres (captain inclus)
     for (const member of grp.members) {
         const usr = await client.users.fetch(member.userId);
         // xp bonus captain
-        if (member.equals(grp.captain))
+        if (member.equals(grp.captain)) {
             addXp(client, guildId, usr, xp + xpBonusCaptain);
-        else if (usr) addXp(client, guildId, usr, xp);
+        } else if (usr) {
+            addXp(client, guildId, usr, xp);
+        }
     }
 
     // - MONEY
     // X = [[(Valeur du joueur de base ( 20)+ (5 par joueur supplémentaire)] X par le nombre de joueur total inscrit]] + 50 par session
-    const base = 20,
-        baseJoueur = 5,
-        baseSession = 50;
+    const base = 20;
+    const baseJoueur = 5;
+    const baseSession = 50;
     const nbSession = grp.dateEvent.length;
     const nbJoueur = grp.size;
-    let prize =
+    const prize =
         (base + baseJoueur * nbJoueur) * nbJoueur + baseSession * nbSession;
 
     // - Stat++ pour tous les membres
@@ -485,12 +561,12 @@ async function moveToArchive(client, idListGroup, idMsg) {
     msgChannel.reactions.removeAll();
 
     // déplacement vers thread
-    let archived = await channel.threads.fetchArchived();
+    const archived = await channel.threads.fetchArchived();
     let thread = archived.threads.filter((x) => x.name === "Groupes terminés");
 
     // si pas archivé, on regarde s'il est actif
     if (thread.size === 0) {
-        let active = await channel.threads.fetchActive();
+        const active = await channel.threads.fetchActive();
         thread = active.threads.filter((x) => x.name === "Groupes terminés");
     }
 
@@ -521,9 +597,9 @@ async function moveToArchive(client, idListGroup, idMsg) {
  */
 function deleteAllRappelJob(client, groupe) {
     // pour chaque date de session :
-    groupe.dateEvent.forEach((date) => {
+    for (const date of groupe.dateEvent) {
         deleteRappelJob(client, groupe, date);
-    });
+    }
 }
 
 /**
@@ -561,43 +637,37 @@ function deleteRappelJob(client, groupe, date) {
     // si job existe -> delete
     client.findJob({ name: jobName1h }).then((jobs) => {
         if (jobs.length > 0) {
-            let jobDB = jobs[0];
+            const jobDb = jobs[0];
             logger.info(
-                "-- Suppression " +
-                    jobDB.name +
-                    " pour groupe " +
-                    groupe.name +
-                    "..",
+                `-- Suppression ${jobDb.name} pour groupe ${groupe.name}..`,
             );
-            client.deleteJob(jobDB);
+            client.deleteJob(jobDb);
         }
     });
     client.findJob({ name: jobName1d }).then((jobs) => {
         if (jobs.length > 0) {
-            let jobDB = jobs[0];
+            const jobDb = jobs[0];
             logger.info(
-                "-- Suppression " +
-                    jobDB.name +
-                    " pour groupe " +
-                    groupe.name +
-                    "..",
+                `-- Suppression ${jobDb.name} pour groupe ${groupe.name}..`,
             );
-            client.deleteJob(jobDB);
+            client.deleteJob(jobDb);
         }
     });
 }
 
-exports.getMembersList = getMembersList;
-exports.createEmbedGroupInfo = createEmbedGroupInfo;
-exports.sendMsgHubGroup = sendMsgHubGroup;
-exports.editMsgHubGroup = editMsgHubGroup;
-exports.deleteMsgHubGroup = deleteMsgHubGroup;
-exports.createReactionCollectorGroup = createReactionCollectorGroup;
-exports.leaveGroup = leaveGroup;
-exports.joinGroup = joinGroup;
-exports.createGroup = createGroup;
-exports.dissolveGroup = dissolveGroup;
-exports.endGroup = endGroup;
-exports.moveToArchive = moveToArchive;
-exports.deleteAllRappelJob = deleteAllRappelJob;
-exports.deleteRappelJob = deleteRappelJob;
+module.exports = {
+    getMembersList,
+    sendMsgHubGroup,
+    editMsgHubGroup,
+    deleteMsgHubGroup,
+    createCollectorGroup,
+    leaveGroup,
+    joinGroup,
+    createGroup,
+    dissolveGroup,
+    endGroup,
+    moveToArchive,
+    deleteAllRappelJob,
+    deleteRappelJob,
+    createRowGroupButtons,
+};

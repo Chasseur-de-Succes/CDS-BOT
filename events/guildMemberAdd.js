@@ -9,7 +9,7 @@ module.exports = {
         const user = member.user;
         const embed = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
-            .setTitle(`Nouveau membre`)
+            .setTitle("Nouveau membre")
             .setDescription(member.toString())
             .addFields(
                 {
@@ -23,17 +23,19 @@ module.exports = {
         const nouveau = member.guild.roles.cache.find(
             (r) => r.name === "Nouveau",
         );
-        if (nouveau) await member.roles.add(nouveau);
+        if (nouveau) {
+            await member.roles.add(nouveau);
+        }
 
         // recup "a-lire"
-        let alire = member.client.channels.cache.find(
+        const alire = member.client.channels.cache.find(
             (r) => r.name === "💬a-lire",
         );
         // recup "bienvenue"
-        let bienvenue = member.guild.systemChannel;
+        const bienvenue = member.guild.systemChannel;
 
         if (alire && bienvenue) {
-            let msgBienvenue = `> Bienvenue à toi ${user}, tu trouveras ici d'autres chasseurs de succès francophones ! ${CDS}
+            const msgBienvenue = `> Bienvenue à toi ${user}, tu trouveras ici d'autres chasseurs de succès francophones ! ${CDS}
 > Si tu veux accéder au reste du Discord, c'est par ici ➡️ ${alire}
 > On espére te voir participer à la vie du groupe, et tu verras, ensemble, la chasse aux succès est encore plus amusante !`;
 

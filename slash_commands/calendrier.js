@@ -145,7 +145,8 @@ async function createEmbed(date, guildId, dbUser, username) {
         day: "numeric",
         month: "short",
     });
-    const titre = `🗓  ${weekStart} ➡ ${weekEnd}`;
+
+    const titre = `🗓️ ${weekStart} ➡️ ${weekEnd}`;
 
     const footer = `planning de ${username}`;
 

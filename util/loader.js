@@ -5,7 +5,6 @@ const {
     MsgHallZeros,
     Msg,
     MsgDmdeAide,
-    Game,
     GuildConfig,
 } = require("../models");
 const {
@@ -14,9 +13,12 @@ const {
     resetMoneyLimit,
     loadJobHelper,
     testEcuyer,
-    loadSteamPICS,
 } = require("./batch/batch");
-const { createReactionCollectorGroup, moveToArchive } = require("./msg/group");
+const {
+    moveToArchive,
+    createRowGroupButtons,
+    createCollectorGroup,
+} = require("./msg/group");
 const { Group } = require("../models/index");
 const { SALON } = require("./constants");
 
@@ -40,9 +42,6 @@ const loadCommands = (client, dir = "./slash_commands/") => {
             client.commands.set(command.data.name, command);
             logger.info(`Commande ${command.data.name} chargé`);
         } else {
-            console.log(
-                `[WARNING] Il manque "data" ou "execute" dans la commande ${filePath}.`,
-            );
             logger.warn(
                 `[WARNING] Il manque "data" ou "execute" dans la commande ${filePath}.`,
             );
@@ -52,7 +51,7 @@ const loadCommands = (client, dir = "./slash_commands/") => {
 };
 
 // Charge les événements
-const loadEvents = (client, dir = "./events") => {
+const loadEvents = (client) => {
     const eventsPath = path.join(__dirname, "../events");
     const eventFiles = fs
         .readdirSync(eventsPath)
@@ -74,15 +73,15 @@ const loadEvents = (client, dir = "./events") => {
 // Charge les 'batch'
 const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
-    loadJobs(client);
+    await loadJobs(client);
 
-    searchNewGamesJob(client);
+    await searchNewGamesJob(client);
 
-    resetMoneyLimit();
+    await resetMoneyLimit();
 
-    loadJobHelper(client);
+    await loadJobHelper(client);
 
-    testEcuyer(client);
+    await testEcuyer(client);
 
     //loadSteamPICS(client);
 };
@@ -92,9 +91,9 @@ const loadReactionGroup = async (client) => {
     const lMsgGrp = await MsgDmdeAide.find();
 
     // recupere TOUS les messages du channel de listage des groupes
-    for (const msgDB of lMsgGrp) {
+    for (const msgDb of lMsgGrp) {
         const idListGroup = await client.getGuildChannel(
-            msgDB.guildId,
+            msgDb.guildId,
             SALON.LIST_GROUP,
         );
 
@@ -102,20 +101,28 @@ const loadReactionGroup = async (client) => {
             // recup msg sur bon channel
             client.channels.cache
                 .get(idListGroup)
-                .messages.fetch(msgDB.msgId)
+                .messages.fetch(msgDb.msgId)
                 .then(async (msg) => {
                     const grp = await Group.findOne({ idMsg: msg.id });
                     // filtre group encore en cours
-                    if (!grp.validated)
-                        await createReactionCollectorGroup(client, msg, grp);
-                    else await moveToArchive(client, idListGroup, grp.idMsg);
+                    if (grp.validated) {
+                        await moveToArchive(client, idListGroup, grp.idMsg);
+                    } else {
+                        // enleve réactions
+                        await msg.reactions.removeAll();
+
+                        // "maj" msg group pour ajouter boutons + collector
+                        const row = await createRowGroupButtons(grp);
+                        await msg.edit({ components: [row] });
+                        await createCollectorGroup(client, msg);
+                    }
                 })
                 .catch(async (err) => {
                     logger.error(
                         `Erreur load listener reaction groupes ${err}, suppression msg`,
                     );
                     // on supprime les msg qui n'existent plus
-                    await Msg.deleteOne({ _id: msgDB._id });
+                    await Msg.deleteOne({ _id: msgDb._id });
                 });
         } else {
             logger.error("- Config salon msg groupe non défini !");
@@ -129,26 +136,26 @@ const loadReactionMsg = async (client) => {
     // merge les 2 array
     const lMsg = [...lMsgHeros, ...lMsgZeros];
 
-    for (const msgDB of lMsg) {
+    for (const msgDb of lMsg) {
         const idHeros = await client.getGuildChannel(
-            msgDB.guildId,
+            msgDb.guildId,
             SALON.HALL_HEROS,
         );
         const idZeros = await client.getGuildChannel(
-            msgDB.guildId,
+            msgDb.guildId,
             SALON.HALL_ZEROS,
         );
 
         if (idHeros && idZeros) {
             // recup msg sur bon channel
             const channelHall =
-                msgDB.msgType === "MsgHallHeros" ? idHeros : idZeros;
+                msgDb.msgType === "MsgHallHeros" ? idHeros : idZeros;
             client.channels.cache
                 .get(channelHall)
-                .messages.fetch(msgDB.msgId)
-                .catch(async (err) => {
+                .messages.fetch(msgDb.msgId)
+                .catch(async () => {
                     // on supprime les msg qui n'existent plus
-                    await Msg.deleteOne({ _id: msgDB._id });
+                    await Msg.deleteOne({ _id: msgDb._id });
                 });
         } else {
             logger.error("- Config salons héros & zéros non définis !");
@@ -160,7 +167,7 @@ const loadReactionMsg = async (client) => {
 const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
     // TODO cooldown
     // pour chaque guild
-    client.guilds.cache.forEach(async (guild) => {
+    for (const guild of client.guilds.cache.values()) {
         const idRole = await client.getGuildChannel(guild.id, SALON.ROLE);
         if (!idRole) {
             logger.error("- Config salon rôle non défini !");
@@ -183,7 +190,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
 
         content += roles
             .map((item) => {
-                return item.emoji + " : `" + item.name + "`";
+                return `${item.emoji} : \`${item.name}\``;
             })
             .join("\n");
 
@@ -194,7 +201,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
 
             msg = await roleChannel.send({ content: content });
         } else if (msgs.size === 1 && msgs.first().author.bot) {
-            logger.warn(`Le message des rôles existe ! Maj de celui-ci...`);
+            logger.warn("Le message des rôles existe ! Maj de celui-ci...");
             // un seul, et celui du bot, on maj (?)
             msg = await msgs.first().edit({ content: content });
             // TODO quid des réactions ?
@@ -209,20 +216,23 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
         }
 
         // ajout réactions, au cas où nouvel emoji
-        roles.forEach(async (item) => {
+        for (const item of roles) {
             // custom emoji
             if (item.emoji.startsWith("<")) {
                 // regex emoji custom
                 const matches = item.emoji.match(/(<a?)?:\w+:((\d{18})>)?/);
-                if (matches)
+                if (matches) {
                     await msg.react(client.emojis.cache.get(matches[3]));
-            } else await msg.react(item.emoji);
-        });
+                }
+            } else {
+                await msg.react(item.emoji);
+            }
+        }
 
         // on enleve tous les émojis (dans le cas ou il y a eu un delete)
         if (emojiDeleted) {
             // recupere array des keys = emojis des reactions
-            let keys = [...msg.reactions.cache.keys()];
+            const keys = [...msg.reactions.cache.keys()];
 
             // recupere l'id de l'emoji custom deleted
             if (emojiDeleted.startsWith("<")) {
@@ -233,10 +243,10 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
             const reactionsToDelete = keys.filter((x) => x === emojiDeleted);
 
             // et on supprime ces réactions !
-            reactionsToDelete.forEach(async (element) => {
+            for (const element of reactionsToDelete) {
                 logger.info(`.. suppression des réactions ${element}`);
                 await msg.reactions.cache.get(element).remove();
-            });
+            }
         }
 
         // sinon collector sur reactions une seule fois, pour eviter X reactions
@@ -273,7 +283,7 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
             // suppression rôle
             collector.on("remove", async (r, u) => {
                 if (!u.bot) {
-                    // referesh role
+                    // refresh role
                     roles = await RolesChannel.find({});
                     // unicode ou custom
                     const item = roles.find(
@@ -297,16 +307,16 @@ const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
                 }
             });
         }
-    });
+    }
 };
 
 const loadVocalCreator = async (client) => {
     // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
-    client.guilds.cache.forEach(async (guild) => {
+    for (const guild of client.guilds.cache.values()) {
         // si le chan vocal n'existe pas, on le créé + save
-        let config = await GuildConfig.findOne({ guildId: guild.id });
+        const config = await GuildConfig.findOne({ guildId: guild.id });
 
-        if (!config.channels || !config.channels["create_vocal"]) {
+        if (!config.channels || !config.channels.create_vocal) {
             // créer un voice channel
             // TODO parent ?
             const voiceChannel = await guild.channels.create({
@@ -316,7 +326,7 @@ const loadVocalCreator = async (client) => {
 
             await GuildConfig.updateOne(
                 { guildId: guild.id },
-                { $set: { ["channels.create_vocal"]: voiceChannel.id } },
+                { $set: { [config.channels.create_vocal]: voiceChannel.id } },
             );
 
             logger.warn(`.. salon vocal 'créateur' créé`);
@@ -324,7 +334,7 @@ const loadVocalCreator = async (client) => {
             // TODO test si le salon existe bien
             // s'il n'existe pas, on supprime la valeur dans la bdd
         }
-    });
+    }
 };
 
 module.exports = {

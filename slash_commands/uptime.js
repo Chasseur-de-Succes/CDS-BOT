@@ -9,7 +9,7 @@ module.exports = {
     async execute(interaction) {
         const client = interaction.client;
 
-        let date = new Date();
+        const date = new Date();
         // on soustrait à la date du jour les millisecondes depuis le uptime du client
         date.setMilliseconds(date.getMilliseconds() - client.uptime);
 

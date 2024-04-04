@@ -1,8 +1,14 @@
 const { Events } = require("discord.js");
-
+const ticket = require("./interactions/ticket");
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
+        // Interactions liées aux tickets
+        if (interaction.customId?.split("-")[0] === "ticket") {
+            await ticket.execute(interaction);
+        }
+
+        // Autres interactions
         if (interaction.isChatInputCommand()) {
             const command = interaction.client.commands.get(
                 interaction.commandName,
