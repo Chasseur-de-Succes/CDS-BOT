@@ -4,9 +4,11 @@ const {
     ButtonBuilder,
     ButtonStyle,
     ActionRowBuilder,
+    time,
 } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { Group } = require("../models");
+const { TimestampStyles } = require("@discordjs/formatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -143,6 +145,7 @@ async function createEmbed(date, guildId, dbUser, username) {
         day: "numeric",
         month: "short",
     });
+
     const titre = `🗓️ ${weekStart} ➡️ ${weekEnd}`;
 
     const footer = `planning de ${username}`;
@@ -206,10 +209,10 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
 
                 for (const foundElement of found) {
                     infos.push(
-                        `**| ${foundElement.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        })} |**`,
+                        `**| ${time(
+                            foundElement,
+                            TimestampStyles.ShortTime,
+                        )} |**`,
                     );
                     infos.push(`*${game}*`);
                     infos.push(`<#${channelId}>`);
