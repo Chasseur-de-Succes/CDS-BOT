@@ -3,32 +3,32 @@ const moment = require("moment");
 const NB_MAX = {
     GROUP: {
         MEMBER: 15,
-        CHARNAME: 25
-    }
-}
+        CHARNAME: 25,
+    },
+};
 
 // TODO a revoir ?
 const TAGS = {
-    MULTI: {id: 1, description: "Multi-player"},
+    MULTI: { id: 1, description: "Multi-player" },
     // ONLINE_COOP: {id: 38, description: 'Online Co-op'},
-    COOP: {id: 9, description: "Co-op"},
-    ACHIEVEMENTS: {id: 22, description: "Steam Achievements"}
-}
+    COOP: { id: 9, description: "Co-op" },
+    ACHIEVEMENTS: { id: 22, description: "Steam Achievements" },
+};
 
 // TODO a deplacé autre part ? methodes
 // attends ms milliseconds
-const delay = ms => new Promise(res => setTimeout(res, ms));
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 const crtHour = () => moment().format("HH[h]mm[:]ss");
 
 const BAREME_XP = {
     MSG: 5,
     CAPTAIN: 15,
     EVENT_END: 25,
-}
+};
 const THREESOLD_LVL = 100;
 const BAREME_MONEY = {
-    MSG: 5
-}
+    MSG: 5,
+};
 
 /* const CHANNEL = {
     WELCOME: 'Salon de bienvenue', // channel de bienvenue, affiche les nouveaux arrivants
@@ -39,60 +39,74 @@ const BAREME_MONEY = {
     LOGS: 'Salon de logs (admin)' // channel de logs (discord: join, leave, modification surnom,...)
 } */
 const CHANNEL = [
-    { 
-        name: 'Salon de bienvenue',
-        value: 'welcome' // channel de bienvenue, affiche les nouveaux arrivants
-    }, { 
-        name: 'Salon choix de rôle (cf /role)',
-        value: 'role' // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
-    }, { 
-        name: 'Salon qui liste les groupes',
-        value: 'list_group' // channel qui affichera tous les groupes
-    }, { 
-        name: 'Salon du hall des héros',
-        value: 'hall_heros' // channel eponyme (pour stat)
-    }, { 
-        name: 'Salon du hall des zéros',
-        value: 'hall_zeros' // channel eponyme (pour stat)
-    }, { 
-        name: 'Salon de logs (admin)',
-        value: 'logs' // channel de logs (discord: join, leave, modification surnom,...)
-    }, {
-        name: 'Catégorie des discussions de groupe',
-        value: 'cat_discussion_groupe'
-    }, {
-        name: 'Catégorie des discussions de groupe 2',
-        value: 'cat_discussion_groupe_2'
-    }, {
-        name: 'Feed bot 🤖',
-        value: 'feed_bot'
-    }, {
-        name: 'Feed achievement 🆕',
-        value: 'feed_achievement'
+    {
+        name: "Salon de bienvenue",
+        value: "welcome", // channel de bienvenue, affiche les nouveaux arrivants
     },
-]
+    {
+        name: "Salon choix de rôle (cf /role)",
+        value: "role", // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+    },
+    {
+        name: "Salon qui liste les groupes",
+        value: "list_group", // channel qui affichera tous les groupes
+    },
+    {
+        name: "Salon du hall des héros",
+        value: "hall_heros", // channel eponyme (pour stat)
+    },
+    {
+        name: "Salon du hall des zéros",
+        value: "hall_zeros", // channel eponyme (pour stat)
+    },
+    {
+        name: "Salon de logs (admin)",
+        value: "logs", // channel de logs (discord: join, leave, modification surnom,...)
+    },
+    {
+        name: "Catégorie des discussions de groupe",
+        value: "cat_discussion_groupe",
+    },
+    {
+        name: "Catégorie des discussions de groupe 2",
+        value: "cat_discussion_groupe_2",
+    },
+    {
+        name: "Feed bot 🤖",
+        value: "feed_bot",
+    },
+    {
+        name: "Feed achievement 🆕",
+        value: "feed_achievement",
+    },
+    {
+        name: "Salon de tickets",
+        value: "tickets",
+    },
+];
 const SALON = {
-    WELCOME: 'welcome',
-    ROLE: 'role',
-    LIST_GROUP: 'list_group',
-    HALL_HEROS: 'hall_heros',
-    HALL_ZEROS: 'hall_zeros',
-    LOGS: 'logs',
+    WELCOME: "welcome",
+    ROLE: "role",
+    LIST_GROUP: "list_group",
+    HALL_HEROS: "hall_heros",
+    HALL_ZEROS: "hall_zeros",
+    LOGS: "logs",
     CAT_DISCUSSION_GROUPE: "cat_discussion_groupe",
     CAT_DISCUSSION_GROUPE_2: "cat_discussion_groupe_2",
     FEED_BOT: "feed_bot",
-    FEED_ACHIEVEMENT: "feed_achievement"
-}
+    FEED_ACHIEVEMENT: "feed_achievement",
+    TICKETS: "tickets",
+};
 
 const WEBHOOK_ARRAY = [
-    { 
-        name: 'Webhook succès',
-        value: 'feed_achievement' // channel de bienvenue, affiche les nouveaux arrivants
-    }
-]
+    {
+        name: "Webhook succès",
+        value: "feed_achievement", // channel de bienvenue, affiche les nouveaux arrivants
+    },
+];
 const WEBHOOK = {
-    FEED_ACHIEVEMENT: "feed_achievement"
-}
+    FEED_ACHIEVEMENT: "feed_achievement",
+};
 
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;

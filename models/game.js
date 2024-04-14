@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const gameSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -11,20 +11,22 @@ const gameSchema = mongoose.Schema({
         id: Number,
         description: String
     }], */
-    isMulti: Boolean, // pour faciliter la recherche TODO facilité ? 
+    isMulti: Boolean, // pour faciliter la recherche TODO facilité ?
     isCoop: Boolean,
     // isCoopOnline: Boolean,
-    hasAchievements: Boolean, 
+    hasAchievements: Boolean,
     isRemoved: Boolean,
     // TODO img url ?
     // achievements
-    achievements: [{
-        apiName: String,
-        displayName: String,
-        description: String,
-        icon: String,
-        icongray: String
-    }]
-})
+    achievements: [
+        {
+            apiName: String,
+            displayName: String,
+            description: String,
+            icon: String,
+            icongray: String,
+        },
+    ],
+});
 
 module.exports = mongoose.model("Game", gameSchema);

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const grpSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -7,24 +7,24 @@ const grpSchema = mongoose.Schema({
     desc: String,
     idMsg: String,
     nbMax: Number,
-    captain : { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    members : [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    captain: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     size: {
         type: Number,
-        default: 1
+        default: 1,
     },
-    game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game' },
+    game: { type: mongoose.Schema.Types.ObjectId, ref: "Game" },
     dateEvent: [Date],
-    dateCreated : {
+    dateCreated: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
-    dateUpdated : Date,
-    validated : {
+    dateUpdated: Date,
+    validated: {
         type: Boolean,
-        default: false
+        default: false,
     },
-    channelId : String,
-})
+    channelId: String,
+});
 
 module.exports = mongoose.model("Group", grpSchema);

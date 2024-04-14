@@ -17,5 +17,17 @@
     },
     "files": {
         "ignore": [".vscode"]
+    },
+    "javascript": {
+        "formatter": {
+            "arrowParentheses": "always",
+            "jsxQuoteStyle": "double",
+            "semicolons": "always",
+            "trailingComma": "all",
+            "quoteProperties": "asNeeded",
+            "quoteStyle": "double",
+            "bracketSpacing": true,
+            "bracketSameLine": false
+        }
     }
 }
