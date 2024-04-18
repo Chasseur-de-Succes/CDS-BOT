@@ -258,7 +258,6 @@ async function createAchatCustom(
                             components: [],
                         });
                     }
-
                 } catch (err) {
                     logger.error(err);
                     embed = new EmbedBuilder()
