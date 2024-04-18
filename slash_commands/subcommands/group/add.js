@@ -25,7 +25,12 @@ const add = async (interaction, options) => {
         "captain members game",
     );
 
-    if (grp.members.filter((u) => u.userId === toAdd.id).length >= 1) {
+    if (userDB === undefined) {
+        interaction.reply({
+            content: `L'utilisateur ${toAdd} ne s'est pas enregistré.`,
+            ephemeral: true,
+        });
+    } else if (grp.members.filter((u) => u.userId === toAdd.id).length >= 1) {
         interaction.reply({
             content: `L'utilisateur ${toAdd} est déjà dans ${grpName}`,
             ephemeral: true,
