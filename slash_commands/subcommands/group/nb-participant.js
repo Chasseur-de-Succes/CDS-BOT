@@ -41,7 +41,6 @@ const editNbParticipant = async (interaction, options) => {
         });
     }
 
-    // TODO tester si nbMax < size (membres)
     if (nbMax > 0) {
         await client.update(grp, { nbMax: nbMax });
     } else {

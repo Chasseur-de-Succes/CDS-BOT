@@ -657,9 +657,11 @@ function deleteRappelJob(client, groupe, date) {
 
 module.exports = {
     getMembersList,
+    createEmbedGroupInfo,
     sendMsgHubGroup,
     editMsgHubGroup,
     deleteMsgHubGroup,
+    createRowGroupButtons,
     createCollectorGroup,
     leaveGroup,
     joinGroup,
@@ -669,5 +671,4 @@ module.exports = {
     moveToArchive,
     deleteAllRappelJob,
     deleteRappelJob,
-    createRowGroupButtons,
 };
