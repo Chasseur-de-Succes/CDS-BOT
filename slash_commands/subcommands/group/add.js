@@ -25,7 +25,7 @@ const add = async (interaction, options) => {
         "captain members game",
     );
 
-    if (userDB === undefined) {
+    if (userDb === undefined) {
         interaction.reply({
             content: `L'utilisateur ${toAdd} ne s'est pas enregistré.`,
             ephemeral: true,
