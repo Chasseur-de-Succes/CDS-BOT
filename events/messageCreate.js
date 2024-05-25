@@ -1,6 +1,11 @@
 const { Collection, Events } = require("discord.js");
 const { User } = require("../models/index.js");
-const { BAREME_XP, BAREME_MONEY, SALON } = require("../util/constants");
+const {
+    BAREME_XP,
+    BAREME_MONEY,
+    SALON,
+    DAILY_MONEY_LIMIT,
+} = require("../util/constants");
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
 const { feedBotMetaAch } = require("../util/envoiMsg");
@@ -142,8 +147,6 @@ module.exports = {
                     }
                 }
             }
-
-            // TODO auto replies sur certains mots/phrase ?
         }
     },
 };
@@ -176,9 +179,10 @@ const cooldownTimeLeft = (type, seconds, userID) => {
 const addMoney = async (client, user, money) => {
     const userDB = await client.getUser(user);
 
-    // limit argent gagné par 50 TODO constant ?
-    if (userDB?.moneyLimit < 50) {
+    // limite les points gagnés par DAILY_MONEY_LIMIT
+    if (userDB?.moneyLimit < DAILY_MONEY_LIMIT) {
         // si pas register pas grave, ca ne passera pas
+        // incrémente les points gagnés aujourd'hui (limite) et la cagnotte
         await User.updateOne(
             { userId: user.id },
             { $inc: { moneyLimit: money } },

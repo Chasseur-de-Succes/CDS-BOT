@@ -103,8 +103,6 @@ async function createAchatCustom(
     const dbConfig = customItems[type].db;
     const finalVal = customItems[type].values[value];
 
-    // TODO image ?
-
     // boutons
     // const backBtn = new MessageButton()
     //     .setCustomId("back")
@@ -169,7 +167,6 @@ async function createAchatCustom(
                     components: [],
                 });
 
-                // TODO refactor.. doublons un peu
                 try {
                     const filter = (m) => {
                         return m.author.id === interaction.member.id;
@@ -261,8 +258,6 @@ async function createAchatCustom(
                             components: [],
                         });
                     }
-
-                    // TODO ajout config user
                 } catch (err) {
                     logger.error(err);
                     embed = new EmbedBuilder()

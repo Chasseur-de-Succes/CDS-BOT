@@ -48,7 +48,6 @@ const createRole = async (interaction, options) => {
     });
 
     // créer un text channel lié à ce rôle
-    // TODO parent ?
     const channel = await guild.channels.create(nomRole, {
         type: "text",
         permissionOverwrites: [

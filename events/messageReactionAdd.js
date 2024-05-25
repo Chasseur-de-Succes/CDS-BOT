@@ -10,7 +10,6 @@ module.exports = {
             const emoji = msgReaction.emoji;
             const count = msgReaction.count;
 
-            // TODO certaines reactions ne se save pas, job tous les jours pour maj le nb ?
             /* HALL HEROS / ZEROS */
             const idHeros = await msgReaction.client.getGuildChannel(
                 msg.guildId,
@@ -25,8 +24,6 @@ module.exports = {
             const isHallZeros = msg.channelId === idZeros;
 
             const hasPJ = msg.attachments.size > 0;
-
-            //console.log(emoji.name, count);
 
             // nb img dans hall héros
             // si piece jointes
