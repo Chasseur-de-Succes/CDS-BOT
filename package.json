@@ -19,7 +19,7 @@
         "mongoose": "^5.13.4",
         "node-schedule": "^2.0.0",
         "signale-logger": "^1.5.1",
-        "steam-user": "^4.27.0",
+        "steam-user": "^5.0.9",
         "superagent": "^6.1.0",
         "winston": "^3.3.3",
         "winston-daily-rotate-file": "^4.6.1"
