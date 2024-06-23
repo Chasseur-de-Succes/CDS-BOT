@@ -84,7 +84,6 @@ module.exports = {
 };
 
 function getChannelName() {
-    // TODO a revoir
     const lieu = [
         "🪑 Bureau",
         "🛏️ Chambre",

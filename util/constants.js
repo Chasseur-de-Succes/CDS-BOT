@@ -1,5 +1,7 @@
 const moment = require("moment");
 
+const DAILY_MONEY_LIMIT = 50;
+
 const NB_MAX = {
     GROUP: {
         MEMBER: 15,
@@ -108,6 +110,7 @@ const WEBHOOK = {
     FEED_ACHIEVEMENT: "feed_achievement",
 };
 
+exports.DAILY_MONEY_LIMIT = DAILY_MONEY_LIMIT;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
 exports.BAREME_XP = BAREME_XP;

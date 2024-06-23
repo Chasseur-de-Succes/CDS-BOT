@@ -69,7 +69,6 @@ module.exports = {
         );
 
         // envoi de l'embed
-        // TODO si non mp, ephemeral ?
         const message = await interaction.editReply({
             embeds: [embed],
             components: [row],
@@ -192,7 +191,6 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
 
         let fieldValue = "◾◾◾";
         for (const group of groups) {
-            // TODO is captain ?
             const {
                 channelId,
                 dateEvent,

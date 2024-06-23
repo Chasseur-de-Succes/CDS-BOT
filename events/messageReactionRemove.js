@@ -25,8 +25,6 @@ module.exports = {
 
             const hasPJ = msg.attachments.size > 0;
 
-            //console.log(emoji.name, count);
-
             // nb img dans hall héros
             // si piece jointes
             if (hasPJ) {

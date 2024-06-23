@@ -6,17 +6,11 @@ const gameSchema = mongoose.Schema({
     iconHash: String,
     name: String,
     type: String,
-    // TODO objet tag 'categories' ?
-    /* tags: [{
-        id: Number,
-        description: String
-    }], */
-    isMulti: Boolean, // pour faciliter la recherche TODO facilité ?
+    isMulti: Boolean, // pour faciliter la recherche
     isCoop: Boolean,
     // isCoopOnline: Boolean,
     hasAchievements: Boolean,
     isRemoved: Boolean,
-    // TODO img url ?
     // achievements
     achievements: [
         {

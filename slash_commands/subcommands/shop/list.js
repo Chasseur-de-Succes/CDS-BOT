@@ -124,7 +124,6 @@ function createListGame(items, money, currentIndex = 0) {
     for (let i = currentIndex * 10; i < 10 + currentIndex * 10; i++) {
         const item = items[i];
         if (item) {
-            // TODO revoir affichage item (couleur ?)
             pages.push(`**[${i + 1}]**`);
             jeux.push(`*${item._id.name}*`);
 
