@@ -193,11 +193,11 @@ module.exports = {
                     descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
                              ▶️ Tu peux de nouveau rejoindre un groupe`;
                 } else if (dbUser === 1) {
-                    titleMp = "⚠️ **${dbUser.warning}er avertissement** ⚠️";
+                    titleMp = `⚠️ **${dbUser.warning}er avertissement** ⚠️`;
                     descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
                              ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 } else {
-                    titleMp = "⚠️ **${dbUser.warning}ème avertissement** ⚠️";
+                    titleMp = `⚠️ **${dbUser.warning}ème avertissement** ⚠️`;
                     descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
                              ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
                 }
