@@ -1,4 +1,4 @@
-const { Colors } = require("discord.js");
+const { Colors, EmbedBuilder} = require("discord.js");
 const {createError} = require("../../../util/envoiMsg");
 
 const inscription = async (interaction, options) => {
@@ -28,7 +28,34 @@ const inscription = async (interaction, options) => {
   // Pas besoin de tester si le rôle est déjà ajouté
   await author.roles.add(role || interaction.guild.roles.cache.find(r => r.name === 'Grimpeur'));
   logger.info(`.. ${author.nickname} s'est inscrit et a eu le rôle 'Grimpeur' ..`);
-  await interaction.reply({ content: `Tu es inscrit à l'événement et tu as reçu le rôle "Grimpeur".`, ephemeral: true });
+
+  const embed = new EmbedBuilder()
+    .setColor('#0019ff')
+    .setTitle('☑️ Inscription validée')
+    .setDescription(`Tu aperçois au loin une tour, tu décides de t'en approcher.
+  Tu entends de sinistres ricanements provenant du sommet.
+    Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..
+
+  Peut-être en prouvant tes capacités à \`maîtriser\` un jeu puis en le \`validant\` ?
+    \`\`\`
+             |>>>
+             |
+         _  _|_  _
+        |;|_|;|_|;|
+        \\.    .  /
+         \\:  .  /
+          ||:   |
+          ||:.  |
+          ||:  .|
+          ||:   |
+          ||: , |
+<CDS>     ||:   |
+  o       ||: . |
+ /|\\     _||_   |
+ / \\----~    ~\`---,
+'                  ~~---
+\`\`\``)
+  await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 exports.inscription = inscription;
