@@ -1,5 +1,6 @@
 const { Colors, EmbedBuilder} = require("discord.js");
-const {createError} = require("../../../util/envoiMsg");
+const { createError } = require("../../../util/envoiMsg");
+const { ASCII_INTRO } = require("../../../data/event/tower/constants.json")
 
 const inscription = async (interaction, options) => {
   const author = interaction.member;
@@ -37,24 +38,8 @@ const inscription = async (interaction, options) => {
     Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..
 
   Peut-être en prouvant tes capacités à \`maîtriser\` un jeu puis en le \`validant\` ?
-    \`\`\`
-             |>>>
-             |
-         _  _|_  _
-        |;|_|;|_|;|
-        \\.    .  /
-         \\:  .  /
-          ||:   |
-          ||:.  |
-          ||:  .|
-          ||:   |
-          ||: , |
-<CDS>     ||:   |
-  o       ||: . |
- /|\\     _||_   |
- / \\----~    ~\`---,
-'                  ~~---
-\`\`\``)
+  ${ASCII_INTRO}
+`)
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 

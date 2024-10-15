@@ -1,17 +1,7 @@
 const { createError } = require("../../../util/envoiMsg");
+const { HIDDEN_BOSS, BOSS, ETAGE_PAR_PALIER, MAX_ETAGE, ASCII_FIRST } = require("../../../data/event/tower/constants.json")
 const { EventBoss, GuildConfig} = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
-
-const MAX_ETAGE = 20;
-const ETAGE_PAR_PALIER = 5;
-const BOSS = {
-  name: "Big Sweeney",
-  hp: 300,
-}
-const HIDDEN_BOSS = {
-  name: "Haiepique Fayl",
-  hp: 150,
-}
 
 // Créer un boss si aucun n'existe
 async function createBoss(season, isHiddenBoss) {
@@ -31,7 +21,6 @@ async function createBoss(season, isHiddenBoss) {
 
 // Créer et renvoie un embed
 async function createEmbed(option) {
-  // TODO envoyer dans salon event
   return new EmbedBuilder()
     .setTitle(option.title)
     .setDescription(option.desc)
@@ -106,16 +95,7 @@ const validerJeu = async (interaction, options) => {
             title: `🏆 ${gameName} terminé !`,
             url: `https://store.steampowered.com/app/${appid}/`,
             desc: `En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escalier, pour atteindre le premier **étage** !
-\`\`\`     :  __________   , |
-   :   |  __  __  |    |
-     , | |  ||  | | :  |
-       | |  ||  | |    |
- ,  :  | |__||__| |    |
-       |  __  __()|  : |
-<CDS>  | |  ||  | |,   |
-  o  : | |  ||  | |    |
- ~|~   | |__||__| | :  |
- / \\   |__________|    |\`\`\``,
+${ASCII_FIRST}`,
             color: '#1cff00',
             footer: {
               text: 'Étage 1'
