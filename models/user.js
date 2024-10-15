@@ -67,6 +67,19 @@ const userSchema = mongoose.Schema({
                 },
             },
         },
+        tower: {
+            season: { type: Number, default: 1 },  // Saison actuelle
+            startDate: { type: Date, default: Date.now },  // Date de début pour l'utilisateur
+            etage: { type: Number, default: 0 },  // Nb de jeu complété à 100%
+            totalDamage: { type: Number, default: 0 },  // Dégâts infligés pour la saison en cours
+            completedGames: [{ type: String }],  // Liste des appid utilisés pour grimper/attaquer
+            seasonHistory: [{
+                seasonNumber: { type: Number, required: true },
+                endDate: Date,
+                maxEtage: { type: Number, required: true },  // Nb de jeu complété sur la saison
+                totalDamage: { type: Number, required: true },  // Nb étage - (nb palier * 10)
+            }],  // Historique des saisons, avec étage max et dégâts
+        }
     },
     profile: {
         text: {

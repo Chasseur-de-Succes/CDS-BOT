@@ -21,6 +21,11 @@ const guildConfigSchema = mongoose.Schema({
     webhook: {
         feed_achievement: String,
     },
+    event: {
+        tower: {
+            currentSeason: { type: Number, default: 1 }
+        }
+    }
 });
 
 module.exports = mongoose.model("GuildConfig", guildConfigSchema);

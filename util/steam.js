@@ -165,6 +165,32 @@ module.exports = (client) => {
         return reponse?.body?.game;
     };
 
+    client.hasAllAchievementsUnlocked = async(steamId, appid) => {
+        // Appel à l'API Steam pour vérifier les succès
+        const response = await superagent
+          .get(
+            "http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
+          )
+          .query({
+              key: process.env.STEAM_API_KEY,
+              steamid: steamId,
+              appid: appid
+          })
+          .ok(res => res.status < 500);
+
+        if (!response.body.playerstats.success) {
+            return {
+                error: response.body.playerstats.error
+            }
+        }
+
+        const achievements = response.body.playerstats.achievements;
+        return {
+            gameName: response.body.playerstats.gameName,
+            hasAllAchievements: achievements.every(ach => ach.achieved === 1)
+        };
+    };
+
     /**
      *
      */
