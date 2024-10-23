@@ -23,7 +23,7 @@ const guildConfigSchema = mongoose.Schema({
     },
     event: {
         tower: {
-            currentSeason: { type: Number, default: 1 }
+            currentSeason: Number
         }
     }
 });
