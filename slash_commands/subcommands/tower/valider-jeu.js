@@ -449,3 +449,4 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
 }
 
 exports.validerJeu = validerJeu;
+exports.endSeasonForUser = endSeasonForUser;

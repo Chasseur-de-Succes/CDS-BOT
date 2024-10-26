@@ -1,5 +1,7 @@
-const {GuildConfig} = require("../../models");
-const {PermissionFlagsBits} = require("discord.js");
+const { GuildConfig, User } = require("../../models");
+const { PermissionFlagsBits } = require("discord.js");
+const {endSeasonForUser} = require("../../slash_commands/subcommands/tower/valider-jeu");
+
 exports.run = async (client, message, args) => {
     // seulement admin / modo
     if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
@@ -52,6 +54,16 @@ exports.run = async (client, message, args) => {
                 });
 
                 await guild.save();
+
+                // Récupérer tous les utilisateurs qui ont participé
+                const season = guild.event.tower.currentSeason;
+                const users = await User.find({ 'event.tower.startDate': { $exists: true } });
+
+                // Sauvegarder les informations de la saison actuelle pour chaque utilisateur
+                const endDate = Date.now();
+                for (const user of users) {
+                    await endSeasonForUser(user, endDate, season);
+                }
                 return await message.reply({ content: "Événement arrêté !"})
             }
         } else {
