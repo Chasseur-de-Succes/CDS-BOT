@@ -16,6 +16,7 @@ const guildConfigSchema = mongoose.Schema({
         feed_bot: String,
         feed_achievement: String,
         tickets: String,
+        event_tower: String,
     },
     voice_channels: [String],
     webhook: {
@@ -23,7 +24,15 @@ const guildConfigSchema = mongoose.Schema({
     },
     event: {
         tower: {
-            currentSeason: Number
+            currentSeason: Number,
+            startDate: Date,
+            started: { type: Boolean, default: false },
+            history: [{
+                season: Number,
+                startDate: Date,
+                endDate: Date,
+                finished: Boolean
+            }]
         }
     }
 });

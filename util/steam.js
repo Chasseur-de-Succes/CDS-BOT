@@ -210,7 +210,6 @@ module.exports = (client) => {
         let isCoop = false;
         let hasAchievements = false;
         let isRemoved = false;
-        let update;
 
         if (app?.body[appId]?.success) {
             type = app.body[appId].data?.type;
@@ -270,7 +269,7 @@ module.exports = (client) => {
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${appId}/header.jpg`;
 
         const query = { appid: appId };
-        update = {
+        const update = {
             name: gameName,
             type: type,
             iconHash: iconHash,

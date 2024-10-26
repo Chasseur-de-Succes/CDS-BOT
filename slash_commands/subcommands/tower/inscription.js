@@ -2,11 +2,29 @@ const { Colors, EmbedBuilder} = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { GuildConfig } = require("../../../models")
 const { ASCII_INTRO } = require("../../../data/event/tower/constants.json")
+const {SALON} = require("../../../util/constants");
 
 const inscription = async (interaction, options) => {
+  // Récupération du channel de l'event
+  const eventChannelId =
+    await interaction.client.getGuildChannel(
+      interaction.guild.id,
+      SALON.EVENT_TOWER,
+    );
+
+  // Gestion d'erreur si aucun salon n'est défini
+  if (!eventChannelId) {
+    return interaction.reply({
+      content: `Aucun salon de l'événement tower n'a été trouvé.`,
+      ephemeral: true,
+    });
+  }
+
+  const eventChannel = interaction.client.channels.cache.get(eventChannelId);
   const author = interaction.member;
   const client = interaction.client;
   const guildId = interaction.guildId;
+  const guild = await GuildConfig.findOne({ guildId: guildId });
 
   // test si auteur est register
   const userDb = await client.getUser(author);
@@ -21,6 +39,18 @@ const inscription = async (interaction, options) => {
     });
   }
 
+  // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
+  if (!guild.event.tower.started) {
+    logger.info('.. événement tower pas encore commencé');
+    return await interaction.reply({
+      embeds: [
+        createError(
+          'L\'événement n\'a pas encore commencé..',
+        ),
+      ]
+    });
+  }
+
   // si déjà inscrit
   if (userDb.event.tower.startDate) {
     return await interaction.reply({ content: 'Tu es déjà inscrit !', ephemeral: true });
@@ -31,15 +61,6 @@ const inscription = async (interaction, options) => {
   if (!role) {
     logger.info(".. rôle 'Grimpeur' pas encore créé, création ..");
     await interaction.guild.roles.create({ name: 'Grimpeur', color: Colors.Green, permissions: [] });
-  }
-
-  // récupère la saison courante, si n'existe pas, on commence à 0 et on save dans la config
-  const guild = await GuildConfig.findOne({ guildId: guildId });
-
-  if (typeof guild.event.tower.currentSeason === 'undefined') {
-    logger.info('.. création attribut currentSeason pour config');
-    guild.event.tower.currentSeason = 0;
-    await guild.save();
   }
 
   // Saison et date de commencement de l'événement par l'user
@@ -56,10 +77,11 @@ const inscription = async (interaction, options) => {
     .setTitle('☑️ Inscription validée')
     .setDescription(`Tu aperçois au loin une tour, tu décides de t'en approcher.
   Tu entends de sinistres ricanements provenant du sommet.
-    Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..
+  Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..
 
   Peut-être en prouvant tes capacités à \`maîtriser\` un jeu puis en le \`validant\` ?
   ${ASCII_INTRO}
+  On se retrouve par ici : ${eventChannel}
 `)
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }

@@ -85,6 +85,10 @@ const CHANNEL = [
         name: "Salon de tickets",
         value: "tickets",
     },
+    {
+        name: "Événement Tower",
+        value: "event_tower",
+    },
 ];
 const SALON = {
     WELCOME: "welcome",
@@ -98,6 +102,7 @@ const SALON = {
     FEED_BOT: "feed_bot",
     FEED_ACHIEVEMENT: "feed_achievement",
     TICKETS: "tickets",
+    EVENT_TOWER: "event_tower",
 };
 
 const WEBHOOK_ARRAY = [

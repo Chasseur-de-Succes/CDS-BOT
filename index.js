@@ -1,11 +1,7 @@
 const { Client, GatewayIntentBits, Events } = require("discord.js");
 const {
-    loadCommands,
+    loadSlashCommands,
     loadEvents,
-    loadBatch,
-    loadReactionGroup,
-    loadReactionMsg,
-    loadVocalCreator,
 } = require("./util/loader");
 const winston = require("winston");
 require("winston-daily-rotate-file");
@@ -56,7 +52,7 @@ require("./util/steam")(client);
 client.mongoose = require("./util/mongoose");
 
 // SLASH COMMAND
-loadCommands(client);
+loadSlashCommands(client);
 // EVENTS
 loadEvents(client);
 
@@ -69,32 +65,4 @@ client.on("warn", console.warn);
 client.login(process.env.TOKEN).then((c) => {
     //loadBatch(client);
     //loadReactionGroup(client);
-});
-
-client.once(Events.ClientReady, async () => {
-    console.log(`
-  oooooooo8 ooooooooo    oooooooo8       oooooooooo    ooooooo   ooooooooooo 
-o888     88  888    88o 888               888    888 o888   888o 88  888  88 
-888          888    888  888oooooo        888oooo88  888     888     888     
-888o     oo  888    888         888       888    888 888o   o888     888     
- 888oooo88  o888ooo88   o88oooo888       o888ooo888    88ooo88      o888o    
-    `);
-
-    logger.info("Chargement des batchs ..");
-    await loadBatch(client);
-    logger.info(".. terminé");
-
-    logger.info("Chargement des messages 'events' ..");
-    await loadReactionGroup(client);
-    logger.info(".. terminé");
-
-    logger.info("Chargement des reactions hall héros/zéros ..");
-    await loadReactionMsg(client);
-    logger.info(".. terminé");
-
-    logger.info("Chargement du chan vocal créateur ..");
-    await loadVocalCreator(client);
-    logger.info(".. terminé");
-
-    //   loadRoleGiver(client);
 });

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [V1.3.0]
+- Création d'un nouvel événement communaitaire : La Tour
+
 ## [v1.2.7]
 - Ajout du systême pour les nouveaux arrivants
 

@@ -67,9 +67,8 @@ async function createEmbed(option) {
 }
 
 const validerJeu = async (interaction, options) => {
-  // TODO autoriser seulement si dans bon salon ?
-    // TODO => save salon dans config..
   const guildId = interaction.guildId;
+  const guild = await GuildConfig.findOne({ guildId: guildId });
   let appid = options.get("appid")?.value;
   appid = !appid ? options.get("jeu")?.value : appid;
 
@@ -88,22 +87,40 @@ const validerJeu = async (interaction, options) => {
       ],
     });
   }
+
+  // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
+  if (!guild.event.tower.started) {
+    logger.info('.. événement tower pas encore commencé');
+    return await interaction.reply({
+      embeds: [
+        createError(
+          'L\'événement n\'a pas encore commencé..',
+        ),
+      ]
+    });
+  }
+
   // si pas inscrit
   if (typeof userDb.event.tower.startDate === 'undefined') {
-    return await interaction.reply({ content: 'Tu dois d\'abord t\'inscrire !', ephemeral: true });
+    return await interaction.reply({
+      embeds: [
+        createError(
+          'Tu dois d\'abord t\'inscrire à l\'événement (via `/tower inscription`) !',
+        ),
+      ],
+      ephemeral: true
+    });
   }
 
   if (!appid) {
-    return await interaction.reply("Tu dois spécifier au moins un appID ou chercher le jeu que tu as complété.");
-  }
-
-  // récupère la saison courante, si n'existe pas, on commence à 0 et on save dans la config
-  const guild = await GuildConfig.findOne({ guildId: guildId });
-
-  if (typeof guild.event.tower.currentSeason === 'undefined') {
-    logger.info('.. création attribut currentSeason pour config');
-    guild.event.tower.currentSeason = 0;
-    await guild.save();
+    return await interaction.reply({
+      embeds: [
+        createError(
+          'Tu dois spécifier au moins un appID ou chercher le jeu que tu as complété',
+        ),
+      ],
+      ephemeral: true
+    });
   }
 
   const season = guild.event.tower.currentSeason;
@@ -122,6 +139,7 @@ const validerJeu = async (interaction, options) => {
     }]
   });
 
+  // - ne devrait normalement jamais être exécuté
   if (allBossDead) {
     logger.info('.. tous les boss sont DEAD ..');
     return await interaction.reply({
@@ -265,6 +283,24 @@ ${ASCII_PALIER}`,
         });
       }
 
+      // Utilisateur monte d'un étage
+      logger.info({
+        prefix: 'EVENT TOWER',
+        message: `${author.nickname} monte d'un étage ..`
+      });
+      return interaction.reply({
+        embeds: [await createEmbed({
+          title: `🏆 ${gameName} terminé !`,
+          url: `https://store.steampowered.com/app/${appid}/`,
+          desc: `En complétant **${gameName}**, ${author} gravir les escaliers et monte d'un étage !`,
+          color: '#1cff00',
+          footer: {
+            text: `Étage ${userDb.event.tower.etage}/??`
+          }
+        })],
+        ephemeral: true
+      });
+
     } else {
       // Récupère le boss courant non mort
       const currentBoss = await EventBoss.findOne({ season: season, hp: { $ne: 0 } });
@@ -284,7 +320,7 @@ ${ASCII_PALIER}`,
             message: `${author.nickname} tue boss caché, on backup les infos ..`
           });
           // si boss caché meurt, on arrête TOUT et on backup la saison
-          await endSeason(season);
+          await endSeason(season, guild);
 
           return interaction.reply({
             embeds: [await createEmbed({
@@ -366,11 +402,23 @@ ${ASCII_NOT_100}`,
   }
 }
 
-async function endSeason(seasonNumber) {
+async function endSeason(seasonNumber, guild) {
   logger.info({
     prefix: 'EVENT TOWER',
     message: `fin de la saison ${seasonNumber} ..`
   });
+
+  // Edite Guild Config
+  guild.event.tower.started = false;
+  // on garde une trace
+  guild.event.tower.history.push({
+    season: guild.event.tower.currentSeason,
+    startDate: guild.event.tower.startDate,
+    endDate: Date.now(),
+    finished: true,
+  });
+  await guild.save();
+
   // Récupérer tous les utilisateurs qui ont participé
   const users = await User.find({ 'event.tower.startDate': { $exists: true } });
 

@@ -26,7 +26,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 // Charge les commandes
-const loadCommands = (client, dir = "./slash_commands/") => {
+const loadSlashCommands = (client, dir = "./slash_commands/") => {
     client.commands = new Collection();
 
     const commandsPath = path.join(__dirname, "../slash_commands/");
@@ -164,7 +164,7 @@ const loadReactionMsg = async (client) => {
 };
 
 // Créé ou charge les reactions sur le message donnant les rôles
-const loadRoleGiver = async (client, refresh = false, emojiDeleted) => {
+const loadRoleGiver = async (client, refresh, emojiDeleted) => {
     // TODO cooldown
     // pour chaque guild
     for (const guild of client.guilds.cache.values()) {
@@ -338,7 +338,7 @@ const loadVocalCreator = async (client) => {
 };
 
 module.exports = {
-    loadCommands,
+    loadSlashCommands,
     loadEvents,
     loadBatch,
     loadReactionGroup,

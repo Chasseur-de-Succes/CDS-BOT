@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { inscription, validerJeu} = require("./subcommands/tower");
+const { inscription, validerJeu } = require("./subcommands/tower");
 const { Game } = require("../models");
 const { escapeRegExp } = require("../util/util");
 

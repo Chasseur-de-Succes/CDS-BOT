@@ -13,9 +13,26 @@ const { feedBotMetaAch } = require("../util/envoiMsg");
 module.exports = {
     name: Events.MessageCreate,
     async execute(msg) {
-        /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
-        /* et money par jour */
-        if (!msg.author.bot) {
+        if (msg.author.bot) return;
+
+        if (msg.content.startsWith(process.env.PREFIX)) {
+            const client = msg.client;
+            const command = msg.content.toLocaleLowerCase().split(" ")[0].slice(process.env.PREFIX.length);
+            const params = msg.content.split(" ").slice(1);
+            let cmd;
+
+            if (client.prefixCommands.has(command)) {
+                cmd = client.prefixCommands.get(command);
+            } else if (client.prefixAliases.has(command)) {
+                cmd = client.prefixCommands.get(client.prefixAliases.get(command));
+            }
+            if (cmd) {
+                cmd.run(client, msg, params);
+            }
+
+        } else {
+            /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
+            /* et money par jour */
             const timeLeft = cooldownTimeLeft("messages", 30, msg.author.id);
             if (!timeLeft) {
                 const userDB = await msg.client.getUser(msg.author);
