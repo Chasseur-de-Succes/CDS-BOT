@@ -182,7 +182,7 @@ const validerJeu = async (interaction, options) => {
       if (userDb.event.tower.etage === 1) {
         logger.info({
           prefix: 'EVENT TOWER',
-          message: `${author.nickname} atteint 1er étage ..`
+          message: `${author.user.tag} atteint 1er étage ..`
         });
         // 1er message d'intro
         return interaction.reply({
@@ -208,7 +208,7 @@ ${ASCII_FIRST}`,
         if (!bossCreated) {
           logger.info({
             prefix: 'EVENT TOWER',
-            message: `${author.nickname} atteint dernier palier, création 1er boss..`
+            message: `${author.user.tag} atteint dernier palier, création 1er boss..`
           });
           const newBoss = await createBoss(season, false);
           return interaction.reply({
@@ -286,7 +286,7 @@ ${ASCII_PALIER}`,
       // Utilisateur monte d'un étage
       logger.info({
         prefix: 'EVENT TOWER',
-        message: `${author.nickname} monte d'un étage ..`
+        message: `${author.user.tag} monte d'un étage ..`
       });
       return interaction.reply({
         embeds: [await createEmbed({
@@ -300,106 +300,105 @@ ${ASCII_PALIER}`,
         })],
         ephemeral: true
       });
+    }
 
-    } else {
-      // Récupère le boss courant non mort
-      const currentBoss = await EventBoss.findOne({ season: season, hp: { $ne: 0 } });
+    // Récupère le boss courant non mort
+    const currentBoss = await EventBoss.findOne({ season: season, hp: { $ne: 0 } });
 
-      // Mettre à jour les dégâts infligés et enregistrer
-      const damage = 1;  // modifiable ?
-      userDb.event.tower.totalDamage += damage;  // On tape le tower
-      await userDb.save();
+    // Mettre à jour les dégâts infligés et enregistrer
+    const damage = 1;  // modifiable ?
+    userDb.event.tower.totalDamage += damage;  // On tape le tower
+    await userDb.save();
 
-      currentBoss.hp -= damage;
-      await currentBoss.save();
+    currentBoss.hp -= damage;
+    await currentBoss.save();
 
-      if (currentBoss.hp <= 0) {
-        if (currentBoss.hidden) {
-          logger.info({
-            prefix: 'EVENT TOWER',
-            message: `${author.nickname} tue boss caché, on backup les infos ..`
-          });
-          // si boss caché meurt, on arrête TOUT et on backup la saison
-          await endSeason(season, guild);
-
-          return interaction.reply({
-            embeds: [await createEmbed({
-              title: `🏆 ${gameName} terminé !`,
-              url: `https://store.steampowered.com/app/${appid}/`,
-              desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`!! Bravo !
-Le calme est revenu en haut de cette tour. Vous pouvez vous reposer après cette lutte acharnée.
-C'est la fin..
-${ASCII_END}`,
-              color: '#ff00fc',
-              footer: {
-                text: 'C\'est trop calme..'
-              }
-            })]
-          });
-        }
-
-        // - si 1er boss dead, gestion du boss caché
+    if (currentBoss.hp <= 0) {
+      if (currentBoss.hidden) {
         logger.info({
           prefix: 'EVENT TOWER',
-          message: `${author.nickname} a tué le boss, création boss caché ..`
+          message: `${author.user.tag} tue boss caché, on backup les infos ..`
         });
-        const hiddenBoss = await createBoss(season, true);
+        // si boss caché meurt, on arrête TOUT et on backup la saison
+        await endSeason(season, guild);
 
         return interaction.reply({
           embeds: [await createEmbed({
             title: `🏆 ${gameName} terminé !`,
             url: `https://store.steampowered.com/app/${appid}/`,
-            desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`! Bravo !
-Alors que son corps tombe à terre, ${author} entends grogner au loin..
-
-C'est \`${hiddenBoss.name}\`, son acolyte, qui bondit et qui veut venger son maître !
-${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
+            desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`!! Bravo !
+Le calme est revenu en haut de cette tour. Vous pouvez vous reposer après cette lutte acharnée.
+C'est la fin..
+${ASCII_END}`,
             color: '#ff00fc',
             footer: {
-              text: 'Il n\'a pas l\'air commode'
+              text: 'C\'est trop calme..'
             }
           })]
         });
       }
 
-      // Boss toujours en vie
-      const embed = await createEmbed({
-        title: `🏆 ${gameName} terminé !`,
-        url: `https://store.steampowered.com/app/${appid}/`,
-        desc: `En complétant **${gameName}**, ${author} inflige **${damage} point de dégats** à \`${currentBoss.name}\`!
-${ASCII_100}`,
-        color: '#ff00fc',
-        footer: {
-          text: `${getRandomPrivateJokes()}`
-        }
+      // - si 1er boss dead, gestion du boss caché
+      logger.info({
+        prefix: 'EVENT TOWER',
+        message: `${author.user.tag} a tué le boss, création boss caché ..`
       });
-      embed.addFields(
-        {
-          name: `${currentBoss.hp}/${currentBoss.maxHp}`,
-          value: `${displayHealth(currentBoss)}`
-        }
-      )
+      const hiddenBoss = await createBoss(season, true);
 
       return interaction.reply({
-        embeds: [embed],
-        ephemeral: true
+        embeds: [await createEmbed({
+          title: `🏆 ${gameName} terminé !`,
+          url: `https://store.steampowered.com/app/${appid}/`,
+          desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`! Bravo !
+Alors que son corps tombe à terre, ${author} entends grogner au loin..
+
+C'est \`${hiddenBoss.name}\`, son acolyte, qui bondit et qui veut venger son maître !
+${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
+          color: '#ff00fc',
+          footer: {
+            text: 'Il n\'a pas l\'air commode'
+          }
+        })]
       });
     }
-  } else {
+
+    // Boss toujours en vie
+    const embed = await createEmbed({
+      title: `🏆 ${gameName} terminé !`,
+      url: `https://store.steampowered.com/app/${appid}/`,
+      desc: `En complétant **${gameName}**, ${author} inflige **${damage} point de dégats** à \`${currentBoss.name}\`!
+${ASCII_100}`,
+      color: '#ff00fc',
+      footer: {
+        text: `${getRandomPrivateJokes()}`
+      }
+    });
+    embed.addFields(
+      {
+        name: `${currentBoss.hp}/${currentBoss.maxHp}`,
+        value: `${displayHealth(currentBoss)}`
+      }
+    )
+
     return interaction.reply({
-      embeds: [await createEmbed({
-        title: `🛑 Tu n'as pas encore complété ${gameName}..`,
-        url: `https://store.steampowered.com/app/${appid}/`,
-        desc: `Il semblerait que tu n'es pas eu tous les succès de **${gameName}**..
-${ASCII_NOT_100}`,
-        color: '#0019ff',
-        footer: {
-          text: 'C\'est une erreur ? Oups.. contacte un admin !'
-        }
-      })],
+      embeds: [embed],
       ephemeral: true
     });
   }
+
+  return interaction.reply({
+    embeds: [await createEmbed({
+      title: `🛑 Tu n'as pas encore complété ${gameName}..`,
+      url: `https://store.steampowered.com/app/${appid}/`,
+      desc: `Il semblerait que tu n'es pas eu tous les succès de **${gameName}**..
+${ASCII_NOT_100}`,
+      color: '#0019ff',
+      footer: {
+        text: 'C\'est une erreur ? Oups.. contacte un admin !'
+      }
+    })],
+    ephemeral: true
+  });
 }
 
 async function endSeason(seasonNumber, guild) {
