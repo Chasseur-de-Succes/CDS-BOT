@@ -195,7 +195,7 @@ const validerJeu = async (interaction, options) => {
 ${ASCII_FIRST}`,
             color: '#1cff00',
             footer: {
-              text: 'Étage 1/??'
+              text: `Étage 1/?? | ${getRandomPrivateJokes()}`
             }
           })],
           ephemeral: true
@@ -291,7 +291,7 @@ ${author} prends part au combat !`,
 ${ASCII_PALIER}`,
             color: '#1cff00',
             footer: {
-              text: `Étage ${userDb.event.tower.etage}/??, Palier ${userDb.event.tower.etage / ETAGE_PAR_PALIER}/??`
+              text: `Étage ${userDb.event.tower.etage}/??, Palier ${userDb.event.tower.etage / ETAGE_PAR_PALIER}/?? | ${getRandomPrivateJokes()}`
             }
           })]
         });
@@ -309,7 +309,7 @@ ${ASCII_PALIER}`,
           desc: `En complétant **${gameName}**, ${author} gravir les escaliers et monte d'un étage !`,
           color: '#1cff00',
           footer: {
-            text: `Étage ${userDb.event.tower.etage}/??`
+            text: `Étage ${userDb.event.tower.etage}/?? | ${getRandomPrivateJokes()}`
           }
         })],
         ephemeral: true
