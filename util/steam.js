@@ -222,7 +222,7 @@ module.exports = (client) => {
             // TODO voir pour faire autrement ? récupérer tous les tags peu importe et faire recherche sur les tags via Mongo ?
             isMulti = tags.some((tag) => tag.id === TAGS.MULTI.id);
             isCoop = tags.some((tag) => tag.id === TAGS.COOP.id);
-            hasAchievements = totalAch;
+            hasAchievements = totalAch > 0;
         } else if (communitApps[0]?.name) {
             // - chercher autre part car peut etre jeu "removed"
             isRemoved = true;
