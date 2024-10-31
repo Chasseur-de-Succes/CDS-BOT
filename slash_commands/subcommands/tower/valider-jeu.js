@@ -327,7 +327,7 @@ ${ASCII_PALIER}`,
             title: `🏆 ${gameName} terminé !`,
             url: `https://store.steampowered.com/app/${appid}/`,
             desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`!! Bravo !
-Le calme est revenu en haut de cette tour. Vous pouvez vous reposer après cette lutte acharnée.
+Le calme est revenu au sommet de cette tour. Vous pouvez vous reposer après cette lutte acharnée.
 C'est la fin..
 ${ASCII_END}`,
             color: '#ff00fc',
@@ -350,7 +350,7 @@ ${ASCII_END}`,
           title: `🏆 ${gameName} terminé !`,
           url: `https://store.steampowered.com/app/${appid}/`,
           desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`! Bravo !
-Alors que son corps tombe à terre, ${author} entends grogner au loin..
+Alors que son corps tombe à terre, ${author} entend grogner au loin..
 
 C'est \`${hiddenBoss.name}\`, son acolyte, qui bondit et qui veut venger son maître !
 ${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
