@@ -22,12 +22,12 @@ module.exports = {
       sub
         .setName("valider-jeu")
         .setDescription("Valider un jeu (100%)")
-        .addStringOption((option) =>
+        .addIntegerOption((option) =>
           option
             .setName("appid")
             .setDescription("Appid du jeu Steam"),
         )
-        .addStringOption((option) =>
+        .addIntegerOption((option) =>
           option
             .setName("jeu")
             .setDescription("Nom du jeu")
@@ -88,7 +88,7 @@ module.exports = {
       filtered.unshift(
         {
           name: jeuExact.name,
-          value: jeuExact.appid?.toString()
+          value: jeuExact.appid
         }
       );
     }

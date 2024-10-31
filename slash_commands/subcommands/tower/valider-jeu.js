@@ -69,7 +69,7 @@ async function createEmbed(option) {
 const validerJeu = async (interaction, options) => {
   const guildId = interaction.guildId;
   const guild = await GuildConfig.findOne({ guildId: guildId });
-  let appid = options.get("appid")?.value;
+  let appid = options.getInteger("appid");
   appid = !appid ? options.get("jeu")?.value : appid;
 
   const author = interaction.member;
