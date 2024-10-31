@@ -112,6 +112,7 @@ const validerJeu = async (interaction, options) => {
     });
   }
 
+  // appid doit être tjs présent
   if (!appid) {
     return await interaction.reply({
       embeds: [
@@ -125,7 +126,7 @@ const validerJeu = async (interaction, options) => {
 
   const season = guild.event.tower.currentSeason;
 
-  // teste si le boss est en vie, sinon on skip
+  // teste si les boss sont en vie, sinon on skip
   const allBossDead = await EventBoss.exists({
     $and: [
       {
@@ -154,11 +155,12 @@ const validerJeu = async (interaction, options) => {
   const { error, gameName, hasAllAchievements } = await client.hasAllAchievementsUnlocked(steamId, appid);
 
   if (error) {
+    logger.warn(`.. erreur lors de la recherche de succès pour l'appid ${appid} :\n${error}`);
     // Recup nom du jeu, si présent dans la bdd
     const gameDb = await client.findGameByAppid(appid);
     // TODO si gameDb non trouvé
     return await interaction.reply({
-      content: `${gameDb?.name} n'a même pas de succès..`,
+      content: `${gameDb?.name} (${appid}) n'a même pas de succès..`,
       ephemeral: true
     });
   }
@@ -181,8 +183,8 @@ const validerJeu = async (interaction, options) => {
       // 1er étage franchi (1 jeu complété)
       if (userDb.event.tower.etage === 1) {
         logger.info({
-          prefix: 'EVENT TOWER',
-          message: `${author.user.tag} atteint 1er étage ..`
+          prefix: 'TOWER',
+          message: `${author.user.tag} 100% ${gameName} (${appid}): 1er étage ..`
         });
         // 1er message d'intro
         return interaction.reply({
@@ -207,8 +209,8 @@ ${ASCII_FIRST}`,
         // Si boss pas créé, on le crée
         if (!bossCreated) {
           logger.info({
-            prefix: 'EVENT TOWER',
-            message: `${author.user.tag} atteint dernier palier, création 1er boss..`
+            prefix: 'TOWER',
+            message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, création 1er boss..`
           });
           const newBoss = await createBoss(season, false);
           return interaction.reply({
@@ -232,6 +234,10 @@ ${ASCII_BOSS_FIRST_TIME}`,
 
         // Si boss caché pas encore créé, on rejoint le combat contre le 1er
         if (!hiddenBossCreated) {
+          logger.info({
+            prefix: 'TOWER',
+            message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier..`
+          });
           return interaction.reply({
             embeds: [await createEmbed({
               title: `🏆 ${gameName} terminé !`,
@@ -248,6 +254,10 @@ ${author} prends part au combat !`,
         }
 
         // Si boss caché créé, le 1er est mort, on rejoint le combat contre le 2ème
+        logger.info({
+          prefix: 'TOWER',
+          message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, 1er boss mort..`
+        });
         const deadBoss = await EventBoss.findOne({ season: season, hp: { $eq: 0 }, hidden: false });
         const currentBoss = await EventBoss.findOne({ season: season, hp: { $ne: 0 } });
         return interaction.reply({
@@ -268,6 +278,10 @@ ${author} prends part au combat !`,
 
       // Vérifier si l'utilisateur atteint un nouveau palier
       if (userDb.event.tower.etage % ETAGE_PAR_PALIER === 0) {
+        logger.info({
+          prefix: 'TOWER',
+          message: `${author.user.tag} 100% ${gameName} (${appid}): nouveau palier ${userDb.event.tower.etage / ETAGE_PAR_PALIER}..`
+        });
         return interaction.reply({
           embeds: [await createEmbed({
             title: `🏆 ${gameName} terminé !`,
@@ -285,8 +299,8 @@ ${ASCII_PALIER}`,
 
       // Utilisateur monte d'un étage
       logger.info({
-        prefix: 'EVENT TOWER',
-        message: `${author.user.tag} monte d'un étage ..`
+        prefix: 'TOWER',
+        message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`
       });
       return interaction.reply({
         embeds: [await createEmbed({
@@ -316,8 +330,8 @@ ${ASCII_PALIER}`,
     if (currentBoss.hp <= 0) {
       if (currentBoss.hidden) {
         logger.info({
-          prefix: 'EVENT TOWER',
-          message: `${author.user.tag} tue boss caché, on backup les infos ..`
+          prefix: 'TOWER',
+          message: `${author.user.tag} 100% ${gameName} (${appid}): tue boss caché, fin event, backup les infos ..`
         });
         // si boss caché meurt, on arrête TOUT et on backup la saison
         await endSeason(season, guild);
@@ -340,8 +354,8 @@ ${ASCII_END}`,
 
       // - si 1er boss dead, gestion du boss caché
       logger.info({
-        prefix: 'EVENT TOWER',
-        message: `${author.user.tag} a tué le boss, création boss caché ..`
+        prefix: 'TOWER',
+        message: `${author.user.tag} 100% ${gameName} (${appid}): tue le boss, création boss caché ..`
       });
       const hiddenBoss = await createBoss(season, true);
 
@@ -363,6 +377,10 @@ ${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
     }
 
     // Boss toujours en vie
+    logger.info({
+      prefix: 'TOWER',
+      message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${damage}..`
+    });
     const embed = await createEmbed({
       title: `🏆 ${gameName} terminé !`,
       url: `https://store.steampowered.com/app/${appid}/`,
@@ -403,7 +421,7 @@ ${ASCII_NOT_100}`,
 
 async function endSeason(seasonNumber, guild) {
   logger.info({
-    prefix: 'EVENT TOWER',
+    prefix: 'TOWER',
     message: `fin de la saison ${seasonNumber} ..`
   });
 
@@ -439,7 +457,7 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
 
   // Réinitialiser les données pour la nouvelle saison
   user.event.tower.startDate = undefined;
-  user.event.tower.etage = 1;
+  user.event.tower.etage = 0;
   user.event.tower.totalDamage = 0;
   // user.completedGames = [];
   // user.season = seasonNumber + 1;
