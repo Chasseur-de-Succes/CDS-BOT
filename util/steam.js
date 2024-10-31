@@ -165,7 +165,7 @@ module.exports = (client) => {
         return reponse?.body?.game;
     };
 
-    client.hasAllAchievementsUnlocked = async(steamId, appid) => {
+    client.hasAllAchievementsAfterDate = async(steamId, appid, startDate) => {
         // Appel à l'API Steam pour vérifier les succès
         const response = await superagent
           .get(
@@ -184,10 +184,12 @@ module.exports = (client) => {
             }
         }
 
+
         const achievements = response.body.playerstats.achievements;
         return {
             gameName: response.body.playerstats.gameName,
-            hasAllAchievements: achievements.every(ach => ach.achieved === 1)
+            hasAllAchievements: achievements.every(ach => ach.achieved === 1),
+            finishedAfterStart: achievements.some(ach => new Date(ach.unlocktime * 1000) > startDate)
         };
     };
 

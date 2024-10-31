@@ -152,7 +152,7 @@ const validerJeu = async (interaction, options) => {
   // récupération des infos des succès sur le jeu sélectionné via Steam
   const steamId = userDb.steamId;
   // TODO gestion erreur connexion ?
-  const { error, gameName, hasAllAchievements } = await client.hasAllAchievementsUnlocked(steamId, appid);
+  const { error, gameName, hasAllAchievements, finishedAfterStart } = await client.hasAllAchievementsAfterDate(steamId, appid, guild.event.tower.startDate);
 
   if (error) {
     logger.warn(`.. erreur lors de la recherche de succès pour l'appid ${appid} :\n${error}`);
@@ -165,11 +165,26 @@ const validerJeu = async (interaction, options) => {
     });
   }
 
+  if (!finishedAfterStart) {
+    logger.warn({
+      prefix: 'TOWER',
+      message: `${author.user.tag} 100% ${gameName} (${appid}): avant le début de l'event ..`
+    });
+    return await interaction.reply({
+      content: `Tu as terminé ${gameName} **avant** le début de l'événement.. Celui-ci ne peut être pris en compte.`,
+      ephemeral: true
+    });
+  }
+
   if (hasAllAchievements) {
     // Vérifier si l'utilisateur a déjà 100% le jeu
     if (userDb.event.tower.completedGames.includes(appid)) {
+      logger.warn({
+        prefix: 'TOWER',
+        message: `${author.user.tag} 100% ${gameName} (${appid}): déjà fait ..`
+      });
       return await interaction.reply({
-        content: "Tu as déjà utilisé ce jeu.. ce n'est pas très efficace.",
+        content: `Tu as déjà utilisé ${gameName}.. ce n'est pas très efficace.`,
         ephemeral: true
       });
     }
