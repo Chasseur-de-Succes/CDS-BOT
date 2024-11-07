@@ -7,9 +7,11 @@ const {
   ASCII_FIRST,
   ASCII_PALIER,
   ASCII_BOSS_FIRST_TIME,
+  ASCII_BOSS_PALIER,
   ASCII_100,
   ASCII_NOT_100,
   ASCII_HIDDEN_BOSS_FIRST_TIME,
+  ASCII_HIDDEN_BOSS_PALIER,
   ASCII_END,
   PRIVATE_JOKES
 } = require("../../../data/event/tower/constants.json")
@@ -259,7 +261,8 @@ ${ASCII_BOSS_FIRST_TIME}`,
               url: `https://store.steampowered.com/app/${appid}/`,
               desc: `${author} a atteint le **palier ${userDb.event.tower.etage / ETAGE_PAR_PALIER}** et est arrivé au sommet de la tour !!
 ${author} aperçoit au loin d'autres joueurs menant une rude bataille..
-${author} prends part au combat !`,
+${author} prends part au combat !
+${ASCII_BOSS_PALIER}`,
               color: '#ff0000',
               footer: {
                 text: 'Enfin en haut !'
@@ -282,7 +285,8 @@ ${author} prends part au combat !`,
             desc: `${author} a atteint le **palier ${userDb.event.tower.etage / ETAGE_PAR_PALIER}** et est arrivé au sommet de la tour !!
 Mais ${author} trébuche sur le cadavre de \`${deadBoss.name}\`...
 En se relevant, ${author} voit ses coéquipiers faire face au grand \`${currentBoss.name}\`\n
-${author} prends part au combat !`,
+${author} prends part au combat !
+${ASCII_HIDDEN_BOSS_PALIER}`,
             color: '#ff00fc',
             footer: {
               text: 'Mieux vaux tard que jamais'
