@@ -27,7 +27,11 @@ module.exports = {
             } catch (error) {
                 console.error(error);
 
-                sendStackTrace(interaction.client, error, `Erreur lors de l'exécution de la commande ${interaction.commandName}`);
+                sendStackTrace(
+                    interaction.client,
+                    error,
+                    `Erreur lors de l'exécution de la commande ${interaction.commandName}`,
+                );
                 // TODO Embed error
                 // TODO editReply ou reply..
                 await interaction.reply({

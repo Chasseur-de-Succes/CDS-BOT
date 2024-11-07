@@ -72,16 +72,15 @@ client.login(process.env.TOKEN).then((c) => {
     //loadReactionGroup(client);
 });
 
-
 // Gestion erreurs
-process.on('unhandledRejection', (error) => {
-    console.error('Unhandled promise rejection:', error);
-    sendStackTrace(client, error, 'Erreur Non Gérée');
+process.on("unhandledRejection", (error) => {
+    console.error("Unhandled promise rejection:", error);
+    sendStackTrace(client, error, "Erreur Non Gérée");
 });
 
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught exception:', error);
-    sendStackTrace(client, error, 'Exception Non Capturée');
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    sendStackTrace(client, error, "Exception Non Capturée");
 });
 
 client.once(Events.ClientReady, async () => {
