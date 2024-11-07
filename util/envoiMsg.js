@@ -2,6 +2,8 @@ const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
 const { DARK_RED, CORNFLOWER_BLUE, GREEN } = require("../data/colors.json");
 const { CROSS_MARK } = require("../data/emojis.json");
 const { SALON } = require("./constants");
+const path = require("node:path");
+const fs = require("node:fs");
 
 /* Nourri feed bot - Lvl Up */
 module.exports.feedBotLevelUp = async (
@@ -94,7 +96,7 @@ module.exports.sendError = (message, text, cmd) => {
 
 /**
  * Envoie un message dans le channel de log
- * @param {*} client objet Discord, va envoyé le message dans le channel
+ * @param {*} client objet Discord, va envoyer le message dans le channel
  * @param {*} embedLog
  * @returns
  */
@@ -135,3 +137,34 @@ module.exports.createLogs = async (
     }
     await this.sendLogs(client, guildId, embedLog);
 };
+
+/**
+ * Envoie un message d'erreur dans le salon dédié des discodeurs
+ * @param client
+ * @param error
+ * @param title
+ */
+module.exports.sendStackTrace = (client, error, title) => {
+    const ERROR_CHANNEL_ID = '921354124262535198'; // Id du salon d'erreur du CDS Discodeur
+
+    // Définir un chemin pour le fichier d'erreur
+    const filePath = path.join(__dirname, 'error-log.txt');
+    fs.writeFileSync(filePath, `Message: ${error.message}\nStack Trace:\n${error.stack}`);
+
+    const errorEmbed = new EmbedBuilder()
+      .setTitle(title)
+      .setColor('#FF0000')
+      .addFields({
+          name: "Message",
+          value: `\`\`\`${error.message}\`\`\``,
+      })
+      .setTimestamp();
+
+    const errorChannel = client.channels.cache.get(ERROR_CHANNEL_ID);
+    if (errorChannel) {
+        errorChannel.send({ embeds: [errorEmbed] }) // envoie l'embed
+          .then(errorChannel.send({ files: [filePath] })) // puis le fichier
+          .then(() => fs.unlinkSync(filePath)) // Supprimer le fichier après envoi
+          .catch(console.error);
+    }
+}

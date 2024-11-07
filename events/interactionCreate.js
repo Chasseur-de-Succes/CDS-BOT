@@ -1,5 +1,6 @@
 const { Events } = require("discord.js");
 const ticket = require("./interactions/ticket");
+const { sendStackTrace } = require("../util/envoiMsg");
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
@@ -25,6 +26,8 @@ module.exports = {
                 await command.execute(interaction);
             } catch (error) {
                 console.error(error);
+
+                sendStackTrace(interaction.client, error, `Erreur lors de l'exécution de la commande ${interaction.commandName}`);
                 // TODO Embed error
                 // TODO editReply ou reply..
                 await interaction.reply({
