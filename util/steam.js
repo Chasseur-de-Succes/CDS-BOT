@@ -219,13 +219,14 @@ module.exports = (client) => {
             gameName = app.body[appId].data?.name;
             let tags = app.body[appId].data?.categories;
             const totalAch = app.body[appId].data?.achievements?.total;
+
             // au cas où pas de tags ou undefined
             tags = tags ? tags : [];
             // on ne garde que les tags qui nous intéresse (MULTI, COOP et ACHIEVEMENTS)
             // TODO voir pour faire autrement ? récupérer tous les tags peu importe et faire recherche sur les tags via Mongo ?
             isMulti = tags.some((tag) => tag.id === TAGS.MULTI.id);
             isCoop = tags.some((tag) => tag.id === TAGS.COOP.id);
-            hasAchievements = totalAch > 0;
+            hasAchievements = typeof totalAch === "number" && totalAch > 0;
         } else if (communitApps[0]?.name) {
             // - chercher autre part car peut etre jeu "removed"
             isRemoved = true;
