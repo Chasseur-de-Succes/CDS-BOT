@@ -24,11 +24,7 @@ function getJsonValue(model = {}, path = "", def = "") {
     const parts = path.split(".");
 
     if (parts.length > 1 && typeof model[parts[0]] === "object") {
-        return this.getJsonValue(
-            model[parts[0]],
-            parts.splice(1).join("."),
-            def,
-        );
+        return getJsonValue(model[parts[0]], parts.splice(1).join("."), def,);
     }
 
     return model[parts[0]] || def;
