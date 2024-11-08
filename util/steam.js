@@ -165,31 +165,32 @@ module.exports = (client) => {
         return reponse?.body?.game;
     };
 
-    client.hasAllAchievementsAfterDate = async(steamId, appid, startDate) => {
+    client.hasAllAchievementsAfterDate = async (steamId, appid, startDate) => {
         // Appel à l'API Steam pour vérifier les succès
         const response = await superagent
-          .get(
-            "http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
-          )
-          .query({
-              key: process.env.STEAM_API_KEY,
-              steamid: steamId,
-              appid: appid
-          })
-          .ok(res => res.status < 500);
+            .get(
+                "http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/",
+            )
+            .query({
+                key: process.env.STEAM_API_KEY,
+                steamid: steamId,
+                appid: appid,
+            })
+            .ok((res) => res.status < 500);
 
         if (!response.body.playerstats.success) {
             return {
-                error: response.body.playerstats.error
-            }
+                error: response.body.playerstats.error,
+            };
         }
-
 
         const achievements = response.body.playerstats.achievements;
         return {
             gameName: response.body.playerstats.gameName,
-            hasAllAchievements: achievements.every(ach => ach.achieved === 1),
-            finishedAfterStart: achievements.some(ach => new Date(ach.unlocktime * 1000) > startDate)
+            hasAllAchievements: achievements.every((ach) => ach.achieved === 1),
+            finishedAfterStart: achievements.some(
+                (ach) => new Date(ach.unlocktime * 1000) > startDate,
+            ),
         };
     };
 

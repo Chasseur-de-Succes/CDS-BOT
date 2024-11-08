@@ -17,19 +17,23 @@ module.exports = {
 
         if (msg.content.startsWith(process.env.PREFIX)) {
             const client = msg.client;
-            const command = msg.content.toLocaleLowerCase().split(" ")[0].slice(process.env.PREFIX.length);
+            const command = msg.content
+                .toLocaleLowerCase()
+                .split(" ")[0]
+                .slice(process.env.PREFIX.length);
             const params = msg.content.split(" ").slice(1);
             let cmd;
 
             if (client.prefixCommands.has(command)) {
                 cmd = client.prefixCommands.get(command);
             } else if (client.prefixAliases.has(command)) {
-                cmd = client.prefixCommands.get(client.prefixAliases.get(command));
+                cmd = client.prefixCommands.get(
+                    client.prefixAliases.get(command),
+                );
             }
             if (cmd) {
                 cmd.run(client, msg, params);
             }
-
         } else {
             /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
             /* et money par jour */

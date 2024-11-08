@@ -1,8 +1,13 @@
 const { Events, Collection } = require("discord.js");
-const fs = require("node:fs")
+const fs = require("node:fs");
 const path = require("node:path");
 require("date.format");
-const {loadBatch, loadReactionGroup, loadReactionMsg, loadVocalCreator} = require("../util/loader");
+const {
+    loadBatch,
+    loadReactionGroup,
+    loadReactionMsg,
+    loadVocalCreator,
+} = require("../util/loader");
 
 module.exports = {
     name: Events.ClientReady,
@@ -40,7 +45,6 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
             }
         });
 
-
         logger.info("Chargement des batchs ..");
         await loadBatch(client);
         logger.info(".. terminé");
@@ -64,10 +68,12 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
         client.prefixCommands = new Collection();
         client.prefixAliases = new Collection();
 
-        const prefixCommandFolders = fs.readdirSync('./prefix');
+        const prefixCommandFolders = fs.readdirSync("./prefix");
         for (const folder of prefixCommandFolders) {
-            const folderPath = path.join('./prefix', folder);
-            const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
+            const folderPath = path.join("./prefix", folder);
+            const commandFiles = fs
+                .readdirSync(folderPath)
+                .filter((file) => file.endsWith(".js"));
 
             for (const file of commandFiles) {
                 const filePath = path.join(folderPath, file);

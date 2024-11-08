@@ -1,8 +1,5 @@
-const { Client, GatewayIntentBits, Events } = require("discord.js");
-const {
-    loadSlashCommands,
-    loadEvents,
-} = require("./util/loader");
+const { Client, GatewayIntentBits } = require("discord.js");
+const { loadSlashCommands, loadEvents } = require("./util/loader");
 const winston = require("winston");
 require("winston-daily-rotate-file");
 require("dotenv").config();

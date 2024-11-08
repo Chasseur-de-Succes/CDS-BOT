@@ -27,14 +27,16 @@ const guildConfigSchema = mongoose.Schema({
             currentSeason: Number,
             startDate: Date,
             started: { type: Boolean, default: false },
-            history: [{
-                season: Number,
-                startDate: Date,
-                endDate: Date,
-                finished: Boolean
-            }]
-        }
-    }
+            history: [
+                {
+                    season: Number,
+                    startDate: Date,
+                    endDate: Date,
+                    finished: Boolean,
+                },
+            ],
+        },
+    },
 });
 
 module.exports = mongoose.model("GuildConfig", guildConfigSchema);

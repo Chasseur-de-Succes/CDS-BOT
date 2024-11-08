@@ -1,35 +1,35 @@
 {
-  "MAX_ETAGE": 20,
-  "ETAGE_PAR_PALIER": 5,
-  "BOSS": {
-    "name": "Big Sweeney",
-    "hp": 300
-  },
-  "HIDDEN_BOSS": {
-    "name": "Haiepique Fayl",
-    "hp": 150
-  },
-  "PRIVATE_JOKES": [
-    "Et paf !",
-    "C'est pas ouf..",
-    "Vivement Skyrim 6..",
-    "Y a-t-il un pro de Dofus dans la salle ?",
-    "T'es un peu trop sélectif",
-    "5€ ?? Trop cher",
-    "Gasper \uD83D\uDC7B",
-    "Un nouveau DLC de Northgard vient de sortir !",
-    "Oh, une mise à jour ?",
-    "C'est quel jeu ??",
-    "noob"
-  ],
-  "ASCII_INTRO": "    ```\n             |>>>\n             |\n         _  _|_  _\n        |;|_|;|_|;|\n        \\.    .  /\n         \\:  .  /\n          ||:   |\n          ||:.  |\n          ||:  .|\n          ||:   |\n          ||: , |\n<CDS>     ||:   |\n  o       ||: . |\n /|\\     _||_   |\n / \\----~    ~`---,\n'                  ~~---\n```",
-  "ASCII_FIRST": "```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
-  "ASCII_PALIER": "```\n<CDS>       ┏━┛\n  o       ┏━┛\n (|)    ┏━┛\n / \\  ┏━┛        \n￣￣￣\n```",
-  "ASCII_BOSS_FIRST_TIME": "```\n           ___________\n          |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |\n          |___________|\n            |\uD83D\uDCB0  \uD83D\uDCB0 |   \n            |  ---  |    \n            \\_______/     \n              _|$|_       \n          __ / |$| \\ __   \n         / _|  |$|  |_ \\  \n         \\_\\   |$|   /_/  \n<CDS>          |$|       \n  o_+     _____|_|_____ \n  |     /      |_|      \\\n / \\   /_________________\\\n```",
-  "ASCII_BOSS_PALIER": "```\n              ___________ \n             |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |  \n     <CDS>   |___________|  \n       o_+     |\uD83D\uDCB0  \uD83D\uDCB0 |     \n  <CDS>|       |  ---  |     \n    o_+ \\      \\_______/     \n<CDS>            _|$|_      \n  o_+\\       __ / |$| \\ __ \n  |         / _|  |$|  |_ \\\n / \\        \\_\\   |$|   /_/\n```",
-  "ASCII_100": "```\n<\uD83D\uDCAF%>\n \\o/\n  | \n / \\ \n```",
-  "ASCII_NOT_100": "```\n<CDS>\n  o7  \uD83C\uDFC6❓\n /|\n / \\\n```",
-  "ASCII_HIDDEN_BOSS_FIRST_TIME": "```\n          _____, ,_ \n        /|  x   x   |\\\n       / |   ___     | \\\n      |  |  /   \\    |  |\n      |  |  \\___/    |  |\n       \\_|   VVV     |_/\n<CDS>    |   ^^^     |\n  o_+   /|___________|\\\n  |    /_/          \\_\\\n / \\    /_\\        /_\\\n```",
-  "ASCII_HIDDEN_BOSS_PALIER": "```\n               _____, ,_ \n             /|  x   x   |\\\n     <CDS>  / |   ___     | \\\n       o_+ |  |  /   \\    |  |\n  <CDS>|   |  |  \\___/    |  |\n    o_+ \\   \\_|   VVV     |_/\n<CDS>         |   ^^^     |\n  o_+\\       /|___________|\\\n  |         /_/          \\_\\\n / \\         /_\\        /_\\\n```",
-  "ASCII_END" : "```\n       * ||￣￣￣\\   *       \n  *      ||--\uD83C\uDFC6-->      *  \n         ||_____/  *       *\n     *   ||                 \n         ||    *        *   \n__ *  ___||  __<CDS>___    _\n  |  |   || |   |o |   |  |\n; |__| ; ||_| ; ||-| ; |__|\n```"
+    "MAX_ETAGE": 20,
+    "ETAGE_PAR_PALIER": 5,
+    "BOSS": {
+        "name": "Big Sweeney",
+        "hp": 300
+    },
+    "HIDDEN_BOSS": {
+        "name": "Haiepique Fayl",
+        "hp": 150
+    },
+    "PRIVATE_JOKES": [
+        "Et paf !",
+        "C'est pas ouf..",
+        "Vivement Skyrim 6..",
+        "Y a-t-il un pro de Dofus dans la salle ?",
+        "T'es un peu trop sélectif",
+        "5€ ?? Trop cher",
+        "Gasper \uD83D\uDC7B",
+        "Un nouveau DLC de Northgard vient de sortir !",
+        "Oh, une mise à jour ?",
+        "C'est quel jeu ??",
+        "noob"
+    ],
+    "ASCII_INTRO": "    ```\n             |>>>\n             |\n         _  _|_  _\n        |;|_|;|_|;|\n        \\.    .  /\n         \\:  .  /\n          ||:   |\n          ||:.  |\n          ||:  .|\n          ||:   |\n          ||: , |\n<CDS>     ||:   |\n  o       ||: . |\n /|\\     _||_   |\n / \\----~    ~`---,\n'                  ~~---\n```",
+    "ASCII_FIRST": "```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
+    "ASCII_PALIER": "```\n<CDS>       ┏━┛\n  o       ┏━┛\n (|)    ┏━┛\n / \\  ┏━┛        \n￣￣￣\n```",
+    "ASCII_BOSS_FIRST_TIME": "```\n           ___________\n          |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |\n          |___________|\n            |\uD83D\uDCB0  \uD83D\uDCB0 |   \n            |  ---  |    \n            \\_______/     \n              _|$|_       \n          __ / |$| \\ __   \n         / _|  |$|  |_ \\  \n         \\_\\   |$|   /_/  \n<CDS>          |$|       \n  o_+     _____|_|_____ \n  |     /      |_|      \\\n / \\   /_________________\\\n```",
+    "ASCII_BOSS_PALIER": "```\n              ___________ \n             |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |  \n     <CDS>   |___________|  \n       o_+     |\uD83D\uDCB0  \uD83D\uDCB0 |     \n  <CDS>|       |  ---  |     \n    o_+ \\      \\_______/     \n<CDS>            _|$|_      \n  o_+\\       __ / |$| \\ __ \n  |         / _|  |$|  |_ \\\n / \\        \\_\\   |$|   /_/\n```",
+    "ASCII_100": "```\n<\uD83D\uDCAF%>\n \\o/\n  | \n / \\ \n```",
+    "ASCII_NOT_100": "```\n<CDS>\n  o7  \uD83C\uDFC6❓\n /|\n / \\\n```",
+    "ASCII_HIDDEN_BOSS_FIRST_TIME": "```\n          _____, ,_ \n        /|  x   x   |\\\n       / |   ___     | \\\n      |  |  /   \\    |  |\n      |  |  \\___/    |  |\n       \\_|   VVV     |_/\n<CDS>    |   ^^^     |\n  o_+   /|___________|\\\n  |    /_/          \\_\\\n / \\    /_\\        /_\\\n```",
+    "ASCII_HIDDEN_BOSS_PALIER": "```\n               _____, ,_ \n             /|  x   x   |\\\n     <CDS>  / |   ___     | \\\n       o_+ |  |  /   \\    |  |\n  <CDS>|   |  |  \\___/    |  |\n    o_+ \\   \\_|   VVV     |_/\n<CDS>         |   ^^^     |\n  o_+\\       /|___________|\\\n  |         /_/          \\_\\\n / \\         /_\\        /_\\\n```",
+    "ASCII_END": "```\n       * ||￣￣￣\\   *       \n  *      ||--\uD83C\uDFC6-->      *  \n         ||_____/  *       *\n     *   ||                 \n         ||    *        *   \n__ *  ___||  __<CDS>___    _\n  |  |   || |   |o |   |  |\n; |__| ; ||_| ; ||-| ; |__|\n```"
 }
