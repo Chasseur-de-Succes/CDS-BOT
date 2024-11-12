@@ -1,4 +1,4 @@
-const { createError } = require("../../../util/envoiMsg");
+const { createError, createEmbed } = require("../../../util/envoiMsg");
 const {
     HIDDEN_BOSS,
     BOSS,
@@ -58,16 +58,6 @@ async function createBoss(season, isHiddenBoss) {
 
     await newBoss.save();
     return newBoss;
-}
-
-// Créer et renvoie un embed
-async function createEmbed(option) {
-    return new EmbedBuilder()
-        .setTitle(option.title)
-        .setDescription(option.desc)
-        .setColor(option.color)
-        .setURL(option.url)
-        .setFooter(option.footer);
 }
 
 const validerJeu = async (interaction, options) => {

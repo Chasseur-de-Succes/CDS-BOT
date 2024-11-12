@@ -135,3 +135,17 @@ module.exports.createLogs = async (
     }
     await this.sendLogs(client, guildId, embedLog);
 };
+
+/**
+ * Créer un embed
+ * @param option {Object} - Options de l'embed
+ * @returns
+ */
+module.exports.createEmbed = async (option) => {
+    return new EmbedBuilder()
+        .setTitle(option.title)
+        .setDescription(option.desc)
+        .setColor(option.color)
+        .setURL(option.url)
+        .setFooter(option.footer);
+};
