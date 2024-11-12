@@ -35,7 +35,7 @@ function displayHealth(boss) {
     // Sélection des émojis de couleur selon le ratio de vie
     let filledEmoji = "🟩"; // Par défaut, plein de vie
     if (boss.hp / boss.maxHp <= 0.3)
-      filledEmoji = "🟥"; // Faible santé
+        filledEmoji = "🟥"; // Faible santé
     else if (boss.hp / boss.maxHp <= 0.6) filledEmoji = "🟨"; // Santé moyenne
     const intermediateEmoji = "🟧"; // Émoji intermédiaire
     const emptyEmoji = "⬜"; // Cases vides plus douces
