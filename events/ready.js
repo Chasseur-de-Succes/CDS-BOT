@@ -1,6 +1,4 @@
-const { Events, Collection } = require("discord.js");
-const fs = require("node:fs");
-const path = require("node:path");
+const { Events } = require("discord.js");
 require("date.format");
 const {
     loadBatch,
@@ -62,33 +60,5 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
         logger.info(".. terminé");
 
         //   loadRoleGiver(client);
-
-        // Chargement commandes par prefixe, dans dossier "prefix" //
-        logger.info(`Chargement des commandes ${process.env.PREFIX}..`);
-        client.prefixCommands = new Collection();
-        client.prefixAliases = new Collection();
-
-        const prefixCommandFolders = fs.readdirSync("./prefix");
-        for (const folder of prefixCommandFolders) {
-            const folderPath = path.join("./prefix", folder);
-            const commandFiles = fs
-                .readdirSync(folderPath)
-                .filter((file) => file.endsWith(".js"));
-
-            for (const file of commandFiles) {
-                const filePath = path.join(folderPath, file);
-                const props = require(`../${filePath}`);
-
-                logger.info(`    commande ${folder}/${props.help.name} chargé`);
-                client.prefixCommands.set(props.help.name, props);
-
-                for (const alias of props.conf.aliases) {
-                    client.prefixAliases.set(alias, props.help.name);
-                }
-                // props.conf.aliases.forEach(alias => {
-                // });
-            }
-        }
-        logger.info(".. terminé");
     },
 };
