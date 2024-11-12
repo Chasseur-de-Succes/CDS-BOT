@@ -14,5 +14,5 @@ module.exports = {
     MsgHallHeros: require("./msgChannel/hallHeros"),
     MsgHallZeros: require("./msgChannel/hallZeros"),
 
-    EventBoss: require("./eventBoss"),
+    TowerBoss: require("./event/towerBoss"),
 };

@@ -15,7 +15,7 @@ const {
     ASCII_END,
     PRIVATE_JOKES,
 } = require("../../../data/event/tower/constants.json");
-const { EventBoss, GuildConfig, User } = require("../../../models");
+const { TowerBoss, GuildConfig, User } = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
 
 // Récupère une private joke aléatoirement
@@ -47,7 +47,7 @@ function displayHealth(boss) {
 async function createBoss(season, isHiddenBoss) {
     const infoBoss = isHiddenBoss ? HIDDEN_BOSS : BOSS;
 
-    const newBoss = await new EventBoss({
+    const newBoss = await new TowerBoss({
         name: infoBoss.name,
         hp: infoBoss.hp,
         maxHp: infoBoss.hp,
@@ -126,7 +126,7 @@ const validerJeu = async (interaction, options) => {
     const season = guild.event.tower.currentSeason;
 
     // teste si les boss sont en vie, sinon on skip
-    const allBossDead = await EventBoss.exists({
+    const allBossDead = await TowerBoss.exists({
         $and: [
             {
                 season: season,
@@ -229,7 +229,7 @@ ${ASCII_FIRST}`,
 
             // Si l'utilisateur est arrivé à l'étage du boss (MAX_ETAGE jeux complétés)
             if (userDb.event.tower.etage === MAX_ETAGE) {
-                const bossCreated = await EventBoss.exists({
+                const bossCreated = await TowerBoss.exists({
                     season: season,
                     hidden: false,
                 });
@@ -264,7 +264,7 @@ ${ASCII_BOSS_FIRST_TIME}`,
                     });
                 }
 
-                const hiddenBossCreated = await EventBoss.exists({
+                const hiddenBossCreated = await TowerBoss.exists({
                     season: season,
                     hidden: true,
                 });
@@ -300,12 +300,12 @@ ${ASCII_BOSS_PALIER}`,
                     prefix: "TOWER",
                     message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, 1er boss mort..`,
                 });
-                const deadBoss = await EventBoss.findOne({
+                const deadBoss = await TowerBoss.findOne({
                     season: season,
                     hp: { $eq: 0 },
                     hidden: false,
                 });
-                const currentBoss = await EventBoss.findOne({
+                const currentBoss = await TowerBoss.findOne({
                     season: season,
                     hp: { $ne: 0 },
                 });
@@ -389,7 +389,7 @@ ${ASCII_PALIER}`,
         }
 
         // Récupère le boss courant non mort
-        const currentBoss = await EventBoss.findOne({
+        const currentBoss = await TowerBoss.findOne({
             season: season,
             hp: { $ne: 0 },
         });

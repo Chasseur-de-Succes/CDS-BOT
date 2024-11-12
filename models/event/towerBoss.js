@@ -8,4 +8,4 @@ const bossSchema = new mongoose.Schema({
     hidden: { type: Boolean, default: false },
 });
 
-module.exports = mongoose.model("EventBoss", bossSchema);
+module.exports = mongoose.model("TowerBoss", bossSchema);
