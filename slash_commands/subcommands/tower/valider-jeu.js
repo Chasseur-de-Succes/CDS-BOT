@@ -531,6 +531,7 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
     // Sauvegarder les données de la saison actuelle dans l'historique
     user.event.tower.seasonHistory.push({
         seasonNumber: seasonNumber,
+        startDate: user.event.tower.startDate,
         endDate: endDate,
         maxEtage: user.event.tower.etage,
         totalDamage: user.event.tower.totalDamage,

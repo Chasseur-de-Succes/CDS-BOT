@@ -76,6 +76,7 @@ const userSchema = mongoose.Schema({
             seasonHistory: [
                 {
                     seasonNumber: { type: Number, required: true },
+                    startDate: Date,
                     endDate: Date,
                     maxEtage: { type: Number, required: true }, // Nb de jeu complété sur la saison
                     totalDamage: { type: Number, required: true }, // Nb étage - (nb palier * 10)
