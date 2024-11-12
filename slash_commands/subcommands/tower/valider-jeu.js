@@ -4,6 +4,7 @@ const {
     BOSS,
     ETAGE_PAR_PALIER,
     MAX_ETAGE,
+    DAMAGE,
     ASCII_FIRST,
     ASCII_PALIER,
     ASCII_BOSS_FIRST_TIME,
@@ -395,11 +396,10 @@ ${ASCII_PALIER}`,
         });
 
         // Mettre à jour les dégâts infligés et enregistrer
-        const damage = 1; // modifiable ?
-        userDb.event.tower.totalDamage += damage; // On tape le tower
+        userDb.event.tower.totalDamage += DAMAGE; // On tape le tower
         await userDb.save();
 
-        currentBoss.hp -= damage;
+        currentBoss.hp -= DAMAGE; // On tape
         await currentBoss.save();
 
         if (currentBoss.hp <= 0) {
@@ -458,12 +458,12 @@ ${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
         // Boss toujours en vie
         logger.info({
             prefix: "TOWER",
-            message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${damage}..`,
+            message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${DAMAGE}..`,
         });
         const embed = await createEmbed({
             title: `🏆 ${gameName} terminé !`,
             url: `https://store.steampowered.com/app/${appid}/`,
-            desc: `En complétant **${gameName}**, ${author} inflige **${damage} point de dégats** à \`${currentBoss.name}\`!
+            desc: `En complétant **${gameName}**, ${author} inflige **${DAMAGE} point de dégats** à \`${currentBoss.name}\`!
 ${ASCII_100}`,
             color: "#ff00fc",
             footer: {

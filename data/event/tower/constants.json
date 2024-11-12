@@ -1,6 +1,7 @@
 {
     "MAX_ETAGE": 20,
     "ETAGE_PAR_PALIER": 5,
+    "DAMAGE": 1,
     "BOSS": {
         "name": "Big Sweeney",
         "hp": 300
