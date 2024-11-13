@@ -92,7 +92,7 @@ module.exports = {
                             },
                         },
                         {
-                            $match: { type: { $in: ["game", "dlc"] }},
+                            $match: { type: { $in: ["game", "dlc"] } },
                         },
                         {
                             $limit: 25,
