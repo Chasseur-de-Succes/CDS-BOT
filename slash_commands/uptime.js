@@ -1,4 +1,9 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const {
+    SlashCommandBuilder,
+    EmbedBuilder,
+    TimestampStyles,
+    time,
+} = require("discord.js");
 const { CORNFLOWER_BLUE } = require("../data/colors.json");
 
 module.exports = {
@@ -7,18 +12,18 @@ module.exports = {
         .setDMPermission(false)
         .setDescription("Depuis quand le bot est up ?"),
     async execute(interaction) {
-        const client = interaction.client;
-
         const date = new Date();
-        // on soustrait à la date du jour les millisecondes depuis le uptime du client
-        date.setMilliseconds(date.getMilliseconds() - client.uptime);
 
+        // We substract the uptime of the bot from the actual time to get the bot starting date
+        date.setMilliseconds(
+            date.getMilliseconds() - interaction.client.uptime,
+        );
+
+        // Build the embed and send it
         const embed = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
             .setTitle("Uptime")
-            // <t:TIMESTAMP:R> => il y a XXX seconde, minute etc
-            // /1000 car getTime() retourne les milliseconds, et pas besoin
-            .setDescription(`<t:${Math.floor(date.getTime() / 1000)}:R>`);
+            .setDescription(time(date, TimestampStyles.RelativeTime));
 
         await interaction.reply({ embeds: [embed] });
     },

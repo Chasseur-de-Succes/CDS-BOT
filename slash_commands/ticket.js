@@ -11,6 +11,7 @@ module.exports = {
         .setName("ticket")
         .setDescription("Create a new ticket"),
     async execute(interaction) {
+        // Build the modal and the components
         const ticketTitle = new TextInputBuilder()
             .setCustomId("ticket-title")
             .setLabel("Titre du ticket")
