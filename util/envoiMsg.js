@@ -139,6 +139,20 @@ module.exports.createLogs = async (
 };
 
 /**
+ * Créer un embed
+ * @param option {Object} - Options de l'embed
+ * @returns
+ */
+module.exports.createEmbed = async (option) => {
+    return new EmbedBuilder()
+        .setTitle(option.title)
+        .setDescription(option.desc)
+        .setColor(option.color)
+        .setURL(option.url)
+        .setFooter(option.footer);
+};
+
+/**
  * Envoie un message d'erreur dans le salon dédié des discodeurs
  * @param client
  * @param error

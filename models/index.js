@@ -13,4 +13,6 @@ module.exports = {
     MsgDmdeAide: require("./msgChannel/demandeAide"),
     MsgHallHeros: require("./msgChannel/hallHeros"),
     MsgHallZeros: require("./msgChannel/hallZeros"),
+
+    TowerBoss: require("./event/towerBoss"),
 };
