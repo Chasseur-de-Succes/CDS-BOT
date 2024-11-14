@@ -145,8 +145,6 @@ module.exports.createLogs = async (
  * @param title
  */
 module.exports.sendStackTrace = (client, error, title) => {
-    const ERROR_CHANNEL_ID = "921354124262535198"; // Id du salon d'erreur du CDS Discodeur
-
     // Définir un chemin pour le fichier d'erreur
     const filePath = path.join(__dirname, "error-log.txt");
     fs.writeFileSync(
@@ -163,7 +161,9 @@ module.exports.sendStackTrace = (client, error, title) => {
         })
         .setTimestamp();
 
-    const errorChannel = client.channels.cache.get(ERROR_CHANNEL_ID);
+    const errorChannel = client.channels.cache.get(
+        `${process.env.ERROR_CHANNEL}`,
+    );
     if (errorChannel) {
         errorChannel
             .send({ embeds: [errorEmbed] }) // envoie l'embed
