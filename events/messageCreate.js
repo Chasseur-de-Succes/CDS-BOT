@@ -16,8 +16,6 @@ module.exports = {
         /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
         /* et money par jour */
         if (!msg.author.bot) {
-            /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
-            /* et money par jour */
             const timeLeft = cooldownTimeLeft("messages", 30, msg.author.id);
             if (!timeLeft) {
                 const userDB = await msg.client.getUser(msg.author);
