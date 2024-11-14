@@ -7,6 +7,7 @@ const {
     loadReactionMsg,
     loadVocalCreator,
 } = require("./util/loader");
+const { sendStackTrace } = require("./util/envoiMsg");
 const winston = require("winston");
 require("winston-daily-rotate-file");
 require("dotenv").config();
@@ -69,6 +70,17 @@ client.on("warn", console.warn);
 client.login(process.env.TOKEN).then((c) => {
     //loadBatch(client);
     //loadReactionGroup(client);
+});
+
+// Gestion erreurs
+process.on("unhandledRejection", (error) => {
+    console.error("Unhandled promise rejection:", error);
+    sendStackTrace(client, error, "Erreur Non Gérée");
+});
+
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    sendStackTrace(client, error, "Exception Non Capturée");
 });
 
 client.once(Events.ClientReady, async () => {
