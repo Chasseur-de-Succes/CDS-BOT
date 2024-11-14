@@ -78,7 +78,7 @@ module.exports = {
                     // recherche nom exacte
                     exact = await interaction.client.findGames({
                         name: focusedValue.value,
-                        type: "game",
+                        type: { $in: ["game", "dlc"] },
                     });
 
                     // recup limit de 25 jeux, correspondant a la value rentré
@@ -92,7 +92,7 @@ module.exports = {
                             },
                         },
                         {
-                            $match: { type: "game" },
+                            $match: { type: { $in: ["game", "dlc"] } },
                         },
                         {
                             $limit: 25,

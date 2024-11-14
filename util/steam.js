@@ -165,6 +165,35 @@ module.exports = (client) => {
         return reponse?.body?.game;
     };
 
+    client.hasAllAchievementsAfterDate = async (steamId, appid, startDate) => {
+        // Appel à l'API Steam pour vérifier les succès
+        const response = await superagent
+            .get(
+                "http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/",
+            )
+            .query({
+                key: process.env.STEAM_API_KEY,
+                steamid: steamId,
+                appid: appid,
+            })
+            .ok((res) => res.status < 500);
+
+        if (!response.body.playerstats.success) {
+            return {
+                error: response.body.playerstats.error,
+            };
+        }
+
+        const achievements = response.body.playerstats.achievements;
+        return {
+            gameName: response.body.playerstats.gameName,
+            hasAllAchievements: achievements.every((ach) => ach.achieved === 1),
+            finishedAfterStart: achievements.some(
+                (ach) => new Date(ach.unlocktime * 1000) > startDate,
+            ),
+        };
+    };
+
     /**
      *
      */
@@ -184,7 +213,6 @@ module.exports = (client) => {
         let isCoop = false;
         let hasAchievements = false;
         let isRemoved = false;
-        let update;
 
         if (app?.body[appId]?.success) {
             type = app.body[appId].data?.type;
@@ -198,7 +226,7 @@ module.exports = (client) => {
             // TODO voir pour faire autrement ? récupérer tous les tags peu importe et faire recherche sur les tags via Mongo ?
             isMulti = tags.some((tag) => tag.id === TAGS.MULTI.id);
             isCoop = tags.some((tag) => tag.id === TAGS.COOP.id);
-            hasAchievements = typeof totalAch === "number";
+            hasAchievements = typeof totalAch === "number" && totalAch > 0;
         } else if (communitApps[0]?.name) {
             // - chercher autre part car peut etre jeu "removed"
             isRemoved = true;
@@ -245,7 +273,7 @@ module.exports = (client) => {
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${appId}/header.jpg`;
 
         const query = { appid: appId };
-        update = {
+        const update = {
             name: gameName,
             type: type,
             iconHash: iconHash,
