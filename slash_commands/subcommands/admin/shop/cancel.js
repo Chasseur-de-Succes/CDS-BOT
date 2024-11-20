@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
-const { createError, createLogs } = require("../../../util/envoiMsg");
-const { YELLOW, NIGHT } = require("../../../data/colors.json");
-const { CHECK_MARK } = require("../../../data/emojis.json");
+const { createError, createLogs } = require("../../../../util/envoiMsg");
+const { YELLOW, NIGHT } = require("../../../../data/colors.json");
+const { CHECK_MARK } = require("../../../../data/emojis.json");
 
 async function cancel(interaction, options) {
     const id = options.get("id")?.value;

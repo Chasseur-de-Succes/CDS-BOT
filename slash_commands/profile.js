@@ -120,21 +120,18 @@ module.exports = {
         const textColor = getByValue(configProfile.text, true);
         // -- couleur/style bordure
         const borderStyle = getByValue(configProfile.border?.style, true);
-        // TODO si border speciale, pas de couleur ?
         const borderColor = getByValue(configProfile.border?.color, true);
         // -- couleur/style bordure avatar
         const borderAvatarStyle = getByValue(configProfile.avatar?.style, true);
         const borderAvatarColor = getByValue(configProfile.avatar?.color, true);
         // -- couleur/style fond
         const backgroundStyle = "";
-        // TODO si background speciale, pas de couleur
         const backgroundColor = getByValue(
             configProfile.background?.color,
             true,
         );
 
         // CANVAS
-        // TODO
         const canvas = Canvas.createCanvas(480, 205);
         const ctx = canvas.getContext("2d");
         const background = await Canvas.loadImage(
