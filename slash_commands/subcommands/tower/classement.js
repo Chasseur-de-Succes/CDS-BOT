@@ -11,7 +11,7 @@ const classement = async (interaction, options) => {
 
     // récupérer les 10 premiers joueurs du classement
     const leaderboard = await User.find({ "event.tower.season": 0 })
-        .sort({ "event.tower.etage": -1, "event.tower.totalDamage": -1 })
+        .sort({ "event.tower.etage": -1 })
         .limit(10);
 
     // créer un tableau contenant les positions, les joueurs et les dégâts
@@ -28,9 +28,7 @@ const classement = async (interaction, options) => {
         // si degats est le même que le joueur précédent, on met un ex aequo
         const exaequo =
             i > 1 &&
-            user.event.tower.etage + user.event.tower.totalDamage ===
-                leaderboard[i - 2].event.tower.etage +
-                    leaderboard[i - 2].event.tower.totalDamage;
+            user.event.tower.etage === leaderboard[i - 2].event.tower.etage;
         if (exaequo) {
             if (typeof positionExaequo === "undefined") {
                 positionExaequo = i - 1;
@@ -41,7 +39,7 @@ const classement = async (interaction, options) => {
             positions += `${i} - \n`;
         }
         joueurs += `${discordUser}\n`;
-        degats += `${user.event.tower.etage + user.event.tower.totalDamage}\n`;
+        degats += `${user.event.tower.etage}\n`;
 
         // récupère le classement de l'utilisateur courant s'il n'est pas premier
         if (user.userId === interaction.user.id) {
@@ -53,8 +51,7 @@ const classement = async (interaction, options) => {
                     positionsUserCourant = `${positionExaequo}ème ex aequo`;
                 }
             }
-            degatsUserCourant =
-                user.event.tower.etage + user.event.tower.totalDamage;
+            degatsUserCourant = user.event.tower.etage;
         }
         i++;
     }
