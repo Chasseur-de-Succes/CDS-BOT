@@ -17,7 +17,6 @@ const {
     PRIVATE_JOKES,
 } = require("../../../data/event/tower/constants.json");
 const { TowerBoss, GuildConfig, User } = require("../../../models");
-const { EmbedBuilder } = require("discord.js");
 
 // Récupère une private joke aléatoirement
 function getRandomPrivateJokes() {

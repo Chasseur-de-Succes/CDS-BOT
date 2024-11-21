@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
-const { start, stop } = require("./subcommands/admin/tower");
+const { start, stop, down } = require("./subcommands/admin/tower");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,6 +17,17 @@ module.exports = {
                 )
                 .addSubcommand((sub) =>
                     sub.setName("stop").setDescription("Arrête l'événement"),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("down")
+                        .setDescription("Enlève un étage à un utilisateur")
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        ),
                 ),
         )
         .addSubcommandGroup((subcommandGroup) =>
@@ -128,6 +139,8 @@ module.exports = {
                 await start(interaction);
             } else if (subcommand === "stop") {
                 await stop(interaction);
+            } else if (subcommand === "down") {
+                await down(interaction, interaction.options);
             }
         } else if (subcommandGroup === "shop") {
             if (subcommand === "cancel") {

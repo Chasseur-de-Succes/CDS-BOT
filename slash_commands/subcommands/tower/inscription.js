@@ -38,7 +38,7 @@ const inscription = async (interaction, options) => {
         });
     }
 
-    // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
+    // si la saison n'a pas encore commencé (à faire manuellement via commande '/admin tower start')
     if (!guild.event.tower.started) {
         logger.info(".. événement tower pas encore commencé");
         return await interaction.reply({
