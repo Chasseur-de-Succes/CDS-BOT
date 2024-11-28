@@ -17,6 +17,7 @@ const {
     PRIVATE_JOKES,
 } = require("../../../data/event/tower/constants.json");
 const { TowerBoss, GuildConfig, User } = require("../../../models");
+const { SALON } = require("../../../util/constants");
 
 // Récupère une private joke aléatoirement
 function getRandomPrivateJokes() {
@@ -33,8 +34,7 @@ function displayHealth(boss) {
 
     // Sélection des émojis de couleur selon le ratio de vie
     let filledEmoji = "🟩"; // Par défaut, plein de vie
-    if (boss.hp / boss.maxHp <= 0.3)
-        filledEmoji = "🟥"; // Faible santé
+    if (boss.hp / boss.maxHp <= 0.3) filledEmoji = "🟥"; // Faible santé
     else if (boss.hp / boss.maxHp <= 0.6) filledEmoji = "🟨"; // Santé moyenne
     const intermediateEmoji = "🟧"; // Émoji intermédiaire
     const emptyEmoji = "⬜"; // Cases vides plus douces
@@ -79,6 +79,32 @@ const validerJeu = async (interaction, options) => {
                     `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
                 ),
             ],
+        });
+    }
+
+    // Récupération du channel de l'event
+    const eventChannelId = await interaction.client.getGuildChannel(
+        interaction.guild.id,
+        SALON.EVENT_TOWER,
+    );
+
+    // Gestion d'erreur si aucun salon n'est défini
+    if (!eventChannelId) {
+        return interaction.reply({
+            content: `Aucun salon de l'événement tower n'a été trouvé.`,
+            ephemeral: true,
+        });
+    }
+
+    // Test si le salon de l'interaction est celui de l'événement
+    if (interaction.channelId !== eventChannelId) {
+        return await interaction.reply({
+            embeds: [
+                createError(
+                    `Tu dois valider ton jeu dans le salon <#${eventChannelId}> !`,
+                ),
+            ],
+            ephemeral: true,
         });
     }
 
