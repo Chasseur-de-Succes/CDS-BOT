@@ -222,8 +222,9 @@ const create = async (interaction, options) => {
             {
                 id: captain.id,
                 allow: [
-                    PermissionFlagsBits.ViewChannel,
+                    PermissionFlagsBits.ManageMessages,
                     PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.ViewChannel,
                 ],
             },
         ],
