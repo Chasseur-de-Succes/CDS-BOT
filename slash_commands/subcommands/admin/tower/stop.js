@@ -1,5 +1,7 @@
-const { GuildConfig } = require("../../../../models");
+const { GuildConfig, User } = require("../../../../models");
 const { endSeasonForUser } = require("../../tower/valider-jeu");
+const { createLogs } = require("../../../../util/envoiMsg");
+const { daysDiff } = require("../../../../util/util");
 
 async function stop(interaction) {
     const guild = await GuildConfig.findOne({
@@ -29,6 +31,15 @@ async function stop(interaction) {
     const users = await User.find({
         "event.tower.startDate": { $exists: true },
     });
+
+    createLogs(
+        interaction.client,
+        interaction.guildId,
+        `🗼 TOWER : Saison ${season} arrêtée ❌`,
+        `Événement arrêté par ${interaction.member} !`,
+        `Durée de ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
+        "#DC8514",
+    );
 
     // Sauvegarder les informations de la saison actuelle pour chaque utilisateur
     const endDate = Date.now();

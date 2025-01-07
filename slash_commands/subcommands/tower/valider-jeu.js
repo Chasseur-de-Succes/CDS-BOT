@@ -1,4 +1,8 @@
-const { createError, createEmbed } = require("../../../util/envoiMsg");
+const {
+    createError,
+    createEmbed,
+    createLogs,
+} = require("../../../util/envoiMsg");
 const {
     HIDDEN_BOSS,
     BOSS,
@@ -18,6 +22,7 @@ const {
 } = require("../../../data/event/tower/constants.json");
 const { TowerBoss, GuildConfig, User } = require("../../../models");
 const { SALON } = require("../../../util/constants");
+const { daysDiff } = require("../../../util/util");
 
 // Récupère une private joke aléatoirement
 function getRandomPrivateJokes() {
@@ -217,6 +222,16 @@ const validerJeu = async (interaction, options) => {
         userDb.event.tower.etage += 1; // On monte d'un étage
         userDb.event.tower.completedGames.push(appid); // Ajouter l'appId aux jeux déjà 100%
         await userDb.save();
+
+        // logs
+        createLogs(
+            client,
+            guildId,
+            "🗼 TOWER : Nouveau jeu validé",
+            `${author} vient de valider **${gameName}** (${appid}) !`,
+            "",
+            "#DC8514",
+        );
 
         // Si l'utilisateur n'est pas encore arrivé au boss
         if (userDb.event.tower.etage <= MAX_ETAGE) {
@@ -425,7 +440,7 @@ ${ASCII_PALIER}`,
                     message: `${author.user.tag} 100% ${gameName} (${appid}): tue boss caché, fin event, backup les infos ..`,
                 });
                 // si boss caché meurt, on arrête TOUT et on backup la saison
-                await endSeason(season, guild);
+                await endSeason(client, season, guild);
 
                 return interaction.reply({
                     embeds: [
@@ -514,11 +529,19 @@ ${ASCII_NOT_100}`,
     });
 };
 
-async function endSeason(seasonNumber, guild) {
+async function endSeason(client, seasonNumber, guild) {
     logger.info({
         prefix: "TOWER",
         message: `fin de la saison ${seasonNumber} ..`,
     });
+    createLogs(
+        client,
+        guild.guildId,
+        `🗼 TOWER : Saison ${seasonNumber} terminée`,
+        "Événement terminé !",
+        `en ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
+        "#DC8514",
+    );
 
     // Edite Guild Config
     guild.event.tower.started = false;
