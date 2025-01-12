@@ -97,7 +97,7 @@ const validerJeu = async (interaction, options) => {
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
         return interaction.reply({
-            content: `Aucun salon de l'événement tower n'a été trouvé.`,
+            content: `Aucun salon de l'évènement tower n'a été trouvé.`,
             ephemeral: true,
         });
     }
@@ -116,9 +116,9 @@ const validerJeu = async (interaction, options) => {
 
     // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
     if (!guild.event.tower.started) {
-        logger.info(".. événement tower pas encore commencé");
+        logger.info(".. évènement tower pas encore commencé");
         return await interaction.reply({
-            embeds: [createError("L'événement n'a pas encore commencé..")],
+            embeds: [createError("L'évènement n'a pas encore commencé..")],
         });
     }
 
@@ -127,7 +127,7 @@ const validerJeu = async (interaction, options) => {
         return await interaction.reply({
             embeds: [
                 createError(
-                    "Tu dois d'abord t'inscrire à l'événement (via `/tower inscription`) !",
+                    "Tu dois d'abord t'inscrire à l'évènement (via `/tower inscription`) !",
                 ),
             ],
             ephemeral: true,
@@ -168,7 +168,7 @@ const validerJeu = async (interaction, options) => {
     if (allBossDead) {
         logger.info(".. tous les boss sont DEAD ..");
         return await interaction.reply({
-            content: "L'événement est terminé ! Revenez peut être plus tard..",
+            content: "L'évènement est terminé ! Revenez peut être plus tard..",
             ephemeral: true,
         });
     }
@@ -202,7 +202,7 @@ const validerJeu = async (interaction, options) => {
             message: `${author.user.tag} 100% ${gameName} (${appid}): avant le début de l'event ..`,
         });
         return await interaction.reply({
-            content: `Tu as terminé ${gameName} **avant** le début de l'événement.. Celui-ci ne peut être pris en compte.`,
+            content: `Tu as terminé ${gameName} **avant** le début de l'évènement.. Celui-ci ne peut être pris en compte.`,
             ephemeral: true,
         });
     }
@@ -539,7 +539,7 @@ async function endSeason(client, seasonNumber, guild) {
         client,
         guild.guildId,
         `🗼 TOWER : Saison ${seasonNumber} terminée`,
-        "Événement terminé !",
+        "Évènement terminé !",
         `en ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
         "#DC8514",
     );
