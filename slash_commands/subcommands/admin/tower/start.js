@@ -29,7 +29,7 @@ async function start(interaction) {
         interaction.client,
         interaction.guildId,
         `🗼 TOWER : Saison ${guild.event.tower.currentSeason} commencée ✅`,
-        `Événement commecé par ${interaction.member} !`,
+        `Évènement commecé par ${interaction.member} !`,
         "",
         "#DC8514",
     );
