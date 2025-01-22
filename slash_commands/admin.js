@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
-const { start, stop, down } = require("./subcommands/admin/tower");
+const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,6 +17,19 @@ module.exports = {
                 )
                 .addSubcommand((sub) =>
                     sub.setName("stop").setDescription("Arrête l'événement"),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("all-game")
+                        .setDescription(
+                            "Affiche tous les jeux validés par un utilisateur",
+                        )
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        ),
                 )
                 .addSubcommand((sub) =>
                     sub
@@ -139,6 +152,8 @@ module.exports = {
                 await start(interaction);
             } else if (subcommand === "stop") {
                 await stop(interaction);
+            } else if (subcommand === "all-game") {
+                await allGame(interaction, interaction.options);
             } else if (subcommand === "down") {
                 await down(interaction, interaction.options);
             }

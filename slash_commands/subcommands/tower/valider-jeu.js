@@ -1,4 +1,8 @@
-const { createError, createEmbed } = require("../../../util/envoiMsg");
+const {
+    createError,
+    createEmbed,
+    createLogs,
+} = require("../../../util/envoiMsg");
 const {
     HIDDEN_BOSS,
     BOSS,
@@ -18,6 +22,7 @@ const {
 } = require("../../../data/event/tower/constants.json");
 const { TowerBoss, GuildConfig, User } = require("../../../models");
 const { SALON } = require("../../../util/constants");
+const { daysDiff } = require("../../../util/util");
 
 // Récupère une private joke aléatoirement
 function getRandomPrivateJokes() {
@@ -34,7 +39,8 @@ function displayHealth(boss) {
 
     // Sélection des émojis de couleur selon le ratio de vie
     let filledEmoji = "🟩"; // Par défaut, plein de vie
-    if (boss.hp / boss.maxHp <= 0.3) filledEmoji = "🟥"; // Faible santé
+    if (boss.hp / boss.maxHp <= 0.3)
+        filledEmoji = "🟥"; // Faible santé
     else if (boss.hp / boss.maxHp <= 0.6) filledEmoji = "🟨"; // Santé moyenne
     const intermediateEmoji = "🟧"; // Émoji intermédiaire
     const emptyEmoji = "⬜"; // Cases vides plus douces
@@ -91,7 +97,7 @@ const validerJeu = async (interaction, options) => {
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
         return interaction.reply({
-            content: `Aucun salon de l'événement tower n'a été trouvé.`,
+            content: `Aucun salon de l'évènement tower n'a été trouvé.`,
             ephemeral: true,
         });
     }
@@ -110,9 +116,9 @@ const validerJeu = async (interaction, options) => {
 
     // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
     if (!guild.event.tower.started) {
-        logger.info(".. événement tower pas encore commencé");
+        logger.info(".. évènement tower pas encore commencé");
         return await interaction.reply({
-            embeds: [createError("L'événement n'a pas encore commencé..")],
+            embeds: [createError("L'évènement n'a pas encore commencé..")],
         });
     }
 
@@ -121,7 +127,7 @@ const validerJeu = async (interaction, options) => {
         return await interaction.reply({
             embeds: [
                 createError(
-                    "Tu dois d'abord t'inscrire à l'événement (via `/tower inscription`) !",
+                    "Tu dois d'abord t'inscrire à l'évènement (via `/tower inscription`) !",
                 ),
             ],
             ephemeral: true,
@@ -162,7 +168,7 @@ const validerJeu = async (interaction, options) => {
     if (allBossDead) {
         logger.info(".. tous les boss sont DEAD ..");
         return await interaction.reply({
-            content: "L'événement est terminé ! Revenez peut être plus tard..",
+            content: "L'évènement est terminé ! Revenez peut être plus tard..",
             ephemeral: true,
         });
     }
@@ -196,7 +202,7 @@ const validerJeu = async (interaction, options) => {
             message: `${author.user.tag} 100% ${gameName} (${appid}): avant le début de l'event ..`,
         });
         return await interaction.reply({
-            content: `Tu as terminé ${gameName} **avant** le début de l'événement.. Celui-ci ne peut être pris en compte.`,
+            content: `Tu as terminé ${gameName} **avant** le début de l'évènement.. Celui-ci ne peut être pris en compte.`,
             ephemeral: true,
         });
     }
@@ -217,6 +223,16 @@ const validerJeu = async (interaction, options) => {
         userDb.event.tower.etage += 1; // On monte d'un étage
         userDb.event.tower.completedGames.push(appid); // Ajouter l'appId aux jeux déjà 100%
         await userDb.save();
+
+        // logs
+        createLogs(
+            client,
+            guildId,
+            "🗼 TOWER : Nouveau jeu validé",
+            `${author} vient de valider **${gameName}** (${appid}) !`,
+            "",
+            "#DC8514",
+        );
 
         // Si l'utilisateur n'est pas encore arrivé au boss
         if (userDb.event.tower.etage <= MAX_ETAGE) {
@@ -392,7 +408,7 @@ ${ASCII_PALIER}`,
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `En complétant **${gameName}**, ${author} gravir les escaliers et monte d'un étage !`,
+                        desc: `En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !`,
                         color: "#1cff00",
                         footer: {
                             text: `Étage ${
@@ -425,7 +441,7 @@ ${ASCII_PALIER}`,
                     message: `${author.user.tag} 100% ${gameName} (${appid}): tue boss caché, fin event, backup les infos ..`,
                 });
                 // si boss caché meurt, on arrête TOUT et on backup la saison
-                await endSeason(season, guild);
+                await endSeason(client, season, guild);
 
                 return interaction.reply({
                     embeds: [
@@ -514,11 +530,19 @@ ${ASCII_NOT_100}`,
     });
 };
 
-async function endSeason(seasonNumber, guild) {
+async function endSeason(client, seasonNumber, guild) {
     logger.info({
         prefix: "TOWER",
         message: `fin de la saison ${seasonNumber} ..`,
     });
+    createLogs(
+        client,
+        guild.guildId,
+        `🗼 TOWER : Saison ${seasonNumber} terminée`,
+        "Évènement terminé !",
+        `en ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
+        "#DC8514",
+    );
 
     // Edite Guild Config
     guild.event.tower.started = false;
