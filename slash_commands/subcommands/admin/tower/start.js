@@ -1,4 +1,6 @@
 const { GuildConfig } = require("../../../../models");
+const { createLogs } = require("../../../../util/envoiMsg");
+const { daysDiff } = require("../../../../util/util");
 
 async function start(interaction) {
     const guild = await GuildConfig.findOne({
@@ -22,6 +24,15 @@ async function start(interaction) {
     }
 
     await guild.save();
+
+    createLogs(
+        interaction.client,
+        interaction.guildId,
+        `🗼 TOWER : Saison ${guild.event.tower.currentSeason} commencée ✅`,
+        `Évènement commecé par ${interaction.member} !`,
+        "",
+        "#DC8514",
+    );
     return await interaction.reply({ content: "Événement commencé !" });
 }
 
