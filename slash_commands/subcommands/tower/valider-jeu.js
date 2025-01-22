@@ -408,7 +408,7 @@ ${ASCII_PALIER}`,
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `En complétant **${gameName}**, ${author} gravir les escaliers et monte d'un étage !`,
+                        desc: `En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !`,
                         color: "#1cff00",
                         footer: {
                             text: `Étage ${
