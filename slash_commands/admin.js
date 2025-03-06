@@ -2,6 +2,8 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
+const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
+const { salon } = require("./subcommands/admin");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -92,6 +94,28 @@ module.exports = {
                         ),
                 ),
         )
+        .addSubcommand((sub) =>
+            sub
+                .setName("salon")
+                .setDescription("Pour configurer les salons")
+                .addStringOption((option) =>
+                    option
+                        .setName("nom")
+                        .setDescription("Nom du paramètre")
+                        .setRequired(true)
+                        .setAutocomplete(true),
+                )
+                .addChannelOption((option) =>
+                    option
+                        .setName("salon")
+                        .setDescription(
+                            "Nom du channel correspondant au paramètre",
+                        ),
+                )
+                .addStringOption((option) =>
+                    option.setName("hook").setDescription("URL du webhook"),
+                ),
+        )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
@@ -116,17 +140,19 @@ module.exports = {
                     limit: 25,
                 });
             }
+
+            // on ne prend que les 25 1er (au cas où)
+            filtered = filtered.slice(0, 25).map((choice) => ({
+                name: choice.game.name,
+                value: choice._id,
+            }));
         }
 
-        await interaction.respond(
-            // on ne prend que les 25 1er (au cas où)
-            filtered
-                .slice(0, 25)
-                .map((choice) => ({
-                    name: choice.game.name,
-                    value: choice._id,
-                })),
-        );
+        if (focusedValue.name === "nom") {
+            filtered = CHANNEL.concat(WEBHOOK_ARRAY);
+        }
+
+        await interaction.respond(filtered);
     },
     async execute(interaction) {
         // seulement admin, même si setDefaultMemberPermissions est défini
@@ -165,6 +191,8 @@ module.exports = {
             } else if (subcommand === "delete") {
                 await deleteItem(interaction, interaction.options);
             }
+        } else if (subcommand === "salon") {
+            await salon(interaction, interaction.options);
         }
     },
 };
