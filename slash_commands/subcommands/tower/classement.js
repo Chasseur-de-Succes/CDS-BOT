@@ -6,8 +6,44 @@ const classement = async (interaction, options) => {
     // TODO option pour afficher le classement d'un joueur précis ?
     const client = interaction.client;
     const guildId = interaction.guildId;
+    const crtUser = interaction.user;
+    const dbUser = await client.findUserById(crtUser.id);
     const guild = await GuildConfig.findOne({ guildId: guildId });
     const season = guild.event.tower.currentSeason;
+
+    await interaction.deferReply({ ephemeral: true });
+
+    // Agrégation pour trier et trouver la position de l'utilisateur courant, et son nombre "d'étage"
+    const pipeline = [
+        {
+            $match: { "event.tower.season": season },
+        },
+        {
+            $sort: { "event.tower.etage": -1 },
+        },
+        {
+            $group: {
+                _id: null,
+                users: { $push: "$$ROOT" },
+            },
+        },
+        {
+            $project: {
+                userPosition: {
+                    $indexOfArray: ["$users.userId", dbUser.userId],
+                },
+                userEtage: {
+                    $arrayElemAt: [
+                        "$users.event.tower.etage",
+                        { $indexOfArray: ["$users.userId", dbUser.userId] },
+                    ],
+                },
+            },
+        },
+    ];
+    const result = await User.aggregate(pipeline);
+    let positionsUserCourant = result[0].userPosition + 1;
+    let degatsUserCourant = result[0].userEtage;
 
     // récupérer les 10 premiers joueurs du classement
     const leaderboard = await User.find({ "event.tower.season": 0 })
@@ -18,9 +54,7 @@ const classement = async (interaction, options) => {
     let positions = "**";
     let joueurs = "";
     let degats = "**";
-    let positionsUserCourant;
     let positionExaequo;
-    let degatsUserCourant;
     let messageFooter;
     let i = 1;
     for (const user of leaderboard) {
@@ -80,7 +114,7 @@ const classement = async (interaction, options) => {
         .setFooter({
             text: messageFooter,
         });
-    interaction.reply({ embeds: [embed], ephemeral: true });
+    interaction.editReply({ embeds: [embed], ephemeral: true });
 };
 
 exports.classement = classement;
