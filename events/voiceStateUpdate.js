@@ -1,5 +1,6 @@
 const { ChannelType, Events } = require("discord.js");
 const { GuildConfig } = require("../models");
+const { names, places } = require("../data/channelNames.json");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -83,19 +84,9 @@ module.exports = {
     },
 };
 
-function getChannelName() {
-    const lieu = [
-        "🪑 Bureau",
-        "🛏️ Chambre",
-        "🛋️ Salon",
-        "🍽️ Cuisine",
-        "🕸️ Grenier",
-        "🚿 Salle de bain",
-    ];
-    const names = ["Carmack", "GabeN", "Miyamoto", "Kojima", "Howard"];
-
-    const lieuRandom = lieu[Math.floor(Math.random() * lieu.length)];
+function getChannelName() {;
+    const placeRandom = places[Math.floor(Math.random() * places.length)];
     const nameRandom = names[Math.floor(Math.random() * names.length)];
 
-    return `${lieuRandom} de ${nameRandom}`;
+    return `${placeRandom} de ${nameRandom}`;
 }
