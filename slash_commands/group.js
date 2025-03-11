@@ -8,7 +8,6 @@ const {
     schedule,
     transfert,
     editNbParticipant,
-    add,
 } = require("./subcommands/group");
 const { Game, Group } = require("../models");
 
@@ -163,26 +162,6 @@ module.exports = {
                         )
                         .setRequired(true),
                 ),
-        )
-        .addSubcommand((sub) =>
-            sub
-                .setName("add")
-                .setDescription(
-                    "Ajoute un participant dans un groupe complet ou s'il a trop de groupes.",
-                )
-                .addUserOption((option) =>
-                    option
-                        .setName("membre")
-                        .setDescription("Membre à ajouter")
-                        .setRequired(true),
-                )
-                .addStringOption((option) =>
-                    option
-                        .setName("nom")
-                        .setDescription("Nom du groupe")
-                        .setRequired(true)
-                        .setAutocomplete(true),
-                ),
         ),
     async autocomplete(interaction) {
         const client = interaction.client;
@@ -269,8 +248,6 @@ module.exports = {
             await kick(interaction, interaction.options);
         } else if (subcommand === "nb-participant") {
             await editNbParticipant(interaction, interaction.options);
-        } else if (subcommand === "add") {
-            await add(interaction, interaction.options);
         }
     },
 };

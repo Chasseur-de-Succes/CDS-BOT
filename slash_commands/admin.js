@@ -4,6 +4,9 @@ const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney } = require("./subcommands/admin");
+const {add} = require("./subcommands/admin/group");
+const {Group} = require("../models");
+const {escapeRegExp} = require("../util/util");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -94,13 +97,38 @@ module.exports = {
                         ),
                 ),
         )
+        .addSubcommandGroup((subcommandGroup) =>
+            subcommandGroup
+                .setName("group")
+                .setDescription("Gestion des groupes")
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("add")
+                        .setDescription(
+                            "Ajoute un participant dans un groupe complet ou s'il a trop de groupes.",
+                        )
+                        .addUserOption((option) =>
+                            option
+                                .setName("membre")
+                                .setDescription("Membre à ajouter")
+                                .setRequired(true),
+                        )
+                        .addStringOption((option) =>
+                            option
+                                .setName("nom_group")
+                                .setDescription("Nom du groupe")
+                                .setRequired(true)
+                                .setAutocomplete(true),
+                        ),
+                ),
+        )
         .addSubcommand((sub) =>
             sub
                 .setName("salon")
                 .setDescription("Pour configurer les salons")
                 .addStringOption((option) =>
                     option
-                        .setName("nom")
+                        .setName("nom_param_salon")
                         .setDescription("Nom du paramètre")
                         .setRequired(true)
                         .setAutocomplete(true),
@@ -190,8 +218,30 @@ module.exports = {
             }));
         }
 
-        if (focusedValue.name === "nom") {
+        // sur nom du salon
+        if (focusedValue.name === "nom_param_salon") {
             filtered = CHANNEL.concat(WEBHOOK_ARRAY);
+        }
+
+        // sur nom du groupe
+        if (focusedValue.name === "nom_group") {
+            filtered = await Group.find({
+                $and: [
+                    { validated: false },
+                    { name: new RegExp(escapeRegExp(focusedValue.value), "i") },
+                    { guildId: interaction.guildId },
+                ],
+            });
+
+            // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
+            filtered = filtered
+                .slice(0, 25)
+                .map((element) =>
+                    element.name?.length > 100
+                        ? `${element.name.substring(0, 96)}...`
+                        : element.name,
+                )
+                .map((choice) => ({ name: choice, value: choice }))
         }
 
         await interaction.respond(filtered);
@@ -232,6 +282,10 @@ module.exports = {
                 await refund(interaction, interaction.options);
             } else if (subcommand === "delete") {
                 await deleteItem(interaction, interaction.options);
+            }
+        } else if (subcommandGroup === "group") {
+            if (subcommand === "add") {
+                await add(interaction, interaction.options);
             }
         } else if (subcommand === "salon") {
             await salon(interaction, interaction.options);
