@@ -4,9 +4,9 @@ const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney } = require("./subcommands/admin");
-const {add} = require("./subcommands/admin/group");
-const {Group} = require("../models");
-const {escapeRegExp} = require("../util/util");
+const { add } = require("./subcommands/admin/group");
+const { Group } = require("../models");
+const { escapeRegExp } = require("../util/util");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -241,7 +241,7 @@ module.exports = {
                         ? `${element.name.substring(0, 96)}...`
                         : element.name,
                 )
-                .map((choice) => ({ name: choice, value: choice }))
+                .map((choice) => ({ name: choice, value: choice }));
         }
 
         await interaction.respond(filtered);
