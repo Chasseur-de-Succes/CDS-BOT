@@ -3,7 +3,7 @@ const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
-const { salon, avertissement} = require("./subcommands/admin");
+const { salon, avertissement, givemoney } = require("./subcommands/admin");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -139,6 +139,25 @@ module.exports = {
                         .setMaxValue(3),
                 ),
         )
+        .addSubcommand((sub) =>
+            sub
+                .setName("givemoney")
+                .setDescription(
+                    "Donne ou retire à l'utilisateur mentionné, un montant d'argent",
+                )
+                .addUserOption((option) =>
+                    option
+                        .setName("target")
+                        .setDescription("Cet utilisateur en particulier")
+                        .setRequired(true),
+                )
+                .addIntegerOption((option) =>
+                    option
+                        .setName("montant")
+                        .setDescription("Montant à donner ou à retirer")
+                        .setRequired(true),
+                ),
+        )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
@@ -218,6 +237,8 @@ module.exports = {
             await salon(interaction, interaction.options);
         } else if (subcommand === "avertissement") {
             await avertissement(interaction, interaction.options);
+        } else if (subcommand === "givemoney") {
+            await givemoney(interaction, interaction.options);
         }
     },
 };
