@@ -84,7 +84,7 @@ module.exports = {
     },
 };
 
-function getChannelName() {;
+function getChannelName() {
     const placeRandom = places[Math.floor(Math.random() * places.length)];
     const nameRandom = names[Math.floor(Math.random() * names.length)];
 
