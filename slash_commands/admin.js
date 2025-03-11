@@ -3,7 +3,7 @@ const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
-const { salon } = require("./subcommands/admin");
+const { salon, avertissement} = require("./subcommands/admin");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -116,6 +116,29 @@ module.exports = {
                     option.setName("hook").setDescription("URL du webhook"),
                 ),
         )
+        .addSubcommand((sub) =>
+            sub
+                .setName("avertissement")
+                .setDescription("Donne ou enleve un avertissement")
+                .addUserOption((option) =>
+                    option
+                        .setName("target")
+                        .setDescription("Sur cet utilisateur en particulier")
+                        .setRequired(true),
+                )
+                .addStringOption((option) =>
+                    option
+                        .setName("raison")
+                        .setDescription("Raison de l'avertissement"),
+                )
+                .addIntegerOption((option) =>
+                    option
+                        .setName("nb")
+                        .setDescription("Nombre d'avertissement (entre 0 et 3)")
+                        .setMinValue(0)
+                        .setMaxValue(3),
+                ),
+        )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
@@ -193,6 +216,8 @@ module.exports = {
             }
         } else if (subcommand === "salon") {
             await salon(interaction, interaction.options);
+        } else if (subcommand === "avertissement") {
+            await avertissement(interaction, interaction.options);
         }
     },
 };
