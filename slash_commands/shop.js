@@ -60,7 +60,7 @@ module.exports = {
                         .setDescription("Nom du jeu")
                         .setRequired(true)
                         .setAutocomplete(true),
-                )
+                ),
         ),
     async autocomplete(interaction) {
         if (interaction.commandName === "shop") {
