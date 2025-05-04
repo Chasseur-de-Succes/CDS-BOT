@@ -13,9 +13,7 @@ async function remove(interaction, options) {
 
     if (!Number.parseInt(gameId)) {
         return interaction.reply({
-            embeds: [
-                createError("Jeu non valide !"),
-            ],
+            embeds: [createError("Jeu non valide !")],
         });
     }
 
@@ -25,14 +23,10 @@ async function remove(interaction, options) {
     logger.info(`.. Item ${gameItem[0]._id} choisi`);
 
     // Test si bien le vendeur
-    const seller = guild.members.cache.get(
-        gameItem[0].seller.userId,
-    );
+    const seller = guild.members.cache.get(gameItem[0].seller.userId);
     if (author !== seller) {
         return interaction.reply({
-            embeds: [
-                createError("Tu n'es pas le vendeur du jeu !"),
-            ]
+            embeds: [createError("Tu n'es pas le vendeur du jeu !")],
         });
     }
 
