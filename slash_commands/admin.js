@@ -3,8 +3,7 @@ const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
-const { salon, avertissement, givemoney } = require("./subcommands/admin");
-const { add } = require("./subcommands/admin/group");
+const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { Group } = require("../models");
 const { escapeRegExp } = require("../util/util");
 

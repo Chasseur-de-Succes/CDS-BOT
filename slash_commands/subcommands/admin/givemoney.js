@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { GREEN } = require("../../../data/colors.json");
 
@@ -9,18 +9,6 @@ const givemoney = async (interaction, options) => {
     const member = interaction.guild.members.cache.get(user.id);
     let montant = interaction.options.get("montant")?.value;
     const MONEY = process.env.MONEY;
-
-    const isAdmin = interaction.member.permissions.has(
-        PermissionFlagsBits.Administrator,
-    );
-    if (!isAdmin) {
-        return interaction.reply({
-            embeds: [
-                createError(`Tu n'as pas le droit d'exécuter cette commande !`),
-            ],
-            ephemeral: true,
-        });
-    }
 
     const dbUser = await client.getUser(member);
     if (!dbUser) {
