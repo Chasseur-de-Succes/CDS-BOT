@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
+const { add, remove, history, list } = require("./subcommands/admin/cheat");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -92,6 +93,69 @@ module.exports = {
                         ),
                 ),
         )
+        .addSubcommandGroup((subcommandGroup) =>
+            subcommandGroup
+                .setName("cheat")
+                .setDescription("desc")
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("add")
+                        .setDescription("Ajouter une note de suspicion de triche à l'utilisateur mentionné.")
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        )
+                        .addStringOption((option) =>
+                            option
+                                .setName("reason")
+                                .setDescription("Raison de la suspicion de cheat")
+                                .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("remove")
+                        .setDescription("Supprimer une note de suspicion de triche à l'utilisateur mentionné.")
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        )
+                        .addIntegerOption((option) =>
+                            option
+                                .setName("number")
+                                .setDescription("Numéro de la raison à supprimé (obtenable via l'historique)")
+                                .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("history")
+                        .setDescription(
+                            "Affiche l'historique des notes d'un utilisateur.",
+                        )
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("list")
+                        .setDescription("Affiche la liste de tout les utilisateurs ayant une note de suspicion de triche.")
+                        .addIntegerOption((option) =>
+                            option
+                                .setName("page")
+                                .setDescription("Numéro de la page")
+                                .setRequired(false),
+                        ),
+                ),
+        )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
@@ -164,6 +228,19 @@ module.exports = {
                 await refund(interaction, interaction.options);
             } else if (subcommand === "delete") {
                 await deleteItem(interaction, interaction.options);
+            }
+        } else if (subcommandGroup === "cheat") {
+            if (subcommand === "add") {
+                // todo add
+                await add(interaction, interaction.options);
+            } else if (subcommand === "remove") {
+                // todo remove
+                await remove(interaction, interaction.options);
+            } else if (subcommand === "history") {
+                // todo history
+                await history(interaction, interaction.options);
+            } else if (subcommand === "list") {
+                await list(interaction, interaction.options)
             }
         }
     },
