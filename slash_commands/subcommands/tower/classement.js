@@ -9,10 +9,13 @@ const classement = async (interaction, options) => {
     const guild = await GuildConfig.findOne({ guildId: guildId });
     const season = guild.event.tower.currentSeason;
 
+    // message en attente
+    await interaction.deferReply();
+
     // récupérer les 10 premiers joueurs du classement
-    const leaderboard = await User.find({ "event.tower.season": 0 })
-        .sort({ "event.tower.etage": -1 })
-        .limit(10);
+    const leaderboard = await User.find({ "event.tower.season": 0 }).sort({
+        "event.tower.etage": -1,
+    });
 
     // créer un tableau contenant les positions, les joueurs et les dégâts
     let positions = "**";
@@ -25,6 +28,8 @@ const classement = async (interaction, options) => {
     let i = 1;
     for (const user of leaderboard) {
         const discordUser = await client.users.fetch(user.userId);
+        const toDisplay = i <= 10;
+
         // si degats est le même que le joueur précédent, on met un ex aequo
         const exaequo =
             i > 1 &&
@@ -33,13 +38,19 @@ const classement = async (interaction, options) => {
             if (typeof positionExaequo === "undefined") {
                 positionExaequo = i - 1;
             }
-            positions += "= \n";
+            if (toDisplay) {
+                positions += "= \n";
+            }
         } else {
             positionExaequo = undefined;
-            positions += `${i} - \n`;
+            if (toDisplay) {
+                positions += `${i} - \n`;
+            }
         }
-        joueurs += `${discordUser}\n`;
-        degats += `${user.event.tower.etage}\n`;
+        if (toDisplay) {
+            joueurs += `${discordUser}\n`;
+            degats += `${user.event.tower.etage}\n`;
+        }
 
         // récupère le classement de l'utilisateur courant s'il n'est pas premier
         if (user.userId === interaction.user.id) {
@@ -80,7 +91,7 @@ const classement = async (interaction, options) => {
         .setFooter({
             text: messageFooter,
         });
-    interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.editReply({ embeds: [embed], ephemeral: true });
 };
 
 exports.classement = classement;
