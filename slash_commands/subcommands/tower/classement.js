@@ -6,30 +6,59 @@ const classement = async (interaction, options) => {
     // TODO option pour afficher le classement d'un joueur précis ?
     const client = interaction.client;
     const guildId = interaction.guildId;
+    const crtUser = interaction.user;
+    const dbUser = await client.findUserById(crtUser.id);
     const guild = await GuildConfig.findOne({ guildId: guildId });
     const season = guild.event.tower.currentSeason;
 
-    // message en attente
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
+
+    // Agrégation pour trier et trouver la position de l'utilisateur courant, et son nombre "d'étage"
+    const pipeline = [
+        {
+            $match: { "event.tower.season": season },
+        },
+        {
+            $sort: { "event.tower.etage": -1 },
+        },
+        {
+            $group: {
+                _id: null,
+                users: { $push: "$$ROOT" },
+            },
+        },
+        {
+            $project: {
+                userPosition: {
+                    $indexOfArray: ["$users.userId", dbUser.userId],
+                },
+                userEtage: {
+                    $arrayElemAt: [
+                        "$users.event.tower.etage",
+                        { $indexOfArray: ["$users.userId", dbUser.userId] },
+                    ],
+                },
+            },
+        },
+    ];
+    const result = await User.aggregate(pipeline);
+    let positionsUserCourant = result[0].userPosition + 1;
+    let degatsUserCourant = result[0].userEtage;
 
     // récupérer les 10 premiers joueurs du classement
-    const leaderboard = await User.find({ "event.tower.season": 0 }).sort({
-        "event.tower.etage": -1,
-    });
+    const leaderboard = await User.find({ "event.tower.season": 0 })
+        .sort({ "event.tower.etage": -1 })
+        .limit(10);
 
     // créer un tableau contenant les positions, les joueurs et les dégâts
     let positions = "**";
     let joueurs = "";
     let degats = "**";
-    let positionsUserCourant;
     let positionExaequo;
-    let degatsUserCourant;
     let messageFooter;
     let i = 1;
     for (const user of leaderboard) {
         const discordUser = await client.users.fetch(user.userId);
-        const toDisplay = i <= 10;
-
         // si degats est le même que le joueur précédent, on met un ex aequo
         const exaequo =
             i > 1 &&
@@ -38,19 +67,13 @@ const classement = async (interaction, options) => {
             if (typeof positionExaequo === "undefined") {
                 positionExaequo = i - 1;
             }
-            if (toDisplay) {
-                positions += "= \n";
-            }
+            positions += "= \n";
         } else {
             positionExaequo = undefined;
-            if (toDisplay) {
-                positions += `${i} - \n`;
-            }
+            positions += `${i} - \n`;
         }
-        if (toDisplay) {
-            joueurs += `${discordUser}\n`;
-            degats += `${user.event.tower.etage}\n`;
-        }
+        joueurs += `${discordUser}\n`;
+        degats += `${user.event.tower.etage}\n`;
 
         // récupère le classement de l'utilisateur courant s'il n'est pas premier
         if (user.userId === interaction.user.id) {
@@ -91,7 +114,7 @@ const classement = async (interaction, options) => {
         .setFooter({
             text: messageFooter,
         });
-    await interaction.editReply({ embeds: [embed], ephemeral: true });
+    interaction.editReply({ embeds: [embed], ephemeral: true });
 };
 
 exports.classement = classement;
