@@ -5,7 +5,6 @@ const { dissolve } = require("./dissolve");
 const { transfert } = require("./transfert");
 const { end } = require("./end");
 const { kick } = require("./kick");
-const { add } = require("./add");
 
 module.exports = {
     create,
@@ -15,5 +14,4 @@ module.exports = {
     end,
     kick,
     editNbParticipant,
-    add,
 };

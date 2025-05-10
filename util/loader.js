@@ -317,6 +317,10 @@ const loadVocalCreator = async (client) => {
         const config = await GuildConfig.findOne({ guildId: guild.id });
 
         if (!config.channels || !config.channels.create_vocal) {
+            if (!config.channels) {
+                config.channels = {};
+            }
+
             // créer un voice channel
             // TODO parent ?
             const voiceChannel = await guild.channels.create({
@@ -324,10 +328,11 @@ const loadVocalCreator = async (client) => {
                 type: ChannelType.GuildVoice,
             });
 
-            await GuildConfig.updateOne(
-                { guildId: guild.id },
-                { $set: { [config.channels.create_vocal]: voiceChannel.id } },
-            );
+            // on ajoute le salon vocal dans la config
+            config.channels.create_vocal = voiceChannel.id;
+
+            // on save
+            await config.save();
 
             logger.warn(`.. salon vocal 'créateur' créé`);
         } else {

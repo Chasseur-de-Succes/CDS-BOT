@@ -351,7 +351,7 @@ async function createCollectorGroup(client, msg) {
 
             await leaveGroup(client, msg.guildId, group, userDb);
             await i.editReply({
-                content: "🥲 Tu as bien quitter le groupe !",
+                content: "🥲 Tu as bien quitté le groupe !",
                 ephemeral: true,
             });
         }

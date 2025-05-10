@@ -39,9 +39,11 @@ function displayHealth(boss) {
 
     // Sélection des émojis de couleur selon le ratio de vie
     let filledEmoji = "🟩"; // Par défaut, plein de vie
-    if (boss.hp / boss.maxHp <= 0.3)
+    if (boss.hp / boss.maxHp <= 0.3) {
         filledEmoji = "🟥"; // Faible santé
-    else if (boss.hp / boss.maxHp <= 0.6) filledEmoji = "🟨"; // Santé moyenne
+    } else if (boss.hp / boss.maxHp <= 0.6) {
+        filledEmoji = "🟨"; // Santé moyenne
+    }
     const intermediateEmoji = "🟧"; // Émoji intermédiaire
     const emptyEmoji = "⬜"; // Cases vides plus douces
 
@@ -589,3 +591,5 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
 
 exports.validerJeu = validerJeu;
 exports.endSeasonForUser = endSeasonForUser;
+exports.displayHealth = displayHealth;
+exports.getRandomPrivateJokes = getRandomPrivateJokes;

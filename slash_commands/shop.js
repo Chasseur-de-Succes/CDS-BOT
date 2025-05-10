@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require("discord.js");
 const customItems = require("../data/customShop.json");
 const { Game } = require("../models");
 const { escapeRegExp } = require("../util/util");
-const { jeux, list, custom, sell } = require("./subcommands/shop");
+const { jeux, list, custom, sell, remove } = require("./subcommands/shop");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -48,6 +48,18 @@ module.exports = {
                         .setName("prix")
                         .setDescription(`Prix du jeu (en ${process.env.MONEY})`)
                         .setRequired(true),
+                ),
+        )
+        .addSubcommand((sub) =>
+            sub
+                .setName("remove")
+                .setDescription("Supprimer un jeu mis en vente")
+                .addStringOption((option) =>
+                    option
+                        .setName("jeu")
+                        .setDescription("Nom du jeu")
+                        .setRequired(true)
+                        .setAutocomplete(true),
                 ),
         ),
     async autocomplete(interaction) {
@@ -135,6 +147,38 @@ module.exports = {
                         value: choice.value,
                     })),
                 );
+            } else if (interaction.options.getSubcommand() === "remove") {
+                const focusedValue = interaction.options.getFocused(true);
+                const memberId = interaction.member.id;
+
+                let filtered = [];
+
+                if (focusedValue.name === "jeu") {
+                    if (focusedValue.value) {
+                        filtered = await interaction.client.findGameItemShopBy({
+                            game: focusedValue.value,
+                            seller: memberId,
+                            notSold: true,
+                            limit: 25,
+                        });
+                    } else {
+                        filtered = await interaction.client.findGameItemShopBy({
+                            seller: memberId,
+                            notSold: true,
+                            limit: 25,
+                        });
+                    }
+                }
+
+                await interaction.respond(
+                    // on ne prend que les 25 1er (au cas où)
+                    filtered
+                        .slice(0, 25)
+                        .map((choice) => ({
+                            name: choice.game.name,
+                            value: choice._id,
+                        })),
+                );
             }
         }
     },
@@ -149,6 +193,8 @@ module.exports = {
             await custom(interaction, interaction.options);
         } else if (subcommand === "sell") {
             await sell(interaction, interaction.options);
+        } else if (subcommand === "remove") {
+            await remove(interaction, interaction.options);
         }
     },
 };

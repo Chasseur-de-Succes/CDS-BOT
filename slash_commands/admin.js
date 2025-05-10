@@ -2,6 +2,10 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
+const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
+const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
+const { Group } = require("../models");
+const { escapeRegExp } = require("../util/util");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -92,6 +96,95 @@ module.exports = {
                         ),
                 ),
         )
+        .addSubcommandGroup((subcommandGroup) =>
+            subcommandGroup
+                .setName("group")
+                .setDescription("Gestion des groupes")
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("add")
+                        .setDescription(
+                            "Ajoute un participant dans un groupe complet ou s'il a trop de groupes.",
+                        )
+                        .addUserOption((option) =>
+                            option
+                                .setName("membre")
+                                .setDescription("Membre à ajouter")
+                                .setRequired(true),
+                        )
+                        .addStringOption((option) =>
+                            option
+                                .setName("nom_group")
+                                .setDescription("Nom du groupe")
+                                .setRequired(true)
+                                .setAutocomplete(true),
+                        ),
+                ),
+        )
+        .addSubcommand((sub) =>
+            sub
+                .setName("salon")
+                .setDescription("Pour configurer les salons")
+                .addStringOption((option) =>
+                    option
+                        .setName("nom_param_salon")
+                        .setDescription("Nom du paramètre")
+                        .setRequired(true)
+                        .setAutocomplete(true),
+                )
+                .addChannelOption((option) =>
+                    option
+                        .setName("salon")
+                        .setDescription(
+                            "Nom du channel correspondant au paramètre",
+                        ),
+                )
+                .addStringOption((option) =>
+                    option.setName("hook").setDescription("URL du webhook"),
+                ),
+        )
+        .addSubcommand((sub) =>
+            sub
+                .setName("avertissement")
+                .setDescription("Donne ou enleve un avertissement")
+                .addUserOption((option) =>
+                    option
+                        .setName("target")
+                        .setDescription("Sur cet utilisateur en particulier")
+                        .setRequired(true),
+                )
+                .addStringOption((option) =>
+                    option
+                        .setName("raison")
+                        .setDescription("Raison de l'avertissement"),
+                )
+                .addIntegerOption((option) =>
+                    option
+                        .setName("nb")
+                        .setDescription("Nombre d'avertissement (entre 0 et 3)")
+                        .setMinValue(0)
+                        .setMaxValue(3),
+                ),
+        )
+        .addSubcommand((sub) =>
+            sub
+                .setName("givemoney")
+                .setDescription(
+                    "Donne ou retire à l'utilisateur mentionné, un montant d'argent",
+                )
+                .addUserOption((option) =>
+                    option
+                        .setName("target")
+                        .setDescription("Cet utilisateur en particulier")
+                        .setRequired(true),
+                )
+                .addIntegerOption((option) =>
+                    option
+                        .setName("montant")
+                        .setDescription("Montant à donner ou à retirer")
+                        .setRequired(true),
+                ),
+        )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
@@ -116,17 +209,41 @@ module.exports = {
                     limit: 25,
                 });
             }
+
+            // on ne prend que les 25 1er (au cas où)
+            filtered = filtered.slice(0, 25).map((choice) => ({
+                name: choice.game.name,
+                value: choice._id,
+            }));
         }
 
-        await interaction.respond(
-            // on ne prend que les 25 1er (au cas où)
-            filtered
+        // sur nom du salon
+        if (focusedValue.name === "nom_param_salon") {
+            filtered = CHANNEL.concat(WEBHOOK_ARRAY);
+        }
+
+        // sur nom du groupe
+        if (focusedValue.name === "nom_group") {
+            filtered = await Group.find({
+                $and: [
+                    { validated: false },
+                    { name: new RegExp(escapeRegExp(focusedValue.value), "i") },
+                    { guildId: interaction.guildId },
+                ],
+            });
+
+            // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
+            filtered = filtered
                 .slice(0, 25)
-                .map((choice) => ({
-                    name: choice.game.name,
-                    value: choice._id,
-                })),
-        );
+                .map((element) =>
+                    element.name?.length > 100
+                        ? `${element.name.substring(0, 96)}...`
+                        : element.name,
+                )
+                .map((choice) => ({ name: choice, value: choice }));
+        }
+
+        await interaction.respond(filtered);
     },
     async execute(interaction) {
         // seulement admin, même si setDefaultMemberPermissions est défini
@@ -165,6 +282,16 @@ module.exports = {
             } else if (subcommand === "delete") {
                 await deleteItem(interaction, interaction.options);
             }
+        } else if (subcommandGroup === "group") {
+            if (subcommand === "add") {
+                await add(interaction, interaction.options);
+            }
+        } else if (subcommand === "salon") {
+            await salon(interaction, interaction.options);
+        } else if (subcommand === "avertissement") {
+            await avertissement(interaction, interaction.options);
+        } else if (subcommand === "givemoney") {
+            await givemoney(interaction, interaction.options);
         }
     },
 };

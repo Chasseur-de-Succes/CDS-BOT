@@ -1,10 +1,10 @@
-const { Group } = require("../../../models");
+const { Group } = require("../../../../models");
 const { PermissionsBitField } = require("discord.js");
-const { joinGroup } = require("../../../util/msg/group");
-const { CROSS_MARK } = require("../../../data/emojis.json");
+const { joinGroup } = require("../../../../util/msg/group");
+const { CROSS_MARK } = require("../../../../data/emojis.json");
 
 const add = async (interaction, options) => {
-    const grpName = options.get("nom")?.value;
+    const grpName = options.get("nom_group")?.value;
     const toAdd = options.get("membre")?.member;
     const client = interaction.client;
     const author = interaction.member;

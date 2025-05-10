@@ -1,5 +1,10 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { inscription, validerJeu, classement } = require("./subcommands/tower");
+const {
+    inscription,
+    validerJeu,
+    classement,
+    infoBoss,
+} = require("./subcommands/tower");
 const { Game } = require("../models");
 const { escapeRegExp } = require("../util/util");
 
@@ -17,6 +22,11 @@ module.exports = {
             sub
                 .setName("classement")
                 .setDescription("Classement de l'événement"),
+        )
+        .addSubcommand((sub) =>
+            sub
+                .setName("info-boss")
+                .setDescription("Informations liées au boss"),
         )
         .addSubcommand((sub) =>
             sub
@@ -103,6 +113,8 @@ module.exports = {
             await validerJeu(interaction, interaction.options);
         } else if (subcommand === "classement") {
             await classement(interaction, interaction.options);
+        } else if (subcommand === "info-boss") {
+            await infoBoss(interaction, interaction.options);
         }
     },
 };
