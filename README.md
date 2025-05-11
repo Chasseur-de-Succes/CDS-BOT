@@ -15,7 +15,7 @@ source .env
 node run index.js
 ```
 
-### Avec Docker (développement)
+#### Avec Docker
 
 Vous pouvez utiliser l'image Docker pour pouvoir déployer le bot sur votre
 machine. Vous pouvez le configurer en modifiant `exemple.env` tout en le
@@ -24,6 +24,14 @@ d'exemple redirige vers la base de données se trouvant dans le fichier
 `docker-compose.yml`.
 
 Il suffit de taper `docker compose up` pour pouvoir lancer le bot.
+
+### Avec Docker (pour le développement)
+
+Il faut utiliser le fichier `docker-compose-dev.yml` pour avoir une image
+Docker qui prend en compte tous les changements que vous faites et qui
+redémarre le bot dès qu'il y en a un.
+
+Utilisez la commande `docker compose -f docker-compose-dev.yml up`.
 
 ## Migration BDD
 
