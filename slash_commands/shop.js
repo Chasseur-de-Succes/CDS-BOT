@@ -85,68 +85,71 @@ module.exports = {
                 let filtered = [];
                 let exact = [];
 
-                // cmd group create, autocomplete sur nom jeu
+                // cmd shop sell, autocomplete sur nom jeu
                 if (focusedValue.name === "jeu") {
-                    // recherche nom exacte
-                    exact = await interaction.client.findGames({
-                        name: focusedValue.value,
-                        type: { $in: ["game", "dlc"] },
-                    });
+                    if(focusedValue.value != "") {
+                        // recherche nom exacte
+                        exact = await interaction.client.findGames({
+                            name: focusedValue.value,
+                            type: { $in: ["game", "dlc"] },
+                        });
 
-                    // recup limit de 25 jeux, correspondant a la value rentré
-                    filtered = await Game.aggregate([
-                        {
-                            $match: {
-                                name: new RegExp(
-                                    escapeRegExp(focusedValue.value),
-                                    "i",
-                                ),
+                        // recup limit de 25 jeux, correspondant a la value rentré
+                        filtered = await Game.aggregate([
+                            {
+                                $match: {
+                                    name: new RegExp(
+                                        escapeRegExp(focusedValue.value),
+                                        "i",
+                                    ),
+                                },
                             },
-                        },
-                        {
-                            $match: { type: { $in: ["game", "dlc"] } },
-                        },
-                        {
-                            $limit: 25,
-                        },
-                    ]);
+                            {
+                                $match: { type: { $in: ["game", "dlc"] } },
+                            },
+                            {
+                                $limit: 25,
+                            },
+                        ]);
 
-                    // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-                    // limit au 25 premiers
-                    // si nom jeu dépasse limite imposé par Discord (100 char)
-                    // + on prepare le résultat en tableau de {name: '', value: ''}
-                    filtered = filtered
-                        .filter(
-                            (jeu) => jeu.name && jeu.name !== exact[0]?.name,
-                        )
-                        .slice(0, 25)
-                        .map((element) => ({
-                            name:
-                                element.name?.length > 100
-                                    ? `${element.name.substring(0, 96)}...`
-                                    : element.name,
-                            value: `${element.appid}`,
-                        }));
+                        // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                        // limit au 25 premiers
+                        // si nom jeu dépasse limite imposé par Discord (100 char)
+                        // + on prepare le résultat en tableau de {name: '', value: ''}
+                        filtered = filtered
+                            .filter(
+                                (jeu) => jeu.name && jeu.name !== exact[0]?.name,
+                            )
+                            .slice(0, 25)
+                            .map((element) => ({
+                                name:
+                                    element.name?.length > 100
+                                        ? `${element.name.substring(0, 96)}...`
+                                        : element.name,
+                                value: `${element.appid}`,
+                            }));
+                    }
+
+                    // si nom exact trouvé
+                    if (exact.length === 1) {
+                        const jeuExact = exact[0];
+                        // on récupère les 24 premiers
+                        filtered = filtered.slice(0, 24);
+                        // et on ajoute en 1er l'exact
+                        filtered.unshift({
+                            name: jeuExact.name,
+                            value: `${jeuExact.appid}`,
+                        });
+                    }
+
+                    await interaction.respond(
+                        filtered.map((choice) => ({
+                            name: choice.name,
+                            value: choice.value,
+                        })),
+                    );
                 }
-
-                // si nom exact trouvé
-                if (exact.length === 1) {
-                    const jeuExact = exact[0];
-                    // on récupère les 24 premiers
-                    filtered = filtered.slice(0, 24);
-                    // et on ajoute en 1er l'exact
-                    filtered.unshift({
-                        name: jeuExact.name,
-                        value: `${jeuExact.appid}`,
-                    });
-                }
-
-                await interaction.respond(
-                    filtered.map((choice) => ({
-                        name: choice.name,
-                        value: choice.value,
-                    })),
-                );
+                    
             } else if (interaction.options.getSubcommand() === "remove") {
                 const focusedValue = interaction.options.getFocused(true);
                 const memberId = interaction.member.id;
