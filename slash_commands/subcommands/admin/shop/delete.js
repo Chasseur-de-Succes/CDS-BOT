@@ -7,8 +7,7 @@ const mongoose = require("mongoose");
 async function deleteItem(interaction, options) {
     // const id = options.get('id')?.value;
     const idItem = options.get("jeu")?.value;
-    const jeu = options.get("jeu")?.name;
-    const vendeur = options.get("vendeur")?.user;
+    const seller = options.get("vendeur")?.user;
     const client = interaction.client;
     const author = interaction.member;
 
@@ -28,7 +27,7 @@ async function deleteItem(interaction, options) {
         });
     }
 
-    const gamename = gameItem[0].game.name;
+    const gameName = gameItem[0].game.name;
 
     // Supprimer item boutique
     try {
@@ -39,18 +38,18 @@ async function deleteItem(interaction, options) {
         });
     }
 
-    logger.info(`Suppression vente id ${jeu}`);
+    logger.info(`Suppression vente id ${gameName}`);
 
     const embed = new EmbedBuilder()
         .setColor(NIGHT)
-        .setTitle(`${CHECK_MARK} Item ${gamename} supprimé`);
+        .setTitle(`${CHECK_MARK} Item ${gameName} supprimé`);
 
     await interaction.reply({ embeds: [embed] });
     createLogs(
         client,
         interaction.guildId,
         "Suppression vente",
-        `${author} a supprimé la vente de **${gamename}**, par **${vendeur}**`,
+        `${author} a supprimé la vente de **${gameName}**, par **${seller}**`,
         `ID : ${idItem}`,
         YELLOW,
     );
