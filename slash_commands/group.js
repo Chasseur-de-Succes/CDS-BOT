@@ -171,7 +171,7 @@ module.exports = {
 
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
         if (focusedValue.name === "jeu") {
-            if(focusedValue.value != "") {
+            if (focusedValue.value != "") {
                 // recherche nom exacte
                 exact = await client.findGames({
                     name: focusedValue.value,
@@ -182,7 +182,10 @@ module.exports = {
                 filtered = await Game.aggregate([
                     {
                         $match: {
-                            name: new RegExp(escapeRegExp(focusedValue.value), "i"),
+                            name: new RegExp(
+                                escapeRegExp(focusedValue.value),
+                                "i",
+                            ),
                         },
                     },
                     {

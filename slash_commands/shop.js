@@ -87,7 +87,7 @@ module.exports = {
 
                 // cmd shop sell, autocomplete sur nom jeu
                 if (focusedValue.name === "jeu") {
-                    if(focusedValue.value != "") {
+                    if (focusedValue.value != "") {
                         // recherche nom exacte
                         exact = await interaction.client.findGames({
                             name: focusedValue.value,
@@ -118,7 +118,8 @@ module.exports = {
                         // + on prepare le résultat en tableau de {name: '', value: ''}
                         filtered = filtered
                             .filter(
-                                (jeu) => jeu.name && jeu.name !== exact[0]?.name,
+                                (jeu) =>
+                                    jeu.name && jeu.name !== exact[0]?.name,
                             )
                             .slice(0, 25)
                             .map((element) => ({
@@ -149,7 +150,6 @@ module.exports = {
                         })),
                     );
                 }
-                    
             } else if (interaction.options.getSubcommand() === "remove") {
                 const focusedValue = interaction.options.getFocused(true);
                 const memberId = interaction.member.id;
