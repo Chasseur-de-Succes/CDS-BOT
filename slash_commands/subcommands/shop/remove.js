@@ -6,7 +6,6 @@ const mongoose = require("mongoose");
 
 async function remove(interaction, options) {
     const gameId = options.get("jeu")?.value;
-    const gameName = options.get("jeu")?.name;
     const client = interaction.client;
     const author = interaction.member;
     const guild = interaction.guild;
@@ -38,6 +37,8 @@ async function remove(interaction, options) {
             ],
         });
     }
+
+    const gameName = gameItem[0].game.name;
 
     // Supprimer item boutique
     try {
