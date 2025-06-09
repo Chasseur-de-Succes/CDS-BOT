@@ -7,6 +7,14 @@ const {
     OFFLINE_STATUS,
 } = require("../data/emojis.json");
 
+const bot = ["👤 Humain", "🤖 Bot"];
+const status = {
+    online: `${ONLINE_STATUS} En ligne`,
+    idle: `${IDLE_STATUS} Absent`,
+    dnd: `${DND_STATUS} Ne pas déranger`,
+    offline: `${OFFLINE_STATUS} Hors ligne`,
+};
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("user")
@@ -18,21 +26,12 @@ module.exports = {
                 .setDescription("Cet utilisateur en particulier"),
         ),
     async execute(interaction) {
+        // Get user in parameter if exist, else author of the interaction
         const user = interaction.options.getUser("target") ?? interaction.user;
         const member = interaction.guild.members.cache.get(user.id);
-
-        const bot = {
-            false: "👤 Humain",
-            true: "🤖 Bot",
-        };
-        const status = {
-            online: `${ONLINE_STATUS} En ligne`,
-            idle: `${IDLE_STATUS} Absent`,
-            dnd: `${DND_STATUS} Ne pas déranger`,
-            offline: `${OFFLINE_STATUS} Hors ligne`,
-        };
         const nickname = member.nickname != null ? member.nickname : "Aucun";
 
+        // Build the embed and send it
         const embed = new EmbedBuilder()
             .setColor(VERY_PALE_VIOLET)
             .setAuthor({
