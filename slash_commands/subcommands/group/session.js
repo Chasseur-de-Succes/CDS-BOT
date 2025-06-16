@@ -119,7 +119,7 @@ const schedule = async (interaction, options) => {
                 const dateStr = `${dateVoulue} à ${heureVoulue}`;
                 if (indexDateEvent >= 0) {
                     channel.send(
-                        `> ! La session du **${dateStr}** a été **supprimée**.`,
+                        `> ⚠️ La session du **${dateStr}** a été **supprimée**.`,
                     );
                 } else {
                     channel.send(`> 🗓 Nouvelle session le **${dateStr}** !`);

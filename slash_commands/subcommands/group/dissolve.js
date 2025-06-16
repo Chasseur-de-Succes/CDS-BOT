@@ -1,7 +1,7 @@
 const { PermissionFlagsBits } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { dissolveGroup } = require("../../../util/msg/group");
-const { WARNING } = require("../../../data/colors.json");
+const { WARNING } = require("../../../data/emojis.json");
 
 const dissolve = async (interaction, options) => {
     const grpName = options.get("nom")?.value;
