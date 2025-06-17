@@ -170,37 +170,32 @@ module.exports = {
         let exact = [];
 
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
-        if (focusedValue.name === "jeu") {
-            if (focusedValue.value != "") {
-                // recherche nom exacte
-                exact = await client.findGames({
-                    name: focusedValue.value,
-                    type: "game",
-                });
+        if (focusedValue.name === "jeu" && focusedValue.value != "") {
+            // recherche nom exacte
+            exact = await client.findGames({
+                name: focusedValue.value,
+                type: "game",
+            });
 
-                // recup limit de 25 jeux, correspondant a la value rentré
-                filtered = await Game.aggregate([
-                    {
-                        $match: {
-                            name: new RegExp(
-                                escapeRegExp(focusedValue.value),
-                                "i",
-                            ),
-                        },
+            // recup limit de 25 jeux, correspondant a la value rentré
+            filtered = await Game.aggregate([
+                {
+                    $match: {
+                        name: new RegExp(escapeRegExp(focusedValue.value), "i"),
                     },
-                    {
-                        $match: { type: "game" },
-                    },
-                    {
-                        $limit: 25,
-                    },
-                ]);
+                },
+                {
+                    $match: { type: "game" },
+                },
+                {
+                    $limit: 25,
+                },
+            ]);
 
-                // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-                filtered = filtered.filter(
-                    (jeu) => jeu.name && jeu.name !== exact[0]?.name,
-                );
-            }
+            // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+            filtered = filtered.filter(
+                (jeu) => jeu.name && jeu.name !== exact[0]?.name,
+            );
         }
 
         // autocomplete sur nom groupe

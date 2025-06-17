@@ -86,50 +86,47 @@ module.exports = {
                 let exact = [];
 
                 // cmd shop sell, autocomplete sur nom jeu
-                if (focusedValue.name === "jeu") {
-                    if (focusedValue.value != "") {
-                        // recherche nom exacte
-                        exact = await interaction.client.findGames({
-                            name: focusedValue.value,
-                            type: { $in: ["game", "dlc"] },
-                        });
+                if (focusedValue.name === "jeu" && focusedValue.value != "") {
+                    // recherche nom exacte
+                    exact = await interaction.client.findGames({
+                        name: focusedValue.value,
+                        type: { $in: ["game", "dlc"] },
+                    });
 
-                        // recup limit de 25 jeux, correspondant a la value rentré
-                        filtered = await Game.aggregate([
-                            {
-                                $match: {
-                                    name: new RegExp(
-                                        escapeRegExp(focusedValue.value),
-                                        "i",
-                                    ),
-                                },
+                    // recup limit de 25 jeux, correspondant a la value rentré
+                    filtered = await Game.aggregate([
+                        {
+                            $match: {
+                                name: new RegExp(
+                                    escapeRegExp(focusedValue.value),
+                                    "i",
+                                ),
                             },
-                            {
-                                $match: { type: { $in: ["game", "dlc"] } },
-                            },
-                            {
-                                $limit: 25,
-                            },
-                        ]);
+                        },
+                        {
+                            $match: { type: { $in: ["game", "dlc"] } },
+                        },
+                        {
+                            $limit: 25,
+                        },
+                    ]);
 
-                        // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-                        // limit au 25 premiers
-                        // si nom jeu dépasse limite imposé par Discord (100 char)
-                        // + on prepare le résultat en tableau de {name: '', value: ''}
-                        filtered = filtered
-                            .filter(
-                                (jeu) =>
-                                    jeu.name && jeu.name !== exact[0]?.name,
-                            )
-                            .slice(0, 25)
-                            .map((element) => ({
-                                name:
-                                    element.name?.length > 100
-                                        ? `${element.name.substring(0, 96)}...`
-                                        : element.name,
-                                value: `${element.appid}`,
-                            }));
-                    }
+                    // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
+                    // limit au 25 premiers
+                    // si nom jeu dépasse limite imposé par Discord (100 char)
+                    // + on prepare le résultat en tableau de {name: '', value: ''}
+                    filtered = filtered
+                        .filter(
+                            (jeu) => jeu.name && jeu.name !== exact[0]?.name,
+                        )
+                        .slice(0, 25)
+                        .map((element) => ({
+                            name:
+                                element.name?.length > 100
+                                    ? `${element.name.substring(0, 96)}...`
+                                    : element.name,
+                            value: `${element.appid}`,
+                        }));
 
                     // si nom exact trouvé
                     if (exact.length === 1) {
