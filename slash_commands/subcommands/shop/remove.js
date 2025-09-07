@@ -10,8 +10,10 @@ async function remove(interaction, options) {
     const author = interaction.member;
     const guild = interaction.guild;
 
+    await interaction.deferReply();
+
     if (!Number.parseInt(gameId)) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError("Jeu non valide !")],
         });
     }
@@ -24,14 +26,14 @@ async function remove(interaction, options) {
     // Test si bien le vendeur
     const seller = guild.members.cache.get(gameItem[0].seller.userId);
     if (author !== seller) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError("Tu n'es pas le vendeur du jeu !")],
         });
     }
 
     // Test si state n'existe pas
     if (gameItem[0].state) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError("Le jeu ne peut pas avoir une demande d'achat !"),
             ],
@@ -44,7 +46,7 @@ async function remove(interaction, options) {
     try {
         await client.deleteGameItemById(gameId);
     } catch (error) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError("Item du shop non trouvé !")],
         });
     }
@@ -55,7 +57,7 @@ async function remove(interaction, options) {
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Jeu ${gameName} supprimé`);
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
     createLogs(
         client,
         interaction.guildId,
