@@ -22,7 +22,7 @@ async function cancel(interaction, options) {
         return interaction.reply({
             embeds: [
                 createError(
-                    "La vente n'a pas encore **commencée** ! Utiliser `/adminshop delete <id>`",
+                    "La vente n'a pas encore **commencée** ! Utiliser `/admin shop delete <id>`",
                 ),
             ],
         });
@@ -32,7 +32,7 @@ async function cancel(interaction, options) {
         return interaction.reply({
             embeds: [
                 createError(
-                    "La vente est déjà **terminée** ! Utiliser `/adminshop refund <id>`",
+                    "La vente est déjà **terminée** ! Utiliser `/admin shop refund <id>`",
                 ),
             ],
         });

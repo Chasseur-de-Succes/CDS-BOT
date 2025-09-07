@@ -21,7 +21,7 @@ async function deleteItem(interaction, options) {
         return interaction.reply({
             embeds: [
                 createError(
-                    "L'item ne doit pas être encore en cours de vente ! Utiliser `/adminshop cancel <id>` ou `/shop admin refund <id>`",
+                    "L'item ne doit pas être encore en cours de vente ! Utiliser `/admin shop cancel <id>` ou `/shop admin refund <id>`",
                 ),
             ],
         });
