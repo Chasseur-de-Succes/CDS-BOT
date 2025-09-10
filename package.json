@@ -12,7 +12,7 @@
         "canvas": "^2.9.3",
         "cpu-stat": "^2.0.1",
         "date.format": "^1.1.2",
-        "discord.js": "^14.8.0",
+        "discord.js": "^14.22.1",
         "dotenv": "^16.0.3",
         "moment": "^2.29.1",
         "moment-timezone": "^0.5.39",
