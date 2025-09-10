@@ -5,20 +5,21 @@ const { Game } = require("../../../../models");
 
 async function allGame(interaction, options) {
     const client = interaction.client;
+    await interaction.deferReply();
 
     // récup l'utilisateur et test si register
     const user = options.getUser("user");
     const userDb = await client.getUser(user);
     if (!userDb) {
         // Si pas dans la BDD
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError(`${user.tag} n'a pas encore de compte !`)],
         });
     }
 
     // si l'user n'est pas inscrit, on skip
     if (!userDb.event.tower.startDate) {
-        return await interaction.reply({
+        return await interaction.editReply({
             content: "L'utilisateur n'est pas inscrit à l'événement !",
         });
     }
@@ -39,7 +40,7 @@ async function allGame(interaction, options) {
     fs.writeFileSync(filePath, games);
 
     interaction
-        .reply({
+        .editReply({
             files: [filePath],
         })
         .then(() => {
