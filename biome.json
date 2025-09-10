@@ -1,8 +1,6 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
-    "organizeImports": {
-        "enabled": true
-    },
+    "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
+    "assist": { "actions": { "source": { "organizeImports": "on" } } },
     "linter": {
         "enabled": true,
         "rules": {
@@ -16,14 +14,14 @@
         "lineWidth": 80
     },
     "files": {
-        "ignore": [".vscode"]
+        "includes": ["**", "!**/.vscode"]
     },
     "javascript": {
         "formatter": {
             "arrowParentheses": "always",
             "jsxQuoteStyle": "double",
             "semicolons": "always",
-            "trailingComma": "all",
+            "trailingCommas": "all",
             "quoteProperties": "asNeeded",
             "quoteStyle": "double",
             "bracketSpacing": true,
