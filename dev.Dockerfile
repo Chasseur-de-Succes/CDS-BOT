@@ -1,5 +1,5 @@
 FROM node:20.11.0-alpine3.19 AS base
-WORKDIR /home/node
+WORKDIR /home
 
 RUN apk add --no-cache \
     ttf-dejavu \
@@ -22,6 +22,8 @@ RUN npm i -g nodemon
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
+
+WORKDIR /home/node
 
 COPY index.js .
 
