@@ -5,19 +5,23 @@
         "succes": {
             "1": {
                 "title": "Et de 1 !",
-                "desc": "Mettre **1** 100% dans le hall des héros"
+                "desc": "Mettre **1** 100% dans le hall des héros",
+                "img": "trophy"
             },
             "10": {
                 "title": "Pas mal !",
-                "desc": "Mettre **10** 100% dans le hall des héros"
+                "desc": "Mettre **10** 100% dans le hall des héros",
+                "img": "trophy_silver"
             },
             "50": {
                 "title": "On ne l'arrête plus",
-                "desc": "Mettre **50** 100% dans le hall des héros"
+                "desc": "Mettre **50** 100% dans le hall des héros",
+                "img": "trophy_gold"
             },
             "100": {
                 "title": "100 100%, la classe",
-                "desc": "Mettre **100** 100% dans le hall des héros"
+                "desc": "Mettre **100** 100% dans le hall des héros",
+                "img": "trophy_plat"
             }
         }
     },
@@ -27,19 +31,23 @@
         "succes": {
             "1": {
                 "title": "Tu ne te sens pas sale ?",
-                "desc": "Mettre **1** 100% dans le hall des zéros"
+                "desc": "Mettre **1** 100% dans le hall des zéros",
+                "img": "poop"
             },
             "10": {
                 "title": "Pense à bien essuyer",
-                "desc": "Mettre **10** 100% dans le hall des zéros"
+                "desc": "Mettre **10** 100% dans le hall des zéros",
+                "img": "poop_silver"
             },
             "50": {
                 "title": "Je suis à deux doigts de vomir",
-                "desc": "Mettre **50** 100% dans le hall des zéros"
+                "desc": "Mettre **50** 100% dans le hall des zéros",
+                "img": "poop_gold"
             },
             "250": {
                 "title": "La honte n'est pas un problème chez toi",
-                "desc": "Mettre **250** 100% dans le hall des zéros"
+                "desc": "Mettre **250** 100% dans le hall des zéros",
+                "img": "poop_plat"
             }
         }
     },
@@ -49,19 +57,23 @@
         "succes": {
             "1": {
                 "title": "Good job",
-                "desc": "Participer à **1** event de groupe"
+                "desc": "Participer à **1** event de groupe",
+                "img": "dmd-aide"
             },
             "25": {
                 "title": "Tu es quelqu'un de sympa en fait",
-                "desc": "Participer à **25** events de groupe"
+                "desc": "Participer à **25** events de groupe",
+                "img": "dmd-aide_silver"
             },
             "50": {
                 "title": "Je savais qu'on pouvait compter sur toi",
-                "desc": "Participer à **50** events de groupe"
+                "desc": "Participer à **50** events de groupe",
+                "img": "dmd-aide_gold"
             },
             "100": {
                 "title": "Chasseur altruiste",
-                "desc": "Participer à **100** events de groupe"
+                "desc": "Participer à **100** events de groupe",
+                "img": "dmd-aide_plat"
             }
         }
     },
@@ -71,19 +83,23 @@
         "succes": {
             "1": {
                 "title": "Bienvenue chez les rats",
-                "desc": "Vendre **1** jeu via le shop"
+                "desc": "Vendre **1** jeu via le shop",
+                "img": "shop"
             },
             "10": {
                 "title": "On aime le pognon ?",
-                "desc": "Vendre **10** jeu via le shop"
+                "desc": "Vendre **10** jeu via le shop",
+                "img": "shop_silver"
             },
             "25": {
                 "title": "Arrondir la fin du mois",
-                "desc": "Vendre **25** jeu via le shop"
+                "desc": "Vendre **25** jeu via le shop",
+                "img": "shop_gold"
             },
             "50": {
                 "title": "Picsou",
-                "desc": "Vendre **50** jeu via le shop"
+                "desc": "Vendre **50** jeu via le shop",
+                "img": "shop_plat"
             }
         }
     },
@@ -93,19 +109,23 @@
         "succes": {
             "50": {
                 "title": "Sois pas timide",
-                "desc": "Écrire **50** messages"
+                "desc": "Écrire **50** messages",
+                "img": "nbMsg"
             },
             "500": {
                 "title": "C'est passionnant",
-                "desc": "Écrire **500** messages"
+                "desc": "Écrire **500** messages",
+                "img": "nbMsg_silver"
             },
             "2500": {
                 "title": "Pipelette",
-                "desc": "Écrire **2 500** messages"
+                "desc": "Écrire **2 500** messages",
+                "img": "nbMsg_gold"
             },
             "10000": {
                 "title": "Il va faire tout noir",
-                "desc": "Écrire **10 000** messages"
+                "desc": "Écrire **10 000** messages",
+                "img": "nbMsg_plat"
             }
         }
     },

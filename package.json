@@ -1,28 +1,30 @@
 {
-  "name": "cds-bot",
-  "version": "1.0.0",
-  "description": "private bot",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "TobiBiotex",
-  "license": "GPL3",
-  "dependencies": {
-    "@discordjs/builders": "^1.1.0",
-    "axios": "^0.21.1",
-    "canvas": "^2.9.3",
-    "cpu-stat": "^2.0.1",
-    "date.format": "^1.1.2",
-    "discord.js": "^13.1.0",
-    "dotenv": "^16.0.3",
-    "moment": "^2.29.1",
-    "moment-timezone": "^0.5.39",
-    "mongoose": "^5.13.4",
-    "node-schedule": "^2.0.0",
-    "signale-logger": "^1.5.1",
-    "superagent": "^6.1.0",
-    "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.6.1"
-  }
+    "name": "cds-bot",
+    "version": "1.0.0",
+    "description": "private bot",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "TobiBiotex",
+    "license": "AGPL-3.0",
+    "dependencies": {
+        "canvas": "^2.9.3",
+        "cpu-stat": "^2.0.1",
+        "date.format": "^1.1.2",
+        "discord.js": "^14.8.0",
+        "dotenv": "^16.0.3",
+        "moment": "^2.29.1",
+        "moment-timezone": "^0.5.39",
+        "mongoose": "^5.13.4",
+        "node-schedule": "^2.0.0",
+        "signale-logger": "^1.5.1",
+        "steam-user": "^4.27.0",
+        "superagent": "^6.1.0",
+        "winston": "^3.3.3",
+        "winston-daily-rotate-file": "^4.6.1"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.0.6"
+    }
 }

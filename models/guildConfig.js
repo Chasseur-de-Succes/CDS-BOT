@@ -1,12 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const guildConfigSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     guildId: String,
-    whitelistChannel : [{
-        "type": String
-    }],
-    channels : {
+    channels: {
         welcome: String,
         role: String,
         list_group: String,
@@ -15,10 +12,31 @@ const guildConfigSchema = mongoose.Schema({
         logs: String,
         create_vocal: String,
         cat_discussion_groupe: String,
-        cat_archive_discussion_groupe: String,
-        advent: String
+        cat_discussion_groupe_2: String,
+        feed_bot: String,
+        feed_achievement: String,
+        tickets: String,
+        event_tower: String,
     },
-    voice_channels : [String]
-})
+    voice_channels: [String],
+    webhook: {
+        feed_achievement: String,
+    },
+    event: {
+        tower: {
+            currentSeason: Number,
+            startDate: Date,
+            started: { type: Boolean, default: false },
+            history: [
+                {
+                    season: Number,
+                    startDate: Date,
+                    endDate: Date,
+                    finished: Boolean,
+                },
+            ],
+        },
+    },
+});
 
 module.exports = mongoose.model("GuildConfig", guildConfigSchema);

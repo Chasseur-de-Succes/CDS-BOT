@@ -1,50 +1,69 @@
 const mongoose = require("mongoose");
-const { User, Group, Game, Job, GuildConfig, GameItem, RolesChannel, MsgHallHeros, MsgHallZeros, MsgDmdeAide } = require("../models/index");
+const {
+    User,
+    Group,
+    Game,
+    Job,
+    GuildConfig,
+    GameItem,
+    RolesChannel,
+    MsgHallHeros,
+    MsgHallZeros,
+    MsgDmdeAide,
+} = require("../models/index");
 const { escapeRegExp } = require("./util");
 
 /**
  * Fonctions pour communiquer avec la base de données MongoDB
- * @param {*} client 
+ * @param {*} client
  */
-module.exports = client => {
+module.exports = (client) => {
     /* General */
     /**
      * Mets à jour un élément data avec les paramètres settings
      * @param {Object} data l'élément à mettre à jour
      * @param {Object} settings le(s) paramètre(s) à modifier (format JSON {...})
-     * @returns https://docs.mongodb.com/manual/reference/method/db.collection.updateOne/#returns
+     * @returns {Promise<any>} https://docs.mongodb.com/manual/reference/method/db.collection.updateOne/#returns
      */
     client.update = async (data, settings) => {
-        if (typeof data !== "object") data = {};
+        if (typeof data !== "object") {
+            data = {};
+        }
         for (const key in settings) {
-            if(data[key] !== settings[key]) data[key] = settings[key];
+            if (data[key] !== settings[key]) {
+                data[key] = settings[key];
+            }
         }
         return data.updateOne(settings);
     };
-    
+
     /* User */
     /**
      * Créer un nouvel {@link User} et le sauvegarde en base
      * @param {Object} user Utilisateur à sauvegarder
-     * @returns 
+     * @returns
      */
-    client.createUser = async user => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, user);
+    client.createUser = async (user) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, user);
         const createUser = await new User(merged);
         const usr = await createUser.save();
-        logger.info({prefix:"[DB]", message:"Nouvel utilisateur : " + usr.username});
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouvel utilisateur : ${usr.username}`,
+        });
         return usr;
     };
-    
+
     /**
      * Cherche et retourne un {@link User} avec un id Discord donné
      * @param {string} id Id Discord de l'user
      * @returns undefined si non trouvé, {@link User} sinon
      */
-    client.findUserById = async id => {
-        const data = await User.findOne({userId: id});
-        if (data) return data;
-        else return;
+    client.findUserById = async (id) => {
+        const data = await User.findOne({ userId: id });
+        if (data) {
+            return data;
+        }
     };
 
     /**
@@ -52,7 +71,7 @@ module.exports = client => {
      * @param {string} user Utilisateur Discord à rechercher
      * @returns undefined si non trouvé, {@link User} sinon
      */
-    client.getUser = async user => {
+    client.getUser = async (user) => {
         return client.findUserById(user.id);
     };
 
@@ -62,47 +81,54 @@ module.exports = client => {
     /**
      * Créer un nouveau {@link Group} et le sauvegarde en base
      * @param {Object} group Groupe à sauvegarder
-     * @returns 
+     * @returns
      */
-    client.createGroup = async group => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, group);
+    client.createGroup = async (group) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, group);
         const createGroup = await new Group(merged);
-        let grp = await createGroup.save()
-        await grp.populate('captain members').execPopulate()
-        logger.info({prefix:"[DB]", message:"Nouveau groupe : " + grp.name});
+        const grp = await createGroup.save();
+        await grp.populate("captain members").execPopulate();
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouveau groupe : ${grp.name}`,
+        });
         return grp;
     };
 
     /**
      * Supprime un groupe
-     * @param {Object} group 
+     * @param {Object} group
      */
-    client.deleteGroup = async group => {
+    client.deleteGroup = async (group) => {
         // TODO return ? callback ?
-        Group.deleteOne({ _id: group._id }).then(grp => logger.info({prefix:"[DB]", message:"Delete groupe : " + group.name}));
-    }
+        Group.deleteOne({ _id: group._id }).then((grp) =>
+            logger.info({
+                prefix: "[DB]",
+                message: `Delete groupe : ${group.name}`,
+            }),
+        );
+    };
 
     /**
      * Cherche et retourne un {@link Group} avec une requête donné
      * @param {Object} query Requête Mongodb
      * @returns undefined si non trouvé, {@link Group} sinon
      */
-    client.findGroup = async query => {
-        const data = await Group.find(query)
-                                .populate('captain members game');
-        if (data) return data;
-        else return;
-    }
+    client.findGroup = async (query) => {
+        const data = await Group.find(query).populate("captain members game");
+        if (data) {
+            return data;
+        }
+    };
 
     /**
-     * Cherche et retourne un {@link Group} avec un id donné, 
+     * Cherche et retourne un {@link Group} avec un id donné,
      * en récupérant les infos liés (capitaine, membres et jeu)
      * @param {Object} id Id du groupe
      * @returns undefined si non trouvé, {@link Group} sinon
      */
-    client.findGroupById = async id => {
-        return Group.findById(id)
-            .populate('captain members game');
+    client.findGroupById = async (id) => {
+        return Group.findById(id).populate("captain members game");
     };
 
     /**
@@ -112,19 +138,16 @@ module.exports = client => {
      * @param {Object} userDB {@link User} du groupe
      * @returns undefined si non trouvé, tableau de {@link Group} sinon
      */
-    client.findGroupByUser = async userDB => {
+    client.findGroupByUser = async (userDb) => {
         const data = await Group.find({
             $and: [
                 { validated: false },
-                { $or: [
-                    { captain: userDB },
-                    { members: userDB },
-                ] }
-            ]
-        })
-            .populate('captain members game');
-        if (data) return data;
-        else return;
+                { $or: [{ captain: userDb }, { members: userDb }] },
+            ],
+        }).populate("captain members game");
+        if (data) {
+            return data;
+        }
     };
 
     /**
@@ -133,55 +156,26 @@ module.exports = client => {
      * @param {String} name Nom du groupe
      * @returns undefined si non trouvé, {@link Group} sinon
      */
-    client.findGroupByName = async name => {
+    client.findGroupByName = async (name) => {
         const data = await Group.findOne({
-            $and: [
-                { validated: false },
-                { name: name }
-            ]
-        })
-            .populate('captain members game');
-        if (data) return data;
-        else return;
-    };
-    
-    /**
-     * Cherche et retourne un {@link Group}, qui n'est pas validé, pas encore plein
-     * et dont le nom correspond au jeu du groupe
-     * en récupérant les infos liés (capitaine, membres et jeu)
-     * @param {String} name Nom du jeu
-     * @returns undefined si non trouvé, {@link Group} sinon
-     */
-    client.findGroupNotFullByGameName = async name => {
-        const games = await client.findGamesByName(name);
-        // recup array _id
-        var ids = games.map(function(g) { return g._id; });
-
-        // cherche parmis les _id & groupe non rempli
-        const data = await Group.find({
-            $and: [
-                { validated: false },
-                { game: {$in: ids} },
-                { $expr: { $lt: [ "$size", "$nbMax" ]} },
-            ]})
-            .populate('captain')
-            .populate('members')
-            .populate('game');
-        if (data) return data;
-        else return;
+            $and: [{ validated: false }, { name: name }],
+        }).populate("captain members game");
+        if (data) {
+            return data;
+        }
     };
 
     /* GAMES */
     /**
      * Créer un nouveau {@link Game} et le sauvegarde en base
      * @param {Object} game Groupe à sauvegarder
-     * @returns 
+     * @returns
      */
-    client.createGame = async game => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, game);
+    client.createGame = async (game) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, game);
         const createGame = await new Game(merged);
         await createGame.save();
-        logger.info({prefix:"[DB]", message:"Nouveau game : " + game.name});
+        logger.info({ prefix: "[DB]", message: `Nouveau game : ${game.name}` });
     };
 
     /**
@@ -189,15 +183,21 @@ module.exports = client => {
      * @param {String} appid AppId du jeu
      * @returns undefined si non trouvé, tableau de {@link Game} sinon
      */
-    client.findGameByAppid = async appid => {
+    client.findGameByAppid = async (appid) => {
         const data = await Game.findOne({ appid: appid });
-        if (data) return data;
-        else return;
+        if (data) {
+            return data;
+        }
     };
+
     client.findMaxAppId = async () => {
-        const data = await Game.find({ }).sort({ appid: -1 }).limit(1).then(game => game[0].appid);
-        if (data) return data;
-        else return;
+        const data = await Game.find({})
+            .sort({ appid: -1 })
+            .limit(1)
+            .then((game) => game[0].appid);
+        if (data) {
+            return data;
+        }
     };
 
     /**
@@ -205,8 +205,8 @@ module.exports = client => {
      * @param {String} name Nom du jeu
      * @returns undefined si non trouvé, tableau de {@link Game} sinon
      */
-    client.findGamesByName = async name => {
-        return await client.findGames({ 'name': new RegExp(name, "i") });
+    client.findGamesByName = async (name) => {
+        return client.findGames({ name: new RegExp(name, "i") });
     };
 
     /**
@@ -214,11 +214,12 @@ module.exports = client => {
      * @param {Object} query Requête
      * @returns undefined si non trouvé, tableau de {@link Game} sinon
      */
-    client.findGames = async query => {
-        const data = await Game.find(query)
+    client.findGames = async (query) => {
+        const data = await Game.find(query);
         // .populate('');
-        if (data) return data;
-        else return;
+        if (data) {
+            return data;
+        }
     };
 
     /* GUILD CONFIG */
@@ -227,22 +228,26 @@ module.exports = client => {
      * @param {String} guildId Id du serveur
      * @returns undefined si non trouvé, {@link GuildConfig} sinon
      */
-    client.findGuildById = async guildId => {
-        const data = await GuildConfig.findOne({guildId: guildId});
-        if (data) return data;
-        else return;
+    client.findGuildById = async (guildId) => {
+        const data = await GuildConfig.findOne({ guildId: guildId });
+        if (data) {
+            return data;
+        }
     };
 
     /**
      * Créer un nouveau {@link GuildConfig} et le sauvegarde en base
      * @param {Object} guild Config serveur à sauvegarder
-     * @returns 
+     * @returns
      */
-    client.createGuild = async guild => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, guild);
+    client.createGuild = async (guild) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, guild);
         const createGuild = await new GuildConfig(merged);
         const gld = await createGuild.save();
-        logger.info({prefix:"[DB]", message:"Nouvelle guild : " + gld.guildId});
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouvelle guild : ${gld.guildId}`,
+        });
         return gld;
     };
 
@@ -251,244 +256,292 @@ module.exports = client => {
      * @param {Object} query Requête
      * @returns undefined si non trouvé, tableau {@link GuildConfig} sinon
      */
-    client.findGuildConfig = async query => {
-        const data = await GuildConfig.find(query)
-        if (data) return data;
-        else return;
-      };
+    client.findGuildConfig = async (query) => {
+        const data = await GuildConfig.find(query);
+        if (data) {
+            return data;
+        }
+    };
 
     /* JOB */
     /**
      * Créer un nouveau {@link Job} et le sauvegarde en base
      * @param {Object} job Job à sauvegarder
-     * @returns 
+     * @returns
      */
-    client.createJob = async job => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, job);
+    client.createJob = async (job) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, job);
         const createJob = await new Job(merged);
         const j = await createJob.save();
-        logger.info({prefix:"[DB]", message:"Nouveau job.."});
+        logger.info({ prefix: "[DB]", message: "Nouveau job.." });
         return j;
     };
 
     /**
      * Supprime un groupe
-     * @param {Object} group 
+     * @param {Object} group
      */
-    client.deleteJob = async job => {
+    client.deleteJob = async (job) => {
         // TODO return ? callback ?
-        Job.deleteOne({ _id: job._id }).then(j => logger.info({prefix:"[DB]", message:"Delete job : " + job.name}));
-    }
+        Job.deleteOne({ _id: job._id }).then((j) =>
+            logger.info({
+                prefix: "[DB]",
+                message: `Delete job : ${job.name}`,
+            }),
+        );
+    };
 
     /**
      * Cherche et retourne un tableau de {@link Job} en fonction d'une requête Mongodb
      * @param {Object} query Requête
      * @returns undefined si non trouvé, tableau {@link Job} sinon
      */
-    client.findJob = async query => {
-        const data = await Job.find(query)
+    client.findJob = async (query) => {
+        const data = await Job.find(query);
         // .populate('');
-        if (data) return data;
-        else return;
+        if (data) {
+            return data;
+        }
     };
 
     client.updateJob = async (job, settings) => {
         let data = job;
-        if (typeof data !== "object") data = {};
+        if (typeof data !== "object") {
+            data = {};
+        }
         for (const key in settings) {
-            if(data[key] !== settings[key]) data[key] = settings[key];
+            if (data[key] !== settings[key]) data[key] = settings[key];
         }
         return data.updateOne(settings);
     };
 
     /* SHOP */
-    client.createGameItemShop = async item => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+    client.createGameItemShop = async (item) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, item);
         const createGameItem = await new GameItem(merged);
         const g = await createGameItem.save();
-        
-        logger.info({prefix:"[DB]", message:"Nouveau Game Item (shop) : " + item.game.name});
+
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouveau Game Item (shop) : ${item.game.name}`,
+        });
         return g;
     };
 
     /**
      * Supprime un jeu du shop
-     * @param {Object} gameItem 
+     * @param {Object} gameItem
      */
-     client.deleteGameItem = async gameItem => {
+    client.deleteGameItem = async (gameItem) => {
         // TODO return ? callback ?
-        let item = await GameItem.deleteOne({ _id: gameItem._id })
-        logger.info({prefix:"[DB]", message:"Delete game item"});
-    }
+        await GameItem.deleteOne({ _id: gameItem._id });
+        logger.info({ prefix: "[DB]", message: "Delete game item" });
+    };
     /**
      * Supprime un jeu du shop
      * @param {Object} id
      */
-     client.deleteGameItemById = async id => {
-        let item = await GameItem.findOneAndDelete({ _id: new mongoose.Types.ObjectId(id) })
-        logger.info({prefix:"[DB]", message:"Delete game item"});
-    }
-
-    client.findGameItemShop = async query => {
-        const data = await GameItem.find(query)
-                                    .populate('game seller buyer');
-        if (data) return data;
-        else return;
+    client.deleteGameItemById = async (id) => {
+        await GameItem.findOneAndDelete({
+            _id: new mongoose.Types.ObjectId(id),
+        });
+        logger.info({ prefix: "[DB]", message: "Delete game item" });
     };
 
-    client.findGameItemShopBy = async q => {
-        const agg = [{
-                // select GameItem
-                $match: { itemtype: 'GameItem' }
-            }, {
-                // recup info Game
-                $lookup: {
-                    from: 'games',
-                    localField: 'game',
-                    foreignField: '_id',
-                    as: 'game'
-                }
-            }, {
-                // recup info vendeur
-                $lookup: {
-                    from: 'users',
-                    localField: 'seller',
-                    foreignField: '_id',
-                    as: 'seller'
-                }
-            }, {
-                // transforme array en Game
-                $unwind: {
-                    path: '$game'
-                }
-            }, {
-                // transforme array en User
-                $unwind: {
-                    path: '$seller'
-                }
-            }];
+    client.findGameItemShop = async (query) => {
+        const data = await GameItem.find(query).populate("game seller buyer");
+        if (data) {
+            return data;
+        }
+    };
 
-            // jeux pas encore vendu
-            if (q.notSold) {
-                agg.push({ $match: { buyer: { '$exists': false } } })
-            }
-
-            // filtre sur nom jeu
-            if (q.game) {
-                agg.push({ $match: { 'game.name': RegExp(escapeRegExp(q.game), 'i') } })
-            }
-            // filtre sur vendeur (ID)
-            if (q.seller) {
-                agg.push({ $match: { 'seller.userId': RegExp(q.seller, 'i') } })
-            }
-            
-            // limit résultat
-            if (q.limit) {
-                agg.push({ '$limit':  q.limit })
-            }
-
-            const data = await GameItem.aggregate(agg);
-            if (data) return data;
-            else return;
-    }
-
-    client.findGameItemShopByGame = async query => {
+    client.findGameItemShopBy = async (q) => {
         const agg = [
             {
                 // select GameItem
-                $match: { itemtype: 'GameItem' }
-            }, {
-                // jeux pas encore vendu
-                $match: { buyer: { '$exists': false } }
-            }, {
+                $match: { itemtype: "GameItem" },
+            },
+            {
                 // recup info Game
                 $lookup: {
-                    from: 'games', 
-                    localField: 'game', 
-                    foreignField: '_id', 
-                    as: 'game'
-                }
-            }, {
+                    from: "games",
+                    localField: "game",
+                    foreignField: "_id",
+                    as: "game",
+                },
+            },
+            {
                 // recup info vendeur
                 $lookup: {
-                    from: 'users', 
-                    localField: 'seller', 
-                    foreignField: '_id', 
-                    as: 'seller'
-                }
-            }, {
+                    from: "users",
+                    localField: "seller",
+                    foreignField: "_id",
+                    as: "seller",
+                },
+            },
+            {
                 // transforme array en Game
-                $unwind: { path: '$game' }
-            }, {
+                $unwind: {
+                    path: "$game",
+                },
+            },
+            {
                 // transforme array en User
-                $unwind: { path: '$seller' }
-            }, { 
+                $unwind: {
+                    path: "$seller",
+                },
+            },
+        ];
+
+        // jeux pas encore vendu
+        if (q.notSold) {
+            agg.push({ $match: { buyer: { $exists: false } } });
+        }
+
+        // filtre sur nom jeu
+        if (q.game) {
+            agg.push({
+                $match: { "game.name": RegExp(escapeRegExp(q.game), "i") },
+            });
+        }
+        // filtre sur vendeur (ID)
+        if (q.seller) {
+            agg.push({ $match: { "seller.userId": RegExp(q.seller, "i") } });
+        }
+
+        // limit résultat
+        if (q.limit) {
+            agg.push({ $limit: q.limit });
+        }
+
+        const data = await GameItem.aggregate(agg);
+        if (data) {
+            return data;
+        }
+    };
+
+    client.findGameItemShopByGame = async (query) => {
+        const agg = [
+            {
+                // select GameItem
+                $match: { itemtype: "GameItem" },
+            },
+            {
+                // jeux pas encore vendu
+                $match: { buyer: { $exists: false } },
+            },
+            {
+                // recup info Game
+                $lookup: {
+                    from: "games",
+                    localField: "game",
+                    foreignField: "_id",
+                    as: "game",
+                },
+            },
+            {
+                // recup info vendeur
+                $lookup: {
+                    from: "users",
+                    localField: "seller",
+                    foreignField: "_id",
+                    as: "seller",
+                },
+            },
+            {
+                // transforme array en Game
+                $unwind: { path: "$game" },
+            },
+            {
+                // transforme array en User
+                $unwind: { path: "$seller" },
+            },
+            {
                 // sort par montant
                 $sort: {
-                    'montant': 1
-                }
-            }, {
+                    montant: 1,
+                },
+            },
+            {
                 // regroupe par jeu
                 $group: {
-                    _id: '$game', 
+                    _id: "$game",
                     items: {
-                        '$push': '$$ROOT'
-                    }
-                }
-            }, { // TODO obligé de sort pour avoir le meme ordre, pour pouvoir acceder à la bonne page
+                        $push: "$$ROOT",
+                    },
+                },
+            },
+            {
+                // TODO obligé de sort pour avoir le meme ordre, pour pouvoir acceder à la bonne page
                 // sort par appid
                 $sort: {
-                    '_id.appid': 1
-                }
-            }
+                    "_id.appid": 1,
+                },
+            },
         ];
 
         const data = await GameItem.aggregate(agg);
-        if (data) return data;
-        else return;
-    }
+        if (data) {
+            return data;
+        }
+    };
 
     /* ROLE CHANNEL */
-    client.createRoleChannel = async item => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+    client.createRoleChannel = async (item) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, item);
         const createRole = await new RolesChannel(merged);
         const g = await createRole.save();
-        
-        logger.info({prefix:"[DB]", message:"Nouveau Role Channel : " + item.name});
+
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouveau Role Channel : ${item.name}`,
+        });
         return g;
     };
 
     /* MSG */
-    client.createMsgHallHeros = async item => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+    client.createMsgHallHeros = async (item) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, item);
         const createMsg = await new MsgHallHeros(merged);
         const g = await createMsg.save();
-        
-        logger.info({prefix:"[DB]", message:"Nouveau Hall 🏆 Héros, de : " + item.author.username});
+
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouveau Hall 🏆 Héros, de : ${item.author.username}`,
+        });
         return g;
     };
-    client.createMsgHallZeros = async item => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+
+    client.createMsgHallZeros = async (item) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, item);
         const createMsg = await new MsgHallZeros(merged);
         const g = await createMsg.save();
-        
-        logger.info({prefix:"[DB]", message:"Nouveau Hall 💩 Zéros, de : " + item.author.username});
+
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouveau Hall 💩 Zéros, de : ${item.author.username}`,
+        });
         return g;
     };
-    client.createMsgDmdeAide = async item => {
-        const merged = Object.assign({_id: mongoose.Types.ObjectId()}, item);
+    client.createMsgDmdeAide = async (item) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, item);
         const createMsg = await new MsgDmdeAide(merged);
         const g = await createMsg.save();
-        
-        logger.info({prefix:"[DB]", message:"Nouveau msg 🤝 Dmde aide"});
+
+        logger.info({ prefix: "[DB]", message: "Nouveau msg 🤝 Dmde aide" });
         return g;
     };
 
     // TODO a deplacer
-    client.getGuildChannel = async (guildId, salon) => {
-        const guildDB = await client.findGuildById(guildId);
-        return guildDB?.channels[salon];
-    }
+    client.getGuildChannel = async (id, salon) => {
+        const guildDb = await client.findGuildById(id);
+        return guildDb?.channels[salon];
+    };
+
+    client.getGuildWebhook = async (id, hook) => {
+        const guildDb = await client.findGuildById(id);
+        return guildDb?.webhook[hook];
+    };
 
     // config profile
     client.getOrInitProfile = async (user) => {
@@ -504,7 +557,7 @@ module.exports = client => {
         if (!configProfile.border.style || !configProfile.border.color) {
             configProfile.border.style = new Map();
             configProfile.border.style.set("solid", true);
-            
+
             configProfile.border.color = new Map();
             configProfile.border.color.set("#FFFFFF", true);
             toSave = true;
@@ -513,7 +566,7 @@ module.exports = client => {
         if (!configProfile.avatar.style || !configProfile.avatar.color) {
             configProfile.avatar.style = new Map();
             configProfile.avatar.style.set("solid", true);
-            
+
             configProfile.avatar.color = new Map();
             configProfile.avatar.color.set("#FFFFFF", true);
             toSave = true;
@@ -526,9 +579,18 @@ module.exports = client => {
         }
 
         if (toSave) {
-            await user.save()
+            await user.save();
         }
 
         return configProfile;
-    }
-}
+    };
+
+    client.getNbOngoingGroups = async (userid) => {
+        const tmp = await User.findOne({ userId: userid });
+
+        return Group.find({
+            members: tmp,
+            validated: false,
+        }).countDocuments();
+    };
+};
