@@ -7,6 +7,7 @@ const {
     GuildConfig,
     GameItem,
     RolesChannel,
+    CheatSuspicions,
     MsgHallHeros,
     MsgHallZeros,
     MsgDmdeAide,
@@ -592,5 +593,43 @@ module.exports = (client) => {
             members: tmp,
             validated: false,
         }).countDocuments();
+    };
+
+    /* CheatSuspicions */
+    /**
+     * Créer un nouveau {@link CheatSuspicions} et le sauvegarde en base
+     * @param {Object} cheatSuspicion CheatSuspicion à sauvegarder
+     * @returns
+     */
+    client.createCheatSuspicion = async (cheatSuspicion) => {
+        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, cheatSuspicion);
+        const createCheatSuspicion = await new CheatSuspicions(merged);
+        const c = await createCheatSuspicion.save();
+        logger.info({ prefix: "[DB]", message: `Nouvelle cheat suspicion sur l'userId : ${cheatSuspicion.userId}` });
+        return c;
+    };
+    /**
+     * Cherche et retourne un tableau de {@link CheatSuspicions} en fonction d'un user
+     * @param {Number} userId UserId
+     * @returns undefined si non trouvé, tableau {@link CheatSuspicions} sinon
+     */
+    client.getUserCheatSuspicions = async (userId) => {
+        const data = await CheatSuspicions.find({userId: userId});
+        if (data) {
+            return data;
+        }
+    }
+    
+    client.getAllUsersCheatSuspicions = async (query) => {
+        // TO DO
+    }
+
+    /**
+     * Supprime une suspicion de cheat
+     * @param {Object} cheatSuspicionItem
+     */
+    client.deleteCheatSuspicionItem = async (cheatSuspicionItem) => {
+        await CheatSuspicions.deleteOne({ _id: cheatSuspicionItem._id });
+        logger.info({ prefix: "[DB]", message: `Suppression de la sup n°${cheatSuspicionItem._id}` });
     };
 };

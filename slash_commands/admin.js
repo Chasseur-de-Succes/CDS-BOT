@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
-const { add, remove, history, list } = require("./subcommands/admin/cheat");
+const { add: addCheat, remove, history, list } = require("./subcommands/admin/cheat");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { Group } = require("../models");
@@ -130,7 +130,7 @@ module.exports = {
                         )
                         .addIntegerOption((option) =>
                             option
-                                .setName("number")
+                                .setName("reason_number")
                                 .setDescription("Numéro de la raison à supprimé (obtenable via l'historique)")
                                 .setRequired(true),
                         ),
@@ -307,6 +307,10 @@ module.exports = {
                 .map((choice) => ({ name: choice, value: choice }));
         }
 
+        if (focusedValue.name === "reason_number") {
+            
+        }
+
         await interaction.respond(filtered);
     },
     async execute(interaction) {
@@ -358,13 +362,11 @@ module.exports = {
             await givemoney(interaction, interaction.options);
         } else if (subcommandGroup === "cheat") {
             if (subcommand === "add") {
-                // todo add
-                await add(interaction, interaction.options);
+                await addCheat(interaction, interaction.options);
             } else if (subcommand === "remove") {
                 // todo remove
                 await remove(interaction, interaction.options);
             } else if (subcommand === "history") {
-                // todo history
                 await history(interaction, interaction.options);
             } else if (subcommand === "list") {
                 await list(interaction, interaction.options)
