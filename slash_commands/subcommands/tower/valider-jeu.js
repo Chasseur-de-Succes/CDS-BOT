@@ -77,11 +77,13 @@ const validerJeu = async (interaction, options) => {
     const author = interaction.member;
     const client = interaction.client;
 
+    await interaction.deferReply();
+
     // Récupérer l'utilisateur
     const userDb = await client.getUser(author);
     if (!userDb) {
         // Si pas dans la BDD
-        return await interaction.reply({
+        return await interaction.editReply({
             embeds: [
                 createError(
                     `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
@@ -98,7 +100,7 @@ const validerJeu = async (interaction, options) => {
 
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
-        return interaction.reply({
+        return interaction.editReply({
             content: `Aucun salon de l'évènement tower n'a été trouvé.`,
             ephemeral: true,
         });
@@ -106,7 +108,7 @@ const validerJeu = async (interaction, options) => {
 
     // Test si le salon de l'interaction est celui de l'événement
     if (interaction.channelId !== eventChannelId) {
-        return await interaction.reply({
+        return await interaction.editReply({
             embeds: [
                 createError(
                     `Tu dois valider ton jeu dans le salon <#${eventChannelId}> !`,
@@ -119,14 +121,14 @@ const validerJeu = async (interaction, options) => {
     // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
     if (!guild.event.tower.started) {
         logger.info(".. évènement tower pas encore commencé");
-        return await interaction.reply({
+        return await interaction.editReply({
             embeds: [createError("L'évènement n'a pas encore commencé..")],
         });
     }
 
     // si pas inscrit
     if (typeof userDb.event.tower.startDate === "undefined") {
-        return await interaction.reply({
+        return await interaction.editReply({
             embeds: [
                 createError(
                     "Tu dois d'abord t'inscrire à l'évènement (via `/tower inscription`) !",
@@ -138,7 +140,7 @@ const validerJeu = async (interaction, options) => {
 
     // appid doit être tjs présent
     if (!appid) {
-        return await interaction.reply({
+        return await interaction.editReply({
             embeds: [
                 createError(
                     "Tu dois spécifier au moins un appID ou chercher le jeu que tu as complété",
@@ -169,7 +171,7 @@ const validerJeu = async (interaction, options) => {
     // - ne devrait normalement jamais être exécuté
     if (allBossDead) {
         logger.info(".. tous les boss sont DEAD ..");
-        return await interaction.reply({
+        return await interaction.editReply({
             content: "L'évènement est terminé ! Revenez peut être plus tard..",
             ephemeral: true,
         });
@@ -192,7 +194,7 @@ const validerJeu = async (interaction, options) => {
         // Recup nom du jeu, si présent dans la bdd
         const gameDb = await client.findGameByAppid(appid);
         // TODO si gameDb non trouvé
-        return await interaction.reply({
+        return await interaction.editReply({
             content: `${gameDb?.name} (${appid}) n'a même pas de succès..`,
             ephemeral: true,
         });
@@ -203,7 +205,7 @@ const validerJeu = async (interaction, options) => {
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): avant le début de l'event ..`,
         });
-        return await interaction.reply({
+        return await interaction.editReply({
             content: `Tu as terminé ${gameName} **avant** le début de l'évènement.. Celui-ci ne peut être pris en compte.`,
             ephemeral: true,
         });
@@ -216,7 +218,7 @@ const validerJeu = async (interaction, options) => {
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): déjà fait ..`,
             });
-            return await interaction.reply({
+            return await interaction.editReply({
                 content: `Tu as déjà utilisé ${gameName}.. ce n'est pas très efficace.`,
                 ephemeral: true,
             });
@@ -245,7 +247,7 @@ const validerJeu = async (interaction, options) => {
                     message: `${author.user.tag} 100% ${gameName} (${appid}): 1er étage ..`,
                 });
                 // 1er message d'intro
-                return interaction.reply({
+                return interaction.editReply({
                     embeds: [
                         await createEmbed({
                             title: `🏆 ${gameName} terminé !`,
@@ -276,7 +278,7 @@ ${ASCII_FIRST}`,
                         message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, création 1er boss..`,
                     });
                     const newBoss = await createBoss(season, false);
-                    return interaction.reply({
+                    return interaction.editReply({
                         embeds: [
                             await createEmbed({
                                 title: `🏆 ${gameName} terminé !`,
@@ -310,7 +312,7 @@ ${ASCII_BOSS_FIRST_TIME}`,
                         prefix: "TOWER",
                         message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier..`,
                     });
-                    return interaction.reply({
+                    return interaction.editReply({
                         embeds: [
                             await createEmbed({
                                 title: `🏆 ${gameName} terminé !`,
@@ -344,7 +346,7 @@ ${ASCII_BOSS_PALIER}`,
                     season: season,
                     hp: { $ne: 0 },
                 });
-                return interaction.reply({
+                return interaction.editReply({
                     embeds: [
                         await createEmbed({
                             title: `🏆 ${gameName} terminé !`,
@@ -377,7 +379,7 @@ ${ASCII_HIDDEN_BOSS_PALIER}`,
                         userDb.event.tower.etage / ETAGE_PAR_PALIER
                     }..`,
                 });
-                return interaction.reply({
+                return interaction.editReply({
                     embeds: [
                         await createEmbed({
                             title: `🏆 ${gameName} terminé !`,
@@ -405,7 +407,7 @@ ${ASCII_PALIER}`,
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
             });
-            return interaction.reply({
+            return interaction.editReply({
                 embeds: [
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
@@ -445,7 +447,7 @@ ${ASCII_PALIER}`,
                 // si boss caché meurt, on arrête TOUT et on backup la saison
                 await endSeason(client, season, guild);
 
-                return interaction.reply({
+                return interaction.editReply({
                     embeds: [
                         await createEmbed({
                             title: `🏆 ${gameName} terminé !`,
@@ -470,7 +472,7 @@ ${ASCII_END}`,
             });
             const hiddenBoss = await createBoss(season, true);
 
-            return interaction.reply({
+            return interaction.editReply({
                 embeds: [
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
@@ -509,13 +511,13 @@ ${ASCII_100}`,
             value: `${displayHealth(currentBoss)}`,
         });
 
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [embed],
             ephemeral: true,
         });
     }
 
-    return interaction.reply({
+    return interaction.editReply({
         embeds: [
             await createEmbed({
                 title: `🛑 Tu n'as pas encore complété ${gameName}..`,
