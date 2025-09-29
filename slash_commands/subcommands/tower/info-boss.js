@@ -6,7 +6,7 @@ const infoBoss = async (interaction, options) => {
     const guildId = interaction.guildId;
     const guild = await GuildConfig.findOne({ guildId: guildId });
     const season = guild.event.tower.currentSeason;
-    if (typeof season === "undefined") {
+    if (typeof season === "undefined" || !guild.event.tower.started) {
         return interaction.reply({
             content: "Aucune saison en cours.",
             ephemeral: true,
