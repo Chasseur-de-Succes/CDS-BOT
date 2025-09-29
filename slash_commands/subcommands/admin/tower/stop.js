@@ -1,7 +1,5 @@
 const { GuildConfig, User } = require("../../../../models");
-const { endSeasonForUser, endSeason} = require("../../tower/valider-jeu");
-const { createLogs } = require("../../../../util/envoiMsg");
-const { daysDiff } = require("../../../../util/util");
+const { endSeason } = require("../../tower/valider-jeu");
 
 async function stop(interaction) {
     const guild = await GuildConfig.findOne({

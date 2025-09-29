@@ -26,7 +26,7 @@ const {
 const { TowerBoss, GuildConfig, User } = require("../../../models");
 const { SALON } = require("../../../util/constants");
 const { daysDiff } = require("../../../util/util");
-const {EmbedBuilder} = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 // Récupère une private joke aléatoirement
 function getRandomPrivateJokes() {
@@ -544,7 +544,9 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
     createLogs(
         client,
         guild.guildId,
-        !cancelled ? `🗼 TOWER : Saison ${seasonNumber} terminée` : `🗼 TOWER : Saison ${seasonNumber} arrêtée`,
+        !cancelled
+            ? `🗼 TOWER : Saison ${seasonNumber} terminée`
+            : `🗼 TOWER : Saison ${seasonNumber} arrêtée`,
         !cancelled ? "Évènement terminé !" : "Évènement arrêté !",
         `en ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
         "#DC8514",
@@ -588,10 +590,12 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
 
         // si boss pas mort
         let embedEnd = new EmbedBuilder()
-            .setTitle('Fin de l\'évènement')
+            .setTitle("Fin de l'évènement")
             // .setDescription(option.desc)
             .setColor("#ff0000")
-            .setFooter({ text: "Seuls ceux qui ne font rien n'échouent pas.." });
+            .setFooter({
+                text: "Seuls ceux qui ne font rien n'échouent pas..",
+            });
 
         if (currentBoss && currentBoss.hp > 0) {
             // si le boss est le boss caché
@@ -601,22 +605,24 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
                     hidden: false,
                 });
                 embedEnd.setDescription(
-`
+                    `
 Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
 En prenant le corps de \`${deadBoss.name}\`, \`${currentBoss.name}\` éjecte tout le monde de la tour.
 Il s'enfuit, furieux de ne pas avoir pu venger son maître..
-${ASCII_SECOND_BAD_ENDING}`
-                )
+${ASCII_SECOND_BAD_ENDING}`,
+                );
             } else {
                 embedEnd.setDescription(
-`Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
+                    `Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
 Celui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin, suivi de près par une ombre..
-${ASCII_FIRST_BAD_ENDING}`);
+${ASCII_FIRST_BAD_ENDING}`,
+                );
             }
         } else {
             embedEnd.setDescription(
                 `Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..
-${ASCII_START_BAD_ENDING}`);
+${ASCII_START_BAD_ENDING}`,
+            );
         }
         eventChannel.send({ embeds: [embedEnd] });
     }
