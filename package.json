@@ -25,6 +25,6 @@
         "winston-daily-rotate-file": "^4.6.1"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.0.6"
+        "@biomejs/biome": "2.2.4"
     }
 }
