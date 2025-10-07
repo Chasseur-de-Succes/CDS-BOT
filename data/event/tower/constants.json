@@ -10,6 +10,28 @@
         "name": "Haiepique Fayl",
         "hp": 150
     },
+    "SEASONS": {
+        "0": {
+            "MAX_ETAGE": 20,
+            "ETAGE_PAR_PALIER": 5,
+            "DAMAGE": 1
+        }
+    },
+    "BOSSES": {
+        "0": [
+            {
+                "name": "Big Sweeney",
+                "hp": 300
+            },
+            {
+                "name": "Haiepique Fayl",
+                "hp": 150,
+                "hidden": true
+            }
+        ],
+        "1": [
+        ]
+    },
     "PRIVATE_JOKES": [
         "Et paf !",
         "C'est pas ouf..",

@@ -21,56 +21,14 @@ const {
     ASCII_FIRST_BAD_ENDING,
     ASCII_SECOND_BAD_ENDING,
     ASCII_START_BAD_ENDING,
-    PRIVATE_JOKES,
 } = require("../../../data/event/tower/constants.json");
 const { TowerBoss, GuildConfig, User } = require("../../../models");
 const { SALON } = require("../../../util/constants");
 const { daysDiff } = require("../../../util/util");
 const { EmbedBuilder } = require("discord.js");
-
-// Récupère une private joke aléatoirement
-function getRandomPrivateJokes() {
-    return PRIVATE_JOKES[Math.floor(Math.random() * PRIVATE_JOKES.length)];
-}
-
-// Calcul le pourcentage de vie restant du boss donné, retourne une suite d'émoji
-function displayHealth(boss) {
-    const totalHP = 5;
-    const filledRatio = (boss.hp / boss.maxHp) * totalHP; // Ratio de cases pleines
-    const filledHP = Math.floor(filledRatio); // Cases totalement remplies (arrondi inférieur)
-    const hasIntermediate = filledRatio > filledHP; // Vérifie s'il reste une fraction pour une case intermédiaire
-    const emptyHP = totalHP - filledHP - (hasIntermediate ? 1 : 0); // Cases vides
-
-    // Sélection des émojis de couleur selon le ratio de vie
-    let filledEmoji = "🟩"; // Par défaut, plein de vie
-    if (boss.hp / boss.maxHp <= 0.3) {
-        filledEmoji = "🟥"; // Faible santé
-    } else if (boss.hp / boss.maxHp <= 0.6) {
-        filledEmoji = "🟨"; // Santé moyenne
-    }
-    const intermediateEmoji = "🟧"; // Émoji intermédiaire
-    const emptyEmoji = "⬜"; // Cases vides plus douces
-
-    return `${filledEmoji.repeat(filledHP)}${
-        hasIntermediate ? intermediateEmoji : ""
-    }${emptyEmoji.repeat(emptyHP)}`;
-}
-
-// Créer un boss si aucun n'existe
-async function createBoss(season, isHiddenBoss) {
-    const infoBoss = isHiddenBoss ? HIDDEN_BOSS : BOSS;
-
-    const newBoss = await new TowerBoss({
-        name: infoBoss.name,
-        hp: infoBoss.hp,
-        maxHp: infoBoss.hp,
-        season: season,
-        hidden: isHiddenBoss,
-    });
-
-    await newBoss.save();
-    return newBoss;
-}
+const {isAllBossDead} = require("../../../util/events/towerUtils");
+const { displayHealth, getRandomPrivateJokes, endSeasonForUser } = require("../../../util/events/tower/towerUtils");
+const { seasonZero } = require("../../../util/events/tower/season");
 
 const validerJeu = async (interaction, options) => {
     const guildId = interaction.guildId;
@@ -155,20 +113,7 @@ const validerJeu = async (interaction, options) => {
     const season = guild.event.tower.currentSeason;
 
     // teste si les boss sont en vie, sinon on skip
-    const allBossDead = await TowerBoss.exists({
-        $and: [
-            {
-                season: season,
-                hp: { $eq: 0 },
-                hidden: false,
-            },
-            {
-                season: season,
-                hp: { $eq: 0 },
-                hidden: true,
-            },
-        ],
-    });
+    const allBossDead = await isAllBossDead(season);
 
     // - ne devrait normalement jamais être exécuté
     if (allBossDead) {
@@ -214,218 +159,15 @@ const validerJeu = async (interaction, options) => {
     }
 
     if (hasAllAchievements) {
-        // Vérifier si l'utilisateur a déjà 100% le jeu
-        if (userDb.event.tower.completedGames.includes(appid)) {
-            logger.warn({
-                prefix: "TOWER",
-                message: `${author.user.tag} 100% ${gameName} (${appid}): déjà fait ..`,
-            });
-            return await interaction.reply({
-                content: `Tu as déjà utilisé ${gameName}.. ce n'est pas très efficace.`,
-                ephemeral: true,
-            });
+        // TODO fonctionnement différent en fonction de la saison
+        // Saison 0 : Tour à 20 étages, avec 2 boss dont un caché
+        switch (season) {
+            case 0:
+                // gestion de la saison 0 dans un fichier séparé
+                return seasonZero(client, guildId, interaction, userDb, author, gameName, appid);
         }
-
-        userDb.event.tower.etage += 1; // On monte d'un étage
-        userDb.event.tower.completedGames.push(appid); // Ajouter l'appId aux jeux déjà 100%
-        await userDb.save();
-
-        // logs
-        createLogs(
-            client,
-            guildId,
-            "🗼 TOWER : Nouveau jeu validé",
-            `${author} vient de valider **${gameName}** (${appid}) !`,
-            "",
-            "#DC8514",
-        );
-
-        // Si l'utilisateur n'est pas encore arrivé au boss
-        if (userDb.event.tower.etage <= MAX_ETAGE) {
-            // 1er étage franchi (1 jeu complété)
-            if (userDb.event.tower.etage === 1) {
-                logger.info({
-                    prefix: "TOWER",
-                    message: `${author.user.tag} 100% ${gameName} (${appid}): 1er étage ..`,
-                });
-                // 1er message d'intro
-                return interaction.reply({
-                    embeds: [
-                        await createEmbed({
-                            title: `🏆 ${gameName} terminé !`,
-                            url: `https://store.steampowered.com/app/${appid}/`,
-                            desc: `En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !
-${ASCII_FIRST}`,
-                            color: "#1cff00",
-                            footer: {
-                                text: `Étage 1/?? | ${getRandomPrivateJokes()}`,
-                            },
-                        }),
-                    ],
-                    ephemeral: true,
-                });
-            }
-
-            // Si l'utilisateur est arrivé à l'étage du boss (MAX_ETAGE jeux complétés)
-            if (userDb.event.tower.etage === MAX_ETAGE) {
-                const bossCreated = await TowerBoss.exists({
-                    season: season,
-                    hidden: false,
-                });
-
-                // Si boss pas créé, on le crée
-                if (!bossCreated) {
-                    logger.info({
-                        prefix: "TOWER",
-                        message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, création 1er boss..`,
-                    });
-                    const newBoss = await createBoss(season, false);
-                    return interaction.reply({
-                        embeds: [
-                            await createEmbed({
-                                title: `🏆 ${gameName} terminé !`,
-                                url: `https://store.steampowered.com/app/${appid}/`,
-                                desc: `${author} a atteint le **palier ${
-                                    userDb.event.tower.etage / ETAGE_PAR_PALIER
-                                }** et est arrivé au sommet de la tour !!
-${author} aperçoit au loin une ombre menaçante.\n
-En se rapprochant, ${author} reconnait très clairement le cupide \`${
-                                    newBoss.name
-                                }\`..\n
-Attention, il fonce droit sur vous !!
-${ASCII_BOSS_FIRST_TIME}`,
-                                color: "#ff0000",
-                                footer: {
-                                    text: `"Tiens, un jeu gratuit !" 😈`,
-                                },
-                            }),
-                        ],
-                    });
-                }
-
-                const hiddenBossCreated = await TowerBoss.exists({
-                    season: season,
-                    hidden: true,
-                });
-
-                // Si boss caché pas encore créé, on rejoint le combat contre le 1er
-                if (!hiddenBossCreated) {
-                    logger.info({
-                        prefix: "TOWER",
-                        message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier..`,
-                    });
-                    return interaction.reply({
-                        embeds: [
-                            await createEmbed({
-                                title: `🏆 ${gameName} terminé !`,
-                                url: `https://store.steampowered.com/app/${appid}/`,
-                                desc: `${author} a atteint le **palier ${
-                                    userDb.event.tower.etage / ETAGE_PAR_PALIER
-                                }** et est arrivé au sommet de la tour !!
-${author} aperçoit au loin d'autres joueurs menant une rude bataille..
-${author} prends part au combat !
-${ASCII_BOSS_PALIER}`,
-                                color: "#ff0000",
-                                footer: {
-                                    text: "Enfin en haut !",
-                                },
-                            }),
-                        ],
-                    });
-                }
-
-                // Si boss caché créé, le 1er est mort, on rejoint le combat contre le 2ème
-                logger.info({
-                    prefix: "TOWER",
-                    message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, 1er boss mort..`,
-                });
-                const deadBoss = await TowerBoss.findOne({
-                    season: season,
-                    hp: { $eq: 0 },
-                    hidden: false,
-                });
-                const currentBoss = await TowerBoss.findOne({
-                    season: season,
-                    hp: { $ne: 0 },
-                });
-                return interaction.reply({
-                    embeds: [
-                        await createEmbed({
-                            title: `🏆 ${gameName} terminé !`,
-                            url: `https://store.steampowered.com/app/${appid}/`,
-                            desc: `${author} a atteint le **palier ${
-                                userDb.event.tower.etage / ETAGE_PAR_PALIER
-                            }** et est arrivé au sommet de la tour !!
-Mais ${author} trébuche sur le cadavre de \`${deadBoss.name}\`...
-En se relevant, ${author} voit ses coéquipiers faire face au grand \`${
-                                currentBoss.name
-                            }\`\n
-${author} prends part au combat !
-${ASCII_HIDDEN_BOSS_PALIER}`,
-                            color: "#ff00fc",
-                            footer: {
-                                text: "Mieux vaux tard que jamais",
-                            },
-                        }),
-                    ],
-                });
-            }
-
-            // Vérifier si l'utilisateur atteint un nouveau palier
-            if (userDb.event.tower.etage % ETAGE_PAR_PALIER === 0) {
-                logger.info({
-                    prefix: "TOWER",
-                    message: `${
-                        author.user.tag
-                    } 100% ${gameName} (${appid}): nouveau palier ${
-                        userDb.event.tower.etage / ETAGE_PAR_PALIER
-                    }..`,
-                });
-                return interaction.reply({
-                    embeds: [
-                        await createEmbed({
-                            title: `🏆 ${gameName} terminé !`,
-                            url: `https://store.steampowered.com/app/${appid}/`,
-                            desc: `En complétant **${gameName}**, ${author} arrive au **palier ${
-                                userDb.event.tower.etage / ETAGE_PAR_PALIER
-                            }** !
-            Ce palier est vide.. les escaliers montent toujours et les bruits sont de plus en plus oppressants.
-${ASCII_PALIER}`,
-                            color: "#1cff00",
-                            footer: {
-                                text: `Étage ${
-                                    userDb.event.tower.etage
-                                }/??, Palier ${
-                                    userDb.event.tower.etage / ETAGE_PAR_PALIER
-                                }/?? | ${getRandomPrivateJokes()}`,
-                            },
-                        }),
-                    ],
-                });
-            }
-
-            // Utilisateur monte d'un étage
-            logger.info({
-                prefix: "TOWER",
-                message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
-            });
-            return interaction.reply({
-                embeds: [
-                    await createEmbed({
-                        title: `🏆 ${gameName} terminé !`,
-                        url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !`,
-                        color: "#1cff00",
-                        footer: {
-                            text: `Étage ${
-                                userDb.event.tower.etage
-                            }/?? | ${getRandomPrivateJokes()}`,
-                        },
-                    }),
-                ],
-                ephemeral: true,
-            });
-        }
+        // TODO Saison N+1 : Tour à X étages, avec un boss à chaque palier (admin CDS)
+        // TODO Saison N+2 : Participant réparti en plusieurs équipes (2 ou 3), 2/3 tour à X étages, un boss différent pour chaque équipe -> a réfléchir
 
         // Récupère le boss courant non mort
         const currentBoss = await TowerBoss.findOne({
@@ -536,6 +278,9 @@ ${ASCII_NOT_100}`,
     });
 };
 
+/**
+ * Fin de la saison, backup des infos
+ */
 async function endSeason(client, seasonNumber, guild, cancelled = false) {
     logger.info({
         prefix: "TOWER",
@@ -628,28 +373,5 @@ ${ASCII_START_BAD_ENDING}`,
     }
 }
 
-async function endSeasonForUser(user, endDate, seasonNumber) {
-    // Sauvegarder les données de la saison actuelle dans l'historique
-    user.event.tower.seasonHistory.push({
-        seasonNumber: seasonNumber,
-        startDate: user.event.tower.startDate,
-        endDate: endDate,
-        maxEtage: user.event.tower.etage,
-        totalDamage: user.event.tower.totalDamage,
-    });
-
-    // Réinitialiser les données pour la nouvelle saison
-    user.event.tower.startDate = undefined;
-    user.event.tower.etage = 0;
-    user.event.tower.totalDamage = 0;
-    // user.completedGames = [];
-    // user.season = seasonNumber + 1;
-
-    await user.save();
-}
-
 exports.validerJeu = validerJeu;
 exports.endSeason = endSeason;
-exports.endSeasonForUser = endSeasonForUser;
-exports.displayHealth = displayHealth;
-exports.getRandomPrivateJokes = getRandomPrivateJokes;
