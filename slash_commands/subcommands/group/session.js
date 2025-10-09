@@ -70,6 +70,7 @@ const schedule = async (interaction, options) => {
         allowedDateFormat,
         "Europe/Paris",
     );
+    const dateTimestamp = Math.floor(dateEvent / 1000)
 
     // Si la date existe déjà, la supprimer
     const indexDateEvent = grp.dateEvent.findIndex(
@@ -81,14 +82,14 @@ const schedule = async (interaction, options) => {
         grp.dateEvent.splice(indexDateEvent, 1);
 
         titreReponse += "Rdv enlevé 🚮";
-        msgReponse += `Session enlevée, le **${dateVoulue} à ${heureVoulue}** !`;
+        msgReponse += `Session enlevée, le <t:${dateTimestamp}:f> !`;
         logger.info(`.. date ${dateEvent} retiré`);
     } else {
         // Sinon, on l'ajoute, dans le bon ordre
         grp.dateEvent.push(dateEvent);
 
         titreReponse += "Rdv ajouté 🗓";
-        msgReponse += `Session ajoutée, le **${dateVoulue} à ${heureVoulue}** !`;
+        msgReponse += `Session ajoutée, le <t:${dateTimestamp}:f> !`;
         logger.info(`.. date ${dateEvent} ajouté`);
     }
 
@@ -117,13 +118,12 @@ const schedule = async (interaction, options) => {
             const channel = await guild.channels.cache.get(grp.channelId);
 
             if (channel) {
-                const dateStr = `${dateVoulue} à ${heureVoulue}`;
                 if (indexDateEvent >= 0) {
                     channel.send(
-                        `> ⚠️ La session du **${dateStr}** a été **supprimée**.`,
+                        `> ⚠️ La session du <t:${dateTimestamp}:F> a été **supprimée**.`,
                     );
                 } else {
-                    channel.send(`> 🗓 Nouvelle session le **${dateStr}** !`);
+                    channel.send(`> 🗓 Nouvelle session le <t:${dateTimestamp}:F> !`);
                 }
             }
         }
