@@ -70,7 +70,7 @@ const schedule = async (interaction, options) => {
         allowedDateFormat,
         "Europe/Paris",
     );
-    const dateTimestamp = Math.floor(dateEvent / 1000)
+    const dateTimestamp = Math.floor(dateEvent / 1000);
 
     // Si la date existe déjà, la supprimer
     const indexDateEvent = grp.dateEvent.findIndex(
@@ -123,7 +123,9 @@ const schedule = async (interaction, options) => {
                         `> ⚠️ La session du <t:${dateTimestamp}:F> a été **supprimée**.`,
                     );
                 } else {
-                    channel.send(`> 🗓 Nouvelle session le <t:${dateTimestamp}:F> !`);
+                    channel.send(
+                        `> 🗓 Nouvelle session le <t:${dateTimestamp}:F> !`,
+                    );
                 }
             }
         }
