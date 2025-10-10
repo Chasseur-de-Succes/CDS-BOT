@@ -12,34 +12,33 @@ async function history(interaction, options) {
     const user = await client.users.fetch(userId);
     const userList = await client.getUserCheatSuspicions(userId);
 
-    let msg = `# 🕵️ Historique des suspicions de triche de ${user}!\n`;
-
-    if(!userList) {
-        msg += `Aucune suspicion de triche.`
-        return await interaction.editReply({ content: msg });
-    }
-
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
         .setTitle(`🕵️ Historique des suspicions de triche de ${user.displayName}`)
         .setDescription(`${user}`)
         .setTimestamp();
 
-    for(const element of userList)  {
-        const timestamp = Math.floor(element.date.getTime() / 1000);
-        let reporter;
-        try {
-            const fetched = await client.users.fetch(element.reporterId);
-            reporter = fetched.toString();
-        } catch {
-            reporter = "Utilisateur inconnu";
-        }
-        msg += `\n## **Raison**\n${element.reason} - Par ${reporter}, le <t:${timestamp}:F>`; // D ?
-
+    if(userList.length === 0) {
         embed.addFields({
-            name: `🔸 ${element.reason}`,
-            value: `Par ${reporter}, le <t:${timestamp}:F>`,
-        });
+            name: `😎 Aucune suspicion de triche.`,
+            value: `\u200B`,
+        })
+    } else {
+        for(const element of userList)  {
+            const timestamp = Math.floor(element.date.getTime() / 1000);
+            let reporter;
+            try {
+                const fetched = await client.users.fetch(element.reporterId);
+                reporter = fetched.toString();
+            } catch {
+                reporter = "Utilisateur inconnu";
+            }
+
+            embed.addFields({
+                name: `🔸 ${element.reason}`,
+                value: `Par ${reporter}, le <t:${timestamp}:F>`,
+            });
+        }
     }
     
     await interaction.editReply({ embeds: [embed] });
