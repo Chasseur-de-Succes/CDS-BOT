@@ -12,7 +12,6 @@ const {
     ASCII_BOSS_FIRST_TIME,
     ASCII_BOSS_PALIER,
     ASCII_100,
-    ASCII_NOT_100,
     ASCII_HIDDEN_BOSS_FIRST_TIME,
     ASCII_HIDDEN_BOSS_PALIER,
     ASCII_END,
@@ -20,8 +19,9 @@ const {
     ASCII_SECOND_BAD_ENDING,
     ASCII_START_BAD_ENDING,
 } = require("../../../data/event/tower/constants.json");
-const { getRandomPrivateJokes } = require("./towerUtils");
+const { getRandomPrivateJokes, displayHealth } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
+const { endSeason } = require("../../../slash_commands/subcommands/tower/valider-jeu");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
@@ -40,7 +40,7 @@ async function createBoss(season, isHiddenBoss) {
     return newBoss;
 }
 
-async function seasonZero(client, guildId, interaction, userDb, author, gameName, appid) {
+async function seasonZero(client, guild, guildId, interaction, userDb, author, gameName, appid) {
     // Vérifier si l'utilisateur a déjà 100% le jeu
     if (userDb.event.tower.completedGames.includes(appid)) {
         logger.warn({
@@ -254,6 +254,97 @@ ${ASCII_PALIER}`,
             ephemeral: true,
         });
     }
+
+    // Récupère le boss courant non mort
+    const currentBoss = await TowerBoss.findOne({
+        season: 0,
+        hp: { $ne: 0 },
+    });
+
+    // Mettre à jour les dégâts infligés et enregistrer
+    userDb.event.tower.totalDamage += DAMAGE; // On tape le tower
+    await userDb.save();
+
+    currentBoss.hp -= DAMAGE; // On tape
+    await currentBoss.save();
+
+    if (currentBoss.hp <= 0) {
+        if (currentBoss.hidden) {
+            logger.info({
+                prefix: "TOWER",
+                message: `${author.user.tag} 100% ${gameName} (${appid}): tue boss caché, fin event, backup les infos ..`,
+            });
+            // si boss caché meurt, on arrête TOUT et on backup la saison
+            await endSeason(client, 0, guild);
+
+            return interaction.reply({
+                embeds: [
+                    await createEmbed({
+                        title: `🏆 ${gameName} terminé !`,
+                        url: `https://store.steampowered.com/app/${appid}/`,
+                        desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`!! Bravo !
+Le calme est revenu au sommet de cette tour. Vous pouvez vous reposer après cette lutte acharnée.
+C'est la fin..
+${ASCII_END}`,
+                        color: "#ff00fc",
+                        footer: {
+                            text: "C'est trop calme..",
+                        },
+                    }),
+                ],
+            });
+        }
+
+        // - si 1er boss dead, gestion du boss caché
+        logger.info({
+            prefix: "TOWER",
+            message: `${author.user.tag} 100% ${gameName} (${appid}): tue le boss, création boss caché ..`,
+        });
+        const hiddenBoss = await createBoss(season, true);
+
+        return interaction.reply({
+            embeds: [
+                await createEmbed({
+                    title: `🏆 ${gameName} terminé !`,
+                    url: `https://store.steampowered.com/app/${appid}/`,
+                    desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`! Bravo !
+Alors que son corps tombe à terre, ${author} entend grogner au loin..
+
+C'est \`${hiddenBoss.name}\`, son acolyte, qui bondit et qui veut venger son maître !
+${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
+                    color: "#ff00fc",
+                    footer: {
+                        text: "Il n'a pas l'air commode",
+                    },
+                }),
+            ],
+        });
+    }
+
+    // Boss toujours en vie
+    logger.info({
+        prefix: "TOWER",
+        message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${DAMAGE}..`,
+    });
+    const embed = await createEmbed({
+        title: `🏆 ${gameName} terminé !`,
+        url: `https://store.steampowered.com/app/${appid}/`,
+        desc: `En complétant **${gameName}**, ${author} inflige **${DAMAGE} point de dégats** à \`${currentBoss.name}\`!
+${ASCII_100}`,
+        color: "#ff00fc",
+        footer: {
+            text: `${getRandomPrivateJokes()}`,
+        },
+    });
+    embed.addFields({
+        name: `${currentBoss.hp}/${currentBoss.maxHp}`,
+        value: `${displayHealth(currentBoss)}`,
+    });
+
+    return interaction.reply({
+        embeds: [embed],
+        ephemeral: true,
+    });
 }
 
 module.exports = { seasonZero };

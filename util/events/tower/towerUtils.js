@@ -1,4 +1,4 @@
-const { TowerBoss } = require("../../models");
+const { TowerBoss } = require("../../../models");
 const {
     PRIVATE_JOKES,
 } = require("../../../data/event/tower/constants.json");
@@ -93,9 +93,105 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
     await user.save();
 }
 
+/**
+ * Fin de la saison, backup des infos
+ */
+async function endSeason(client, seasonNumber, guild, cancelled = false) {
+    logger.info({
+        prefix: "TOWER",
+        message: `fin de la saison ${seasonNumber} ..`,
+    });
+    createLogs(
+        client,
+        guild.guildId,
+        !cancelled
+            ? `🗼 TOWER : Saison ${seasonNumber} terminée`
+            : `🗼 TOWER : Saison ${seasonNumber} arrêtée`,
+        !cancelled ? "Évènement terminé !" : "Évènement arrêté !",
+        `en ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
+        "#DC8514",
+    );
+
+    // Edite Guild Config
+    guild.event.tower.started = false;
+    // on garde une trace
+    guild.event.tower.history.push({
+        season: guild.event.tower.currentSeason,
+        startDate: guild.event.tower.startDate,
+        endDate: Date.now(),
+        finished: !cancelled,
+    });
+    await guild.save();
+
+    // Récupérer tous les utilisateurs qui ont participé
+    const users = await User.find({
+        "event.tower.startDate": { $exists: true },
+    });
+
+    // Sauvegarder les informations de la saison actuelle pour chaque utilisateur
+    const endDate = Date.now();
+    for (const user of users) {
+        await endSeasonForUser(user, endDate, seasonNumber);
+    }
+
+    // Envoi d'un message de fin
+    if (cancelled) {
+        // si on arrête l'event manuellement, un boss est forcément encore en vie
+        const currentBoss = await TowerBoss.findOne({
+            season: seasonNumber,
+            hp: { $ne: 0 },
+        });
+
+        const eventChannelId = await client.getGuildChannel(
+            guild.guildId,
+            SALON.EVENT_TOWER,
+        );
+        const eventChannel = client.channels.cache.get(eventChannelId);
+
+        // si boss pas mort
+        let embedEnd = new EmbedBuilder()
+            .setTitle("Fin de l'évènement")
+            // .setDescription(option.desc)
+            .setColor("#ff0000")
+            .setFooter({
+                text: "Seuls ceux qui ne font rien n'échouent pas..",
+            });
+
+        if (currentBoss && currentBoss.hp > 0) {
+            // si le boss est le boss caché
+            if (currentBoss.hidden) {
+                const deadBoss = await TowerBoss.findOne({
+                    season: seasonNumber,
+                    hidden: false,
+                });
+                embedEnd.setDescription(
+                    `
+Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
+En prenant le corps de \`${deadBoss.name}\`, \`${currentBoss.name}\` éjecte tout le monde de la tour.
+Il s'enfuit, furieux de ne pas avoir pu venger son maître..
+${ASCII_SECOND_BAD_ENDING}`,
+                );
+            } else {
+                embedEnd.setDescription(
+                    `Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
+Celui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin, suivi de près par une ombre..
+${ASCII_FIRST_BAD_ENDING}`,
+                );
+            }
+        } else {
+            embedEnd.setDescription(
+                `Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..
+${ASCII_START_BAD_ENDING}`,
+            );
+        }
+        eventChannel.send({ embeds: [embedEnd] });
+    }
+}
+
 module.exports = {
     displayHealth,
     getRandomPrivateJokes,
     isAllBossDead,
-    endSeasonForUser
+    endSeasonForUser,
+    endSeason
 }
