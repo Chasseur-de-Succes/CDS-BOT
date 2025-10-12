@@ -602,34 +602,56 @@ module.exports = (client) => {
      * @returns
      */
     client.createCheatSuspicion = async (cheatSuspicion) => {
-        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, cheatSuspicion);
+        const merged = Object.assign(
+            { _id: mongoose.Types.ObjectId() },
+            cheatSuspicion,
+        );
         const createCheatSuspicion = await new CheatSuspicions(merged);
         const c = await createCheatSuspicion.save();
-        logger.info({ prefix: "[DB]", message: `Nouvelle cheat suspicion sur l'userId : ${cheatSuspicion.userId}` });
+        logger.info({
+            prefix: "[DB]",
+            message: `Nouvelle cheat suspicion sur l'userId : ${cheatSuspicion.userId}`,
+        });
         return c;
     };
     /**
      * Cherche et retourne un tableau de {@link CheatSuspicions} en fonction d'un user
      * @param {Number} userId UserId
-     * @returns undefined si non trouvé, tableau {@link CheatSuspicions} sinon
+     * @returns tableau {@link CheatSuspicions}
      */
     client.getUserCheatSuspicions = async (userId) => {
-        const data = await CheatSuspicions.find({userId: userId});
+        const data = await CheatSuspicions.find({ userId: userId });
         if (data) {
             return data;
         }
-    }
-    
+    };
+
+    /**
+     * Cherche et retourne une {@link CheatSuspicions} en fonction d'un id
+     * @param {String} CheatSuspicionId cheatSuspicionId
+     * @returns undefined si non trouvé, {@link CheatSuspicionItem} sinon
+     */
+    client.getCheatSuspicionById = async (cheatSuspicionId) => {
+        const data = await CheatSuspicions.findById(cheatSuspicionId);
+        if (data) {
+            return data;
+        }
+    };
+
     client.getAllUsersCheatSuspicions = async (query) => {
         // TO DO
-    }
+    };
 
     /**
      * Supprime une suspicion de cheat
      * @param {Object} cheatSuspicionItem
      */
-    client.deleteCheatSuspicionItem = async (cheatSuspicionItem) => {
-        await CheatSuspicions.deleteOne({ _id: cheatSuspicionItem._id });
-        logger.info({ prefix: "[DB]", message: `Suppression de la sup n°${cheatSuspicionItem._id}` });
+    client.deleteCheatSuspicionItem = async (cheatSuspicionId) => {
+        //cheatSuspicionItem
+        await CheatSuspicions.deleteOne({ _id: cheatSuspicionId });
+        logger.info({
+            prefix: "[DB]",
+            message: `Suppression de la suspicion de cheat id: ${cheatSuspicionId}`,
+        });
     };
 };
