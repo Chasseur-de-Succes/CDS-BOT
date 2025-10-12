@@ -35,10 +35,10 @@ async function add(interaction, options) {
     const embed = new EmbedBuilder()
         .setColor(GREEN)
         .setTitle(`${CHECK_MARK} Suspicion de triche ajoutée !`)
-        .setDescription(`Une nouvelle suspicion de triche a été ajoutée pour ${user}.`)
-        .addFields(
-            { name: 'Raison', value: `${reason}` }
-        );
+        .setDescription(
+            `Une nouvelle suspicion de triche a été ajoutée pour ${user}.`,
+        )
+        .addFields({ name: "Raison", value: `${reason}` });
     await interaction.editReply({ embeds: [embed] });
 }
 

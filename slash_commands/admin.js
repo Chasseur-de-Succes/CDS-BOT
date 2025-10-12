@@ -2,7 +2,12 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
-const { add: addCheat, remove, history, list } = require("./subcommands/admin/cheat");
+const {
+    add: addCheat,
+    remove,
+    history,
+    list,
+} = require("./subcommands/admin/cheat");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { Group } = require("../models");
@@ -104,7 +109,9 @@ module.exports = {
                 .addSubcommand((sub) =>
                     sub
                         .setName("add")
-                        .setDescription("Ajouter une note de suspicion de triche à l'utilisateur mentionné.")
+                        .setDescription(
+                            "Ajouter une note de suspicion de triche à l'utilisateur mentionné.",
+                        )
                         .addUserOption((option) =>
                             option
                                 .setName("user")
@@ -114,24 +121,24 @@ module.exports = {
                         .addStringOption((option) =>
                             option
                                 .setName("reason")
-                                .setDescription("Raison de la suspicion de cheat")
+                                .setDescription(
+                                    "Raison de la suspicion de cheat",
+                                )
                                 .setRequired(true),
                         ),
                 )
                 .addSubcommand((sub) =>
                     sub
                         .setName("remove")
-                        .setDescription("Supprimer une note de suspicion de triche à l'utilisateur mentionné.")
-                        .addUserOption((option) =>
-                            option
-                                .setName("user")
-                                .setDescription("L'utilisateur")
-                                .setRequired(true),
+                        .setDescription(
+                            "Supprimer une note de suspicion de triche à l'utilisateur mentionné.",
                         )
-                        .addIntegerOption((option) =>
+                        .addStringOption((option) =>
                             option
-                                .setName("reason_number")
-                                .setDescription("Numéro de la raison à supprimé (obtenable via l'historique)")
+                                .setName("id")
+                                .setDescription(
+                                    "ID de la raison à supprimé (obtenable via l'historique)",
+                                )
                                 .setRequired(true),
                         ),
                 )
@@ -151,7 +158,9 @@ module.exports = {
                 .addSubcommand((sub) =>
                     sub
                         .setName("list")
-                        .setDescription("Affiche la liste de tout les utilisateurs ayant une note de suspicion de triche.")
+                        .setDescription(
+                            "Affiche la liste de tout les utilisateurs ayant une note de suspicion de triche.",
+                        )
                         .addIntegerOption((option) =>
                             option
                                 .setName("page")
@@ -307,10 +316,6 @@ module.exports = {
                 .map((choice) => ({ name: choice, value: choice }));
         }
 
-        if (focusedValue.name === "reason_number") {
-            
-        }
-
         await interaction.respond(filtered);
     },
     async execute(interaction) {
@@ -364,12 +369,11 @@ module.exports = {
             if (subcommand === "add") {
                 await addCheat(interaction, interaction.options);
             } else if (subcommand === "remove") {
-                // todo remove
                 await remove(interaction, interaction.options);
             } else if (subcommand === "history") {
                 await history(interaction, interaction.options);
             } else if (subcommand === "list") {
-                await list(interaction, interaction.options)
+                await list(interaction, interaction.options);
             }
         }
     },

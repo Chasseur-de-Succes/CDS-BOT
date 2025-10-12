@@ -14,17 +14,19 @@ async function history(interaction, options) {
 
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
-        .setTitle(`🕵️ Historique des suspicions de triche de ${user.displayName}`)
+        .setTitle(
+            `🕵️ Historique des suspicions de triche de ${user.displayName}`,
+        )
         .setDescription(`${user}`)
         .setTimestamp();
 
-    if(userList.length === 0) {
+    if (userList.length === 0) {
         embed.addFields({
             name: `😎 Aucune suspicion de triche.`,
             value: `\u200B`,
-        })
+        });
     } else {
-        for(const element of userList)  {
+        for (const element of userList) {
             const timestamp = Math.floor(element.date.getTime() / 1000);
             let reporter;
             try {
@@ -35,12 +37,12 @@ async function history(interaction, options) {
             }
 
             embed.addFields({
-                name: `🔸 ${element.reason}`,
-                value: `Par ${reporter}, le <t:${timestamp}:F>`,
+                name: `🔸 ID: ${element._id}`,
+                value: `${element.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
             });
         }
     }
-    
+
     await interaction.editReply({ embeds: [embed] });
 }
 
