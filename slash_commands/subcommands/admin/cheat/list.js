@@ -1,7 +1,11 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const {
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+} = require("discord.js");
 const { createError } = require("../../../../util/envoiMsg");
 const { CRIMSON } = require("../../../../data/colors.json");
-const { CHECK_MARK } = require("../../../../data/emojis.json");
 
 async function list(interaction, options) {
     let currentPage = options.get("page")?.value || 1;
@@ -13,10 +17,12 @@ async function list(interaction, options) {
     const usersList = await client.getAllUsersCheatSuspicions();
     const nbPages = Math.ceil(usersList.length / pageSize);
 
-    if(usersList.length === 0) {
+    if (usersList.length === 0) {
         const embed = new EmbedBuilder()
             .setColor(CRIMSON)
-            .setTitle("📜 Liste des utilisateurs ayant une/des souspiçions de cheat")
+            .setTitle(
+                "📜 Liste des utilisateurs ayant une/des souspiçions de cheat",
+            )
             .setDescription(`😎 La liste est vide`);
         return interaction.editReply({ embeds: [embed] });
     }
@@ -24,7 +30,9 @@ async function list(interaction, options) {
     if (currentPage > nbPages)
         return interaction.editReply({
             embeds: [
-                createError(`Numéro de page invalide. Il n'y a que ${nbPages} page(s).`),
+                createError(
+                    `Numéro de page invalide. Il n'y a que ${nbPages} page(s).`,
+                ),
             ],
         });
 
@@ -48,7 +56,7 @@ async function list(interaction, options) {
         .setTitle(
             `📜 Liste des utilisateurs ayant une/des souspiçions de cheat`,
         )
-        .setFooter({ text: `Page ${currentPage}/${nbPages}`})
+        .setFooter({ text: `Page ${currentPage}/${nbPages}` })
         .setDescription(desc);
 
     let row = new ActionRowBuilder().addComponents(
@@ -62,10 +70,13 @@ async function list(interaction, options) {
             .setStyle(ButtonStyle.Secondary),
     );
 
-    let msg = await interaction.editReply({ embeds: [embed], components: [row], fetchReply: true });
+    let msg = await interaction.editReply({
+        embeds: [embed],
+        components: [row],
+        fetchReply: true,
+    });
 
-    const collectorFilter = (i) =>
-        i.user.id === interaction.user.id;
+    const collectorFilter = (i) => i.user.id === interaction.user.id;
 
     // COLLECTOR sur le message créé
     const timer = 30000; // (30 seconds)
@@ -75,9 +86,9 @@ async function list(interaction, options) {
     });
 
     collector.on("collect", async (i) => {
-        if(i.customId === "previous" && currentPage > 1) {
+        if (i.customId === "previous" && currentPage > 1) {
             currentPage--;
-        } else if(i.customId === "next" && currentPage < nbPages) {
+        } else if (i.customId === "next" && currentPage < nbPages) {
             currentPage++;
         }
 
@@ -97,7 +108,7 @@ async function list(interaction, options) {
         }
 
         embed.setDescription(desc);
-        embed.setFooter({ text: `Page ${currentPage}/${nbPages}`});
+        embed.setFooter({ text: `Page ${currentPage}/${nbPages}` });
 
         await i.update({
             embeds: [embed],
@@ -107,10 +118,12 @@ async function list(interaction, options) {
 
     collector.on("end", async () => {
         const disabledRow = new ActionRowBuilder().addComponents(
-            row.components.map(btn => ButtonBuilder.from(btn).setDisabled(true))
+            row.components.map((btn) =>
+                ButtonBuilder.from(btn).setDisabled(true),
+            ),
         );
 
-        await msg.edit({ components: [disabledRow] })
+        await msg.edit({ components: [disabledRow] });
     });
 }
 

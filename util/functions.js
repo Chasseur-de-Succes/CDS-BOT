@@ -645,17 +645,17 @@ module.exports = (client) => {
         const data = await CheatSuspicions.aggregate([
             {
                 $group: {
-                    _id: '$userId',
-                    count: { $sum: 1 }
-                }
+                    _id: "$userId",
+                    count: { $sum: 1 },
+                },
             },
             {
                 $project: {
                     userId: "$_id",
                     count: 1,
-                    _id: 0
-                }
-            }
+                    _id: 0,
+                },
+            },
         ]);
         if (data) {
             return data;
