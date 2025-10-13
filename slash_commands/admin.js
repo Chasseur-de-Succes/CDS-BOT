@@ -124,6 +124,7 @@ module.exports = {
                                 .setDescription(
                                     "Raison de la suspicion de cheat",
                                 )
+                                .setMaxLength(500)
                                 .setRequired(true),
                         ),
                 )

@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
-const { createLogs } = require("../../../../util/envoiMsg");
+const { createLogs, createError } = require("../../../../util/envoiMsg");
 const { CRIMSON, GREEN } = require("../../../../data/colors.json");
 const { CHECK_MARK } = require("../../../../data/emojis.json");
 
@@ -12,6 +12,16 @@ async function add(interaction, options) {
     const authorId = interaction.member.id;
 
     await interaction.deferReply();
+
+    if (reason.length > 500)
+        return interaction.editReply({
+            embeds: [
+                createError(
+                    `La raison est trop longue ${reason.length} caractères. Maximum autorisé: 500)`,
+                ),
+            ],
+            ephemeral: true,
+        });
 
     const user = await client.users.fetch(userId);
     const date = new Date();
