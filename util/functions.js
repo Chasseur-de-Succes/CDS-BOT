@@ -638,8 +638,28 @@ module.exports = (client) => {
         }
     };
 
-    client.getAllUsersCheatSuspicions = async (query) => {
-        // TO DO
+    /**
+     * Retourne tout les userId et le nombre de fois qu'il apparait des {@link CheatSuspicions}
+     */
+    client.getAllUsersCheatSuspicions = async () => {
+        const data = await CheatSuspicions.aggregate([
+            {
+                $group: {
+                    _id: '$userId',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    userId: "$_id",
+                    count: 1,
+                    _id: 0
+                }
+            }
+        ]);
+        if (data) {
+            return data;
+        }
     };
 
     /**
