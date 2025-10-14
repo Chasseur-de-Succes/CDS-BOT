@@ -14,14 +14,14 @@ async function list(interaction, options) {
 
     await interaction.deferReply();
 
-    const usersList = await client.getAllUsersCheatSuspicions();
+    const usersList = await client.getAllUsersObservations();
     const nbPages = Math.ceil(usersList.length / pageSize);
 
     if (usersList.length === 0) {
         const embed = new EmbedBuilder()
             .setColor(CRIMSON)
             .setTitle(
-                "📜 Liste des utilisateurs ayant une/des souspiçions de cheat",
+                "📜 Liste des utilisateurs ayant une/des note(s) d'observation",
             )
             .setDescription(`😎 La liste est vide`);
         return interaction.editReply({ embeds: [embed] });
@@ -38,7 +38,7 @@ async function list(interaction, options) {
 
     let startIndex = (currentPage - 1) * pageSize;
     let endIndex = Math.min(startIndex + pageSize, usersList.length);
-    let desc = `**Nombre total d'utilisateurs : ${usersList.length}**`;
+    let desc = `**Nombre total d'utilisateurs : ${usersList.length}**\n`;
     for (let i = startIndex; i < endIndex; i++) {
         let user;
         try {
@@ -54,7 +54,7 @@ async function list(interaction, options) {
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
         .setTitle(
-            `📜 Liste des utilisateurs ayant une/des souspiçions de cheat`,
+            `📜 Liste des utilisateurs ayant une/des note(s) d'observation`,
         )
         .setFooter({ text: `Page ${currentPage}/${nbPages}` })
         .setDescription(desc);
@@ -94,7 +94,7 @@ async function list(interaction, options) {
 
         startIndex = (currentPage - 1) * pageSize;
         endIndex = Math.min(startIndex + pageSize, usersList.length);
-        desc = `**Nombre total d'utilisateurs : ${usersList.length}**`;
+        desc = `**Nombre total d'utilisateurs : ${usersList.length}**\n`;
         for (let i = startIndex; i < endIndex; i++) {
             let user;
             try {

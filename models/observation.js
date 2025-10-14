@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const cheatSuspicions = mongoose.Schema({
+const observation = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     userId: String,
     reporterId: String,
@@ -8,4 +8,4 @@ const cheatSuspicions = mongoose.Schema({
     date: Date,
 });
 
-module.exports = mongoose.model("CheatSuspicions", cheatSuspicions);
+module.exports = mongoose.model("Observation", observation);

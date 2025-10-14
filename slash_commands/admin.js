@@ -3,11 +3,11 @@ const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const {
-    add: addCheat,
+    add: addObservation,
     remove,
     history,
     list,
-} = require("./subcommands/admin/cheat");
+} = require("./subcommands/admin/observation");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { Group } = require("../models");
@@ -104,13 +104,13 @@ module.exports = {
         )
         .addSubcommandGroup((subcommandGroup) =>
             subcommandGroup
-                .setName("cheat")
+                .setName("observation")
                 .setDescription("desc")
                 .addSubcommand((sub) =>
                     sub
                         .setName("add")
                         .setDescription(
-                            "Ajouter une note de suspicion de triche à l'utilisateur mentionné.",
+                            "Ajouter une note d'observation pour l'utilisateur mentionné.",
                         )
                         .addUserOption((option) =>
                             option
@@ -122,7 +122,7 @@ module.exports = {
                             option
                                 .setName("reason")
                                 .setDescription(
-                                    "Raison de la suspicion de cheat",
+                                    "Raison de la note d'observation",
                                 )
                                 .setMaxLength(500)
                                 .setRequired(true),
@@ -132,13 +132,13 @@ module.exports = {
                     sub
                         .setName("remove")
                         .setDescription(
-                            "Supprimer une note de suspicion de triche à l'utilisateur mentionné.",
+                            "Supprimer une note d'observation pour l'utilisateur mentionné.",
                         )
                         .addStringOption((option) =>
                             option
                                 .setName("id")
                                 .setDescription(
-                                    "ID de la raison à supprimé (obtenable via l'historique)",
+                                    "ID de la note d'observation à supprimé (obtenable via l'historique)",
                                 )
                                 .setRequired(true),
                         ),
@@ -147,7 +147,7 @@ module.exports = {
                     sub
                         .setName("history")
                         .setDescription(
-                            "Affiche l'historique des notes d'un utilisateur.",
+                            "Affiche l'historique des notes d'observation d'un utilisateur.",
                         )
                         .addUserOption((option) =>
                             option
@@ -160,7 +160,7 @@ module.exports = {
                     sub
                         .setName("list")
                         .setDescription(
-                            "Affiche la liste de tout les utilisateurs ayant une note de suspicion de triche.",
+                            "Affiche la liste de tout les utilisateurs ayant au moins une note d'observation.",
                         )
                         .addIntegerOption((option) =>
                             option
@@ -366,9 +366,9 @@ module.exports = {
             await avertissement(interaction, interaction.options);
         } else if (subcommand === "givemoney") {
             await givemoney(interaction, interaction.options);
-        } else if (subcommandGroup === "cheat") {
+        } else if (subcommandGroup === "observation") {
             if (subcommand === "add") {
-                await addCheat(interaction, interaction.options);
+                await addObservation(interaction, interaction.options);
             } else if (subcommand === "remove") {
                 await remove(interaction, interaction.options);
             } else if (subcommand === "history") {

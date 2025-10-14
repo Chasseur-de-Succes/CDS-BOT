@@ -15,13 +15,13 @@ async function history(interaction, options) {
     await interaction.deferReply();
 
     const user = await client.users.fetch(userId);
-    const userList = await client.getUserCheatSuspicions(userId);
+    const userList = await client.getUserObservations(userId);
     const nbPages = Math.ceil(userList.length / EMBED_FIELD_LIMIT);
 
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
         .setTitle(
-            `🕵️ Historique des suspicions de triche de ${user.displayName}`,
+            `🕵️ Historique des notes d'observation de ${user.displayName}`,
         )
         .setDescription(`${user}`)
         .setFooter({
@@ -31,7 +31,7 @@ async function history(interaction, options) {
 
     if (userList.length === 0) {
         embed.addFields({
-            name: `😎 Aucune suspicion de triche.`,
+            name: `😎 Aucune note d'observation.`,
             value: `\u200B`,
         });
     } else {

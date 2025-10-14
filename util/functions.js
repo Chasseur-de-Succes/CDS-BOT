@@ -7,7 +7,7 @@ const {
     GuildConfig,
     GameItem,
     RolesChannel,
-    CheatSuspicions,
+    Observation,
     MsgHallHeros,
     MsgHallZeros,
     MsgDmdeAide,
@@ -595,54 +595,54 @@ module.exports = (client) => {
         }).countDocuments();
     };
 
-    /* CheatSuspicions */
+    /* Observation */
     /**
-     * Créer un nouveau {@link CheatSuspicions} et le sauvegarde en base
-     * @param {Object} cheatSuspicion CheatSuspicion à sauvegarder
+     * Créer un nouveau {@link Observation} et le sauvegarde en base
+     * @param {Object} observation Observation à sauvegarder
      * @returns
      */
-    client.createCheatSuspicion = async (cheatSuspicion) => {
+    client.createObservation = async (observation) => {
         const merged = Object.assign(
             { _id: mongoose.Types.ObjectId() },
-            cheatSuspicion,
+            observation,
         );
-        const createCheatSuspicion = await new CheatSuspicions(merged);
-        const c = await createCheatSuspicion.save();
+        const createObservation = await new Observation(merged);
+        const c = await createObservation.save();
         logger.info({
             prefix: "[DB]",
-            message: `Nouvelle cheat suspicion sur l'userId : ${cheatSuspicion.userId}`,
+            message: `Note d'observation ajoutée sur l'userId : ${observation.userId}`,
         });
         return c;
     };
     /**
-     * Cherche et retourne un tableau de {@link CheatSuspicions} en fonction d'un user
+     * Cherche et retourne un tableau de {@link Observation} en fonction d'un user
      * @param {Number} userId UserId
-     * @returns tableau {@link CheatSuspicions}
+     * @returns tableau {@link Observation}
      */
-    client.getUserCheatSuspicions = async (userId) => {
-        const data = await CheatSuspicions.find({ userId: userId });
+    client.getUserObservations = async (userId) => {
+        const data = await Observation.find({ userId: userId });
         if (data) {
             return data;
         }
     };
 
     /**
-     * Cherche et retourne une {@link CheatSuspicions} en fonction d'un id
-     * @param {String} CheatSuspicionId cheatSuspicionId
-     * @returns undefined si non trouvé, {@link CheatSuspicionItem} sinon
+     * Cherche et retourne une {@link Observation} en fonction d'un id
+     * @param {String} ObservationId observationId
+     * @returns undefined si non trouvé, {@link ObservationItem} sinon
      */
-    client.getCheatSuspicionById = async (cheatSuspicionId) => {
-        const data = await CheatSuspicions.findById(cheatSuspicionId);
+    client.getObservationById = async (observationId) => {
+        const data = await Observation.findById(observationId);
         if (data) {
             return data;
         }
     };
 
     /**
-     * Retourne tout les userId et le nombre de fois qu'il apparait des {@link CheatSuspicions}
+     * Retourne tout les userId et le nombre de fois qu'il apparait des {@link Observation}
      */
-    client.getAllUsersCheatSuspicions = async () => {
-        const data = await CheatSuspicions.aggregate([
+    client.getAllUsersObservations = async () => {
+        const data = await Observation.aggregate([
             {
                 $group: {
                     _id: "$userId",
@@ -663,15 +663,14 @@ module.exports = (client) => {
     };
 
     /**
-     * Supprime une suspicion de cheat
-     * @param {Object} cheatSuspicionItem
+     * Supprime une observation
+     * @param {Object} observationItem
      */
-    client.deleteCheatSuspicionItem = async (cheatSuspicionId) => {
-        //cheatSuspicionItem
-        await CheatSuspicions.deleteOne({ _id: cheatSuspicionId });
+    client.deleteObservationItem = async (observationId) => {
+        await Observation.deleteOne({ _id: observationId });
         logger.info({
             prefix: "[DB]",
-            message: `Suppression de la suspicion de cheat id: ${cheatSuspicionId}`,
+            message: `Note d'observation supprimée. ID : ${observationId}`,
         });
     };
 };

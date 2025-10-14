@@ -26,7 +26,7 @@ async function add(interaction, options) {
     const user = await client.users.fetch(userId);
     const date = new Date();
 
-    await client.createCheatSuspicion({
+    await client.createObservation({
         userId: userId,
         reporterId: authorId,
         reason: reason,
@@ -36,17 +36,17 @@ async function add(interaction, options) {
     createLogs(
         client,
         guildId,
-        "🕵️ Nouvelle suspicion de triche !",
-        `${author} a ajouté une suspicion de triche sur l'utilisateur ${user}.`,
+        "🕵️ Nouvelle note d'observation !",
+        `${author} a ajouté une note d'observation sur l'utilisateur ${user}.`,
         "",
         CRIMSON,
     );
 
     const embed = new EmbedBuilder()
         .setColor(GREEN)
-        .setTitle(`${CHECK_MARK} Suspicion de triche ajoutée !`)
+        .setTitle(`${CHECK_MARK} Note d'observation ajoutée !`)
         .setDescription(
-            `Une nouvelle suspicion de triche a été ajoutée pour ${user}.`,
+            `Une nouvelle note d'observation a été ajoutée pour ${user}.`,
         )
         .addFields({ name: "Raison", value: `${reason}` });
     await interaction.editReply({ embeds: [embed] });

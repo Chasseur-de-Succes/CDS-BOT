@@ -10,43 +10,43 @@ const { CHECK_MARK, CROSS_MARK } = require("../../../../data/emojis.json");
 const mongoose = require("mongoose");
 
 async function remove(interaction, options) {
-    const suspicionId = options.get("id")?.value;
+    const observationId = options.get("id")?.value;
     const client = interaction.client;
     const author = interaction.member;
     const guildId = interaction.guildId;
 
     await interaction.deferReply();
 
-    if (!mongoose.Types.ObjectId.isValid(suspicionId))
+    if (!mongoose.Types.ObjectId.isValid(observationId))
         return interaction.editReply({
             embeds: [
                 createError(
-                    "ID de la suspicion de triche non valide !\nID trouvable avec la commande `/admin cheat histoy @user`",
+                    "ID de la note d'observation non valide !\nID trouvable avec la commande `/admin observation histoy @user`",
                 ),
             ],
         });
 
-    const cheatSuspicionItem = await client.getCheatSuspicionById(suspicionId);
-    if (cheatSuspicionItem === undefined)
+    const observationItem = await client.getObservationById(observationId);
+    if (observationItem === undefined)
         return interaction.editReply({
             embeds: [
                 createError(
-                    "ID de la suspicion de triche non trouvé !\nID trouvable avec la commande `/admin cheat histoy @user`",
+                    "ID de la note d'observation non trouvé !\nID trouvable avec la commande `/admin observation histoy @user`",
                 ),
             ],
         });
 
     let user;
     try {
-        const fetched = await client.users.fetch(cheatSuspicionItem.userId);
+        const fetched = await client.users.fetch(observationItem.userId);
         user = fetched.toString();
     } catch {
         user = "Utilisateur inconnu";
     }
-    const timestamp = Math.floor(cheatSuspicionItem.date.getTime() / 1000);
+    const timestamp = Math.floor(observationItem.date.getTime() / 1000);
     let reporter;
     try {
-        const fetched = await client.users.fetch(cheatSuspicionItem.reporterId);
+        const fetched = await client.users.fetch(observationItem.reporterId);
         reporter = fetched.toString();
     } catch {
         reporter = "Utilisateur inconnu";
@@ -68,10 +68,10 @@ async function remove(interaction, options) {
     const embedConfirmation = new EmbedBuilder()
         .setColor(GREEN)
         .setTitle("Confirmation")
-        .setDescription(`Confirmez-vous supprimer la note suivante :`)
+        .setDescription(`Confirmez-vous supprimer la note d'observation suivante :`)
         .addFields({
             name: `Raison`,
-            value: `${cheatSuspicionItem.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
+            value: `${observationItem.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
         });
 
     const msg = await interaction.editReply({
@@ -100,20 +100,20 @@ async function remove(interaction, options) {
         await i.deferUpdate();
         await i.editReply({ components: [] });
 
-        await client.deleteCheatSuspicionItem(suspicionId);
+        await client.deleteObservationItem(observationId);
 
         createLogs(
             client,
             guildId,
-            "🕵️ Suppression d'une suspicion de triche !",
-            `${author} a supprimé une suspicion de triche sur l'utilisateur ${user}.`,
+            "🕵️ Suppression d'une note d'observation !",
+            `${author} a supprimé une note d'observation sur l'utilisateur ${user}.`,
             "",
             CRIMSON,
         );
 
         const embed = new EmbedBuilder()
             .setColor(GREEN)
-            .setTitle(`${CHECK_MARK} Suspicion de triche supprimé`);
+            .setTitle(`${CHECK_MARK} Note d'observation supprimée.`);
 
         confirm.stop();
         return interaction.editReply({ embeds: [embed] });
@@ -126,7 +126,7 @@ async function remove(interaction, options) {
         const embed = new EmbedBuilder()
             .setColor(DARK_RED)
             .setTitle(
-                `${CROSS_MARK} Suppression de la suspicion de triche annulée`,
+                `${CROSS_MARK} Suppression de la note d'observation annulée.`,
             );
 
         return interaction.editReply({ embeds: [embed] });
@@ -137,7 +137,7 @@ async function remove(interaction, options) {
         const embed = new EmbedBuilder()
             .setColor(DARK_RED)
             .setTitle(
-                `${CROSS_MARK} Suppression de la suspicion de triche annulée`,
+                `${CROSS_MARK} Suppression de la note d'observation annulée.`,
             );
         interaction.editReply({ embeds: [embed], components: [] });
     });
