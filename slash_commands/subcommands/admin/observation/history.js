@@ -20,9 +20,7 @@ async function history(interaction, options) {
 
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
-        .setTitle(
-            `🕵️ Historique des notes d'observation de ${user.displayName}`,
-        )
+        .setTitle(`🕵️ Historique des notes d'observation de ${user.displayName}`)
         .setDescription(`${user}`)
         .setFooter({
             text: `Page ${currentPage}/${nbPages == 0 ? 1 : nbPages}`,

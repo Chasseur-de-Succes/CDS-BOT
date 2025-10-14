@@ -68,7 +68,9 @@ async function remove(interaction, options) {
     const embedConfirmation = new EmbedBuilder()
         .setColor(GREEN)
         .setTitle("Confirmation")
-        .setDescription(`Confirmez-vous supprimer la note d'observation suivante :`)
+        .setDescription(
+            `Confirmez-vous supprimer la note d'observation suivante :`,
+        )
         .addFields({
             name: `Raison`,
             value: `${observationItem.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
