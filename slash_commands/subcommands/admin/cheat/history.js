@@ -1,4 +1,9 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const {
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+} = require("discord.js");
 const { CRIMSON } = require("../../../../data/colors.json");
 
 async function history(interaction, options) {
@@ -19,7 +24,9 @@ async function history(interaction, options) {
             `🕵️ Historique des suspicions de triche de ${user.displayName}`,
         )
         .setDescription(`${user}`)
-        .setFooter({ text: `Page ${currentPage}/${nbPages == 0 ? 1 : nbPages}` })
+        .setFooter({
+            text: `Page ${currentPage}/${nbPages == 0 ? 1 : nbPages}`,
+        })
         .setTimestamp();
 
     if (userList.length === 0) {
@@ -29,12 +36,17 @@ async function history(interaction, options) {
         });
     } else {
         let startIndex = (currentPage - 1) * EMBED_FIELD_LIMIT;
-        let endIndex = Math.min(startIndex + EMBED_FIELD_LIMIT, userList.length);
+        let endIndex = Math.min(
+            startIndex + EMBED_FIELD_LIMIT,
+            userList.length,
+        );
         for (let i = startIndex; i < endIndex; i++) {
             const timestamp = Math.floor(userList[i].date.getTime() / 1000);
             let reporter;
             try {
-                const fetched = await client.users.fetch(userList[i].reporterId);
+                const fetched = await client.users.fetch(
+                    userList[i].reporterId,
+                );
                 reporter = fetched.toString();
             } catch {
                 reporter = `Utilisateur inconnu (\`${userList[i].userId}\`)`;
@@ -88,7 +100,9 @@ async function history(interaction, options) {
             const timestamp = Math.floor(userList[i].date.getTime() / 1000);
             let reporter;
             try {
-                const fetched = await client.users.fetch(userList[i].reporterId);
+                const fetched = await client.users.fetch(
+                    userList[i].reporterId,
+                );
                 reporter = fetched.toString();
             } catch {
                 reporter = `Utilisateur inconnu (\`${userList[i].userId}\`)`;
