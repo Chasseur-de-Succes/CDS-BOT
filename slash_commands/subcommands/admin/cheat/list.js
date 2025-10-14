@@ -10,7 +10,7 @@ const { CRIMSON } = require("../../../../data/colors.json");
 async function list(interaction, options) {
     let currentPage = options.get("page")?.value || 1;
     const client = interaction.client;
-    const pageSize = 5;
+    const pageSize = 15;
 
     await interaction.deferReply();
 
