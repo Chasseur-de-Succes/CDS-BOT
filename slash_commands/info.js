@@ -1,5 +1,6 @@
 const { version, EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const { GREEN } = require("../data/colors.json");
+const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,6 +20,10 @@ module.exports = {
         }
 
         const timeUp = client.uptime;
+        const createdTimestamp = discordTimestamp(
+            client.user.createdTimestamp,
+            "f",
+        );
         const embedInfo = new EmbedBuilder()
             .setColor(GREEN)
             .setTitle(client.user.username)
@@ -28,9 +33,7 @@ module.exports = {
                 { name: "Développeurs", value: developers },
                 {
                     name: "Créé le",
-                    value: `<t:${Math.floor(
-                        client.user.createdTimestamp / 1000,
-                    )}:f>`,
+                    value: `${createdTimestamp}`,
                 },
                 { name: "Langage", value: "JavaScript", inline: true },
                 { name: "Library", value: "discord.js", inline: true },

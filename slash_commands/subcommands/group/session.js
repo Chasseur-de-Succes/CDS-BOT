@@ -4,6 +4,7 @@ const { deleteRappelJob, editMsgHubGroup } = require("../../../util/msg/group");
 const { createRappelJob } = require("../../../util/batch/batch");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const moment = require("moment-timezone");
+const { discordTimestamp } = require("../../../util/discordFormatters");
 
 const schedule = async (interaction, options) => {
     const nameGrp = options.get("nom")?.value;
@@ -70,7 +71,10 @@ const schedule = async (interaction, options) => {
         allowedDateFormat,
         "Europe/Paris",
     );
-    const dateTimestamp = Math.floor(dateEvent / 1000);
+    const dateTimestamp = {
+        full: discordTimestamp(dateEvent, "F"),
+        short: discordTimestamp(dateEvent, "f"),
+    };
 
     // Si la date existe déjà, la supprimer
     const indexDateEvent = grp.dateEvent.findIndex(
@@ -82,14 +86,14 @@ const schedule = async (interaction, options) => {
         grp.dateEvent.splice(indexDateEvent, 1);
 
         titreReponse += "Rdv enlevé 🚮";
-        msgReponse += `Session enlevée, le <t:${dateTimestamp}:f> !`;
+        msgReponse += `Session enlevée, le ${dateTimestamp.short} !`;
         logger.info(`.. date ${dateEvent} retiré`);
     } else {
         // Sinon, on l'ajoute, dans le bon ordre
         grp.dateEvent.push(dateEvent);
 
         titreReponse += "Rdv ajouté 🗓";
-        msgReponse += `Session ajoutée, le <t:${dateTimestamp}:f> !`;
+        msgReponse += `Session ajoutée, le ${dateTimestamp.short} !`;
         logger.info(`.. date ${dateEvent} ajouté`);
     }
 
@@ -120,11 +124,11 @@ const schedule = async (interaction, options) => {
             if (channel) {
                 if (indexDateEvent >= 0) {
                     channel.send(
-                        `> ⚠️ La session du <t:${dateTimestamp}:F> a été **supprimée**.`,
+                        `> ⚠️ La session du ${dateTimestamp.full} a été **supprimée**.`,
                     );
                 } else {
                     channel.send(
-                        `> 🗓 Nouvelle session le <t:${dateTimestamp}:F> !`,
+                        `> 🗓 Nouvelle session le ${dateTimestamp.full} !`,
                     );
                 }
             }
