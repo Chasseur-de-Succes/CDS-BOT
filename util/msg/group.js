@@ -14,6 +14,7 @@ const { BAREME_XP, SALON } = require("../constants");
 const { addXp } = require("../xp");
 const { getAchievement } = require("./stats");
 const { feedBotMetaAch } = require("../envoiMsg");
+const { discordTimestamp } = require("../discordFormatters");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -62,9 +63,10 @@ async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
             .slice(0, 15)) {
             // moment(group.dateEvent).format("ddd Do MMM HH:mm")
             //dateEvent += `- ***${moment(date).format("ddd Do MMM HH:mm")}***\n`
-            dateEvent += `- ***${moment
-                .tz(date, "Europe/Paris")
-                .format("ddd Do MMM HH:mm")}***\n`;
+            // dateEvent += `- ***${moment
+            //     .tz(date, "Europe/Paris")
+            //     .format("ddd Do MMM HH:mm")}***\n`;
+            dateEvent += `${discordTimestamp(date, "f")}\n`;
         }
 
         if (group.dateEvent.length > 15) {
