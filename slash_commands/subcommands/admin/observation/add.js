@@ -17,7 +17,7 @@ async function add(interaction, options) {
         return interaction.editReply({
             embeds: [
                 createError(
-                    `La raison est trop longue ${reason.length} caractères. Maximum autorisé: 500)`,
+                    `La raison dépasse la limite autorisée (${reason.length}/500 caractères).`,
                 ),
             ],
             ephemeral: true,
