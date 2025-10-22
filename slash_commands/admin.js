@@ -4,9 +4,9 @@ const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
 const {
     add: addObservation,
-    remove,
-    history,
-    list,
+    remove: removeObservation,
+    history: historyObservation,
+    list: listObservation,
 } = require("./subcommands/admin/observation");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
@@ -370,11 +370,11 @@ module.exports = {
             if (subcommand === "add") {
                 await addObservation(interaction, interaction.options);
             } else if (subcommand === "remove") {
-                await remove(interaction, interaction.options);
+                await removeObservation(interaction, interaction.options);
             } else if (subcommand === "history") {
-                await history(interaction, interaction.options);
+                await historyObservation(interaction, interaction.options);
             } else if (subcommand === "list") {
-                await list(interaction, interaction.options);
+                await listObservation(interaction, interaction.options);
             }
         }
     },
