@@ -14,11 +14,13 @@ const schedule = async (interaction, options) => {
 
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
+    await interaction.deferReply();
+
     // Test si le capitaine est inscrit
     const authorDb = await client.getUser(author);
     if (!authorDb) {
         // Si pas dans la BDD
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(
                     `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
@@ -30,14 +32,14 @@ const schedule = async (interaction, options) => {
     // Récupération du groupe
     const grp = await client.findGroupByName(nameGrp);
     if (!grp) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)],
         });
     }
 
     // Si l'auteur n'est pas capitaine ou admin
     if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`),
             ],
@@ -53,7 +55,7 @@ const schedule = async (interaction, options) => {
             true,
         ).isValid()
     ) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(
                     `${dateVoulue} ${heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`,
@@ -68,7 +70,6 @@ const schedule = async (interaction, options) => {
         allowedDateFormat,
         "Europe/Paris",
     );
-    await interaction.deferReply();
 
     // Si la date existe déjà, la supprimer
     const indexDateEvent = grp.dateEvent.findIndex(
