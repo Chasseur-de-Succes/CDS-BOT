@@ -6,6 +6,7 @@ const {
     dissolveGroup,
     editMsgHubGroup,
 } = require("../util/msg/group");
+const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     name: Events.GuildMemberRemove,
@@ -20,12 +21,12 @@ module.exports = {
             .addFields(
                 {
                     name: "Rejoint le",
-                    value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:D>`,
+                    value: `${discordTimestamp(member.joinedTimestamp, "D")}`,
                     inline: true,
                 },
                 {
                     name: "Parti le ",
-                    value: `<t:${Math.floor(Date.now() / 1000)}:D>`,
+                    value: `${discordTimestamp(Date.now(), "D")}`,
                     inline: true,
                 },
                 { name: "ID", value: `${member.id}` },

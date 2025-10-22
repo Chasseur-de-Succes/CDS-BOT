@@ -1,5 +1,6 @@
 const { NIGHT } = require("../data/colors.json");
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,6 +12,7 @@ module.exports = {
         const guild = interaction.guild;
         const user = interaction.user;
         const owner = await client.users.fetch(guild.ownerId);
+        const createdTimestamp = discordTimestamp(guild.createdTimestamp, "f");
 
         const embed = new EmbedBuilder()
             .setColor(NIGHT)
@@ -39,7 +41,7 @@ module.exports = {
                 },
                 {
                     name: "Serveur créé le",
-                    value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:f>`,
+                    value: `${createdTimestamp}`,
                     inline: false,
                 },
             )
