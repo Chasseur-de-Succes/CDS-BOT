@@ -1,7 +1,12 @@
-const { TowerBoss } = require("../../../models");
+const { TowerBoss, User } = require("../../../models");
 const {
     PRIVATE_JOKES,
 } = require("../../../data/event/tower/constants.json");
+const { createLogs } = require("../../envoiMsg");
+const { daysDiff } = require("../../util");
+const { EmbedBuilder } = require("discord.js");
+const { SALON } = require("../../constants");
+const { MESSAGE } = require("../../../data/event/tower/constants.json");
 
 /**
  * Récupère une private joke aléatoire à partir de la liste définie dans les constantes
@@ -101,7 +106,7 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
         prefix: "TOWER",
         message: `fin de la saison ${seasonNumber} ..`,
     });
-    createLogs(
+    await createLogs(
         client,
         guild.guildId,
         !cancelled
@@ -136,12 +141,6 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
 
     // Envoi d'un message de fin
     if (cancelled) {
-        // si on arrête l'event manuellement, un boss est forcément encore en vie
-        const currentBoss = await TowerBoss.findOne({
-            season: seasonNumber,
-            hp: { $ne: 0 },
-        });
-
         const eventChannelId = await client.getGuildChannel(
             guild.guildId,
             SALON.EVENT_TOWER,
@@ -157,41 +156,33 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
                 text: "Seuls ceux qui ne font rien n'échouent pas..",
             });
 
-        if (currentBoss && currentBoss.hp > 0) {
-            // si le boss est le boss caché
-            if (currentBoss.hidden) {
-                const deadBoss = await TowerBoss.findOne({
-                    season: seasonNumber,
-                    hidden: false,
-                });
-                embedEnd.setDescription(
-                    `
-Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
-En prenant le corps de \`${deadBoss.name}\`, \`${currentBoss.name}\` éjecte tout le monde de la tour.
-Il s'enfuit, furieux de ne pas avoir pu venger son maître..
-${ASCII_SECOND_BAD_ENDING}`,
-                );
-            } else {
-                embedEnd.setDescription(
-                    `Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre \`${currentBoss.name}\`..
-Celui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin, suivi de près par une ombre..
-${ASCII_FIRST_BAD_ENDING}`,
-                );
-            }
-        } else {
-            embedEnd.setDescription(
-                `Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..
-${ASCII_START_BAD_ENDING}`,
-            );
+        let description = '';
+        switch (seasonNumber) {
+            case 0:
+                description = await endSeasonZero();
+                break;
+            default:
+                break;
         }
+        embedEnd.setDescription(description);
+
         eventChannel.send({ embeds: [embedEnd] });
     }
+}
+
+/* Description de fin de saison */
+async function endSeasonZero() {
+    const currentBoss = await TowerBoss.findOne({ season: 0, hp: { $ne: 0 } });
+    if (!currentBoss) return MESSAGE["0"].START_BAD_ENDING;
+
+    return currentBoss.hidden
+        ? MESSAGE["0"].SECOND_BAD_ENDING
+        : MESSAGE["0"].FIRST_BAD_ENDING;
 }
 
 module.exports = {
     displayHealth,
     getRandomPrivateJokes,
     isAllBossDead,
-    endSeasonForUser,
     endSeason
 }

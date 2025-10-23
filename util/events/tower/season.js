@@ -1,23 +1,8 @@
-const { createLogs, createEmbed } = require("../../envoiMsg");
+const { createEmbed } = require("../../envoiMsg");
 const {
     SEASONS,
-    BOSSES,
-    HIDDEN_BOSS,
-    BOSS,
-    ETAGE_PAR_PALIER,
-    MAX_ETAGE,
-    DAMAGE,
-    ASCII_FIRST,
-    ASCII_PALIER,
-    ASCII_BOSS_FIRST_TIME,
-    ASCII_BOSS_PALIER,
-    ASCII_100,
-    ASCII_HIDDEN_BOSS_FIRST_TIME,
-    ASCII_HIDDEN_BOSS_PALIER,
-    ASCII_END,
-    ASCII_FIRST_BAD_ENDING,
-    ASCII_SECOND_BAD_ENDING,
-    ASCII_START_BAD_ENDING,
+    ENEMIES,
+    MESSAGE,
 } = require("../../../data/event/tower/constants.json");
 const { getRandomPrivateJokes, displayHealth } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
@@ -26,7 +11,7 @@ const { endSeason } = require("../../../slash_commands/subcommands/tower/valider
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
 async function createBoss(season, isHiddenBoss) {
-    const infoBoss = isHiddenBoss ? HIDDEN_BOSS : BOSS;
+    const infoBoss = isHiddenBoss ? ENEMIES["0"].HIDDEN_BOSS : ENEMIES["0"].BOSS;
 
     const newBoss = await new TowerBoss({
         name: infoBoss.name,
@@ -41,32 +26,6 @@ async function createBoss(season, isHiddenBoss) {
 }
 
 async function seasonZero(client, guild, guildId, interaction, userDb, author, gameName, appid) {
-    // Vérifier si l'utilisateur a déjà 100% le jeu
-    if (userDb.event.tower.completedGames.includes(appid)) {
-        logger.warn({
-            prefix: "TOWER",
-            message: `${author.user.tag} 100% ${gameName} (${appid}): déjà fait ..`,
-        });
-        return await interaction.reply({
-            content: `Tu as déjà utilisé ${gameName}.. ce n'est pas très efficace.`,
-            ephemeral: true,
-        });
-    }
-
-    userDb.event.tower.etage += 1; // On monte d'un étage
-    userDb.event.tower.completedGames.push(appid); // Ajouter l'appId aux jeux déjà 100%
-    await userDb.save();
-
-    // logs
-    createLogs(
-        client,
-        guildId,
-        "🗼 TOWER : Nouveau jeu validé",
-        `${author} vient de valider **${gameName}** (${appid}) !`,
-        "",
-        "#DC8514",
-    );
-
     // Si l'utilisateur n'est pas encore arrivé au boss
     if (userDb.event.tower.etage <= SEASONS["0"].MAX_ETAGE) {
         // 1er étage franchi (1 jeu complété)
@@ -76,13 +35,15 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
                 message: `${author.user.tag} 100% ${gameName} (${appid}): 1er étage ..`,
             });
             // 1er message d'intro
-            return interaction.reply({
+            let descFirst = `${MESSAGE["0"].FIRST}`;
+            descFirst = descFirst.replace(/\${gameName}/g, gameName)
+                .replace(/\${author}/g, author);
+            return interaction.editReply({
                 embeds: [
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !
-${ASCII_FIRST}`,
+                        desc: descFirst,
                         color: "#1cff00",
                         footer: {
                             text: `Étage 1/?? | ${getRandomPrivateJokes()}`,
@@ -106,22 +67,17 @@ ${ASCII_FIRST}`,
                     prefix: "TOWER",
                     message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, création 1er boss..`,
                 });
-                const newBoss = await createBoss(0, false);
+                await createBoss(0, false);
 
-                return interaction.reply({
+                let firstboss = MESSAGE["0"].FIRST_BOSS
+                    .replace(/\${author}/g, author)
+                    .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+                return interaction.editReply({
                     embeds: [
                         await createEmbed({
                             title: `🏆 ${gameName} terminé !`,
                             url: `https://store.steampowered.com/app/${appid}/`,
-                            desc: `${author} a atteint le **palier ${
-                                userDb.event.tower.etage / ETAGE_PAR_PALIER
-                            }** et est arrivé au sommet de la tour !!
-${author} aperçoit au loin une ombre menaçante.\n
-En se rapprochant, ${author} reconnait très clairement le cupide \`${
-                                newBoss.name
-                            }\`..\n
-Attention, il fonce droit sur vous !!
-${ASCII_BOSS_FIRST_TIME}`,
+                            desc: `${firstboss}`,
                             color: "#ff0000",
                             footer: {
                                 text: `"Tiens, un jeu gratuit !" 😈`,
@@ -133,7 +89,7 @@ ${ASCII_BOSS_FIRST_TIME}`,
 
             // Si boss caché pas encore créé, on rejoint le combat contre le 1er
             const hiddenBossCreated = await TowerBoss.exists({
-                season: season,
+                season: 0,
                 hidden: true,
             });
             if (!hiddenBossCreated) {
@@ -141,17 +97,15 @@ ${ASCII_BOSS_FIRST_TIME}`,
                     prefix: "TOWER",
                     message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier..`,
                 });
-                return interaction.reply({
+                let descPalier = MESSAGE["0"].BOSS_PALIER
+                    .replace(/\${author}/g, author)
+                    .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+                return interaction.editReply({
                     embeds: [
                         await createEmbed({
                             title: `🏆 ${gameName} terminé !`,
                             url: `https://store.steampowered.com/app/${appid}/`,
-                            desc: `${author} a atteint le **palier ${
-                                userDb.event.tower.etage / ETAGE_PAR_PALIER
-                            }** et est arrivé au sommet de la tour !!
-${author} aperçoit au loin d'autres joueurs menant une rude bataille..
-${author} prends part au combat !
-${ASCII_BOSS_PALIER}`,
+                            desc: descPalier,
                             color: "#ff0000",
                             footer: {
                                 text: "Enfin en haut !",
@@ -166,29 +120,15 @@ ${ASCII_BOSS_PALIER}`,
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, 1er boss mort..`,
             });
-            const deadBoss = await TowerBoss.findOne({
-                season: season,
-                hp: { $eq: 0 },
-                hidden: false,
-            });
-            const currentBoss = await TowerBoss.findOne({
-                season: season,
-                hp: { $ne: 0 },
-            });
-            return interaction.reply({
+            let descSommet = MESSAGE["0"].SOMMET
+                .replace(/\${author}/g, author)
+                .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+            return interaction.editReply({
                 embeds: [
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `${author} a atteint le **palier ${
-                            userDb.event.tower.etage / ETAGE_PAR_PALIER
-                        }** et est arrivé au sommet de la tour !!
-Mais ${author} trébuche sur le cadavre de \`${deadBoss.name}\`...
-En se relevant, ${author} voit ses coéquipiers faire face au grand \`${
-                            currentBoss.name
-                        }\`\n
-${author} prends part au combat !
-${ASCII_HIDDEN_BOSS_PALIER}`,
+                        desc: descSommet,
                         color: "#ff00fc",
                         footer: {
                             text: "Mieux vaux tard que jamais",
@@ -205,26 +145,26 @@ ${ASCII_HIDDEN_BOSS_PALIER}`,
                 message: `${
                     author.user.tag
                 } 100% ${gameName} (${appid}): nouveau palier ${
-                    userDb.event.tower.etage / ETAGE_PAR_PALIER
+                    userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER
                 }..`,
             });
 
-            return interaction.reply({
+            let descPalier = MESSAGE["0"].PALIER
+                .replace(/\${gameName}/g, gameName)
+                .replace(/\${author}/g, author)
+                .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+            return interaction.editReply({
                 embeds: [
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `En complétant **${gameName}**, ${author} arrive au **palier ${
-                            userDb.event.tower.etage / ETAGE_PAR_PALIER
-                        }** !
-            Ce palier est vide.. les escaliers montent toujours et les bruits sont de plus en plus oppressants.
-${ASCII_PALIER}`,
+                        desc: descPalier,
                         color: "#1cff00",
                         footer: {
                             text: `Étage ${
                                 userDb.event.tower.etage
                             }/??, Palier ${
-                                userDb.event.tower.etage / ETAGE_PAR_PALIER
+                                userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER
                             }/?? | ${getRandomPrivateJokes()}`,
                         },
                     }),
@@ -237,12 +177,15 @@ ${ASCII_PALIER}`,
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
         });
-        return interaction.reply({
+        let descEtage = MESSAGE["0"].ETAGE
+            .replace(/\${author}/g, author)
+            .replace(/\${gameName}/g, gameName);
+        return interaction.editReply({
             embeds: [
                 await createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: `En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !`,
+                    desc: descEtage,
                     color: "#1cff00",
                     footer: {
                         text: `Étage ${
@@ -262,10 +205,10 @@ ${ASCII_PALIER}`,
     });
 
     // Mettre à jour les dégâts infligés et enregistrer
-    userDb.event.tower.totalDamage += DAMAGE; // On tape le tower
+    userDb.event.tower.totalDamage += SEASONS["0"].DAMAGE; // On tape le tower
     await userDb.save();
 
-    currentBoss.hp -= DAMAGE; // On tape
+    currentBoss.hp -= SEASONS["0"].DAMAGE; // On tape
     await currentBoss.save();
 
     if (currentBoss.hp <= 0) {
@@ -277,15 +220,16 @@ ${ASCII_PALIER}`,
             // si boss caché meurt, on arrête TOUT et on backup la saison
             await endSeason(client, 0, guild);
 
-            return interaction.reply({
+            let descEnd = MESSAGE["0"].END
+                .replace(/\${gameName}/g, gameName)
+                .replace(/\${author}/g, author);
+
+            return interaction.editReply({
                 embeds: [
                     await createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`!! Bravo !
-Le calme est revenu au sommet de cette tour. Vous pouvez vous reposer après cette lutte acharnée.
-C'est la fin..
-${ASCII_END}`,
+                        desc: descEnd,
                         color: "#ff00fc",
                         footer: {
                             text: "C'est trop calme..",
@@ -300,18 +244,17 @@ ${ASCII_END}`,
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): tue le boss, création boss caché ..`,
         });
-        const hiddenBoss = await createBoss(season, true);
+        await createBoss(0, true);
 
-        return interaction.reply({
+        let descHiddenBoss = MESSAGE["0"].HIDDEN_BOSS
+            .replace(/\${gameName}/g, gameName)
+            .replace(/\${author}/g, author);
+        return interaction.editReply({
             embeds: [
                 await createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: `En complétant **${gameName}**, ${author} porte le coup fatal à \`${currentBoss.name}\`! Bravo !
-Alors que son corps tombe à terre, ${author} entend grogner au loin..
-
-C'est \`${hiddenBoss.name}\`, son acolyte, qui bondit et qui veut venger son maître !
-${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
+                    desc: descHiddenBoss,
                     color: "#ff00fc",
                     footer: {
                         text: "Il n'a pas l'air commode",
@@ -324,13 +267,16 @@ ${ASCII_HIDDEN_BOSS_FIRST_TIME}`,
     // Boss toujours en vie
     logger.info({
         prefix: "TOWER",
-        message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${DAMAGE}..`,
+        message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${SEASONS["0"].DAMAGE}..`,
     });
+    let desc100 = MESSAGE["0"].HIT
+        .replace(/\${gameName}/g, gameName)
+        .replace(/\${boss}/g, currentBoss.name)
+        .replace(/\${author}/g, author);
     const embed = await createEmbed({
         title: `🏆 ${gameName} terminé !`,
         url: `https://store.steampowered.com/app/${appid}/`,
-        desc: `En complétant **${gameName}**, ${author} inflige **${DAMAGE} point de dégats** à \`${currentBoss.name}\`!
-${ASCII_100}`,
+        desc: desc100,
         color: "#ff00fc",
         footer: {
             text: `${getRandomPrivateJokes()}`,
@@ -341,7 +287,7 @@ ${ASCII_100}`,
         value: `${displayHealth(currentBoss)}`,
     });
 
-    return interaction.reply({
+    return interaction.editReply({
         embeds: [embed],
         ephemeral: true,
     });
