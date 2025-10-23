@@ -1,14 +1,41 @@
 {
-    "MAX_ETAGE": 20,
-    "ETAGE_PAR_PALIER": 5,
-    "DAMAGE": 1,
-    "BOSS": {
-        "name": "Big Sweeney",
-        "hp": 300
+    "SEASONS": {
+        "0": {
+            "MAX_ETAGE": 20,
+            "ETAGE_PAR_PALIER": 5,
+            "DAMAGE": 1
+        }
     },
-    "HIDDEN_BOSS": {
-        "name": "Haiepique Fayl",
-        "hp": 150
+    "ENEMIES": {
+        "0": {
+            "BOSS": {
+                "name": "Big Sweeney",
+                "hp": 300
+            },
+            "HIDDEN_BOSS": {
+                "name": "Haiepique Fayl",
+                "hp": 150
+            }
+        },
+        "1": [
+        ]
+    },
+    "MESSAGE": {
+        "0": {
+            "INTRO": "Tu aperçois au loin une tour, tu décides de t'en approcher.\n  Tu entends de sinistres ricanements provenant du sommet.\n  Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..\n\n  Peut-être en prouvant tes capacités à `maîtriser` un jeu puis en le `validant` ?\n      ```\n             |>>>\n             |\n         _  _|_  _\n        |;|_|;|_|;|\n        \\.    .  /\n         \\:  .  /\n          ||:   |\n          ||:.  |\n          ||:  .|\n          ||:   |\n          ||: , |\n<CDS>     ||:   |\n  o       ||: . |\n /|\\     _||_   |\n / \\----~    ~`---,\n'                  ~~---\n```",
+            "HIT": "En complétant **${gameName}**, ${author} inflige **1 point de dégats** à `${boss}`!\n```\n<\uD83D\uDCAF%>\n \\o/\n  | \n / \\ \n```",
+            "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !\n```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
+            "ETAGE": "En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !",
+            "PALIER": "En complétant **${gameName}**, ${author} arrive au **palier ${palier}** !\nCe palier est vide.. les escaliers montent toujours et les bruits sont de plus en plus oppressants.\n```\n<CDS>       ┏━┛\n  o       ┏━┛\n (|)    ┏━┛\n / \\  ┏━┛        \n￣￣￣\n```",
+            "SOMMET": "${author} a atteint le **palier ${palier}** et est arrivé au sommet de la tour !!\nMais ${author} trébuche sur le cadavre de `Big Sweeney`...\nEn se relevant, ${author} voit ses coéquipiers faire face au grand `Haiepique Fayl`\n\n${author} prends part au combat !\n```\n               _____, ,_ \n             /|  x   x   |\\\n     <CDS>  / |   ___     | \\\n       o_+ |  |  /   \\    |  |\n  <CDS>|   |  |  \\___/    |  |\n    o_+ \\   \\_|   VVV     |_/\n<CDS>         |   ^^^     |\n  o_+\\       /|___________|\\\n  |         /_/          \\_\\\n / \\         /_\\        /_\\\n```",
+            "BOSS_PALIER": "${author} a atteint le **palier ${palier}** et est arrivé au sommet de la tour !!\n${author} aperçoit au loin d'autres joueurs menant une rude bataille..\n${author} prends part au combat !\n```\n              ___________ \n             |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |  \n     <CDS>   |___________|  \n       o_+     |\uD83D\uDCB0  \uD83D\uDCB0 |     \n  <CDS>|       |  ---  |     \n    o_+ \\      \\_______/     \n<CDS>            _|$|_      \n  o_+\\       __ / |$| \\ __ \n  |         / _|  |$|  |_ \\\n / \\        \\_\\   |$|   /_/\n```",
+            "FIRST_BOSS": "${author} a atteint le **palier ${palier}** et est arrivé au sommet de la tour !!\n${author} aperçoit au loin une ombre menaçante.\n\nEn se rapprochant, ${author} reconnait très clairement le cupide `Big Sweeney`\n```\n           ___________\n          |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |\n          |___________|\n            |\uD83D\uDCB0  \uD83D\uDCB0 |   \n            |  ---  |    \n            \\_______/     \n              _|$|_       \n          __ / |$| \\ __   \n         / _|  |$|  |_ \\  \n         \\_\\   |$|   /_/  \n<CDS>          |$|       \n  o_+     _____|_|_____ \n  |     /      |_|      \\\n / \\   /_________________\\\n```",
+            "HIDDEN_BOSS": "En complétant **${gameName}**, ${author} porte le coup fatal à `Big Sweeney`! Bravo !\nAlors que son corps tombe à terre, ${author} entend grogner au loin..\n\nC'est `Haiepique Fayl`, son acolyte, qui bondit et qui veut venger son maître !\n```\n          _____, ,_ \n        /|  x   x   |\\\n       / |   ___     | \\\n      |  |  /   \\    |  |\n      |  |  \\___/    |  |\n       \\_|   VVV     |_/\n<CDS>    |   ^^^     |\n  o_+   /|___________|\\\n  |    /_/          \\_\\\n / \\    /_\\        /_\\\n```",
+            "END": "En complétant **${gameName}**, ${author} porte le coup fatal à `Haiepique Fayl`!! Félicitations ! Grâce à vos efforts communs, vous avez réussi à vaincre `Big Sweeney` et `Haiepique Fayl`..\nLa paix revient enfin dans la tour, et vous êtes acclamés en héros par tous les habitants..\n```\n       * ||￣￣￣\\   *       \n  *      ||--\uD83C\uDFC6-->      *  \n         ||_____/  *       *\n     *   ||                 \n         ||    *        *   \n__ *  ___||  __<CDS>___    _\n  |  |   || |   |o |   |  |\n; |__| ; ||_| ; ||-| ; |__|\n```",
+            "FIRST_BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `Haiepique Fayl`..\nEn prenant le corps de `Big Sweeney`, `Haiepique Fayl` éjecte tout le monde de la tour.\nIl s'enfuit, furieux de ne pas avoir pu venger son maître..\n```\n       | \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8 |\n       |________|\n        |\uD83D\uDCB0 \uD83D\uDCB0| \n        \\  --  /\n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
+            "SECOND_BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `Big Sweeney`..\nCelui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin, suivi de près par une ombre..\n```\n       | \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8 |\n       |________|\n        |\uD83D\uDCB0 \uD83D\uDCB0| \n        \\  --  /\n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
+            "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..\n```\n<CDS> \n  o ❓ \n (|)  \n / \\  \n￣￣￣\n```"
+        }
     },
     "PRIVATE_JOKES": [
         "Et paf !",
@@ -23,17 +50,5 @@
         "C'est quel jeu ??",
         "noob"
     ],
-    "ASCII_INTRO": "    ```\n             |>>>\n             |\n         _  _|_  _\n        |;|_|;|_|;|\n        \\.    .  /\n         \\:  .  /\n          ||:   |\n          ||:.  |\n          ||:  .|\n          ||:   |\n          ||: , |\n<CDS>     ||:   |\n  o       ||: . |\n /|\\     _||_   |\n / \\----~    ~`---,\n'                  ~~---\n```",
-    "ASCII_FIRST": "```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
-    "ASCII_PALIER": "```\n<CDS>       ┏━┛\n  o       ┏━┛\n (|)    ┏━┛\n / \\  ┏━┛        \n￣￣￣\n```",
-    "ASCII_BOSS_FIRST_TIME": "```\n           ___________\n          |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |\n          |___________|\n            |\uD83D\uDCB0  \uD83D\uDCB0 |   \n            |  ---  |    \n            \\_______/     \n              _|$|_       \n          __ / |$| \\ __   \n         / _|  |$|  |_ \\  \n         \\_\\   |$|   /_/  \n<CDS>          |$|       \n  o_+     _____|_|_____ \n  |     /      |_|      \\\n / \\   /_________________\\\n```",
-    "ASCII_BOSS_PALIER": "```\n              ___________ \n             |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |  \n     <CDS>   |___________|  \n       o_+     |\uD83D\uDCB0  \uD83D\uDCB0 |     \n  <CDS>|       |  ---  |     \n    o_+ \\      \\_______/     \n<CDS>            _|$|_      \n  o_+\\       __ / |$| \\ __ \n  |         / _|  |$|  |_ \\\n / \\        \\_\\   |$|   /_/\n```",
-    "ASCII_100": "```\n<\uD83D\uDCAF%>\n \\o/\n  | \n / \\ \n```",
-    "ASCII_NOT_100": "```\n<CDS>\n  o7  \uD83C\uDFC6❓\n /|\n / \\\n```",
-    "ASCII_HIDDEN_BOSS_FIRST_TIME": "```\n          _____, ,_ \n        /|  x   x   |\\\n       / |   ___     | \\\n      |  |  /   \\    |  |\n      |  |  \\___/    |  |\n       \\_|   VVV     |_/\n<CDS>    |   ^^^     |\n  o_+   /|___________|\\\n  |    /_/          \\_\\\n / \\    /_\\        /_\\\n```",
-    "ASCII_HIDDEN_BOSS_PALIER": "```\n               _____, ,_ \n             /|  x   x   |\\\n     <CDS>  / |   ___     | \\\n       o_+ |  |  /   \\    |  |\n  <CDS>|   |  |  \\___/    |  |\n    o_+ \\   \\_|   VVV     |_/\n<CDS>         |   ^^^     |\n  o_+\\       /|___________|\\\n  |         /_/          \\_\\\n / \\         /_\\        /_\\\n```",
-    "ASCII_END": "```\n       * ||￣￣￣\\   *       \n  *      ||--\uD83C\uDFC6-->      *  \n         ||_____/  *       *\n     *   ||                 \n         ||    *        *   \n__ *  ___||  __<CDS>___    _\n  |  |   || |   |o |   |  |\n; |__| ; ||_| ; ||-| ; |__|\n```",
-    "ASCII_FIRST_BAD_ENDING": "```\n       | \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8 |\n       |________|\n        |\uD83D\uDCB0 \uD83D\uDCB0| \n        \\  --  /\n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
-    "ASCII_SECOND_BAD_ENDING": "```\n        __, ,_\n       /| x_x |\\\n       \\| / \\ |/\n        \\ \\_/ / \n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
-    "ASCII_START_BAD_ENDING": "```\n<CDS> \n  o ❓ \n (|)  \n / \\  \n￣￣￣\n```"
+    "ASCII_NOT_100": "```\n<CDS>\n  o7  \uD83C\uDFC6❓\n /|\n / \\\n```"
 }
