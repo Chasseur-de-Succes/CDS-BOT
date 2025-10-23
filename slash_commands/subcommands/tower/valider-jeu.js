@@ -1,10 +1,9 @@
 const {
     createError,
-    createEmbed, createLogs,
+    createEmbed,
+    createLogs,
 } = require("../../../util/envoiMsg");
-const {
-    ASCII_NOT_100,
-} = require("../../../data/event/tower/constants.json");
+const { ASCII_NOT_100 } = require("../../../data/event/tower/constants.json");
 const { GuildConfig, User } = require("../../../models");
 const { SALON } = require("../../../util/constants");
 const { isAllBossDead } = require("../../../util/events/tower/towerUtils");
@@ -171,7 +170,16 @@ const validerJeu = async (interaction, options) => {
         switch (season) {
             case 0:
                 // gestion de la saison 0 dans un fichier séparé
-                return seasonZero(client, guild, guildId, interaction, userDb, author, gameName, appid);
+                return seasonZero(
+                    client,
+                    guild,
+                    guildId,
+                    interaction,
+                    userDb,
+                    author,
+                    gameName,
+                    appid,
+                );
         }
         // TODO Saison N+1 : Tour à X étages, avec un boss à chaque palier (admin CDS)
         // TODO Saison N+2 : Participant réparti en plusieurs équipes (2 ou 3), 2/3 tour à X étages, un boss différent pour chaque équipe -> a réfléchir

@@ -6,12 +6,16 @@ const {
 } = require("../../../data/event/tower/constants.json");
 const { getRandomPrivateJokes, displayHealth } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
-const { endSeason } = require("../../../slash_commands/subcommands/tower/valider-jeu");
+const {
+    endSeason,
+} = require("../../../slash_commands/subcommands/tower/valider-jeu");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
 async function createBoss(season, isHiddenBoss) {
-    const infoBoss = isHiddenBoss ? ENEMIES["0"].HIDDEN_BOSS : ENEMIES["0"].BOSS;
+    const infoBoss = isHiddenBoss
+        ? ENEMIES["0"].HIDDEN_BOSS
+        : ENEMIES["0"].BOSS;
 
     const newBoss = await new TowerBoss({
         name: infoBoss.name,
@@ -25,7 +29,16 @@ async function createBoss(season, isHiddenBoss) {
     return newBoss;
 }
 
-async function seasonZero(client, guild, guildId, interaction, userDb, author, gameName, appid) {
+async function seasonZero(
+    client,
+    guild,
+    guildId,
+    interaction,
+    userDb,
+    author,
+    gameName,
+    appid,
+) {
     // Si l'utilisateur n'est pas encore arrivé au boss
     if (userDb.event.tower.etage <= SEASONS["0"].MAX_ETAGE) {
         // 1er étage franchi (1 jeu complété)
@@ -36,7 +49,8 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
             });
             // 1er message d'intro
             let descFirst = `${MESSAGE["0"].FIRST}`;
-            descFirst = descFirst.replace(/\${gameName}/g, gameName)
+            descFirst = descFirst
+                .replace(/\${gameName}/g, gameName)
                 .replace(/\${author}/g, author);
             return interaction.editReply({
                 embeds: [
@@ -69,9 +83,13 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
                 });
                 await createBoss(0, false);
 
-                let firstboss = MESSAGE["0"].FIRST_BOSS
-                    .replace(/\${author}/g, author)
-                    .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+                let firstboss = MESSAGE["0"].FIRST_BOSS.replace(
+                    /\${author}/g,
+                    author,
+                ).replace(
+                    /\${palier}/g,
+                    userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER,
+                );
                 return interaction.editReply({
                     embeds: [
                         await createEmbed({
@@ -97,9 +115,13 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
                     prefix: "TOWER",
                     message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier..`,
                 });
-                let descPalier = MESSAGE["0"].BOSS_PALIER
-                    .replace(/\${author}/g, author)
-                    .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+                let descPalier = MESSAGE["0"].BOSS_PALIER.replace(
+                    /\${author}/g,
+                    author,
+                ).replace(
+                    /\${palier}/g,
+                    userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER,
+                );
                 return interaction.editReply({
                     embeds: [
                         await createEmbed({
@@ -120,9 +142,13 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, 1er boss mort..`,
             });
-            let descSommet = MESSAGE["0"].SOMMET
-                .replace(/\${author}/g, author)
-                .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+            let descSommet = MESSAGE["0"].SOMMET.replace(
+                /\${author}/g,
+                author,
+            ).replace(
+                /\${palier}/g,
+                userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER,
+            );
             return interaction.editReply({
                 embeds: [
                     await createEmbed({
@@ -149,10 +175,15 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
                 }..`,
             });
 
-            let descPalier = MESSAGE["0"].PALIER
-                .replace(/\${gameName}/g, gameName)
+            let descPalier = MESSAGE["0"].PALIER.replace(
+                /\${gameName}/g,
+                gameName,
+            )
                 .replace(/\${author}/g, author)
-                .replace(/\${palier}/g, userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER);
+                .replace(
+                    /\${palier}/g,
+                    userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER,
+                );
             return interaction.editReply({
                 embeds: [
                     await createEmbed({
@@ -164,7 +195,8 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
                             text: `Étage ${
                                 userDb.event.tower.etage
                             }/??, Palier ${
-                                userDb.event.tower.etage / SEASONS["0"].ETAGE_PAR_PALIER
+                                userDb.event.tower.etage /
+                                SEASONS["0"].ETAGE_PAR_PALIER
                             }/?? | ${getRandomPrivateJokes()}`,
                         },
                     }),
@@ -177,9 +209,10 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
         });
-        let descEtage = MESSAGE["0"].ETAGE
-            .replace(/\${author}/g, author)
-            .replace(/\${gameName}/g, gameName);
+        let descEtage = MESSAGE["0"].ETAGE.replace(
+            /\${author}/g,
+            author,
+        ).replace(/\${gameName}/g, gameName);
         return interaction.editReply({
             embeds: [
                 await createEmbed({
@@ -220,9 +253,10 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
             // si boss caché meurt, on arrête TOUT et on backup la saison
             await endSeason(client, 0, guild);
 
-            let descEnd = MESSAGE["0"].END
-                .replace(/\${gameName}/g, gameName)
-                .replace(/\${author}/g, author);
+            let descEnd = MESSAGE["0"].END.replace(
+                /\${gameName}/g,
+                gameName,
+            ).replace(/\${author}/g, author);
 
             return interaction.editReply({
                 embeds: [
@@ -246,9 +280,10 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
         });
         await createBoss(0, true);
 
-        let descHiddenBoss = MESSAGE["0"].HIDDEN_BOSS
-            .replace(/\${gameName}/g, gameName)
-            .replace(/\${author}/g, author);
+        let descHiddenBoss = MESSAGE["0"].HIDDEN_BOSS.replace(
+            /\${gameName}/g,
+            gameName,
+        ).replace(/\${author}/g, author);
         return interaction.editReply({
             embeds: [
                 await createEmbed({
@@ -269,8 +304,7 @@ async function seasonZero(client, guild, guildId, interaction, userDb, author, g
         prefix: "TOWER",
         message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${SEASONS["0"].DAMAGE}..`,
     });
-    let desc100 = MESSAGE["0"].HIT
-        .replace(/\${gameName}/g, gameName)
+    let desc100 = MESSAGE["0"].HIT.replace(/\${gameName}/g, gameName)
         .replace(/\${boss}/g, currentBoss.name)
         .replace(/\${author}/g, author);
     const embed = await createEmbed({

@@ -1,7 +1,5 @@
 const { TowerBoss, User } = require("../../../models");
-const {
-    PRIVATE_JOKES,
-} = require("../../../data/event/tower/constants.json");
+const { PRIVATE_JOKES } = require("../../../data/event/tower/constants.json");
 const { createLogs } = require("../../envoiMsg");
 const { daysDiff } = require("../../util");
 const { EmbedBuilder } = require("discord.js");
@@ -156,7 +154,7 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
                 text: "Seuls ceux qui ne font rien n'échouent pas..",
             });
 
-        let description = '';
+        let description = "";
         switch (seasonNumber) {
             case 0:
                 description = await endSeasonZero();
@@ -184,5 +182,5 @@ module.exports = {
     displayHealth,
     getRandomPrivateJokes,
     isAllBossDead,
-    endSeason
-}
+    endSeason,
+};

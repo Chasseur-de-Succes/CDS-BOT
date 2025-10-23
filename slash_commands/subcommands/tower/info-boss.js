@@ -1,6 +1,9 @@
 const { TowerBoss, GuildConfig } = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
-const { displayHealth, getRandomPrivateJokes } = require("../../../util/events/tower/towerUtils");
+const {
+    displayHealth,
+    getRandomPrivateJokes,
+} = require("../../../util/events/tower/towerUtils");
 
 const infoBoss = async (interaction, options) => {
     const guildId = interaction.guildId;
