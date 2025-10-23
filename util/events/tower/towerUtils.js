@@ -49,20 +49,12 @@ function displayHealth(boss) {
 async function isAllBossDead(season) {
     switch (season) {
         case 0: // Saison 0 : 2 boss dont un caché
-            return await TowerBoss.exists({
-                $and: [
-                    {
-                        season: season,
-                        hp: { $eq: 0 },
-                        hidden: false,
-                    },
-                    {
-                        season: season,
-                        hp: { $eq: 0 },
-                        hidden: true,
-                    },
-                ],
+            // Check if there are any bosses in this season that are not dead
+            const anyAlive = await TowerBoss.exists({
+                season: season,
+                hp: { $gt: 0 },
             });
+            return !anyAlive;
         case 1: // Saison 1 : X boss TODO
         default:
             return false;
