@@ -4,6 +4,7 @@ const { deleteRappelJob, editMsgHubGroup } = require("../../../util/msg/group");
 const { createRappelJob } = require("../../../util/batch/batch");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const moment = require("moment-timezone");
+const { discordTimestamp } = require("../../../util/discordFormatters");
 
 const schedule = async (interaction, options) => {
     const nameGrp = options.get("nom")?.value;
@@ -14,11 +15,13 @@ const schedule = async (interaction, options) => {
 
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
+    await interaction.deferReply();
+
     // Test si le capitaine est inscrit
     const authorDb = await client.getUser(author);
     if (!authorDb) {
         // Si pas dans la BDD
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(
                     `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
@@ -30,14 +33,14 @@ const schedule = async (interaction, options) => {
     // Récupération du groupe
     const grp = await client.findGroupByName(nameGrp);
     if (!grp) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)],
         });
     }
 
     // Si l'auteur n'est pas capitaine ou admin
     if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`),
             ],
@@ -53,7 +56,7 @@ const schedule = async (interaction, options) => {
             true,
         ).isValid()
     ) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(
                     `${dateVoulue} ${heureVoulue} n'est pas une date valide.\nFormat accepté : ***jj/mm/aa HH:MM***`,
@@ -68,7 +71,10 @@ const schedule = async (interaction, options) => {
         allowedDateFormat,
         "Europe/Paris",
     );
-    await interaction.deferReply();
+    const dateTimestamp = {
+        full: discordTimestamp(dateEvent, "F"),
+        short: discordTimestamp(dateEvent, "f"),
+    };
 
     // Si la date existe déjà, la supprimer
     const indexDateEvent = grp.dateEvent.findIndex(
@@ -80,14 +86,14 @@ const schedule = async (interaction, options) => {
         grp.dateEvent.splice(indexDateEvent, 1);
 
         titreReponse += "Rdv enlevé 🚮";
-        msgReponse += `Session enlevée, le **${dateVoulue} à ${heureVoulue}** !`;
+        msgReponse += `Session enlevée, le ${dateTimestamp.short} !`;
         logger.info(`.. date ${dateEvent} retiré`);
     } else {
         // Sinon, on l'ajoute, dans le bon ordre
         grp.dateEvent.push(dateEvent);
 
         titreReponse += "Rdv ajouté 🗓";
-        msgReponse += `Session ajoutée, le **${dateVoulue} à ${heureVoulue}** !`;
+        msgReponse += `Session ajoutée, le ${dateTimestamp.short} !`;
         logger.info(`.. date ${dateEvent} ajouté`);
     }
 
@@ -116,13 +122,14 @@ const schedule = async (interaction, options) => {
             const channel = await guild.channels.cache.get(grp.channelId);
 
             if (channel) {
-                const dateStr = `${dateVoulue} à ${heureVoulue}`;
                 if (indexDateEvent >= 0) {
                     channel.send(
-                        `> ⚠️ La session du **${dateStr}** a été **supprimée**.`,
+                        `> ⚠️ La session du ${dateTimestamp.full} a été **supprimée**.`,
                     );
                 } else {
-                    channel.send(`> 🗓 Nouvelle session le **${dateStr}** !`);
+                    channel.send(
+                        `> 🗓 Nouvelle session le ${dateTimestamp.full} !`,
+                    );
                 }
             }
         }
