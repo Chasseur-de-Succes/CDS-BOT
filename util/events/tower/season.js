@@ -4,11 +4,12 @@ const {
     ENEMIES,
     MESSAGE,
 } = require("../../../data/event/tower/constants.json");
-const { getRandomPrivateJokes, displayHealth } = require("./towerUtils");
-const { TowerBoss } = require("../../../models");
 const {
+    getRandomPrivateJokes,
+    displayHealth,
     endSeason,
-} = require("../../../slash_commands/subcommands/tower/valider-jeu");
+} = require("./towerUtils");
+const { TowerBoss } = require("../../../models");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
