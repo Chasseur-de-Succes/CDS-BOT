@@ -76,6 +76,16 @@ const schedule = async (interaction, options) => {
         short: discordTimestamp(dateEvent, "f"),
     };
 
+    if (dateEvent < grp.dateCreated) {
+        return interaction.editReply({
+            embeds: [
+                createError(
+                    `La date du ${dateTimestamp.short} est avant la création du groupe.`,
+                ),
+            ],
+        });
+    }
+
     // Si la date existe déjà, la supprimer
     const indexDateEvent = grp.dateEvent.findIndex(
         (d) => d.getTime() === dateEvent.valueOf(),
@@ -94,6 +104,17 @@ const schedule = async (interaction, options) => {
 
         titreReponse += "Rdv ajouté 🗓";
         msgReponse += `Session ajoutée, le ${dateTimestamp.short} !`;
+
+        // avertissement si la date a déjà eu lieu ou si > 3 mois
+        const today = Date.now();
+        const inThreeMonts = new Date();
+        inThreeMonts.setMonth(inThreeMonts.getMonth() + 3);
+        if (dateEvent < today) {
+            msgReponse += `\n⚠️ Cette session a déjà eu lieu.`;
+        } else if (dateEvent > inThreeMonts) {
+            msgReponse += `\n⚠️ Cette session est dans plus de 3 mois.`;
+        }
+
         logger.info(`.. date ${dateEvent} ajouté`);
     }
 
