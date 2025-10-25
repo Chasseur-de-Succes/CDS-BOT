@@ -7,6 +7,7 @@ const {
     GuildConfig,
     GameItem,
     RolesChannel,
+    Observation,
     MsgHallHeros,
     MsgHallZeros,
     MsgDmdeAide,
@@ -592,5 +593,84 @@ module.exports = (client) => {
             members: tmp,
             validated: false,
         }).countDocuments();
+    };
+
+    /* Observation */
+    /**
+     * Créer un nouveau {@link Observation} et le sauvegarde en base
+     * @param {Object} observation Observation à sauvegarder
+     * @returns
+     */
+    client.createObservation = async (observation) => {
+        const merged = Object.assign(
+            { _id: mongoose.Types.ObjectId() },
+            observation,
+        );
+        const createObservation = await new Observation(merged);
+        const c = await createObservation.save();
+        logger.info({
+            prefix: "[DB]",
+            message: `Note d'observation ajoutée sur l'userId : ${observation.userId}`,
+        });
+        return c;
+    };
+    /**
+     * Cherche et retourne un tableau de {@link Observation} en fonction d'un user
+     * @param {Number} userId UserId
+     * @returns tableau {@link Observation}
+     */
+    client.getUserObservations = async (userId) => {
+        const data = await Observation.find({ userId: userId });
+        if (data) {
+            return data;
+        }
+    };
+
+    /**
+     * Cherche et retourne une {@link Observation} en fonction d'un id
+     * @param {String} ObservationId observationId
+     * @returns undefined si non trouvé, {@link ObservationItem} sinon
+     */
+    client.getObservationById = async (observationId) => {
+        const data = await Observation.findById(observationId);
+        if (data) {
+            return data;
+        }
+    };
+
+    /**
+     * Retourne tout les userId et le nombre de fois qu'il apparait des {@link Observation}
+     */
+    client.getAllUsersObservations = async () => {
+        const data = await Observation.aggregate([
+            {
+                $group: {
+                    _id: "$userId",
+                    count: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    userId: "$_id",
+                    count: 1,
+                    _id: 0,
+                },
+            },
+        ]);
+        if (data) {
+            return data;
+        }
+    };
+
+    /**
+     * Supprime une observation
+     * @param {Object} observationItem
+     */
+    client.deleteObservationItem = async (observationId) => {
+        await Observation.deleteOne({ _id: observationId });
+        logger.info({
+            prefix: "[DB]",
+            message: `Note d'observation supprimée. ID : ${observationId}`,
+        });
     };
 };
