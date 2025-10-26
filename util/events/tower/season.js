@@ -239,7 +239,7 @@ async function seasonZero(
     });
 
     // Mettre à jour les dégâts infligés et enregistrer
-    userDb.event.tower.totalDamage += SEASONS["0"].DAMAGE; // On tape le tower
+    userDb.event.tower.totalDamage += SEASONS["0"].DAMAGE;
     await userDb.save();
 
     currentBoss.hp -= SEASONS["0"].DAMAGE; // On tape
@@ -328,4 +328,63 @@ async function seasonZero(
     });
 }
 
-module.exports = { seasonZero };
+async function seasonOne(
+    client,
+    guild,
+    guildId,
+    interaction,
+    userDb,
+    author,
+    gameName,
+    appid,
+) {
+    // 1er étage franchi (1 jeu complété)
+    if (userDb.event.tower.etage === 1) {
+        userDb.event.tower.currentEtage += 1; // On monte d'un étage
+        await userDb.save();
+        // TODO
+        return;
+    }
+
+    // Si l'utilisateur n'est pas encore arrivé à un palier (boss)
+    if (userDb.event.tower.currentEtage % SEASONS["1"].ETAGE_PAR_PALIER !== 0) {
+        userDb.event.tower.currentEtage += 1; // On monte d'un étage
+        await userDb.save();
+        // TODO
+        return;
+    }
+
+    let currentBossIndex = (userDb.event.tower.currentEtage / SEASONS["1"].ETAGE_PAR_PALIER) - 1;
+    // Si l'utilisateur est arrivé à un palier (boss)
+    const bossCreated = await TowerBoss.exists({
+        season: 1,
+        ordre: currentBossIndex,
+    });
+
+    // si boss du palier pas encore créé, on le crée
+    if (!bossCreated) {
+        // TODO
+        return;
+    }
+
+    // Récupère le boss du palier
+    const currentBoss = await TowerBoss.findOne({
+        season: 1,
+        ordre: currentBossIndex,
+    });
+    // si boss du palier créé ET mort
+    if (currentBoss.hp <= 0) {
+        // TODO
+        return;
+    }
+
+    // si boss du palier créé ET en vie, on rejoint le combat contre le boss (dmg++)
+    if (currentBoss.hp > 0) {
+        // TODO
+        // TODO garder l'utilisateur qui tue le boss
+        return;
+    }
+
+}
+
+module.exports = { seasonZero, seasonOne };

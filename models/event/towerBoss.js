@@ -6,6 +6,7 @@ const bossSchema = new mongoose.Schema({
     maxHp: { type: Number, default: 50 },
     season: { type: Number, default: 0 }, // Indique à quelle saison ce boss appartient
     hidden: { type: Boolean, default: false },
+    ordre: { type: Number, default: 0 }, // Ordre d'apparition du boss dans la saison (si défini)
 });
 
 module.exports = mongoose.model("TowerBoss", bossSchema);

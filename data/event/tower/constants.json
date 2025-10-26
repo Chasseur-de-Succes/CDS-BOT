@@ -4,6 +4,11 @@
             "MAX_ETAGE": 20,
             "ETAGE_PAR_PALIER": 5,
             "DAMAGE": 1
+        },
+        "1": {
+            "ETAGE_PAR_PALIER": 5,
+            "NB_PALIERS": 4,
+            "DAMAGE": 1
         }
     },
     "ENEMIES": {
@@ -17,7 +22,12 @@
                 "hp": 150
             }
         },
-        "1": []
+        "1": [
+            { "name": "Cyborg", "hp": 20 },
+            { "name": "Tigrou", "hp": 40 },
+            { "name": "Nanaki", "hp": 60 },
+            { "name": "Sqweeb", "hp": 80 }
+        ]
     },
     "MESSAGE": {
         "0": {
