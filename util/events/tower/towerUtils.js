@@ -90,6 +90,10 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
 
 /**
  * Fin de la saison, backup des infos
+ * @param client Client Discord
+ * @param seasonNumber Numéro de la saison à terminer
+ * @param guild Info serveur
+ * @param cancelled Indique si la saison a été annulée manuellement par un admin, si false c'est une fin "normale"
  */
 async function endSeason(client, seasonNumber, guild, cancelled = false) {
     logger.info({

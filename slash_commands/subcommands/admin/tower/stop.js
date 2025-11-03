@@ -12,9 +12,13 @@ async function stop(interaction) {
             content: "Évènement déjà arrêté !",
         });
     }
-    logger.info(".. arrêt event tower");
 
+    const author = interaction.member;
     const season = guild.event.tower.currentSeason;
+    logger.info({
+        prefix: "TOWER",
+        message: `arrêt event tower, saison ${season}, par ${author.user.tag} ..`,
+    });
     await endSeason(interaction.client, season, guild, true);
 
     return await interaction.reply({ content: "Évènement arrêté !" });
