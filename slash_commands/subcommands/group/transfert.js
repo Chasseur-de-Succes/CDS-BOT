@@ -2,6 +2,7 @@ const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { editMsgHubGroup } = require("../../../util/msg/group");
 const { CHECK_MARK } = require("../../../data/emojis.json");
+const { User } = require("../../../models");
 
 const transfert = async (interaction, options) => {
     const grpName = options.get("nom")?.value;
@@ -63,11 +64,35 @@ const transfert = async (interaction, options) => {
         });
     }
 
+    const oldCaptainDb = await User.findOne({ _id: grp.captain._id });
+    const oldCaptain = await interaction.guild.members
+        .fetch(oldCaptainDb.userId)
+        .catch(() => null);
+
     // update du groupe : captain
     await client.update(grp, {
         captain: newCaptainDb,
         dateUpdated: Date.now(),
     });
+
+    // update perm
+    const channel = await interaction.guild.channels
+        .fetch(grp.channelId)
+        .catch(() => null);
+    if (channel) {
+        await channel.permissionOverwrites.edit(newCaptain, {
+            [PermissionFlagsBits.PinMessages]: true,
+        });
+        if (oldCaptain) {
+            await channel.permissionOverwrites.edit(oldCaptain, {
+                [PermissionFlagsBits.PinMessages]: false,
+            });
+        }
+
+        channel.send(`👑 ${newCaptain} est le nouveau capitaine du groupe`);
+    } else {
+        logger.warn(`Le channel du groupe "${grpName}" est introuvable`);
+    }
 
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
