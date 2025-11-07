@@ -71,6 +71,18 @@ const transfert = async (interaction, options) => {
         .fetch(oldCaptainDb.userId)
         .catch(() => null);
 
+    if (newCaptain === oldCaptain) {
+        return interaction.editReply({
+            embeds: [
+                createError(
+                    isAdmin
+                        ? `${newCaptain} a déjà pris la tête de l’escouade 🎮`
+                        : `Tu es déjà capitaine du groupe 😄`,
+                ),
+            ],
+        });
+    }
+
     // update du groupe : captain
     await client.update(grp, {
         captain: newCaptainDb,
