@@ -72,6 +72,7 @@ const userSchema = mongoose.Schema({
             startDate: Date, // Date de début pour l'utilisateur
             etage: { type: Number, default: 0 }, // Nb de jeu complété à 100%
             currentEtage: { type: Number, default: 0 }, // Etage courant
+            currentBoss: { type: Number, default: -1 }, // Boss courant (ordre) pour la saison 1
             totalDamage: { type: Number, default: 0 }, // Dégâts infligés pour la saison en cours
             completedGames: [{ type: String }], // Liste des appid utilisés pour grimper/attaquer
             seasonHistory: [
