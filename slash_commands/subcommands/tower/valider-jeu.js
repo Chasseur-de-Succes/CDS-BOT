@@ -198,7 +198,7 @@ const validerJeu = async (interaction, options) => {
 
     return interaction.editReply({
         embeds: [
-            await createEmbed({
+            createEmbed({
                 title: `🛑 Tu n'as pas encore complété ${gameName}..`,
                 url: `https://store.steampowered.com/app/${appid}/`,
                 desc: `Il semblerait que tu n'es pas eu tous les succès de **${gameName}**..

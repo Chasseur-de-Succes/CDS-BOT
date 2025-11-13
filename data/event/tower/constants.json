@@ -74,37 +74,59 @@
             "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..\n```\n<CDS> \n  o ❓ \n (|)  \n / \\  \n￣￣￣\n```"
         },
         "1":  {
-            "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !\n```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
+            "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !",
             "ETAGE": "En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !",
             "HIT": "En complétant **${gameName}**, ${author} inflige **1 point de dégats** à `${boss}`!",
+            "JOIN_BOSS": "En complétant **${gameName}**, ${author} arrive au **palier ${palier}** !\nVous rejoignez les autres pour combattre `${boss}` !",
+            "DEAD_BOSS": "En complétant **${gameName}**, ${author} arrive au **palier ${palier}** !\nMais `${boss}` ayant été vaincu, il n'y a plus rien à voir ici.",
+            "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..",
+            "BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `${boss}`..\nCelui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin..\n",
+            "END": "En complétant **${gameName}**, ${author} porte le coup fatal à `Sqweeb`, il disparaît comme s’il n’avait jamais été là.\nL’admin fantôme retourne dans l’ombre, prêt à stalker les gens… parce qu’on ne sait faire que ça.\nLa Tour est terminée ! Bravo, aventurier !\nMais… est-ce vraiment la fin ?",
             "BOSS": [
                 {
-                    "footer": "PLACEHOLDER FOOTER Cyborg",
-                    "created": "PLACEHOLDER Cyborg créé",
-                    "joined": "PLACEHOLDER Cyborg rejoint",
-                    "killed": "PLACEHOLDER Cyborg killed",
-                    "dead": "PLACEHOLDER Cyborg dead"
+                    "footer": [
+                        "Coucou les p'tits chats",
+                        "On est large",
+                        "Jeu de merde",
+                        "bouyabouyabouya"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\n\nAu loin, vous entendez au loin des miaulements stridents mêlés à des cris de rage — on dirait qu’un jeu vient encore de sortir un DLC plein de succès.\n\nEt soudain, Cyborg fait son apparition !",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nVous rejoignez les autres pour combattre `Cyborg` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Cyborg` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nMais `Cyborg` ayant été vaincu, il n'y a plus rien à voir ici."
                 },
                 {
-                    "footer": "PLACEHOLDER FOOTER Tigrou",
-                    "created": "PLACEHOLDER Tigrou créé",
-                    "joined": "PLACEHOLDER Tigrou rejoint",
-                    "killed": "PLACEHOLDER Tigrou killed",
-                    "dead": "PLACEHOLDER Tigrou dead"
+                    "footer": [
+                        "noob",
+                        "Un p'tit bundle à 0.01€ ?"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\n\n« Noob, noob, noob ! » Ce mot résonne dans votre tête.\n— Tu veux un bundle à un centime ?\nUn sourire plein de dents aiguisées apparaît dans le noir… avant que Tigrou ne sorte de l’ombre et vous attaque !\n",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\nVous rejoignez les autres pour combattre `Tigrou` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Tigrou` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\nMais `Tigrou` ayant été vaincu, il n'y a plus rien à voir ici."
                 },
                 {
-                    "footer": "PLACEHOLDER FOOTER Nanaki",
-                    "created": "PLACEHOLDER Nanaki créé",
-                    "joined": "PLACEHOLDER Nanaki rejoint",
-                    "killed": "PLACEHOLDER Nanaki killed",
-                    "dead": "PLACEHOLDER Nanaki dead"
+                    "footer": [
+                        "C'est pas ouf",
+                        "Plume",
+                        "Ca va exploser",
+                        "Dofus, meilleur jeu !!"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°3** !\n\nVous entendez une voix au loin :\n— Mon précieux… c’est mon précieux Dofus !\n— Non, Plume, ce n’est pas le tien, précieux…\nVous distinguez alors un être masqué, recroquevillé sur un œuf pourri.\n\nSon visage couvert d’un masque se tourne lentement vers vous… avant qu’il ne vous fonce dessus comme un furie !",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°3** !\nVous rejoignez les autres pour combattre `Nanaki` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Nanaki` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°3** !\nMais `Nanaki` ayant été vaincu, il n'y a plus rien à voir ici."
                 },
                 {
-                    "footer": "PLACEHOLDER FOOTER Sqweeb",
-                    "created": "PLACEHOLDER Sqweeb créé",
-                    "joined": "PLACEHOLDER Sqweeb rejoint",
-                    "killed": "PLACEHOLDER Sqweeb killed",
-                    "dead": "PLACEHOLDER Sqweeb dead"
+                    "footer": [
+                        "5€ ? Trop cher",
+                        "cacahuète",
+                        "J'ai envie de me tabasser les boules"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\n\nUne ambiance lourde plane dans la salle.\nDes murmures résonnent : « Argent… argent… »\nAu loin, une ombre fantomatique flotte au-dessus d’une montagne de pièces d’or. On l’entend… mais on ne la voit pas.\nSoudain, un souffle glacial frôle votre nuque.\n— Tu ne vaux même pas une pièce…\nLe fantôme surgit et vous attaque ! \uD83D\uDC80",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\nVous rejoignez les autres pour combattre `Sqweeb` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Sqweeb` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\nMais `Sqweeb` ayant été vaincu, il n'y a plus rien à voir ici."
                 }
             ]
         }

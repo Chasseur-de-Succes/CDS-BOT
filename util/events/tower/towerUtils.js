@@ -151,6 +151,9 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
             case 0:
                 description = await endSeasonZero();
                 break;
+            case 1:
+                description = await endSeasonOne();
+                break;
             default:
                 break;
         }
@@ -160,7 +163,7 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
     }
 }
 
-/* Description de fin de saison */
+/* Description de fin de saison annulée */
 async function endSeasonZero() {
     const currentBoss = await TowerBoss.findOne({ season: 0, hp: { $ne: 0 } });
     if (!currentBoss) return MESSAGE["0"].START_BAD_ENDING;
@@ -168,6 +171,16 @@ async function endSeasonZero() {
     return currentBoss.hidden
         ? MESSAGE["0"].SECOND_BAD_ENDING
         : MESSAGE["0"].FIRST_BAD_ENDING;
+}
+async function endSeasonOne() {
+    const currentBoss = await TowerBoss.findOne({
+        season: 1,
+        hp: { $ne: 0 }
+    });
+    if (!currentBoss) return MESSAGE["1"].START_BAD_ENDING;
+
+    return MESSAGE["1"].BAD_ENDING
+        .replace(/\${boss}/g, currentBoss.name);
 }
 
 module.exports = {

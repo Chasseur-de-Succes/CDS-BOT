@@ -56,7 +56,7 @@ async function seasonZero(
                 .replace(/\${author}/g, author);
             return interaction.editReply({
                 embeds: [
-                    await createEmbed({
+                    createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
                         desc: descFirst,
@@ -94,7 +94,7 @@ async function seasonZero(
                 );
                 return interaction.editReply({
                     embeds: [
-                        await createEmbed({
+                        createEmbed({
                             title: `🏆 ${gameName} terminé !`,
                             url: `https://store.steampowered.com/app/${appid}/`,
                             desc: `${firstboss}`,
@@ -126,7 +126,7 @@ async function seasonZero(
                 );
                 return interaction.editReply({
                     embeds: [
-                        await createEmbed({
+                        createEmbed({
                             title: `🏆 ${gameName} terminé !`,
                             url: `https://store.steampowered.com/app/${appid}/`,
                             desc: descPalier,
@@ -153,7 +153,7 @@ async function seasonZero(
             );
             return interaction.editReply({
                 embeds: [
-                    await createEmbed({
+                    createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
                         desc: descSommet,
@@ -188,7 +188,7 @@ async function seasonZero(
                 );
             return interaction.editReply({
                 embeds: [
-                    await createEmbed({
+                    createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
                         desc: descPalier,
@@ -217,7 +217,7 @@ async function seasonZero(
         ).replace(/\${gameName}/g, gameName);
         return interaction.editReply({
             embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: descEtage,
@@ -262,7 +262,7 @@ async function seasonZero(
 
             return interaction.editReply({
                 embeds: [
-                    await createEmbed({
+                    createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
                         desc: descEnd,
@@ -288,7 +288,7 @@ async function seasonZero(
         ).replace(/\${author}/g, author);
         return interaction.editReply({
             embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: descHiddenBoss,
@@ -309,7 +309,7 @@ async function seasonZero(
     let desc100 = MESSAGE["0"].HIT.replace(/\${gameName}/g, gameName)
         .replace(/\${boss}/g, currentBoss.name)
         .replace(/\${author}/g, author);
-    const embed = await createEmbed({
+    const embed = createEmbed({
         title: `🏆 ${gameName} terminé !`,
         url: `https://store.steampowered.com/app/${appid}/`,
         desc: desc100,
@@ -349,13 +349,12 @@ async function seasonOne(
         await userDb.save();
 
         // 1er message d'intro
-        let descFirst = `${MESSAGE["1"].FIRST}`;
-        descFirst = descFirst
+        const descFirst = MESSAGE["1"].FIRST
             .replace(/\${gameName}/g, gameName)
             .replace(/\${author}/g, author);
         return interaction.editReply({
             embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: descFirst,
@@ -370,32 +369,38 @@ async function seasonOne(
     }
 
     // Si l'utilisateur n'est pas encore arrivé à un palier (boss)
-    if (userDb.event.tower.currentEtage % SEASONS["1"].ETAGE_PAR_PALIER !== 0) {
+    if ((userDb.event.tower.currentEtage + 1) % SEASONS["1"].ETAGE_PAR_PALIER !== 0) {
         logger.info({
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
         });
-        userDb.event.tower.currentEtage += 1; // On monte d'un étage
+        userDb.event.tower.currentEtage += 1;
         await userDb.save();
         let descEtage = MESSAGE["1"].ETAGE
             .replace(/\${author}/g, author,)
             .replace(/\${gameName}/g, gameName);
         return interaction.editReply({
             embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: descEtage,
                     color: "#1cff00",
                     footer: {
                         text: `Étage ${
-                            userDb.event.tower.etage
+                            userDb.event.tower.currentEtage
                         }/?? | ${getRandomPrivateJokes()}`,
                     },
                 }),
             ],
             ephemeral: true,
         });
+    }
+
+    // dans le cas où on arrive à un palier, on incrémente d'abord l'étage courant
+    if ((userDb.event.tower.currentEtage + 1) % SEASONS["1"].ETAGE_PAR_PALIER === 0) {
+        userDb.event.tower.currentEtage += 1;
+        await userDb.save();
     }
 
     let currentBossIndex = (userDb.event.tower.currentEtage / SEASONS["1"].ETAGE_PAR_PALIER) - 1;
@@ -423,15 +428,17 @@ async function seasonOne(
         userDb.event.tower.currentBoss = newBoss.ordre;
         await userDb.save();
 
-        const descBoss = MESSAGE["1"].BOSS[currentBossIndex].created;
+        const descBoss = MESSAGE["1"].BOSS[currentBossIndex].created
+            .replace(/\${author}/g, author,)
+            .replace(/\${gameName}/g, gameName);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${newBossInfo.image.alive}`,
         );
-        const footerBoss = "PLACEHOLDER FOOTER"; // TODO personnaliser le footer selon le boss
+        const footerBoss = randomFooter(currentBossIndex);
 
         return interaction.editReply({
             embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: `${descBoss}`,
@@ -464,14 +471,14 @@ async function seasonOne(
 
             return interaction.editReply({
                 embeds: [
-                    await createEmbed({
+                    createEmbed({
                         title: `🏆 ${gameName} terminé !`,
                         url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `Tu passes au dessus du cadavre de ${currentBoss.name} pour monter d'un étage`,
+                        desc: `${currentBoss.name} étant vaincu, tu continues ton ascension !`,
                         color: "#1cff00",
                         footer: {
                             text: `Étage ${
-                                userDb.event.tower.etage
+                                userDb.event.tower.currentEtage
                             }/?? | ${getRandomPrivateJokes()}`,
                         },
                     }),
@@ -482,16 +489,21 @@ async function seasonOne(
 
         logger.info({
             prefix: "TOWER",
-            message: `${author.user.tag} 100% ${gameName} (${appid}): arrivé palier mais boss mort ..`,
+            message: `${author.user.tag} 100% ${gameName} (${appid}): arrivé palier, boss mort ..`,
         });
         userDb.event.tower.currentBoss = currentBoss.ordre;
         await userDb.save();
 
-        const descPalierBoss = MESSAGE["1"].BOSS[currentBossIndex].dead;
-        const footerPalierBoss = MESSAGE["1"].BOSS[currentBossIndex].footer;
+        // const descPalierBoss = MESSAGE["1"].BOSS[currentBossIndex].dead
+        const descPalierBoss = MESSAGE["1"].DEAD_BOSS
+            .replace(/\${author}/g, author)
+            .replace(/\${gameName}/g, gameName)
+            .replace(/\${boss}/g, currentBoss.name)
+            .replace(/\${palier}/g, currentBossIndex + 1);
+        const footerPalierBoss = randomFooter(currentBossIndex);
         return interaction.editReply({
             embeds: [
-                (await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: `${descPalierBoss}`,
@@ -499,7 +511,7 @@ async function seasonOne(
                     footer: {
                         text: footerPalierBoss,
                     },
-                }))
+                })
             ],
         });
     }
@@ -514,15 +526,19 @@ async function seasonOne(
         await userDb.save();
 
         const bossInfo = ENEMIES["1"][currentBossIndex];
-        const descRejointBoss = MESSAGE["1"].BOSS[currentBossIndex].joined;
-        const footerRejointBoss = MESSAGE["1"].BOSS[currentBossIndex].footer;
+        const descRejointBoss = MESSAGE["1"].JOIN_BOSS
+            .replace(/\${author}/g, author,)
+            .replace(/\${gameName}/g, gameName)
+            .replace(/\${boss}/g, currentBoss.name)
+            .replace(/\${palier}/g, currentBossIndex + 1);
+        const footerRejointBoss = randomFooter(currentBossIndex);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.alive}`,
         );
 
         return interaction.editReply({
             embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: `${descRejointBoss}`,
@@ -542,6 +558,7 @@ async function seasonOne(
     await userDb.save();
 
     // On tape
+    // TODO calcul des dégats en fonction du tag du jeu etc
     currentBoss.hp -= SEASONS["1"].DAMAGE;
     await currentBoss.save();
 
@@ -550,21 +567,58 @@ async function seasonOne(
         currentBoss.killedBy = userDb;
         await currentBoss.save();
 
+        // si dernier boss, fin de la saison
+        if (currentBossIndex + 1 >= SEASONS["1"].NB_PALIERS) {
+            logger.info({
+                prefix: "TOWER",
+                message: `${author.user.tag} 100% ${gameName} (${appid}): tue dernier boss, fin event, backup les infos ..`,
+            });
+            // si dernier boss meurt, on arrête TOUT et on backup la saison
+            await endSeason(client, 1, guild);
+
+            const bossInfo = ENEMIES["1"][currentBossIndex];
+            let descEnd = MESSAGE["1"].END.replace(
+                /\${gameName}/g,
+                gameName,
+            ).replace(/\${author}/g, author);
+            const imgBoss = new AttachmentBuilder(
+                `data/img/event/tower/${bossInfo.image.dead}`,
+            );
+
+            return interaction.editReply({
+                embeds: [
+                    createEmbed({
+                        title: `🏆 ${gameName} terminé !`,
+                        url: `https://store.steampowered.com/app/${appid}/`,
+                        desc: descEnd,
+                        color: "#ff0000",
+                        footer: {
+                            text: "La tour est enfin pacifiée..",
+                        },
+                    })
+                        .setImage(`attachment://${bossInfo.image.dead}`)
+                ],
+                files: [imgBoss],
+            });
+        }
+
         logger.info({
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): tue le boss ${currentBoss.ordre}..`,
         });
 
         const bossInfo = ENEMIES["1"][currentBossIndex];
-        const descBossDead = MESSAGE["1"].BOSS[currentBossIndex].killed;
-        const footerBossDead = MESSAGE["1"].BOSS[currentBossIndex].footer;
+        const descBossDead = MESSAGE["1"].BOSS[currentBossIndex].killed
+            .replace(/\${author}/g, author,)
+            .replace(/\${gameName}/g, gameName);
+        const footerBossDead = randomFooter(currentBossIndex);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.dead}`,
         );
 
         return interaction.editReply({
            embeds: [
-                await createEmbed({
+                createEmbed({
                     title: `🏆 ${gameName} terminé !`,
                     url: `https://store.steampowered.com/app/${appid}/`,
                     desc: `${descBossDead}`,
@@ -578,23 +632,39 @@ async function seasonOne(
            files: [imgBoss],
         });
     } else {
-        // TODO calcul des dégats en fonction du tag du jeu etc
         logger.info({
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${SEASONS["1"].DAMAGE}..`,
         });
 
+        // non ephemeral si point de vie a atteint un palier (25%, 50%, 75%)
+        let ephemeral = true;
+        const hpRatio = currentBoss.hp / currentBoss.maxHp;
+        if (hpRatio <= 0.75 && hpRatio > 0.5 && !currentBoss.hit25) {
+            ephemeral = false;
+            currentBoss.hit25 = true;
+            await currentBoss.save();
+        } else if (hpRatio <= 0.5 && hpRatio > 0.25 && !currentBoss.hit50) {
+            ephemeral = false;
+            currentBoss.hit50 = true;
+            await currentBoss.save();
+        } else if (hpRatio <= 0.25 && hpRatio > 0 && !currentBoss.hit75) {
+            ephemeral = false;
+            currentBoss.hit75 = true;
+            await currentBoss.save();
+        }
+
         let descHit = MESSAGE["1"].HIT
             .replace(/\${gameName}/g, gameName)
             .replace(/\${boss}/g, currentBoss.name)
             .replace(/\${author}/g, author);
-        const embed = await createEmbed({
+        const embed =  createEmbed({
             title: `🏆 ${gameName} terminé !`,
             url: `https://store.steampowered.com/app/${appid}/`,
             desc: descHit,
             color: "#ff0000",
             footer: {
-                text: `${getRandomPrivateJokes()}`,
+                text: `${randomFooter(currentBossIndex)}`,
             },
         });
         embed.addFields({
@@ -604,10 +674,14 @@ async function seasonOne(
 
         return interaction.editReply({
             embeds: [embed],
-            ephemeral: true,
+            ephemeral: ephemeral,
         });
     }
+}
 
+function randomFooter(bossIndex) {
+    const footers = MESSAGE["1"].BOSS[bossIndex].footer;
+    return footers[Math.floor(Math.random() * footers.length)];
 }
 
 module.exports = { seasonZero, seasonOne };
