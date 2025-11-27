@@ -8,7 +8,18 @@
         "1": {
             "ETAGE_PAR_PALIER": 5,
             "NB_PALIERS": 4,
-            "DAMAGE": 1
+            "DAMAGE": 1,
+            "HIDDEN_GAME_APPID": {
+                "489830": "Cyborg",
+                "260230": "Cyborg",
+                "292570": "Tigrou",
+                "851850": "Tigrou",
+                "1634860": "Nanaki",
+                "881020": "Nanaki",
+                "292030": "Sqweeb",
+                "237930": "Sqweeb",
+                "22380": "Kekwel"
+            }
         }
     },
     "ENEMIES": {

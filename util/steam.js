@@ -417,4 +417,38 @@ module.exports = (client) => {
         logger.info(`.. Fin refresh games, ${cptGame} jeux ajoutés`);
         return `Import des jeux terminés, ${cptGame} jeux ajoutés 👏`;
     };
+
+    // Récupère les genres depuis l'API Steam (appId en string ou number)
+    client.fetchAppGenres = async (appId) => {
+        try {
+            const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}`);
+            if (!res.ok) return [];
+            const json = await res.json();
+            const entry = json[String(appId)];
+            const data = entry && entry.data;
+            if (!data) return [];
+            return (data.genres || []);
+        } catch (err) {
+            console.error("Erreur fetchAppGenres:", err);
+            return [];
+        }
+    };
+
+    // Récupère les tags depuis l'API SteamHunters (appId en string ou number)
+    client.fetchTags = async (appId) => {
+        try {
+            const res = await fetch(`https://steamhunters.com/api/apps/${appId}`);
+            if (!res.ok) return [];
+            const json = await res.json();
+            // L'API peut retourner un tableau ou un objet ; normaliser
+            const data = Array.isArray(json) ? json[0] : json;
+            if (!data) return [];
+            // Extraire les tags
+            const rawTags = data.tags || [];
+            return (Array.isArray(rawTags) ? rawTags : []);
+        } catch (err) {
+            console.error("Erreur fetchSteamHuntersTags:", err);
+            return [];
+        }
+    };
 };

@@ -339,6 +339,15 @@ async function seasonOne(
     gameName,
     appid,
 ) {
+    // TODO tester appid si 1. jeu caché donné par les admins 2. jeu avec un tag du mois
+    const hiddenMap = SEASONS["1"].HIDDEN_GAME_APPID;
+    const appidStr = String(appid);
+    const isHiddenApp = hiddenMap && Object.prototype.hasOwnProperty.call(hiddenMap, appidStr);
+
+    // récupère les genres/tags
+    const genres = await client.fetchAppGenres(appid);
+    const tags = await client.fetchTags(appid);
+
     // 1er étage franchi (1 jeu complété)
     if (userDb.event.tower.etage === 1) {
         logger.info({
@@ -554,12 +563,13 @@ async function seasonOne(
     }
 
     // Mettre à jour les dégâts infligés et enregistrer
-    userDb.event.tower.totalDamage += SEASONS["1"].DAMAGE;
+    let dmg = SEASONS["1"].DAMAGE;
+    userDb.event.tower.totalDamage += dmg;
     await userDb.save();
 
     // On tape
     // TODO calcul des dégats en fonction du tag du jeu etc
-    currentBoss.hp -= SEASONS["1"].DAMAGE;
+    currentBoss.hp -= dmg;
     await currentBoss.save();
 
     // si mort du boss
@@ -634,7 +644,7 @@ async function seasonOne(
     } else {
         logger.info({
             prefix: "TOWER",
-            message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${SEASONS["1"].DAMAGE}..`,
+            message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${dmg}..`,
         });
 
         // non ephemeral si point de vie a atteint un palier (25%, 50%, 75%)
