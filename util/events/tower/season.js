@@ -11,6 +11,7 @@ const {
 } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
 const { AttachmentBuilder } = require("discord.js");
+const { init } = require("../../mongoose");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
@@ -339,7 +340,7 @@ async function seasonOne(
     gameName,
     appid,
 ) {
-    // TODO tester appid si 1. jeu caché donné par les admins 2. jeu avec un tag du mois
+    // si jeu caché donné par les admins
     const hiddenMap = SEASONS["1"].HIDDEN_GAME_APPID;
     const appidStr = String(appid);
     const isHiddenApp = hiddenMap && Object.prototype.hasOwnProperty.call(hiddenMap, appidStr);
@@ -348,67 +349,106 @@ async function seasonOne(
     const genres = await client.fetchAppGenres(appid);
     const tags = await client.fetchTags(appid);
 
+    // récupère les genres/tags du mois
+    // TODO créer méthode dans guildConfig pour ça ?
+    const monthIndex = new Date().getMonth();
+    const monthlyGenres = guild.event.tower.monthlyGenres[monthIndex];
+    const monthlyTags = guild.event.tower.monthlyTags[monthIndex];
+
+    let genresFoundArr = [];
+    for (const g of genres) {
+        const match = monthlyGenres.find((m) => m.id === g.id);
+        if (match) genresFoundArr.push(match.label);
+    }
+    let isMonthlyGenre = genresFoundArr.length > 0;
+    const genresFound = genresFoundArr.join(", ");
+
+    let tagsFoundArr = [];
+    for (const t of tags) {
+        const match = monthlyTags.find((m) => m.id === t.id);
+        if (match) tagsFoundArr.push(match.label);
+    }
+    let isMonthlyTag = tagsFoundArr.length > 0;
+    const tagFound = tagsFoundArr.join(", ");
+    // pour les embeds
+    const infoBonus = {
+        isHiddenApp,
+        genresFound,
+        tagFound,
+    }
+
+    // par défaut, on monte d'un étage
+    let step = 1;
+    // si jeu caché ou tag du mois, on monte d'un étage supplémentaire
+    if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
+        step++;
+    }
+
     // 1er étage franchi (1 jeu complété)
     if (userDb.event.tower.etage === 1) {
         logger.info({
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): 1er étage ..`,
         });
-        userDb.event.tower.currentEtage += 1; // On monte d'un étage
+        // ici, on peut monter de 2 étages si jeu caché ou tag du mois, on ne risque rien
+        userDb.event.tower.currentEtage += step;
         await userDb.save();
 
         // 1er message d'intro
-        const descFirst = MESSAGE["1"].FIRST
-            .replace(/\${gameName}/g, gameName)
-            .replace(/\${author}/g, author);
+        const descFirst = initDesc(MESSAGE["1"].FIRST, gameName, author)
         return interaction.editReply({
             embeds: [
-                createEmbed({
-                    title: `🏆 ${gameName} terminé !`,
-                    url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: descFirst,
-                    color: "#1cff00",
-                    footer: {
-                        text: `Étage 1/?? | ${getRandomPrivateJokes()}`,
-                    },
-                }),
+                initEmbed(`🏆 ${gameName} terminé !`,
+                    `https://store.steampowered.com/app/${appid}/`,
+                    descFirst,
+                    "#1cff00",
+                    "Étage 1/??",
+                    infoBonus
+                ),
             ],
             ephemeral: true,
         });
     }
 
+    // Vérifier si l'utilisateur atteint un nouveau palier
+    // on ajuste le step si on atteint un palier avant la fin du step
+    let isPalierAtteint = false;
+    for (let i = 1; i <= step; i++) {
+        isPalierAtteint |= ((userDb.event.tower.currentEtage + i) % SEASONS["1"].ETAGE_PAR_PALIER === 0);
+        if (isPalierAtteint) {
+            step = i;
+            break;
+        }
+    }
+
     // Si l'utilisateur n'est pas encore arrivé à un palier (boss)
-    if ((userDb.event.tower.currentEtage + 1) % SEASONS["1"].ETAGE_PAR_PALIER !== 0) {
+    if (!isPalierAtteint) {
         logger.info({
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
         });
-        userDb.event.tower.currentEtage += 1;
+        // palier non atteint, on peut monter directement le step complet
+        userDb.event.tower.currentEtage += step;
         await userDb.save();
-        let descEtage = MESSAGE["1"].ETAGE
-            .replace(/\${author}/g, author,)
-            .replace(/\${gameName}/g, gameName);
+
+        const descEtage = initDesc(MESSAGE["1"].ETAGE, gameName, author)
         return interaction.editReply({
             embeds: [
-                createEmbed({
-                    title: `🏆 ${gameName} terminé !`,
-                    url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: descEtage,
-                    color: "#1cff00",
-                    footer: {
-                        text: `Étage ${
-                            userDb.event.tower.currentEtage
-                        }/?? | ${getRandomPrivateJokes()}`,
-                    },
-                }),
+                initEmbed(`🏆 ${gameName} terminé !`,
+                    `https://store.steampowered.com/app/${appid}/`,
+                    descEtage,
+                    "#1cff00",
+                    `Étage ${userDb.event.tower.currentEtage}/??`,
+                    infoBonus
+                ),
             ],
             ephemeral: true,
         });
     }
 
     // dans le cas où on arrive à un palier, on incrémente d'abord l'étage courant
-    if ((userDb.event.tower.currentEtage + 1) % SEASONS["1"].ETAGE_PAR_PALIER === 0) {
-        userDb.event.tower.currentEtage += 1;
+    if ((userDb.event.tower.currentEtage + step) % SEASONS["1"].ETAGE_PAR_PALIER === 0) {
+        userDb.event.tower.currentEtage += step;
         await userDb.save();
     }
 
@@ -437,9 +477,7 @@ async function seasonOne(
         userDb.event.tower.currentBoss = newBoss.ordre;
         await userDb.save();
 
-        const descBoss = MESSAGE["1"].BOSS[currentBossIndex].created
-            .replace(/\${author}/g, author,)
-            .replace(/\${gameName}/g, gameName);
+        const descBoss = initDesc(MESSAGE["1"].BOSS[currentBossIndex].created, gameName, author)
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${newBossInfo.image.alive}`,
         );
@@ -447,15 +485,13 @@ async function seasonOne(
 
         return interaction.editReply({
             embeds: [
-                createEmbed({
-                    title: `🏆 ${gameName} terminé !`,
-                    url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: `${descBoss}`,
-                    color: "#ff0000",
-                    footer: {
-                        text: footerBoss,
-                    },
-                })
+                initEmbed(`🏆 ${gameName} terminé !`,
+                    `https://store.steampowered.com/app/${appid}/`,
+                    descBoss,
+                    "#ff0000",
+                    footerBoss,
+                    infoBonus
+                )
                     .setImage(`attachment://${newBossInfo.image.alive}`)
             ],
             files: [imgBoss],
@@ -475,22 +511,18 @@ async function seasonOne(
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): etage++ car boss mort ..`,
             });
-            userDb.event.tower.currentEtage += 1;
+            userDb.event.tower.currentEtage += step;
             await userDb.save();
 
             return interaction.editReply({
                 embeds: [
-                    createEmbed({
-                        title: `🏆 ${gameName} terminé !`,
-                        url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: `${currentBoss.name} étant vaincu, tu continues ton ascension !`,
-                        color: "#1cff00",
-                        footer: {
-                            text: `Étage ${
-                                userDb.event.tower.currentEtage
-                            }/?? | ${getRandomPrivateJokes()}`,
-                        },
-                    }),
+                    initEmbed(`🏆 ${gameName} terminé !`,
+                        `https://store.steampowered.com/app/${appid}/`,
+                        `${currentBoss.name} étant vaincu, tu continues ton ascension !`,
+                        "#1cff00",
+                        `Étage ${userDb.event.tower.currentEtage}/??`,
+                        infoBonus
+                    ),
                 ],
                 ephemeral: true,
             });
@@ -504,23 +536,17 @@ async function seasonOne(
         await userDb.save();
 
         // const descPalierBoss = MESSAGE["1"].BOSS[currentBossIndex].dead
-        const descPalierBoss = MESSAGE["1"].DEAD_BOSS
-            .replace(/\${author}/g, author)
-            .replace(/\${gameName}/g, gameName)
-            .replace(/\${boss}/g, currentBoss.name)
-            .replace(/\${palier}/g, currentBossIndex + 1);
+        const descPalierBoss = initDesc(MESSAGE["1"].DEAD_BOSS, gameName, author, currentBoss.name, currentBossIndex + 1)
         const footerPalierBoss = randomFooter(currentBossIndex);
         return interaction.editReply({
             embeds: [
-                createEmbed({
-                    title: `🏆 ${gameName} terminé !`,
-                    url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: `${descPalierBoss}`,
-                    color: "#ff0000",
-                    footer: {
-                        text: footerPalierBoss,
-                    },
-                })
+                initEmbed(`🏆 ${gameName} terminé !`,
+                    `https://store.steampowered.com/app/${appid}/`,
+                    descPalierBoss,
+                    "#ff0000",
+                    footerPalierBoss,
+                    infoBonus
+                ),
             ],
         });
     }
@@ -535,11 +561,7 @@ async function seasonOne(
         await userDb.save();
 
         const bossInfo = ENEMIES["1"][currentBossIndex];
-        const descRejointBoss = MESSAGE["1"].JOIN_BOSS
-            .replace(/\${author}/g, author,)
-            .replace(/\${gameName}/g, gameName)
-            .replace(/\${boss}/g, currentBoss.name)
-            .replace(/\${palier}/g, currentBossIndex + 1);
+        const descRejointBoss = initDesc(MESSAGE["1"].JOIN_BOSS, gameName, author, currentBoss.name, currentBossIndex + 1)
         const footerRejointBoss = randomFooter(currentBossIndex);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.alive}`,
@@ -547,16 +569,14 @@ async function seasonOne(
 
         return interaction.editReply({
             embeds: [
-                createEmbed({
-                    title: `🏆 ${gameName} terminé !`,
-                    url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: `${descRejointBoss}`,
-                    color: "#ff0000",
-                    footer: {
-                        text: footerRejointBoss,
-                    },
-                })
-                    .setImage(`attachment://${newBossInfo.image.alive}`)
+                initEmbed(`🏆 ${gameName} terminé !`,
+                    `https://store.steampowered.com/app/${appid}/`,
+                    descRejointBoss,
+                    "#ff0000",
+                    footerRejointBoss,
+                    infoBonus
+                )
+                    .setImage(`attachment://${bossInfo.image.alive}`)
             ],
             files: [imgBoss],
         });
@@ -564,11 +584,14 @@ async function seasonOne(
 
     // Mettre à jour les dégâts infligés et enregistrer
     let dmg = SEASONS["1"].DAMAGE;
+        // si jeu caché ou tag du mois, dommage bonus
+    if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
+        dmg++;
+    }
     userDb.event.tower.totalDamage += dmg;
     await userDb.save();
 
     // On tape
-    // TODO calcul des dégats en fonction du tag du jeu etc
     currentBoss.hp -= dmg;
     await currentBoss.save();
 
@@ -587,25 +610,20 @@ async function seasonOne(
             await endSeason(client, 1, guild);
 
             const bossInfo = ENEMIES["1"][currentBossIndex];
-            let descEnd = MESSAGE["1"].END.replace(
-                /\${gameName}/g,
-                gameName,
-            ).replace(/\${author}/g, author);
+            const descEnd = initDesc(MESSAGE["1"].END, gameName, author)
             const imgBoss = new AttachmentBuilder(
                 `data/img/event/tower/${bossInfo.image.dead}`,
             );
 
             return interaction.editReply({
                 embeds: [
-                    createEmbed({
-                        title: `🏆 ${gameName} terminé !`,
-                        url: `https://store.steampowered.com/app/${appid}/`,
-                        desc: descEnd,
-                        color: "#ff0000",
-                        footer: {
-                            text: "La tour est enfin pacifiée..",
-                        },
-                    })
+                    initEmbed(`🏆 ${gameName} terminé !`,
+                        `https://store.steampowered.com/app/${appid}/`,
+                        descEnd,
+                        "#ff0000",
+                        "La tour est enfin pacifiée..",
+                        infoBonus
+                    )
                         .setImage(`attachment://${bossInfo.image.dead}`)
                 ],
                 files: [imgBoss],
@@ -618,9 +636,7 @@ async function seasonOne(
         });
 
         const bossInfo = ENEMIES["1"][currentBossIndex];
-        const descBossDead = MESSAGE["1"].BOSS[currentBossIndex].killed
-            .replace(/\${author}/g, author,)
-            .replace(/\${gameName}/g, gameName);
+        const descBossDead = initDesc(MESSAGE["1"].BOSS[currentBossIndex].killed, gameName, author)
         const footerBossDead = randomFooter(currentBossIndex);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.dead}`,
@@ -628,15 +644,13 @@ async function seasonOne(
 
         return interaction.editReply({
            embeds: [
-                createEmbed({
-                    title: `🏆 ${gameName} terminé !`,
-                    url: `https://store.steampowered.com/app/${appid}/`,
-                    desc: `${descBossDead}`,
-                    color: "#ff0000",
-                    footer: {
-                        text: footerBossDead,
-                    },
-                })
+               initEmbed(`🏆 ${gameName} terminé !`,
+                   `https://store.steampowered.com/app/${appid}/`,
+                   descBossDead,
+                   "#ff0000",
+                   footerBossDead,
+                   infoBonus
+               )
                     .setImage(`attachment://${bossInfo.image.dead}`)
            ],
            files: [imgBoss],
@@ -664,19 +678,14 @@ async function seasonOne(
             await currentBoss.save();
         }
 
-        let descHit = MESSAGE["1"].HIT
-            .replace(/\${gameName}/g, gameName)
-            .replace(/\${boss}/g, currentBoss.name)
-            .replace(/\${author}/g, author);
-        const embed =  createEmbed({
-            title: `🏆 ${gameName} terminé !`,
-            url: `https://store.steampowered.com/app/${appid}/`,
-            desc: descHit,
-            color: "#ff0000",
-            footer: {
-                text: `${randomFooter(currentBossIndex)}`,
-            },
-        });
+        const descHit = initDesc(MESSAGE["1"].HIT, gameName, author, currentBoss.name)
+        const embed = initEmbed(`🏆 ${gameName} terminé !`,
+                `https://store.steampowered.com/app/${appid}/`,
+                descHit,
+                "#ff0000",
+                randomFooter(currentBossIndex),
+                infoBonus
+            )
         embed.addFields({
             name: `${currentBoss.hp}/${currentBoss.maxHp}`,
             value: `${displayHealth(currentBoss)}`,
@@ -687,6 +696,46 @@ async function seasonOne(
             ephemeral: ephemeral,
         });
     }
+}
+
+function initDesc(desc, gameName = "", author = "", boss = "", palier = "") {
+    return desc
+        .replace(/\${gameName}/g, gameName)
+        .replace(/\${author}/g, author)
+        .replace(/\${boss}/g, boss)
+        .replace(/\${palier}/g, palier);
+}
+
+function initEmbed(title, url, desc, color, footer, infoBonus) {
+    const embed = createEmbed({
+        title: title,
+        url: url,
+        desc: desc,
+        color: color,
+        footer: {
+            // TODO en paramètre le random joke
+            text: `${footer} | ${getRandomPrivateJokes()}`,
+        },
+    });
+    if (infoBonus.isHiddenApp) {
+        embed.addFields({
+            name: "🎯 Bonus caché !",
+            value: "Tu as complété un jeu caché par les admins !",
+        });
+    }
+    if (infoBonus.genresFound) {
+        embed.addFields({
+            name: "📚 Genre(s) du mois !",
+            value: `Ton jeu correspond au(x) genre(s) du mois : ${infoBonus.genresFound} !`,
+        });
+    }
+    if (infoBonus.tagFound) {
+        embed.addFields({
+            name: "🏷️ Tag(s) du mois !",
+            value: `Ton jeu correspond au(x) tag(s) du mois : ${infoBonus.tagFound} !`,
+        });
+    }
+    return embed;
 }
 
 function randomFooter(bossIndex) {
