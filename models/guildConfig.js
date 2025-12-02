@@ -27,18 +27,6 @@ const guildConfigSchema = mongoose.Schema({
             currentSeason: Number,
             startDate: Date,
             started: { type: Boolean, default: false },
-            monthlyGenres: {
-                type: [[{
-                    id: Number,
-                    label: String,
-                }]],
-            },
-            monthlyTags: {
-                type: [[{
-                    id: Number,
-                    label: String,
-                }]],
-            },
             history: [
                 {
                     season: Number,

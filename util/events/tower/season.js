@@ -1,5 +1,6 @@
 const { createEmbed } = require("../../envoiMsg");
 const {
+    MONTHLY,
     SEASONS,
     ENEMIES,
     MESSAGE,
@@ -350,10 +351,9 @@ async function seasonOne(
     const tags = await client.fetchTags(appid);
 
     // récupère les genres/tags du mois
-    // TODO créer méthode dans guildConfig pour ça ?
     const monthIndex = new Date().getMonth();
-    const monthlyGenres = guild.event.tower.monthlyGenres[monthIndex];
-    const monthlyTags = guild.event.tower.monthlyTags[monthIndex];
+    const monthlyGenres = MONTHLY.GENRES[monthIndex];
+    const monthlyTags = MONTHLY.TAGS[monthIndex];
 
     let genresFoundArr = [];
     for (const g of genres) {

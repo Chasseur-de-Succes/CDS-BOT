@@ -1,4 +1,209 @@
 {
+    "MONTHLY": {
+        "GENRES": [
+            [
+                {
+                    "id": 28,
+                    "label": "\uD83D\uDDA5 Simulation"
+                }
+            ],
+            [],
+            [],
+            [],
+            [
+                {
+                    "id": 25,
+                    "label": "\uD83D\uDDFA Aventure"
+                }
+            ],
+            [
+                {
+                    "id": 18,
+                    "label": "\uD83C\uDFC5 Sport"
+                }
+            ],
+            [
+                {
+                    "id": 1,
+                    "label": "\uD83D\uDCA5 Action"
+                }
+            ],
+            [
+                {
+                    "id": 3,
+                    "label": "\uD83C\uDFB2 RPG"
+                }
+            ],
+            [
+                {
+                    "id": 2,
+                    "label": "\uD83D\uDCA1 Stratégie"
+                },
+                {
+                    "id": 54,
+                    "label": "\uD83C\uDFEB Éducation"
+                }
+            ],
+            [],
+            [],
+            [
+                {
+                    "id": 23,
+                    "label": "\uD83C\uDF31 Indépendant"
+                }
+            ]
+        ],
+        "TAGS": [
+            [
+                {
+                    "id": 599,
+                    "label": "\uD83D\uDDA5 Simulation"
+                },
+                {
+                    "id": 12472,
+                    "label": "\uD83D\uDCBC Gestion"
+                }
+            ],
+            [
+                {
+                    "id": 4947,
+                    "label": "\uD83D\uDC98 Romance"
+                },
+                {
+                    "id": 7702,
+                    "label": "\uD83D\uDCDA Narratif"
+                },
+                {
+                    "id": 3799,
+                    "label": "\uD83D\uDCDA Roman Graphique"
+                }
+            ],
+            [
+                {
+                    "id": 3834,
+                    "label": "\uD83D\uDDFA Exploration"
+                },
+                {
+                    "id": 30358,
+                    "label": "\uD83C\uDF3F Nature"
+                },
+                {
+                    "id": 1662,
+                    "label": "\uD83C\uDF32 Survie"
+                }
+            ],
+            [
+                {
+                    "id": 8369,
+                    "label": "\uD83D\uDD0D Enquête"
+                },
+                {
+                    "id": 5716,
+                    "label": "\uD83E\uDD2B Mystère"
+                },
+                {
+                    "id": 1664,
+                    "label": "\uD83E\uDDE9 Puzzle"
+                }
+            ],
+            [
+                {
+                    "id": 1695,
+                    "label": "\uD83C\uDF0D Open World"
+                },
+                {
+                    "id": 21,
+                    "label": "\uD83D\uDDFA Aventure"
+                },
+                {
+                    "id": 3810,
+                    "label": "\uD83E\uDDF1 Sandbox"
+                }
+            ],
+            [
+                {
+                    "id": 701,
+                    "label": "\uD83C\uDFC5 Sport"
+                },
+                {
+                    "id": 3878,
+                    "label": "\uD83E\uDD47 Compétition"
+                },
+                {
+                    "id": 1773,
+                    "label": "\uD83D\uDD79 Arcade"
+                }
+            ],
+            [
+                {
+                    "id": 19,
+                    "label": "\uD83D\uDCA5 Action"
+                },
+                {
+                    "id": 1663,
+                    "label": "\uD83D\uDD2B FPS"
+                },
+                {
+                    "id": 3814,
+                    "label": "\uD83D\uDD2B TPS"
+                }
+            ],
+            [
+                {
+                    "id": 1684,
+                    "label": "\uD83C\uDFAD Fantasy"
+                },
+                {
+                    "id": 122,
+                    "label": "\uD83C\uDFB2 RPG"
+                },
+                {
+                    "id": 1716,
+                    "label": "\uD83D\uDC7B Roguelike"
+                }
+            ],
+            [
+                {
+                    "id": 9,
+                    "label": "\uD83D\uDCA1 Stratégie"
+                },
+                {
+                    "id": 1036,
+                    "label": "\uD83C\uDFEB Éducation"
+                },
+                {
+                    "id": 1708,
+                    "label": "\uD83E\uDD14 Tactique"
+                }
+            ],
+            [
+                {
+                    "id": 1667,
+                    "label": "\uD83D\uDE31 Horreur"
+                },
+                {
+                    "id": 3952,
+                    "label": "\uD83E\uDD87 Gothique"
+                },
+                {
+                    "id": 1721,
+                    "label": "\uD83D\uDD74 Horreur psychologique"
+                }
+            ],
+            [
+                {
+                    "id": 1685,
+                    "label": "\uD83E\uDD1D Coopération"
+                }
+            ],
+            [
+                {
+                    "id": 492,
+                    "label": "\uD83C\uDF31 Indépendant"
+                }
+            ]
+        ]
+    },
     "SEASONS": {
         "0": {
             "MAX_ETAGE": 20,
