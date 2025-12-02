@@ -421,13 +421,15 @@ module.exports = (client) => {
     // Récupère les genres depuis l'API Steam (appId en string ou number)
     client.fetchAppGenres = async (appId) => {
         try {
-            const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}`);
+            const res = await fetch(
+                `https://store.steampowered.com/api/appdetails?appids=${appId}`,
+            );
             if (!res.ok) return [];
             const json = await res.json();
             const entry = json[String(appId)];
             const data = entry && entry.data;
             if (!data) return [];
-            return (data.genres || []);
+            return data.genres || [];
         } catch (err) {
             console.error("Erreur fetchAppGenres:", err);
             return [];
@@ -437,7 +439,9 @@ module.exports = (client) => {
     // Récupère les tags depuis l'API SteamHunters (appId en string ou number)
     client.fetchTags = async (appId) => {
         try {
-            const res = await fetch(`https://steamhunters.com/api/apps/${appId}`);
+            const res = await fetch(
+                `https://steamhunters.com/api/apps/${appId}`,
+            );
             if (!res.ok) return [];
             const json = await res.json();
             // L'API peut retourner un tableau ou un objet ; normaliser
@@ -445,7 +449,7 @@ module.exports = (client) => {
             if (!data) return [];
             // Extraire les tags
             const rawTags = data.tags || [];
-            return (Array.isArray(rawTags) ? rawTags : []);
+            return Array.isArray(rawTags) ? rawTags : [];
         } catch (err) {
             console.error("Erreur fetchSteamHuntersTags:", err);
             return [];

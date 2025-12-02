@@ -1,4 +1,4 @@
-const { Collection, Events, AttachmentBuilder } = require("discord.js");
+const { Collection, Events } = require("discord.js");
 const { User } = require("../models/index.js");
 const {
     BAREME_XP,
@@ -7,15 +7,9 @@ const {
     DAILY_MONEY_LIMIT,
 } = require("../util/constants");
 
-const {
-    SEASONS,
-    ENEMIES,
-    MESSAGE,
-} = require("../data/event/tower/constants.json");
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
-const { feedBotMetaAch, createEmbed } = require("../util/envoiMsg");
-const { getRandomPrivateJokes, displayHealth } = require("../util/events/tower/towerUtils");
+const { feedBotMetaAch } = require("../util/envoiMsg");
 
 module.exports = {
     name: Events.MessageCreate,
@@ -23,38 +17,6 @@ module.exports = {
         /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
         /* et money par jour */
         if (!msg.author.bot) {
-            // TODO a supprimer
-            if (msg.content.startsWith("!msg")) {
-                let currentBossIndex = 0;
-                const footers = MESSAGE["1"].BOSS[currentBossIndex].footer;
-                const footer = footers[Math.floor(Math.random() * footers.length)];
-                const newBossInfo = ENEMIES["1"][currentBossIndex];
-                // const descFirst = MESSAGE["1"].BOSS[currentBossIndex].killed
-                const descFirst = MESSAGE["1"].HIT
-                    .replace(/\${gameName}/g, "Skyrim")
-                    .replace(/\${author}/g, msg.author.username)
-                    .replace(/\${boss}/g, newBossInfo.name);
-                let embed = createEmbed({
-                    title: `🏆 Skyrim terminé !`,
-                    url: `https://store.steampowered.com/app/240/`,
-                    desc: descFirst,
-                    color: "#ff0000",
-                    footer: {
-                        text: footer,
-                    },
-                });
-                embed.addFields({
-                    name: `100/150`,
-                    value: `${displayHealth({ hp: 100, maxHp: 150 })}`
-                });
-                return msg.reply({
-                    embeds: [
-                        embed
-                    ],
-                    ephemeral: true,
-                });
-            }
-
             const timeLeft = cooldownTimeLeft("messages", 30, msg.author.id);
             if (!timeLeft) {
                 const userDB = await msg.client.getUser(msg.author);

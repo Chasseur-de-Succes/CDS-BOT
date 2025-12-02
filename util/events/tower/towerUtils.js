@@ -175,12 +175,11 @@ async function endSeasonZero() {
 async function endSeasonOne() {
     const currentBoss = await TowerBoss.findOne({
         season: 1,
-        hp: { $ne: 0 }
+        hp: { $ne: 0 },
     });
     if (!currentBoss) return MESSAGE["1"].START_BAD_ENDING;
 
-    return MESSAGE["1"].BAD_ENDING
-        .replace(/\${boss}/g, currentBoss.name);
+    return MESSAGE["1"].BAD_ENDING.replace(/\${boss}/g, currentBoss.name);
 }
 
 module.exports = {

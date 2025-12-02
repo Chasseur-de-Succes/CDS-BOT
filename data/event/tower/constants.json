@@ -289,7 +289,7 @@
             "SECOND_BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `Big Sweeney`..\nCelui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin, suivi de près par une ombre..\n```\n       | \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8 |\n       |________|\n        |\uD83D\uDCB0 \uD83D\uDCB0| \n        \\  --  /\n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
             "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..\n```\n<CDS> \n  o ❓ \n (|)  \n / \\  \n￣￣￣\n```"
         },
-        "1":  {
+        "1": {
             "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !",
             "ETAGE": "En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !",
             "HIT": "En complétant **${gameName}**, ${author} inflige **1 point de dégats** à `${boss}`!",
@@ -312,10 +312,7 @@
                     "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nMais `Cyborg` ayant été vaincu, il n'y a plus rien à voir ici."
                 },
                 {
-                    "footer": [
-                        "noob",
-                        "Un p'tit bundle à 0.01€ ?"
-                    ],
+                    "footer": ["noob", "Un p'tit bundle à 0.01€ ?"],
                     "created": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\n\n« Noob, noob, noob ! » Ce mot résonne dans votre tête.\n— Tu veux un bundle à un centime ?\nUn sourire plein de dents aiguisées apparaît dans le noir… avant que Tigrou ne sorte de l’ombre et vous attaque !\n",
                     "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\nVous rejoignez les autres pour combattre `Tigrou` !",
                     "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Tigrou` !",

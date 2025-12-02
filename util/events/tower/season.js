@@ -12,7 +12,6 @@ const {
 } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
 const { AttachmentBuilder } = require("discord.js");
-const { init } = require("../../mongoose");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
@@ -344,7 +343,8 @@ async function seasonOne(
     // si jeu caché donné par les admins
     const hiddenMap = SEASONS["1"].HIDDEN_GAME_APPID;
     const appidStr = String(appid);
-    const isHiddenApp = hiddenMap && Object.prototype.hasOwnProperty.call(hiddenMap, appidStr);
+    const isHiddenApp =
+        hiddenMap && Object.prototype.hasOwnProperty.call(hiddenMap, appidStr);
 
     // récupère les genres/tags
     const genres = await client.fetchAppGenres(appid);
@@ -375,7 +375,7 @@ async function seasonOne(
         isHiddenApp,
         genresFound,
         tagFound,
-    }
+    };
 
     // par défaut, on monte d'un étage
     let step = 1;
@@ -395,15 +395,16 @@ async function seasonOne(
         await userDb.save();
 
         // 1er message d'intro
-        const descFirst = initDesc(MESSAGE["1"].FIRST, gameName, author)
+        const descFirst = initDesc(MESSAGE["1"].FIRST, gameName, author);
         return interaction.editReply({
             embeds: [
-                initEmbed(`🏆 ${gameName} terminé !`,
+                initEmbed(
+                    `🏆 ${gameName} terminé !`,
                     `https://store.steampowered.com/app/${appid}/`,
                     descFirst,
                     "#1cff00",
                     "Étage 1/??",
-                    infoBonus
+                    infoBonus,
                 ),
             ],
             ephemeral: true,
@@ -414,7 +415,10 @@ async function seasonOne(
     // on ajuste le step si on atteint un palier avant la fin du step
     let isPalierAtteint = false;
     for (let i = 1; i <= step; i++) {
-        isPalierAtteint |= ((userDb.event.tower.currentEtage + i) % SEASONS["1"].ETAGE_PAR_PALIER === 0);
+        isPalierAtteint |=
+            (userDb.event.tower.currentEtage + i) %
+                SEASONS["1"].ETAGE_PAR_PALIER ===
+            0;
         if (isPalierAtteint) {
             step = i;
             break;
@@ -431,15 +435,16 @@ async function seasonOne(
         userDb.event.tower.currentEtage += step;
         await userDb.save();
 
-        const descEtage = initDesc(MESSAGE["1"].ETAGE, gameName, author)
+        const descEtage = initDesc(MESSAGE["1"].ETAGE, gameName, author);
         return interaction.editReply({
             embeds: [
-                initEmbed(`🏆 ${gameName} terminé !`,
+                initEmbed(
+                    `🏆 ${gameName} terminé !`,
                     `https://store.steampowered.com/app/${appid}/`,
                     descEtage,
                     "#1cff00",
                     `Étage ${userDb.event.tower.currentEtage}/??`,
-                    infoBonus
+                    infoBonus,
                 ),
             ],
             ephemeral: true,
@@ -447,12 +452,17 @@ async function seasonOne(
     }
 
     // dans le cas où on arrive à un palier, on incrémente d'abord l'étage courant
-    if ((userDb.event.tower.currentEtage + step) % SEASONS["1"].ETAGE_PAR_PALIER === 0) {
+    if (
+        (userDb.event.tower.currentEtage + step) %
+            SEASONS["1"].ETAGE_PAR_PALIER ===
+        0
+    ) {
         userDb.event.tower.currentEtage += step;
         await userDb.save();
     }
 
-    let currentBossIndex = (userDb.event.tower.currentEtage / SEASONS["1"].ETAGE_PAR_PALIER) - 1;
+    let currentBossIndex =
+        userDb.event.tower.currentEtage / SEASONS["1"].ETAGE_PAR_PALIER - 1;
     // Si l'utilisateur est arrivé à un palier (boss)
     const bossCreated = await TowerBoss.exists({
         season: 1,
@@ -477,7 +487,11 @@ async function seasonOne(
         userDb.event.tower.currentBoss = newBoss.ordre;
         await userDb.save();
 
-        const descBoss = initDesc(MESSAGE["1"].BOSS[currentBossIndex].created, gameName, author)
+        const descBoss = initDesc(
+            MESSAGE["1"].BOSS[currentBossIndex].created,
+            gameName,
+            author,
+        );
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${newBossInfo.image.alive}`,
         );
@@ -485,14 +499,14 @@ async function seasonOne(
 
         return interaction.editReply({
             embeds: [
-                initEmbed(`🏆 ${gameName} terminé !`,
+                initEmbed(
+                    `🏆 ${gameName} terminé !`,
                     `https://store.steampowered.com/app/${appid}/`,
                     descBoss,
                     "#ff0000",
                     footerBoss,
-                    infoBonus
-                )
-                    .setImage(`attachment://${newBossInfo.image.alive}`)
+                    infoBonus,
+                ).setImage(`attachment://${newBossInfo.image.alive}`),
             ],
             files: [imgBoss],
         });
@@ -516,12 +530,13 @@ async function seasonOne(
 
             return interaction.editReply({
                 embeds: [
-                    initEmbed(`🏆 ${gameName} terminé !`,
+                    initEmbed(
+                        `🏆 ${gameName} terminé !`,
                         `https://store.steampowered.com/app/${appid}/`,
                         `${currentBoss.name} étant vaincu, tu continues ton ascension !`,
                         "#1cff00",
                         `Étage ${userDb.event.tower.currentEtage}/??`,
-                        infoBonus
+                        infoBonus,
                     ),
                 ],
                 ephemeral: true,
@@ -536,16 +551,23 @@ async function seasonOne(
         await userDb.save();
 
         // const descPalierBoss = MESSAGE["1"].BOSS[currentBossIndex].dead
-        const descPalierBoss = initDesc(MESSAGE["1"].DEAD_BOSS, gameName, author, currentBoss.name, currentBossIndex + 1)
+        const descPalierBoss = initDesc(
+            MESSAGE["1"].DEAD_BOSS,
+            gameName,
+            author,
+            currentBoss.name,
+            currentBossIndex + 1,
+        );
         const footerPalierBoss = randomFooter(currentBossIndex);
         return interaction.editReply({
             embeds: [
-                initEmbed(`🏆 ${gameName} terminé !`,
+                initEmbed(
+                    `🏆 ${gameName} terminé !`,
                     `https://store.steampowered.com/app/${appid}/`,
                     descPalierBoss,
                     "#ff0000",
                     footerPalierBoss,
-                    infoBonus
+                    infoBonus,
                 ),
             ],
         });
@@ -561,7 +583,13 @@ async function seasonOne(
         await userDb.save();
 
         const bossInfo = ENEMIES["1"][currentBossIndex];
-        const descRejointBoss = initDesc(MESSAGE["1"].JOIN_BOSS, gameName, author, currentBoss.name, currentBossIndex + 1)
+        const descRejointBoss = initDesc(
+            MESSAGE["1"].JOIN_BOSS,
+            gameName,
+            author,
+            currentBoss.name,
+            currentBossIndex + 1,
+        );
         const footerRejointBoss = randomFooter(currentBossIndex);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.alive}`,
@@ -569,14 +597,14 @@ async function seasonOne(
 
         return interaction.editReply({
             embeds: [
-                initEmbed(`🏆 ${gameName} terminé !`,
+                initEmbed(
+                    `🏆 ${gameName} terminé !`,
                     `https://store.steampowered.com/app/${appid}/`,
                     descRejointBoss,
                     "#ff0000",
                     footerRejointBoss,
-                    infoBonus
-                )
-                    .setImage(`attachment://${bossInfo.image.alive}`)
+                    infoBonus,
+                ).setImage(`attachment://${bossInfo.image.alive}`),
             ],
             files: [imgBoss],
         });
@@ -584,7 +612,7 @@ async function seasonOne(
 
     // Mettre à jour les dégâts infligés et enregistrer
     let dmg = SEASONS["1"].DAMAGE;
-        // si jeu caché ou tag du mois, dommage bonus
+    // si jeu caché ou tag du mois, dommage bonus
     if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
         dmg++;
     }
@@ -610,21 +638,21 @@ async function seasonOne(
             await endSeason(client, 1, guild);
 
             const bossInfo = ENEMIES["1"][currentBossIndex];
-            const descEnd = initDesc(MESSAGE["1"].END, gameName, author)
+            const descEnd = initDesc(MESSAGE["1"].END, gameName, author);
             const imgBoss = new AttachmentBuilder(
                 `data/img/event/tower/${bossInfo.image.dead}`,
             );
 
             return interaction.editReply({
                 embeds: [
-                    initEmbed(`🏆 ${gameName} terminé !`,
+                    initEmbed(
+                        `🏆 ${gameName} terminé !`,
                         `https://store.steampowered.com/app/${appid}/`,
                         descEnd,
                         "#ff0000",
                         "La tour est enfin pacifiée..",
-                        infoBonus
-                    )
-                        .setImage(`attachment://${bossInfo.image.dead}`)
+                        infoBonus,
+                    ).setImage(`attachment://${bossInfo.image.dead}`),
                 ],
                 files: [imgBoss],
             });
@@ -636,24 +664,28 @@ async function seasonOne(
         });
 
         const bossInfo = ENEMIES["1"][currentBossIndex];
-        const descBossDead = initDesc(MESSAGE["1"].BOSS[currentBossIndex].killed, gameName, author)
+        const descBossDead = initDesc(
+            MESSAGE["1"].BOSS[currentBossIndex].killed,
+            gameName,
+            author,
+        );
         const footerBossDead = randomFooter(currentBossIndex);
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.dead}`,
         );
 
         return interaction.editReply({
-           embeds: [
-               initEmbed(`🏆 ${gameName} terminé !`,
-                   `https://store.steampowered.com/app/${appid}/`,
-                   descBossDead,
-                   "#ff0000",
-                   footerBossDead,
-                   infoBonus
-               )
-                    .setImage(`attachment://${bossInfo.image.dead}`)
-           ],
-           files: [imgBoss],
+            embeds: [
+                initEmbed(
+                    `🏆 ${gameName} terminé !`,
+                    `https://store.steampowered.com/app/${appid}/`,
+                    descBossDead,
+                    "#ff0000",
+                    footerBossDead,
+                    infoBonus,
+                ).setImage(`attachment://${bossInfo.image.dead}`),
+            ],
+            files: [imgBoss],
         });
     } else {
         logger.info({
@@ -678,14 +710,20 @@ async function seasonOne(
             await currentBoss.save();
         }
 
-        const descHit = initDesc(MESSAGE["1"].HIT, gameName, author, currentBoss.name)
-        const embed = initEmbed(`🏆 ${gameName} terminé !`,
-                `https://store.steampowered.com/app/${appid}/`,
-                descHit,
-                "#ff0000",
-                randomFooter(currentBossIndex),
-                infoBonus
-            )
+        const descHit = initDesc(
+            MESSAGE["1"].HIT,
+            gameName,
+            author,
+            currentBoss.name,
+        );
+        const embed = initEmbed(
+            `🏆 ${gameName} terminé !`,
+            `https://store.steampowered.com/app/${appid}/`,
+            descHit,
+            "#ff0000",
+            randomFooter(currentBossIndex),
+            infoBonus,
+        );
         embed.addFields({
             name: `${currentBoss.hp}/${currentBoss.maxHp}`,
             value: `${displayHealth(currentBoss)}`,
