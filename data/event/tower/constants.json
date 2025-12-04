@@ -241,7 +241,7 @@
         "1": [
             {
                 "name": "Cyborg",
-                "hp": 20,
+                "hp": 40,
                 "image": {
                     "alive": "cyborg.jpg",
                     "dead": "cyborg_dead.jpg"
@@ -249,7 +249,7 @@
             },
             {
                 "name": "Tigrou",
-                "hp": 40,
+                "hp": 80,
                 "image": {
                     "alive": "tigrou.jpg",
                     "dead": "tigrou_dead.jpg"
@@ -257,7 +257,7 @@
             },
             {
                 "name": "Nanaki",
-                "hp": 60,
+                "hp": 120,
                 "image": {
                     "alive": "nanaki.jpg",
                     "dead": "nanaki_dead.jpg"
@@ -265,7 +265,7 @@
             },
             {
                 "name": "Sqweeb",
-                "hp": 80,
+                "hp": 160,
                 "image": {
                     "alive": "sqweeb.png",
                     "dead": "sqweeb_dead.jpg"
