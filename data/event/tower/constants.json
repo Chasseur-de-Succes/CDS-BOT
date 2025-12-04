@@ -290,6 +290,7 @@
             "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..\n```\n<CDS> \n  o ❓ \n (|)  \n / \\  \n￣￣￣\n```"
         },
         "1": {
+            "INTRO": "Tu aperçois au loin une tour, tu décides de t'en approcher.\n  Tu entends de **multiples sinistres ricanements** provenant de la tour.\n  Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..\n\n  Peut-être en prouvant tes capacités à `maîtriser` un jeu puis en le `validant` ?",
             "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !",
             "ETAGE": "En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !",
             "HIT": "En complétant **${gameName}**, ${author} inflige **1 point de dégats** à `${boss}`!",
@@ -306,7 +307,7 @@
                         "Jeu de merde",
                         "bouyabouyabouya"
                     ],
-                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\n\nAu loin, vous entendez au loin des miaulements stridents mêlés à des cris de rage — on dirait qu’un jeu vient encore de sortir un DLC plein de succès.\n\nEt soudain, Cyborg fait son apparition !",
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\n\nAu loin, vous entendez au loin des miaulements stridents mêlés à des cris de rage — on dirait qu’un jeu vient encore de sortir un DLC plein de succès.\n\nEt soudain, `Cyborg` fait son apparition !",
                     "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nVous rejoignez les autres pour combattre `Cyborg` !",
                     "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Cyborg` !",
                     "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nMais `Cyborg` ayant été vaincu, il n'y a plus rien à voir ici."

@@ -1,4 +1,4 @@
-const { createEmbed } = require("../../envoiMsg");
+const { createEmbed, createError } = require("../../envoiMsg");
 const {
     MONTHLY,
     SEASONS,
@@ -12,6 +12,7 @@ const {
 } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
 const { AttachmentBuilder } = require("discord.js");
+const { SALON } = require("../../constants");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
@@ -340,6 +341,12 @@ async function seasonOne(
     gameName,
     appid,
 ) {
+    // Récupération du channel de l'event
+    const eventChannelId = await interaction.client.getGuildChannel(
+        interaction.guild.id,
+        SALON.EVENT_TOWER,
+    );
+
     // si jeu caché donné par les admins
     const hiddenMap = SEASONS["1"].HIDDEN_GAME_APPID;
     const appidStr = String(appid);
@@ -357,15 +364,17 @@ async function seasonOne(
 
     let genresFoundArr = [];
     for (const g of genres) {
-        const match = monthlyGenres.find((m) => m.id === g.id);
-        if (match) genresFoundArr.push(match.label);
+        const match = monthlyGenres.find((m) => m.id == g.id);
+        if (match) {
+            genresFoundArr.push(match.label);
+        }
     }
     let isMonthlyGenre = genresFoundArr.length > 0;
     const genresFound = genresFoundArr.join(", ");
 
     let tagsFoundArr = [];
     for (const t of tags) {
-        const match = monthlyTags.find((m) => m.id === t.id);
+        const match = monthlyTags.find((m) => m.id == t.tagId);
         if (match) tagsFoundArr.push(match.label);
     }
     let isMonthlyTag = tagsFoundArr.length > 0;
@@ -407,14 +416,13 @@ async function seasonOne(
                     infoBonus,
                 ),
             ],
-            ephemeral: true,
         });
     }
 
     // Vérifier si l'utilisateur atteint un nouveau palier
     // on ajuste le step si on atteint un palier avant la fin du step
     let isPalierAtteint = false;
-    for (let i = 1; i <= step; i++) {
+    for (let i = 0; i <= step; i++) {
         isPalierAtteint |=
             (userDb.event.tower.currentEtage + i) %
                 SEASONS["1"].ETAGE_PAR_PALIER ===
@@ -447,7 +455,6 @@ async function seasonOne(
                     infoBonus,
                 ),
             ],
-            ephemeral: true,
         });
     }
 
@@ -457,6 +464,7 @@ async function seasonOne(
             SEASONS["1"].ETAGE_PAR_PALIER ===
         0
     ) {
+        // si step 0 (on est pile au palier), on monte d'un étage
         userDb.event.tower.currentEtage += step;
         await userDb.save();
     }
@@ -497,7 +505,8 @@ async function seasonOne(
         );
         const footerBoss = randomFooter(currentBossIndex);
 
-        return interaction.editReply({
+        // envoi direct
+        await client.channels.cache.get(eventChannelId).send({
             embeds: [
                 initEmbed(
                     `🏆 ${gameName} terminé !`,
@@ -510,6 +519,7 @@ async function seasonOne(
             ],
             files: [imgBoss],
         });
+        return interaction.editReply("Le boss arrive !");
     }
 
     // Récupère le boss du palier
@@ -525,7 +535,12 @@ async function seasonOne(
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): etage++ car boss mort ..`,
             });
-            userDb.event.tower.currentEtage += step;
+            // dans le cas où on est déjà au palier, où step peut être égal à 0
+            userDb.event.tower.currentEtage += Math.max(step, 1);
+            // si step 0 et si jeu caché ou tag du mois, on monte d'un étage supplémentaire (non pris en compte avant)
+            if (step === 0 && (isHiddenApp || isMonthlyGenre || isMonthlyTag)) {
+                userDb.event.tower.currentEtage++;
+            }
             await userDb.save();
 
             return interaction.editReply({
@@ -533,13 +548,12 @@ async function seasonOne(
                     initEmbed(
                         `🏆 ${gameName} terminé !`,
                         `https://store.steampowered.com/app/${appid}/`,
-                        `${currentBoss.name} étant vaincu, tu continues ton ascension !`,
+                        `${currentBoss.name} étant déjà vaincu, tu continues ton ascension !`,
                         "#1cff00",
                         `Étage ${userDb.event.tower.currentEtage}/??`,
                         infoBonus,
                     ),
                 ],
-                ephemeral: true,
             });
         }
 
@@ -594,8 +608,7 @@ async function seasonOne(
         const imgBoss = new AttachmentBuilder(
             `data/img/event/tower/${bossInfo.image.alive}`,
         );
-
-        return interaction.editReply({
+        await client.channels.cache.get(eventChannelId).send({
             embeds: [
                 initEmbed(
                     `🏆 ${gameName} terminé !`,
@@ -608,6 +621,9 @@ async function seasonOne(
             ],
             files: [imgBoss],
         });
+        return interaction.editReply(
+            "Tu as rejoint le combat contre le boss !",
+        );
     }
 
     // Mettre à jour les dégâts infligés et enregistrer
@@ -643,7 +659,7 @@ async function seasonOne(
                 `data/img/event/tower/${bossInfo.image.dead}`,
             );
 
-            return interaction.editReply({
+            await client.channels.cache.get(eventChannelId).send({
                 embeds: [
                     initEmbed(
                         `🏆 ${gameName} terminé !`,
@@ -656,6 +672,7 @@ async function seasonOne(
                 ],
                 files: [imgBoss],
             });
+            return interaction.editReply("C'est fini pour toi aussi !");
         }
 
         logger.info({
@@ -674,7 +691,7 @@ async function seasonOne(
             `data/img/event/tower/${bossInfo.image.dead}`,
         );
 
-        return interaction.editReply({
+        await client.channels.cache.get(eventChannelId).send({
             embeds: [
                 initEmbed(
                     `🏆 ${gameName} terminé !`,
@@ -687,6 +704,7 @@ async function seasonOne(
             ],
             files: [imgBoss],
         });
+        return interaction.editReply("Tu as vaincu le boss !");
     } else {
         logger.info({
             prefix: "TOWER",
@@ -696,18 +714,22 @@ async function seasonOne(
         // non ephemeral si point de vie a atteint un palier (25%, 50%, 75%)
         let ephemeral = true;
         const hpRatio = currentBoss.hp / currentBoss.maxHp;
+        let msgRatio = "";
         if (hpRatio <= 0.75 && hpRatio > 0.5 && !currentBoss.hit25) {
             ephemeral = false;
             currentBoss.hit25 = true;
             await currentBoss.save();
+            msgRatio = "Déjà **25%** de vie en moins !";
         } else if (hpRatio <= 0.5 && hpRatio > 0.25 && !currentBoss.hit50) {
             ephemeral = false;
             currentBoss.hit50 = true;
             await currentBoss.save();
+            msgRatio = "Encore la **moitié** !";
         } else if (hpRatio <= 0.25 && hpRatio > 0 && !currentBoss.hit75) {
             ephemeral = false;
             currentBoss.hit75 = true;
             await currentBoss.save();
+            msgRatio = "Plus que **25%** !!";
         }
 
         const descHit = initDesc(
@@ -729,10 +751,21 @@ async function seasonOne(
             value: `${displayHealth(currentBoss)}`,
         });
 
-        return interaction.editReply({
-            embeds: [embed],
-            ephemeral: ephemeral,
-        });
+        if (!ephemeral) {
+            embed.addFields({
+                name: "ℹ️ Information",
+                value: msgRatio,
+                inline: true,
+            });
+            await client.channels.cache.get(eventChannelId).send({
+                embeds: [embed],
+            });
+            return interaction.editReply("Ton attaque a porté ses fruits !");
+        } else {
+            return interaction.editReply({
+                embeds: [embed],
+            });
+        }
     }
 }
 
@@ -759,18 +792,21 @@ function initEmbed(title, url, desc, color, footer, infoBonus) {
         embed.addFields({
             name: "🎯 Bonus caché !",
             value: "Tu as complété un jeu caché par les admins !",
+            inline: true,
         });
     }
     if (infoBonus.genresFound) {
         embed.addFields({
             name: "📚 Genre(s) du mois !",
             value: `Ton jeu correspond au(x) genre(s) du mois : ${infoBonus.genresFound} !`,
+            inline: true,
         });
     }
     if (infoBonus.tagFound) {
         embed.addFields({
             name: "🏷️ Tag(s) du mois !",
             value: `Ton jeu correspond au(x) tag(s) du mois : ${infoBonus.tagFound} !`,
+            inline: true,
         });
     }
     return embed;

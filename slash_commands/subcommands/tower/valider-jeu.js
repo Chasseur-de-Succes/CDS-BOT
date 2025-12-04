@@ -18,7 +18,7 @@ const validerJeu = async (interaction, options) => {
     const author = interaction.member;
     const client = interaction.client;
 
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
 
     // Récupérer l'utilisateur
     const userDb = await client.getUser(author);
@@ -43,7 +43,6 @@ const validerJeu = async (interaction, options) => {
     if (!eventChannelId) {
         return interaction.editReply({
             content: `Aucun salon de l'évènement tower n'a été trouvé.`,
-            ephemeral: true,
         });
     }
 
@@ -55,7 +54,6 @@ const validerJeu = async (interaction, options) => {
                     `Tu dois valider ton jeu dans le salon <#${eventChannelId}> !`,
                 ),
             ],
-            ephemeral: true,
         });
     }
 
@@ -75,7 +73,6 @@ const validerJeu = async (interaction, options) => {
                     "Tu dois d'abord t'inscrire à l'évènement (via `/tower inscription`) !",
                 ),
             ],
-            ephemeral: true,
         });
     }
 
@@ -87,7 +84,6 @@ const validerJeu = async (interaction, options) => {
                     "Tu dois spécifier au moins un appID ou chercher le jeu que tu as complété",
                 ),
             ],
-            ephemeral: true,
         });
     }
 
@@ -100,7 +96,6 @@ const validerJeu = async (interaction, options) => {
         logger.info(".. tous les boss sont DEAD ..");
         return await interaction.editReply({
             content: "L'évènement est terminé ! Revenez peut être plus tard..",
-            ephemeral: true,
         });
     }
 
@@ -123,7 +118,6 @@ const validerJeu = async (interaction, options) => {
         // TODO si gameDb non trouvé
         return await interaction.editReply({
             content: `${gameDb?.name} (${appid}) n'a même pas de succès..`,
-            ephemeral: true,
         });
     }
 
@@ -135,7 +129,6 @@ const validerJeu = async (interaction, options) => {
         });
         return await interaction.editReply({
             content: `Tu as déjà utilisé ${gameName}.. ce n'est pas très efficace.`,
-            ephemeral: true,
         });
     }
 
@@ -146,7 +139,6 @@ const validerJeu = async (interaction, options) => {
         });
         return await interaction.editReply({
             content: `Tu as terminé ${gameName} **avant** le début de l'évènement.. Celui-ci ne peut être pris en compte.`,
-            ephemeral: true,
         });
     }
 
@@ -209,7 +201,6 @@ ${ASCII_NOT_100}`,
                 },
             }),
         ],
-        ephemeral: true,
     });
 };
 

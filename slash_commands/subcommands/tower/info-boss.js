@@ -19,7 +19,7 @@ const infoBoss = async (interaction, options) => {
     // Récupère le boss courant non mort
     const currentBoss = await TowerBoss.findOne({
         season: season,
-        hp: { $ne: 0 },
+        hp: { $gt: 0 },
     });
     if (!currentBoss) {
         return interaction.reply({
