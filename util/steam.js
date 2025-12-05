@@ -433,11 +433,7 @@ module.exports = (client) => {
             return data.genres || [];
         } catch (err) {
             console.error("Erreur fetchAppGenres:", err);
-            sendStackTrace(
-                client,
-                err,
-                "Erreur fetchAppGenres Non Gérée"
-            );
+            sendStackTrace(client, err, "Erreur fetchAppGenres Non Gérée");
             return [];
         }
     };
@@ -461,7 +457,7 @@ module.exports = (client) => {
             sendStackTrace(
                 client,
                 err,
-                "Erreur fetchSteamHuntersTags Non Gérée"
+                "Erreur fetchSteamHuntersTags Non Gérée",
             );
             return [];
         }
