@@ -7,6 +7,7 @@ const { GREEN } = require("../data/colors.json");
 const { EmbedBuilder } = require("discord.js");
 const { delay, crtHour } = require("../util/constants");
 const { retryAfter5min } = require("./util");
+const { sendError, sendStackTrace } = require("./envoiMsg");
 
 module.exports = (client) => {
     // TODO revoir exports, un steam.getGamesByName sera mieux qu'un client.getGamesByName
@@ -432,6 +433,7 @@ module.exports = (client) => {
             return data.genres || [];
         } catch (err) {
             console.error("Erreur fetchAppGenres:", err);
+            sendStackTrace(client, err, "Erreur fetchAppGenres Non Gérée");
             return [];
         }
     };
@@ -452,6 +454,7 @@ module.exports = (client) => {
             return Array.isArray(rawTags) ? rawTags : [];
         } catch (err) {
             console.error("Erreur fetchSteamHuntersTags:", err);
+            sendStackTrace(client, err, "Erreur fetchSteamHuntersTags Non Gérée");
             return [];
         }
     };
