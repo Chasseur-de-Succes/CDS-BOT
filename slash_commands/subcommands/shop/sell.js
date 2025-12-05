@@ -2,9 +2,9 @@ const { EmbedBuilder } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const { YELLOW } = require("../../../data/colors.json");
+const { MIN_PRICE_SHOP } = require("../../../util/constants");
 
 async function sell(interaction, options) {
-    const MIN_PRICE = 1000;
     const gameId = options.get("jeu")?.value;
     const montant = options.get("prix")?.value;
     const client = interaction.client;
@@ -36,11 +36,11 @@ async function sell(interaction, options) {
         return interaction.editReply({
             embeds: [createError("Montant négatif !")],
         });
-    } else if (montant < MIN_PRICE) {
+    } else if (montant < MIN_PRICE_SHOP) {
         return interaction.editReply({
             embeds: [
                 createError(
-                    `Le montant doit être supérieur à ${MIN_PRICE} ${process.env.MONEY}`,
+                    `Le montant minimum est de ${MIN_PRICE_SHOP} ${process.env.MONEY}`,
                 ),
             ],
         });
