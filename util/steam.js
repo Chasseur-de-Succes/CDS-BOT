@@ -1,5 +1,4 @@
 const superagent = require("superagent");
-//const { STEAM_API_KEY } = require('../config');
 const { Game } = require("../models");
 const { TAGS } = require("./constants");
 const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
@@ -71,7 +70,6 @@ module.exports = (client) => {
 
     client.getAchievements = async (appid) => {
         // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=xxx&gameid=xxx
-        // https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?key=FC01A70E34CC7AE7174C575FF8D8A07F&gameid=321040
         return superagent
             .get(
                 "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/",
@@ -152,7 +150,6 @@ module.exports = (client) => {
     };
 
     client.getSchemaForGame = async (appid) => {
-        // https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=FC01A70E34CC7AE7174C575FF8D8A07F&appid=220&l=french
         const reponse = await superagent
             .get(
                 "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?",
@@ -416,5 +413,23 @@ module.exports = (client) => {
 
         logger.info(`.. Fin refresh games, ${cptGame} jeux ajoutés`);
         return `Import des jeux terminés, ${cptGame} jeux ajoutés 👏`;
+    };
+
+    /**
+     * Retourne la liste de jeux que possède un joueur
+     * @param {String} steamId
+     */
+    client.getOwnedGames = async (steamId) => {
+        const result = await superagent
+            .get(
+                "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/",
+            )
+            .query({
+                key: process.env.STEAM_API_KEY,
+                steamid: steamId,
+                include_played_free_games: false,
+                include_appinfo: true,
+            });
+        return result?.body?.response?.games || [];
     };
 };

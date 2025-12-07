@@ -115,6 +115,12 @@ const WEBHOOK = {
     FEED_ACHIEVEMENT: "feed_achievement",
 };
 
+const ROULETTE = {
+    BET: 500, // Mise de la roulette
+    PROFIT: 1000, // Profit de la roulette
+    TIMER: 12, // Timer avant de pouvoir relancer la roulette
+};
+
 exports.DAILY_MONEY_LIMIT = DAILY_MONEY_LIMIT;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
@@ -127,3 +133,4 @@ exports.CHANNEL = CHANNEL;
 exports.SALON = SALON;
 exports.WEBHOOK_ARRAY = WEBHOOK_ARRAY;
 exports.WEBHOOK = WEBHOOK;
+exports.ROULETTE = ROULETTE;
