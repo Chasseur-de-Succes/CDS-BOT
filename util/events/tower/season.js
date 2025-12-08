@@ -1,4 +1,4 @@
-const { createEmbed, createError } = require("../../envoiMsg");
+const { createEmbed, createError, createLogs } = require("../../envoiMsg");
 const {
     MONTHLY,
     SEASONS,
@@ -11,7 +11,7 @@ const {
     endSeason,
 } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
-const { AttachmentBuilder } = require("discord.js");
+const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { SALON } = require("../../constants");
 
 // SAISON 0
@@ -362,22 +362,27 @@ async function seasonOne(
     const monthlyGenres = MONTHLY.GENRES[monthIndex];
     const monthlyTags = MONTHLY.TAGS[monthIndex];
 
-    let genresFoundArr = [];
+    const foundIds = [];
+    const genresFoundArr = [];
     for (const g of genres) {
         const match = monthlyGenres.find((m) => m.id == g.id);
         if (match) {
+            foundIds.push(match.id);
             genresFoundArr.push(match.label);
         }
     }
-    let isMonthlyGenre = genresFoundArr.length > 0;
+    const isMonthlyGenre = genresFoundArr.length > 0;
     const genresFound = genresFoundArr.join(", ");
 
-    let tagsFoundArr = [];
+    const tagsFoundArr = [];
     for (const t of tags) {
         const match = monthlyTags.find((m) => m.id == t.tagId);
-        if (match) tagsFoundArr.push(match.label);
+        if (match) {
+            foundIds.push(match.id);
+            tagsFoundArr.push(match.label);
+        }
     }
-    let isMonthlyTag = tagsFoundArr.length > 0;
+    const isMonthlyTag = tagsFoundArr.length > 0;
     const tagFound = tagsFoundArr.join(", ");
     // pour les embeds
     const infoBonus = {
@@ -386,11 +391,64 @@ async function seasonOne(
         tagFound,
     };
 
+    // si tag/genre du mois, on maj le message "indice"
+    if (foundIds.length > 0) {
+        if (guild.event.tower.currentMsgClue) {
+            // recup le msg
+            const msgClue = await client.channels.cache.get(eventChannelId).messages.fetch(guild.event.tower.currentMsgClue.id).catch(() => null);
+            if (msgClue) {
+                const fields = guild.event.tower.currentMsgClue.fields;
+                const fieldsAlreadyFound = fields.filter((f) => f.found);
+
+                for (const id of foundIds) {
+                    // si pas encore trouvé
+                    if (!fieldsAlreadyFound.find((f) => f.id == id)) {
+                        // maj bdd
+                        const fieldToUpdate = fields.find((f) => f.id == id);
+                        fieldToUpdate.found = true;
+                        guild.save();
+
+                        // maj du msg
+                        const newEmbed = EmbedBuilder.from(await msgClue.embeds[0]).setFields(
+                            fields.map((f) => {
+                                return {
+                                    name: f.found ? f.name : '???',
+                                    value: f.found ? f.value : '???',
+                                    inline: true,
+                                }
+                            }
+                        ));
+                        await msgClue.edit({ embeds: [newEmbed] })
+                    }
+                }
+            }
+        }
+    }
+
     // par défaut, on monte d'un étage
     let step = 1;
     // si jeu caché ou tag du mois, on monte d'un étage supplémentaire
     if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
         step++;
+        // log bonus
+        let desc = "";
+        if (isHiddenApp) {
+            desc = `> -- jeu caché de \`${hiddenMap[appidStr]})\`\n`;
+        }
+        if (isMonthlyGenre) {
+            desc += `> -- genre du mois (${genresFound})\n`;
+        }
+        if (isMonthlyTag) {
+            desc += `> -- tag du mois (${tagFound})\n`;
+        }
+        await createLogs(
+            client,
+            guildId,
+            `🗼 - Bonus validé`,
+            desc,
+            "",
+            "#DC8514",
+        );
     }
 
     // 1er étage franchi (1 jeu complété)
@@ -797,15 +855,15 @@ function initEmbed(title, url, desc, color, footer, infoBonus) {
     }
     if (infoBonus.genresFound) {
         embed.addFields({
-            name: "📚 Genre(s) du mois !",
-            value: `Ton jeu correspond au(x) genre(s) du mois : ${infoBonus.genresFound} !`,
+            name: "📚 Genre du mois !",
+            value: `Un petit bonus car ton jeu correspond au genre : ${infoBonus.genresFound} !`,
             inline: true,
         });
     }
     if (infoBonus.tagFound) {
         embed.addFields({
-            name: "🏷️ Tag(s) du mois !",
-            value: `Ton jeu correspond au(x) tag(s) du mois : ${infoBonus.tagFound} !`,
+            name: "🏷️ Tag du mois !",
+            value: `Un petit bonus car ton jeu correspond au tag : ${infoBonus.tagFound} !`,
             inline: true,
         });
     }

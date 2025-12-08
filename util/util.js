@@ -67,10 +67,23 @@ async function retryAfter5min(fn) {
     // });
 }
 
+// récupère le nom du mois à partir de son numéro (0-11)
+function getMonthName(monthIndex) {
+    const date = new Date(2025, monthIndex, 1); // Année arbitraire
+    const month = date.toLocaleDateString('fr-FR', { month: 'long' });
+    return capitalize(month);
+}
+
+// majuscule première lettre
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 module.exports = {
     escapeRegExp,
     monthDiff,
     daysDiff,
     getJsonValue,
     retryAfter5min,
+    getMonthName
 };

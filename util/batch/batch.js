@@ -8,12 +8,13 @@ const {
     ORANGE,
 } = require("../../data/colors.json");
 const moment = require("moment-timezone");
-const { User, Game } = require("../../models");
+const { User, Game, GuildConfig } = require("../../models");
 const { createLogs } = require("../envoiMsg");
 const { EmbedBuilder, WebhookClient } = require("discord.js");
-const { daysDiff, retryAfter5min } = require("../util");
+const { daysDiff, retryAfter5min, getMonthName } = require("../util");
 
 const SteamUser = require("steam-user");
+const { SALON } = require("../constants");
 const steamClient = new SteamUser();
 
 module.exports = {
@@ -400,6 +401,103 @@ module.exports = {
                 }
             }
         });
+    },
+
+    async startMonthlyClueJob(client, tz = "Europe/Paris") {
+        try {
+            logger.info("--  Mise en place batch indice mensuel pour la tour");
+            // annule un job existant si présent
+            if (scheduledJobs["monthly_clue"]) scheduledJobs["monthly_clue"].cancel();
+
+            // charge les constantes (chemin relatif depuis `util/batch/batch.js`)
+            const constants = require("../../data/event/tower/constants.json");
+
+            // scheduleJob avec un nom pour pouvoir l'annuler via scheduledJobs
+            scheduleJob(
+                "monthly_clue",
+                // '*/10 * * * * *', // pour test
+                { date: 1, hour: 0, minute: 0, tz },
+                async () => {
+                    try {
+                        // const monthIndex = moment().tz(tz).month(); // 0 = janvier
+                        const monthIndex = 0; // 0 = janvier
+                        const monthName = getMonthName(monthIndex);
+                        const clue =
+                            constants?.MONTHLY?.CLUES?.[monthIndex] ||
+                            "Aucun indice disponible pour ce mois.";
+                        const genres = constants?.MONTHLY?.GENRES?.[monthIndex] || [];
+                        const tags = constants?.MONTHLY?.TAGS?.[monthIndex] || [];
+                        const nbFields = genres.length + tags.length;
+
+                        // envoi embed dans le salon event_tower de chaque guild
+                        for (const guild of client.guilds.cache.values()) {
+                            logger.info(`.. création monthly_clue pour ${guild.name}..`);
+                            const guildConfig = await GuildConfig.findOne({ guildId: guild.id });
+                            if (!guildConfig?.event?.tower?.started) {
+                                logger.info(`.. l'événement Tower n'a pas encore commencé pour ${guild.name}, on skip l'envoi de l'indice mensuel.`);
+                                continue;
+                            }
+
+                            const eventChannelId = await client.getGuildChannel(
+                                guild.id,
+                                SALON.EVENT_TOWER,
+                            );
+
+                            const embed = new EmbedBuilder()
+                                .setTitle(`🏷️ ${monthName}`)
+                                .setDescription(clue)
+                                .setColor(GREEN);
+
+                            // ajout fields en fonction du nb de tag/genre
+                            for (let i = 0; i < nbFields; i++) {
+                                embed.addFields({ name: "???", value: "???", inline: true });
+                            }
+
+                            const channel = await client.channels.fetch(eventChannelId).catch(() => null);
+                            if (channel && typeof channel.send === "function") {
+                                const msg = await channel.send({ embeds: [embed] });
+
+                                // si message existant, le unpin
+                                if (guildConfig?.event?.tower?.currentMsgClue?.id) {
+                                    const oldMsgId = guildConfig.event.tower.currentMsgClue.id;
+                                    const oldMsg = await channel.messages.fetch(oldMsgId).catch(() => null);
+                                    if (oldMsg) {
+                                        await oldMsg.unpin().catch(() => null);
+                                    }
+                                }
+
+                                // pin le message
+                                await msg.pin().catch(() => null);
+
+                                // prepare fields
+                                const fields = [];
+                                for (const genre of genres) {
+                                    fields.push({ id: genre.id, name: "Genre", value: genre.label });
+
+                                }
+                                for (const tag of tags) {
+                                    fields.push({ id: tag.id, name: "Tag", value: tag.label });
+                                }
+
+                                // save id message pour edit fields plus tard
+                                await GuildConfig.updateOne(
+                                    { guildId: guild.id },
+                                    { $set: { "event.tower.currentMsgClue.id": msg.id, "event.tower.currentMsgClue.fields": fields } }
+                                );
+                                logger.info(`.. Embed mensuel envoyé pour le mois ${monthName}`);
+                            } else {
+                                logger.warn("Salon introuvable pour l'envoi de l'indice mensuel.");
+                            }
+                        }
+
+                    } catch (err) {
+                        logger.error("Erreur lors de l'envoi de l'embed mensuel :", err);
+                    }
+                },
+            );
+        } catch (err) {
+            logger.error("Impossible de créer le job monthly_clue :", err);
+        }
     },
 
     async loadSteamPics(client) {

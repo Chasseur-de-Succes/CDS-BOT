@@ -27,6 +27,18 @@ const guildConfigSchema = mongoose.Schema({
             currentSeason: Number,
             startDate: Date,
             started: { type: Boolean, default: false },
+            msgClueId: String,
+            currentMsgClue: {
+                id: String,
+                fields: [
+                    {
+                        id: String,
+                        name: String,
+                        value: String,
+                        found: { type: Boolean, default: false },
+                    }
+                ]
+            },
             history: [
                 {
                     season: Number,
