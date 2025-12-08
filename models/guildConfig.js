@@ -36,8 +36,8 @@ const guildConfigSchema = mongoose.Schema({
                         name: String,
                         value: String,
                         found: { type: Boolean, default: false },
-                    }
-                ]
+                    },
+                ],
             },
             history: [
                 {

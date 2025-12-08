@@ -12,7 +12,8 @@ const {
     searchNewGamesJob,
     resetMoneyLimit,
     loadJobHelper,
-    testEcuyer, startMonthlyClueJob,
+    testEcuyer,
+    startMonthlyClueJob,
 } = require("./batch/batch");
 const {
     moveToArchive,

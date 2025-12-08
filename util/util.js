@@ -70,7 +70,7 @@ async function retryAfter5min(fn) {
 // récupère le nom du mois à partir de son numéro (0-11)
 function getMonthName(monthIndex) {
     const date = new Date(2025, monthIndex, 1); // Année arbitraire
-    const month = date.toLocaleDateString('fr-FR', { month: 'long' });
+    const month = date.toLocaleDateString("fr-FR", { month: "long" });
     return capitalize(month);
 }
 
@@ -85,5 +85,5 @@ module.exports = {
     daysDiff,
     getJsonValue,
     retryAfter5min,
-    getMonthName
+    getMonthName,
 };

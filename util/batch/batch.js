@@ -407,7 +407,8 @@ module.exports = {
         try {
             logger.info("--  Mise en place batch indice mensuel pour la tour");
             // annule un job existant si présent
-            if (scheduledJobs["monthly_clue"]) scheduledJobs["monthly_clue"].cancel();
+            if (scheduledJobs["monthly_clue"])
+                scheduledJobs["monthly_clue"].cancel();
 
             // charge les constantes (chemin relatif depuis `util/batch/batch.js`)
             const constants = require("../../data/event/tower/constants.json");
@@ -425,16 +426,24 @@ module.exports = {
                         const clue =
                             constants?.MONTHLY?.CLUES?.[monthIndex] ||
                             "Aucun indice disponible pour ce mois.";
-                        const genres = constants?.MONTHLY?.GENRES?.[monthIndex] || [];
-                        const tags = constants?.MONTHLY?.TAGS?.[monthIndex] || [];
+                        const genres =
+                            constants?.MONTHLY?.GENRES?.[monthIndex] || [];
+                        const tags =
+                            constants?.MONTHLY?.TAGS?.[monthIndex] || [];
                         const nbFields = genres.length + tags.length;
 
                         // envoi embed dans le salon event_tower de chaque guild
                         for (const guild of client.guilds.cache.values()) {
-                            logger.info(`.. création monthly_clue pour ${guild.name}..`);
-                            const guildConfig = await GuildConfig.findOne({ guildId: guild.id });
+                            logger.info(
+                                `.. création monthly_clue pour ${guild.name}..`,
+                            );
+                            const guildConfig = await GuildConfig.findOne({
+                                guildId: guild.id,
+                            });
                             if (!guildConfig?.event?.tower?.started) {
-                                logger.info(`.. l'événement Tower n'a pas encore commencé pour ${guild.name}, on skip l'envoi de l'indice mensuel.`);
+                                logger.info(
+                                    `.. l'événement Tower n'a pas encore commencé pour ${guild.name}, on skip l'envoi de l'indice mensuel.`,
+                                );
                                 continue;
                             }
 
@@ -450,17 +459,32 @@ module.exports = {
 
                             // ajout fields en fonction du nb de tag/genre
                             for (let i = 0; i < nbFields; i++) {
-                                embed.addFields({ name: "???", value: "???", inline: true });
+                                embed.addFields({
+                                    name: "???",
+                                    value: "???",
+                                    inline: true,
+                                });
                             }
 
-                            const channel = await client.channels.fetch(eventChannelId).catch(() => null);
+                            const channel = await client.channels
+                                .fetch(eventChannelId)
+                                .catch(() => null);
                             if (channel && typeof channel.send === "function") {
-                                const msg = await channel.send({ embeds: [embed] });
+                                const msg = await channel.send({
+                                    embeds: [embed],
+                                });
 
                                 // si message existant, le unpin
-                                if (guildConfig?.event?.tower?.currentMsgClue?.id) {
-                                    const oldMsgId = guildConfig.event.tower.currentMsgClue.id;
-                                    const oldMsg = await channel.messages.fetch(oldMsgId).catch(() => null);
+                                if (
+                                    guildConfig?.event?.tower?.currentMsgClue
+                                        ?.id
+                                ) {
+                                    const oldMsgId =
+                                        guildConfig.event.tower.currentMsgClue
+                                            .id;
+                                    const oldMsg = await channel.messages
+                                        .fetch(oldMsgId)
+                                        .catch(() => null);
                                     if (oldMsg) {
                                         await oldMsg.unpin().catch(() => null);
                                     }
@@ -472,26 +496,46 @@ module.exports = {
                                 // prepare fields
                                 const fields = [];
                                 for (const genre of genres) {
-                                    fields.push({ id: genre.id, name: "Genre", value: genre.label });
-
+                                    fields.push({
+                                        id: genre.id,
+                                        name: "Genre",
+                                        value: genre.label,
+                                    });
                                 }
                                 for (const tag of tags) {
-                                    fields.push({ id: tag.id, name: "Tag", value: tag.label });
+                                    fields.push({
+                                        id: tag.id,
+                                        name: "Tag",
+                                        value: tag.label,
+                                    });
                                 }
 
                                 // save id message pour edit fields plus tard
                                 await GuildConfig.updateOne(
                                     { guildId: guild.id },
-                                    { $set: { "event.tower.currentMsgClue.id": msg.id, "event.tower.currentMsgClue.fields": fields } }
+                                    {
+                                        $set: {
+                                            "event.tower.currentMsgClue.id":
+                                                msg.id,
+                                            "event.tower.currentMsgClue.fields":
+                                                fields,
+                                        },
+                                    },
                                 );
-                                logger.info(`.. Embed mensuel envoyé pour le mois ${monthName}`);
+                                logger.info(
+                                    `.. Embed mensuel envoyé pour le mois ${monthName}`,
+                                );
                             } else {
-                                logger.warn("Salon introuvable pour l'envoi de l'indice mensuel.");
+                                logger.warn(
+                                    "Salon introuvable pour l'envoi de l'indice mensuel.",
+                                );
                             }
                         }
-
                     } catch (err) {
-                        logger.error("Erreur lors de l'envoi de l'embed mensuel :", err);
+                        logger.error(
+                            "Erreur lors de l'envoi de l'embed mensuel :",
+                            err,
+                        );
                     }
                 },
             );

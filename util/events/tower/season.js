@@ -395,7 +395,10 @@ async function seasonOne(
     if (foundIds.length > 0) {
         if (guild.event.tower.currentMsgClue) {
             // recup le msg
-            const msgClue = await client.channels.cache.get(eventChannelId).messages.fetch(guild.event.tower.currentMsgClue.id).catch(() => null);
+            const msgClue = await client.channels.cache
+                .get(eventChannelId)
+                .messages.fetch(guild.event.tower.currentMsgClue.id)
+                .catch(() => null);
             if (msgClue) {
                 const fields = guild.event.tower.currentMsgClue.fields;
                 const fieldsAlreadyFound = fields.filter((f) => f.found);
@@ -409,16 +412,18 @@ async function seasonOne(
                         guild.save();
 
                         // maj du msg
-                        const newEmbed = EmbedBuilder.from(await msgClue.embeds[0]).setFields(
+                        const newEmbed = EmbedBuilder.from(
+                            await msgClue.embeds[0],
+                        ).setFields(
                             fields.map((f) => {
                                 return {
-                                    name: f.found ? f.name : '???',
-                                    value: f.found ? f.value : '???',
+                                    name: f.found ? f.name : "???",
+                                    value: f.found ? f.value : "???",
                                     inline: true,
-                                }
-                            }
-                        ));
-                        await msgClue.edit({ embeds: [newEmbed] })
+                                };
+                            }),
+                        );
+                        await msgClue.edit({ embeds: [newEmbed] });
                     }
                 }
             }
