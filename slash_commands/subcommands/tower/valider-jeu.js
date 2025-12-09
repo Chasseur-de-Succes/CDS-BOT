@@ -102,7 +102,7 @@ const validerJeu = async (interaction, options) => {
     // récupération des infos des succès sur le jeu sélectionné via Steam
     const steamId = userDb.steamId;
     // TODO gestion erreur connexion ?
-    const { error, gameName, hasAllAchievements, finishedAfterStart } =
+    const { error, noAchievements, gameName, hasAllAchievements, firstUnlock, finishedAfterStart } =
         await client.hasAllAchievementsAfterDate(
             steamId,
             appid,
@@ -114,10 +114,18 @@ const validerJeu = async (interaction, options) => {
             `.. erreur lors de la recherche de succès pour l'appid ${appid} :\n${error}`,
         );
         // Recup nom du jeu, si présent dans la bdd
-        const gameDb = await client.findGameByAppid(appid);
-        // TODO si gameDb non trouvé
         return await interaction.editReply({
-            content: `${gameDb?.name} (${appid}) n'a même pas de succès..`,
+            content: `${gameName} (${appid}) n'est pas dans ta bibliothèque ou n'a pas de succès..`,
+        });
+    }
+
+    if (noAchievements) {
+        logger.warn(
+            `.. ${error}`,
+        );
+        // Recup nom du jeu, si présent dans la bdd
+        return await interaction.editReply({
+            content: `${gameName} (${appid}) n'a même pas de succès..`,
         });
     }
 
@@ -129,6 +137,23 @@ const validerJeu = async (interaction, options) => {
         });
         return await interaction.editReply({
             content: `Tu as déjà utilisé ${gameName}.. ce n'est pas très efficace.`,
+        });
+    }
+
+    if (!hasAllAchievements) {
+        return interaction.editReply({
+            embeds: [
+                createEmbed({
+                    title: `🛑 Tu n'as pas encore complété ${gameName}..`,
+                    url: `https://store.steampowered.com/app/${appid}/`,
+                    desc: `Il semblerait que tu n'es pas eu tous les succès de **${gameName}**..
+${ASCII_NOT_100}`,
+                    color: "#0019ff",
+                    footer: {
+                        text: "C'est une erreur ? Oups.. contacte un admin !",
+                    },
+                }),
+            ],
         });
     }
 
@@ -183,11 +208,13 @@ const validerJeu = async (interaction, options) => {
                     author,
                     gameName,
                     appid,
+                    firstUnlock,
                 );
         }
         // TODO Saison N+2 : Participant réparti en plusieurs équipes (2 ou 3), 2/3 tour à X étages, un boss différent pour chaque équipe -> a réfléchir
     }
 
+    // TODO a revoir
     return interaction.editReply({
         embeds: [
             createEmbed({

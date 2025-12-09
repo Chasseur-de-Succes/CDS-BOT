@@ -228,6 +228,8 @@
             "ETAGE_PAR_PALIER": 5,
             "NB_PALIERS": 4,
             "DAMAGE": 1,
+            "NB_YEARS_SMALL_BONUS": 5,
+            "NB_YEARS_BONUS": 10,
             "HIDDEN_GAME_APPID": {
                 "489830": "Cyborg",
                 "260230": "Cyborg",

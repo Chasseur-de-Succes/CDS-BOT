@@ -13,6 +13,7 @@ const {
 const { TowerBoss } = require("../../../models");
 const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { SALON } = require("../../constants");
+const moment = require("moment");
 
 // SAISON 0
 // Créer un boss si aucun n'existe (saison 0)
@@ -340,6 +341,7 @@ async function seasonOne(
     author,
     gameName,
     appid,
+    firstUnlock,
 ) {
     // Récupération du channel de l'event
     const eventChannelId = await interaction.client.getGuildChannel(
@@ -384,6 +386,12 @@ async function seasonOne(
     }
     const isMonthlyTag = tagsFoundArr.length > 0;
     const tagFound = tagsFoundArr.join(", ");
+
+    // difference entre la date du premier succès et auj
+    const nbDiffYears = Math.abs(
+        moment(firstUnlock).diff(moment(), "years", true),
+    );
+
     // pour les embeds
     const infoBonus = {
         isHiddenApp,
@@ -408,6 +416,7 @@ async function seasonOne(
                     if (!fieldsAlreadyFound.find((f) => f.id == id)) {
                         // maj bdd
                         const fieldToUpdate = fields.find((f) => f.id == id);
+                        if (!fieldToUpdate) continue;
                         fieldToUpdate.found = true;
                         guild.save();
 
@@ -432,9 +441,13 @@ async function seasonOne(
 
     // par défaut, on monte d'un étage
     let step = 1;
-    // si jeu caché ou tag du mois, on monte d'un étage supplémentaire
-    if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
+    // si jeu caché / tag du mois / backlog, on monte d'un étage supplémentaire
+    const nbYearsSmallBonus = SEASONS["1"].NB_YEARS_SMALL_BONUS;
+    const nbYearsBonus = SEASONS["1"].NB_YEARS_BONUS;
+    if (isHiddenApp || isMonthlyGenre || isMonthlyTag || nbDiffYears >= nbYearsSmallBonus) {
+        // par defaut 1 bonus
         step++;
+
         // log bonus
         let desc = "";
         if (isHiddenApp) {
@@ -445,6 +458,20 @@ async function seasonOne(
         }
         if (isMonthlyTag) {
             desc += `> -- tag du mois (${tagFound})\n`;
+        }
+        const dateFirstUnlock = moment(firstUnlock).format("DD/MM/YYYY");
+        if (nbDiffYears >= nbYearsBonus) {
+            // backlog bonus
+            step++;
+            desc += `> -- 1er succès il y a DÉJÀ ${nbYearsBonus} ans !\n`;
+            // ajout dans infoBonus
+            infoBonus.nbYearsBonus = nbYearsBonus;
+            infoBonus.dateFirstUnlock = dateFirstUnlock;
+        } else if (nbDiffYears >= nbYearsSmallBonus) {
+            desc += `> -- 1er succès il y a déjà ${nbYearsBonus} ans !\n`;
+            // ajout dans infoBonus
+            infoBonus.nbYearsBonus = nbYearsBonus;
+            infoBonus.dateFirstUnlock = dateFirstUnlock;
         }
         await createLogs(
             client,
@@ -861,14 +888,21 @@ function initEmbed(title, url, desc, color, footer, infoBonus) {
     if (infoBonus.genresFound) {
         embed.addFields({
             name: "📚 Genre du mois !",
-            value: `Un petit bonus car ton jeu correspond au genre : ${infoBonus.genresFound} !`,
+            value: `Un petit bonus car ton jeu correspond au **genre** : \`${infoBonus.genresFound}\` !`,
             inline: true,
         });
     }
     if (infoBonus.tagFound) {
         embed.addFields({
             name: "🏷️ Tag du mois !",
-            value: `Un petit bonus car ton jeu correspond au tag : ${infoBonus.tagFound} !`,
+            value: `Un petit bonus car ton jeu correspond au **tag** : \`${infoBonus.tagFound}\` !`,
+            inline: true,
+        });
+    }
+    if (infoBonus.nbYearsBonus) {
+        embed.addFields({
+            name: "⏳ Backlog bonus !",
+            value: `Ton premier succès date du \`${infoBonus.dateFirstUnlock}\`, soit il y a plus de \`${infoBonus.nbYearsBonus}\` ans ! 👴`,
             inline: true,
         });
     }

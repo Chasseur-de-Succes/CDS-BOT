@@ -185,10 +185,29 @@ module.exports = (client) => {
             };
         }
 
+        const gameName = response.body.playerstats.gameName;
+        if (!response.body.playerstats.achievements) {
+            return {
+                gameName: gameName,
+                noAchievements: `Aucun succès trouvé pour ce jeu ${gameName}.`,
+            };
+        }
+
         const achievements = response.body.playerstats.achievements;
         return {
-            gameName: response.body.playerstats.gameName,
+            gameName: gameName,
             hasAllAchievements: achievements.every((ach) => ach.achieved === 1),
+            // recupere la date du premier succès débloqué
+            // TODO check si tous succes débloqués ?
+            firstUnlock: achievements.reduce(
+                (earliest, ach) =>
+                    earliest === null ||
+                    (new Date(ach.unlocktime * 1000) < earliest)
+                        ? new Date(ach.unlocktime * 1000)
+                        : earliest,
+                null,
+            ),
+            // check si jeu terminé après le début de l'event
             finishedAfterStart: achievements.some(
                 (ach) => new Date(ach.unlocktime * 1000) > startDate,
             ),
