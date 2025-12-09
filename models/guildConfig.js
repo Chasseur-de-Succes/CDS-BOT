@@ -30,6 +30,7 @@ const guildConfigSchema = mongoose.Schema({
             msgClueId: String,
             currentMsgClue: {
                 id: String,
+                month: Number,
                 fields: [
                     {
                         id: String,

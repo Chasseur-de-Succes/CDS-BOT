@@ -444,7 +444,12 @@ async function seasonOne(
     // si jeu caché / tag du mois / backlog, on monte d'un étage supplémentaire
     const nbYearsSmallBonus = SEASONS["1"].NB_YEARS_SMALL_BONUS;
     const nbYearsBonus = SEASONS["1"].NB_YEARS_BONUS;
-    if (isHiddenApp || isMonthlyGenre || isMonthlyTag || nbDiffYears >= nbYearsSmallBonus) {
+    if (
+        isHiddenApp ||
+        isMonthlyGenre ||
+        isMonthlyTag ||
+        nbDiffYears >= nbYearsSmallBonus
+    ) {
         // par defaut 1 bonus
         step++;
 

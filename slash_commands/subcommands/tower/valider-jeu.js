@@ -102,12 +102,18 @@ const validerJeu = async (interaction, options) => {
     // récupération des infos des succès sur le jeu sélectionné via Steam
     const steamId = userDb.steamId;
     // TODO gestion erreur connexion ?
-    const { error, noAchievements, gameName, hasAllAchievements, firstUnlock, finishedAfterStart } =
-        await client.hasAllAchievementsAfterDate(
-            steamId,
-            appid,
-            guild.event.tower.startDate,
-        );
+    const {
+        error,
+        noAchievements,
+        gameName,
+        hasAllAchievements,
+        firstUnlock,
+        finishedAfterStart,
+    } = await client.hasAllAchievementsAfterDate(
+        steamId,
+        appid,
+        guild.event.tower.startDate,
+    );
 
     if (error) {
         logger.warn(
@@ -120,9 +126,7 @@ const validerJeu = async (interaction, options) => {
     }
 
     if (noAchievements) {
-        logger.warn(
-            `.. ${error}`,
-        );
+        logger.warn(`.. ${error}`);
         // Recup nom du jeu, si présent dans la bdd
         return await interaction.editReply({
             content: `${gameName} (${appid}) n'a même pas de succès..`,

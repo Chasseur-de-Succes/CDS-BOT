@@ -413,7 +413,37 @@ module.exports = {
             // charge les constantes (chemin relatif depuis `util/batch/batch.js`)
             const constants = require("../../data/event/tower/constants.json");
 
-            // scheduleJob avec un nom pour pouvoir l'annuler via scheduledJobs
+            // scheduleJob tous les jours pour s'assurer que le job 'monthly_clue' a bien été lancé sur le mois courant
+            scheduleJob(
+                "monthly_clue_check",
+                { hour: 0, minute: 0, tz },
+                async () => {
+                    const monthIndex = moment().tz(tz).month(); // 0 = janvier
+                    for (const guild of client.guilds.cache.values()) {
+                        const guildConfig = await GuildConfig.findOne({
+                            guildId: guild.id,
+                        });
+                        if (!guildConfig?.event?.tower?.started) {
+                            continue;
+                        }
+
+                        if (
+                            guildConfig?.event?.tower?.currentMsgClue?.month ===
+                            monthIndex
+                        ) {
+                            continue;
+                        }
+
+                        // relance le job monthly_clue
+                        logger.info(
+                            `-- relance du job monthly_clue pour ${guild.name}..`,
+                        );
+                        scheduledJobs["monthly_clue"].invoke();
+                    }
+                },
+            );
+
+            // scheduleJob tous les 1er du mois à 00:00
             scheduleJob(
                 "monthly_clue",
                 // '*/10 * * * * *', // pour test
@@ -514,6 +544,8 @@ module.exports = {
                                     { guildId: guild.id },
                                     {
                                         $set: {
+                                            "event.tower.currentMsgClue.month":
+                                                monthIndex,
                                             "event.tower.currentMsgClue.id":
                                                 msg.id,
                                             "event.tower.currentMsgClue.fields":

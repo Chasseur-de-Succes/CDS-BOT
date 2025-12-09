@@ -202,7 +202,7 @@ module.exports = (client) => {
             firstUnlock: achievements.reduce(
                 (earliest, ach) =>
                     earliest === null ||
-                    (new Date(ach.unlocktime * 1000) < earliest)
+                    new Date(ach.unlocktime * 1000) < earliest
                         ? new Date(ach.unlocktime * 1000)
                         : earliest,
                 null,
