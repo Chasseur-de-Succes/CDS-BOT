@@ -115,6 +115,8 @@ const WEBHOOK = {
     FEED_ACHIEVEMENT: "feed_achievement",
 };
 
+const MIN_PRICE_SHOP = 1000; // Prix minimum pour les jeux du shop
+
 exports.DAILY_MONEY_LIMIT = DAILY_MONEY_LIMIT;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
@@ -127,3 +129,4 @@ exports.CHANNEL = CHANNEL;
 exports.SALON = SALON;
 exports.WEBHOOK_ARRAY = WEBHOOK_ARRAY;
 exports.WEBHOOK = WEBHOOK;
+exports.MIN_PRICE_SHOP = MIN_PRICE_SHOP;

@@ -2,6 +2,7 @@ const { EmbedBuilder } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const { YELLOW } = require("../../../data/colors.json");
+const { MIN_PRICE_SHOP } = require("../../../util/constants");
 
 async function sell(interaction, options) {
     const gameId = options.get("jeu")?.value;
@@ -9,9 +10,12 @@ async function sell(interaction, options) {
     const client = interaction.client;
     const author = interaction.member;
 
+    // "Bot réfléchit.."
+    await interaction.deferReply();
+
     const userDb = await client.getUser(author);
     if (!userDb) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError(
                     `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
@@ -21,7 +25,7 @@ async function sell(interaction, options) {
     }
 
     if (!Number.parseInt(gameId)) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [
                 createError("Jeu non trouvé ou donne trop de résultats !"),
             ],
@@ -29,13 +33,18 @@ async function sell(interaction, options) {
     }
 
     if (montant < 0) {
-        return interaction.reply({
+        return interaction.editReply({
             embeds: [createError("Montant négatif !")],
         });
+    } else if (montant < MIN_PRICE_SHOP) {
+        return interaction.editReply({
+            embeds: [
+                createError(
+                    `Le montant minimum est de ${MIN_PRICE_SHOP} ${process.env.MONEY}`,
+                ),
+            ],
+        });
     }
-
-    // "Bot réfléchit.."
-    await interaction.deferReply();
 
     // Jeu déjà recherché via autocomplete
 
