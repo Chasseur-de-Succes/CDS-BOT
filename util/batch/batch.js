@@ -420,8 +420,7 @@ module.exports = {
                 { date: 1, hour: 0, minute: 0, tz },
                 async () => {
                     try {
-                        // const monthIndex = moment().tz(tz).month(); // 0 = janvier
-                        const monthIndex = 0; // 0 = janvier
+                        const monthIndex = moment().tz(tz).month(); // 0 = janvier
                         const monthName = getMonthName(monthIndex);
                         const clue =
                             constants?.MONTHLY?.CLUES?.[monthIndex] ||
