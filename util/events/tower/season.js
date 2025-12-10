@@ -685,7 +685,7 @@ async function seasonOne(
     if (userDb.event.tower.currentBoss < currentBoss.ordre) {
         logger.info({
             prefix: "TOWER",
-            message: `${author.user.tag} 100% ${gameName} (${appid}): arrivé palier, rejoins combat(${currentBoss.ordre}) ..`,
+            message: `${author.user.tag} 100% ${gameName} (${appid}): arrivé palier, rejoint combat(${currentBoss.ordre}) ..`,
         });
         userDb.event.tower.currentBoss = currentBoss.ordre;
         await userDb.save();
