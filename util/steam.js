@@ -451,9 +451,7 @@ module.exports = (client) => {
             if (!data) return [];
             return data.genres || [];
         } catch (err) {
-            logger.error(
-                "Erreur fetchAppGenres: ", err,
-            );
+            logger.error("Erreur fetchAppGenres: ", err);
             sendStackTrace(client, err, "Erreur fetchAppGenres Non Gérée");
             return [];
         }
@@ -474,9 +472,7 @@ module.exports = (client) => {
             const rawTags = data.tags || [];
             return Array.isArray(rawTags) ? rawTags : [];
         } catch (err) {
-            logger.error(
-                "Erreur fetchSteamHuntersTags: ", err,
-            );
+            logger.error("Erreur fetchSteamHuntersTags: ", err);
             sendStackTrace(
                 client,
                 err,
