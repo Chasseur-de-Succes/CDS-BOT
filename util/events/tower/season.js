@@ -489,13 +489,13 @@ async function seasonOne(
 
     // 1er étage franchi (1 jeu complété)
     if (userDb.event.tower.etage === 1) {
-        logger.info({
-            prefix: "TOWER",
-            message: `${author.user.tag} 100% ${gameName} (${appid}): 1er étage ..`,
-        });
-        // ici, on peut monter de 2 étages si jeu caché ou tag du mois, on ne risque rien
+        // ici, on peut monter de N étages si jeu caché ou tag du mois, on ne risque rien
         userDb.event.tower.currentEtage += step;
         await userDb.save();
+        logger.info({
+            prefix: "TOWER",
+            message: `${author.user.tag} 100% ${gameName} (${appid}): étage ${userDb.event.tower.currentEtage} ..`,
+        });
 
         // 1er message d'intro
         const descFirst = initDesc(MESSAGE["1"].FIRST, gameName, author);
@@ -506,7 +506,7 @@ async function seasonOne(
                     `https://store.steampowered.com/app/${appid}/`,
                     descFirst,
                     "#1cff00",
-                    "Étage 1/??",
+                    `Étage ${userDb.event.tower.currentEtage}/??`,
                     infoBonus,
                 ),
             ],
