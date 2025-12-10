@@ -476,10 +476,8 @@ module.exports = {
                                 continue;
                             }
 
-                            const eventChannelId = await client.getGuildChannel(
-                                guild.id,
-                                SALON.EVENT_TOWER,
-                            );
+
+                            const eventChannelId = guildConfig.channels[SALON.EVENT_TOWER];
 
                             const embed = new EmbedBuilder()
                                 .setTitle(`🏷️ ${monthName}`)
