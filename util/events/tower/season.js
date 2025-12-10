@@ -31,7 +31,6 @@ async function createBoss(season, isHiddenBoss) {
     });
 
     await newBoss.save();
-    return newBoss;
 }
 
 async function seasonZero(
