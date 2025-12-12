@@ -1,7 +1,7 @@
 const { Colors, EmbedBuilder } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { GuildConfig } = require("../../../models");
-const { ASCII_INTRO } = require("../../../data/event/tower/constants.json");
+const { MESSAGE } = require("../../../data/event/tower/constants.json");
 const { SALON } = require("../../../util/constants");
 
 const inscription = async (interaction, options) => {
@@ -55,6 +55,8 @@ const inscription = async (interaction, options) => {
     }
 
     // Récupère le role Participant, le créer sinon
+    // TODO nom différent entre chaque saison
+    // TODO supprimer à la fin de l'event automatiquement ou manuellement ?
     const role = interaction.guild.roles.cache.find(
         (r) => r.name === "Grimpeur",
     );
@@ -68,7 +70,8 @@ const inscription = async (interaction, options) => {
     }
 
     // Saison et date de commencement de l'événement par l'user
-    userDb.event.tower.season = guild.event.tower.currentSeason;
+    const season = guild.event.tower.currentSeason;
+    userDb.event.tower.season = season;
     userDb.event.tower.startDate = Date.now();
     await userDb.save();
 
@@ -84,12 +87,7 @@ const inscription = async (interaction, options) => {
     const embed = new EmbedBuilder()
         .setColor("#0019ff")
         .setTitle("☑️ Inscription validée")
-        .setDescription(`Tu aperçois au loin une tour, tu décides de t'en approcher.
-  Tu entends de sinistres ricanements provenant du sommet.
-  Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..
-
-  Peut-être en prouvant tes capacités à \`maîtriser\` un jeu puis en le \`validant\` ?
-  ${ASCII_INTRO}
+        .setDescription(`${MESSAGE[season].INTRO}
   On se retrouve par ici : ${eventChannel}
 `);
     await interaction.reply({ embeds: [embed], ephemeral: true });

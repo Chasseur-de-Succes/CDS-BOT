@@ -1,111 +1,94 @@
 const { User, GuildConfig } = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
 const { CDS } = require("../../../data/emojis.json");
+
 const classement = async (interaction, options) => {
-    // TODO option pour afficher le classement d'une saison précise
     // TODO option pour afficher le classement d'un joueur précis ?
     const client = interaction.client;
     const guildId = interaction.guildId;
     const crtUser = interaction.user;
     const dbUser = await client.findUserById(crtUser.id);
     const guild = await GuildConfig.findOne({ guildId: guildId });
-    const season = guild.event.tower.currentSeason;
+
+    let season = options.getInteger("saison");
+    season = season === null ? guild.event.tower.currentSeason : season;
+    const isCurrentSeason = season === guild.event.tower.currentSeason;
+
+    logger.info(
+        `[TOWER] ${interaction.user.tag} consulte le classement de la saison ${season} (saison en cours: ${guild.event.tower.currentSeason})`,
+    );
 
     await interaction.deferReply({ ephemeral: true });
 
-    // Agrégation pour trier et trouver la position de l'utilisateur courant, et son nombre "d'étage"
-    const pipeline = [
-        {
-            $match: { "event.tower.season": season },
-        },
-        {
-            $sort: { "event.tower.etage": -1 },
-        },
-        {
-            $group: {
-                _id: null,
-                users: { $push: "$$ROOT" },
-            },
-        },
-        {
-            $project: {
-                userPosition: {
-                    $indexOfArray: ["$users.userId", dbUser.userId],
-                },
-                userEtage: {
-                    $arrayElemAt: [
-                        "$users.event.tower.etage",
-                        { $indexOfArray: ["$users.userId", dbUser.userId] },
-                    ],
-                },
-            },
-        },
-    ];
-    const result = await User.aggregate(pipeline);
-    let positionsUserCourant = result[0].userPosition + 1;
-    let degatsUserCourant = result[0].userEtage;
+    // Récupérer les utilisateurs ayant participé à la saison donnée
+    const users = isCurrentSeason
+        ? await User.find({ "event.tower.season": season })
+        : await User.find({
+              "event.tower.seasonHistory": {
+                  $elemMatch: { seasonNumber: season },
+              },
+          });
 
-    // récupérer les 10 premiers joueurs du classement
-    const leaderboard = await User.find({ "event.tower.season": 0 })
-        .sort({ "event.tower.etage": -1 })
-        .limit(10);
+    if (users.length === 0) {
+        return interaction.editReply({
+            content: `Aucun classement n'est disponible pour la saison ${season}..`,
+            ephemeral: true,
+        });
+    }
 
-    // créer un tableau contenant les positions, les joueurs et les dégâts
+    // Trier les utilisateurs par maxEtage pour la saison donnée
+    const leaderboard = users
+        .map((user) => {
+            const maxEtage = isCurrentSeason
+                ? user.event.tower.etage
+                : user.event.tower.seasonHistory.find(
+                      (s) => s.seasonNumber === season,
+                  )?.maxEtage;
+            return {
+                userId: user.userId,
+                maxEtage: maxEtage || 0,
+            };
+        })
+        .sort((a, b) => b.maxEtage - a.maxEtage);
+
+    // Trouver la position de l'utilisateur courant
+    const userIndex = leaderboard.findIndex(
+        (entry) => entry.userId === interaction.user.id,
+    );
+    const positionsUserCourant = userIndex !== -1 ? userIndex + 1 : undefined;
+    const degatsUserCourant =
+        userIndex !== -1 ? leaderboard[userIndex].maxEtage : undefined;
+
+    // Limiter aux 10 premiers pour l'affichage
+    const top10 = leaderboard.slice(0, 10);
+
+    // Générer les données pour l'embed
     let positions = "**";
     let joueurs = "";
     let degats = "**";
-    let positionExaequo;
-    let messageFooter;
     let i = 1;
-    for (const user of leaderboard) {
-        const discordUser = await client.users.fetch(user.userId);
-        // si degats est le même que le joueur précédent, on met un ex aequo
-        const exaequo =
-            i > 1 &&
-            user.event.tower.etage === leaderboard[i - 2].event.tower.etage;
-        if (exaequo) {
-            if (typeof positionExaequo === "undefined") {
-                positionExaequo = i - 1;
-            }
-            positions += "= \n";
-        } else {
-            positionExaequo = undefined;
-            positions += `${i} - \n`;
-        }
-        joueurs += `${discordUser}\n`;
-        degats += `${user.event.tower.etage}\n`;
 
-        // récupère le classement de l'utilisateur courant s'il n'est pas premier
-        if (user.userId === interaction.user.id) {
-            positionsUserCourant = i;
-            if (positionExaequo) {
-                if (positionExaequo === 1) {
-                    positionsUserCourant = `${positionExaequo}er(e) ex aequo`;
-                } else {
-                    positionsUserCourant = `${positionExaequo}ème ex aequo`;
-                }
-            }
-            degatsUserCourant = user.event.tower.etage;
-        }
+    for (const entry of top10) {
+        const discordUser = await client.users.fetch(entry.userId);
+        positions += `${i} - \n`;
+        joueurs += `${discordUser}\n`;
+        degats += `${entry.maxEtage}\n`;
         i++;
     }
     positions += "**";
-    joueurs += "";
     degats += "**";
 
+    let messageFooter;
     if (typeof positionsUserCourant === "undefined") {
-        messageFooter = "Tu n'as pas l'air d'être inscrit..";
+        messageFooter = "Tu n'as pas participé à cette saison.";
     } else {
-        if (positionsUserCourant === 1) positionsUserCourant = "🥳1er(e)🥳";
-        if (positionsUserCourant >= 1)
-            positionsUserCourant = `${positionsUserCourant}ème`;
-        messageFooter = `Toi tu es ${positionsUserCourant} avec ${degatsUserCourant}🏆`;
+        messageFooter = `Toi tu es ${positionsUserCourant}ème avec ${degatsUserCourant} étages.`;
     }
 
-    // créer un embed contenant le classement
+    // Créer un embed contenant le classement
     const embed = new EmbedBuilder()
         .setTitle(`Saison ${season}`)
-        .setDescription("Qui a complété le plus de jeu à 💯% ?")
+        .setDescription("Classement des joueurs pour cette saison.")
         .addFields(
             { name: "🏁", value: positions, inline: true },
             { name: `${CDS}`, value: joueurs, inline: true },
@@ -114,7 +97,8 @@ const classement = async (interaction, options) => {
         .setFooter({
             text: messageFooter,
         });
-    interaction.editReply({ embeds: [embed], ephemeral: true });
+
+    return interaction.editReply({ embeds: [embed], ephemeral: true });
 };
 
 exports.classement = classement;

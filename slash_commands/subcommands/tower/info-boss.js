@@ -1,12 +1,15 @@
-const { displayHealth, getRandomPrivateJokes } = require("./valider-jeu");
 const { TowerBoss, GuildConfig } = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
+const {
+    displayHealth,
+    getRandomPrivateJokes,
+} = require("../../../util/events/tower/towerUtils");
 
 const infoBoss = async (interaction, options) => {
     const guildId = interaction.guildId;
     const guild = await GuildConfig.findOne({ guildId: guildId });
     const season = guild.event.tower.currentSeason;
-    if (typeof season === "undefined") {
+    if (typeof season === "undefined" || !guild.event.tower.started) {
         return interaction.reply({
             content: "Aucune saison en cours.",
             ephemeral: true,
@@ -16,7 +19,7 @@ const infoBoss = async (interaction, options) => {
     // Récupère le boss courant non mort
     const currentBoss = await TowerBoss.findOne({
         season: season,
-        hp: { $ne: 0 },
+        hp: { $gt: 0 },
     });
     if (!currentBoss) {
         return interaction.reply({

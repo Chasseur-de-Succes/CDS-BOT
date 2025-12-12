@@ -143,7 +143,7 @@ module.exports.createLogs = async (
  * @param option {Object} - Options de l'embed
  * @returns
  */
-module.exports.createEmbed = async (option) => {
+module.exports.createEmbed = (option) => {
     return new EmbedBuilder()
         .setTitle(option.title)
         .setDescription(option.desc)
