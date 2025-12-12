@@ -6,6 +6,7 @@ const {
     DND_STATUS,
     OFFLINE_STATUS,
 } = require("../data/emojis.json");
+const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -65,12 +66,12 @@ module.exports = {
                 { name: "\u200B", value: "\u200B", inline: true },
                 {
                     name: "> Compte créé le",
-                    value: `<t:${Math.floor(user.createdTimestamp / 1000)}:f>`,
+                    value: `${discordTimestamp(user.createdTimestamp, "f")}`,
                     inline: true,
                 },
                 {
                     name: "> À rejoint le",
-                    value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:f>`,
+                    value: `${discordTimestamp(member.joinedTimestamp, "f")}`,
                     inline: true,
                 },
             )

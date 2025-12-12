@@ -5,6 +5,7 @@ module.exports = {
     GuildConfig: require("./guildConfig"),
     Job: require("./jobs/job"),
     RolesChannel: require("./rolesChannel"),
+    Observation: require("./observation"),
 
     GameItem: require("./shop/gameItemShop"),
     CustomItem: require("./shop/customItemShop"),

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { CORNFLOWER_BLUE } = require("../data/colors.json");
+const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,9 +17,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
             .setTitle("Uptime")
-            // <t:TIMESTAMP:R> => il y a XXX seconde, minute etc
-            // /1000 car getTime() retourne les milliseconds, et pas besoin
-            .setDescription(`<t:${Math.floor(date.getTime() / 1000)}:R>`);
+            .setDescription(`${discordTimestamp(date.getTime(), "R")}`);
 
         await interaction.reply({ embeds: [embed] });
     },

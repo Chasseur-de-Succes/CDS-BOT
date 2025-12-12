@@ -2,6 +2,12 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const { start, stop, down, allGame } = require("./subcommands/admin/tower");
+const {
+    add: addObservation,
+    remove: removeObservation,
+    history: historyObservation,
+    list: listObservation,
+} = require("./subcommands/admin/observation");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { Group } = require("../models");
@@ -93,6 +99,74 @@ module.exports = {
                                 .setDescription("Nom du jeu")
                                 .setAutocomplete(true)
                                 .setRequired(true),
+                        ),
+                ),
+        )
+        .addSubcommandGroup((subcommandGroup) =>
+            subcommandGroup
+                .setName("observation")
+                .setDescription("desc")
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("add")
+                        .setDescription(
+                            "Ajouter une note d'observation pour l'utilisateur mentionné.",
+                        )
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        )
+                        .addStringOption((option) =>
+                            option
+                                .setName("reason")
+                                .setDescription(
+                                    "Raison de la note d'observation",
+                                )
+                                .setMaxLength(500)
+                                .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("remove")
+                        .setDescription(
+                            "Supprimer une note d'observation pour l'utilisateur mentionné.",
+                        )
+                        .addStringOption((option) =>
+                            option
+                                .setName("id")
+                                .setDescription(
+                                    "ID de la note d'observation à supprimé (obtenable via l'historique)",
+                                )
+                                .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("history")
+                        .setDescription(
+                            "Affiche l'historique des notes d'observation d'un utilisateur.",
+                        )
+                        .addUserOption((option) =>
+                            option
+                                .setName("user")
+                                .setDescription("L'utilisateur")
+                                .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("list")
+                        .setDescription(
+                            "Affiche la liste de tout les utilisateurs ayant au moins une note d'observation.",
+                        )
+                        .addIntegerOption((option) =>
+                            option
+                                .setName("page")
+                                .setDescription("Numéro de la page")
+                                .setRequired(false),
                         ),
                 ),
         )
@@ -292,6 +366,16 @@ module.exports = {
             await avertissement(interaction, interaction.options);
         } else if (subcommand === "givemoney") {
             await givemoney(interaction, interaction.options);
+        } else if (subcommandGroup === "observation") {
+            if (subcommand === "add") {
+                await addObservation(interaction, interaction.options);
+            } else if (subcommand === "remove") {
+                await removeObservation(interaction, interaction.options);
+            } else if (subcommand === "history") {
+                await historyObservation(interaction, interaction.options);
+            } else if (subcommand === "list") {
+                await listObservation(interaction, interaction.options);
+            }
         }
     },
 };

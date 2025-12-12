@@ -6,6 +6,7 @@ const {
     SALON,
     DAILY_MONEY_LIMIT,
 } = require("../util/constants");
+
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
 const { feedBotMetaAch } = require("../util/envoiMsg");

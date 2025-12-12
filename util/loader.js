@@ -13,6 +13,7 @@ const {
     resetMoneyLimit,
     loadJobHelper,
     testEcuyer,
+    startMonthlyClueJob,
 } = require("./batch/batch");
 const {
     moveToArchive,
@@ -84,6 +85,8 @@ const loadBatch = async (client) => {
     await testEcuyer(client);
 
     //loadSteamPICS(client);
+
+    await startMonthlyClueJob(client);
 };
 
 // Charge les réactions des messages des groupes

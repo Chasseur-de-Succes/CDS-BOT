@@ -7,6 +7,7 @@ const { GREEN } = require("../data/colors.json");
 const { EmbedBuilder } = require("discord.js");
 const { delay, crtHour } = require("../util/constants");
 const { retryAfter5min } = require("./util");
+const { sendError, sendStackTrace } = require("./envoiMsg");
 
 module.exports = (client) => {
     // TODO revoir exports, un steam.getGamesByName sera mieux qu'un client.getGamesByName
@@ -184,10 +185,29 @@ module.exports = (client) => {
             };
         }
 
+        const gameName = response.body.playerstats.gameName;
+        if (!response.body.playerstats.achievements) {
+            return {
+                gameName: gameName,
+                noAchievements: `Aucun succès trouvé pour ce jeu ${gameName}.`,
+            };
+        }
+
         const achievements = response.body.playerstats.achievements;
         return {
-            gameName: response.body.playerstats.gameName,
+            gameName: gameName,
             hasAllAchievements: achievements.every((ach) => ach.achieved === 1),
+            // recupere la date du premier succès débloqué
+            // TODO check si tous succes débloqués ?
+            firstUnlock: achievements.reduce(
+                (earliest, ach) =>
+                    earliest === null ||
+                    new Date(ach.unlocktime * 1000) < earliest
+                        ? new Date(ach.unlocktime * 1000)
+                        : earliest,
+                null,
+            ),
+            // check si jeu terminé après le début de l'event
             finishedAfterStart: achievements.some(
                 (ach) => new Date(ach.unlocktime * 1000) > startDate,
             ),
@@ -416,5 +436,49 @@ module.exports = (client) => {
 
         logger.info(`.. Fin refresh games, ${cptGame} jeux ajoutés`);
         return `Import des jeux terminés, ${cptGame} jeux ajoutés 👏`;
+    };
+
+    // Récupère les genres depuis l'API Steam (appId en string ou number)
+    client.fetchAppGenres = async (appId) => {
+        try {
+            const res = await fetch(
+                `https://store.steampowered.com/api/appdetails?appids=${appId}`,
+            );
+            if (!res.ok) return [];
+            const json = await res.json();
+            const entry = json[String(appId)];
+            const data = entry && entry.data;
+            if (!data) return [];
+            return data.genres || [];
+        } catch (err) {
+            logger.error("Erreur fetchAppGenres: ", err);
+            sendStackTrace(client, err, "Erreur fetchAppGenres Non Gérée");
+            return [];
+        }
+    };
+
+    // Récupère les tags depuis l'API SteamHunters (appId en string ou number)
+    client.fetchTags = async (appId) => {
+        try {
+            const res = await fetch(
+                `https://steamhunters.com/api/apps/${appId}`,
+            );
+            if (!res.ok) return [];
+            const json = await res.json();
+            // L'API peut retourner un tableau ou un objet ; normaliser
+            const data = Array.isArray(json) ? json[0] : json;
+            if (!data) return [];
+            // Extraire les tags
+            const rawTags = data.tags || [];
+            return Array.isArray(rawTags) ? rawTags : [];
+        } catch (err) {
+            logger.error("Erreur fetchSteamHuntersTags: ", err);
+            sendStackTrace(
+                client,
+                err,
+                "Erreur fetchSteamHuntersTags Non Gérée",
+            );
+            return [];
+        }
     };
 };

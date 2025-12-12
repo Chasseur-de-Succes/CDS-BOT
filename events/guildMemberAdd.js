@@ -2,11 +2,13 @@ const { CORNFLOWER_BLUE } = require("../data/colors.json");
 const { EmbedBuilder, Events } = require("discord.js");
 const { sendLogs } = require("../util/envoiMsg");
 const { CDS } = require("../data/emojis.json");
+const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     name: Events.GuildMemberAdd,
     async execute(member) {
         const user = member.user;
+        const timestamp = discordTimestamp(user.createdTimestamp, "R");
         const embed = new EmbedBuilder()
             .setColor(CORNFLOWER_BLUE)
             .setTitle("Nouveau membre")
@@ -14,7 +16,7 @@ module.exports = {
             .addFields(
                 {
                     name: "Âge du compte",
-                    value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`,
+                    value: `${timestamp}`,
                 },
                 { name: "ID", value: `${member.id}` },
             );

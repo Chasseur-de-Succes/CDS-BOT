@@ -1,14 +1,365 @@
 {
-    "MAX_ETAGE": 20,
-    "ETAGE_PAR_PALIER": 5,
-    "DAMAGE": 1,
-    "BOSS": {
-        "name": "Big Sweeney",
-        "hp": 300
+    "MONTHLY": {
+        "GENRES": [
+            [
+                {
+                    "id": 28,
+                    "label": "\uD83D\uDDA5 Simulation"
+                }
+            ],
+            [],
+            [],
+            [],
+            [
+                {
+                    "id": 25,
+                    "label": "\uD83D\uDDFA Aventure"
+                }
+            ],
+            [
+                {
+                    "id": 18,
+                    "label": "\uD83C\uDFC5 Sport"
+                }
+            ],
+            [
+                {
+                    "id": 1,
+                    "label": "\uD83D\uDCA5 Action"
+                }
+            ],
+            [
+                {
+                    "id": 3,
+                    "label": "\uD83C\uDFB2 RPG"
+                }
+            ],
+            [
+                {
+                    "id": 2,
+                    "label": "\uD83D\uDCA1 Stratégie"
+                },
+                {
+                    "id": 54,
+                    "label": "\uD83C\uDFEB Éducation"
+                }
+            ],
+            [],
+            [],
+            [
+                {
+                    "id": 23,
+                    "label": "\uD83C\uDF31 Indépendant"
+                }
+            ]
+        ],
+        "TAGS": [
+            [
+                {
+                    "id": 599,
+                    "label": "\uD83D\uDDA5 Simulation"
+                },
+                {
+                    "id": 12472,
+                    "label": "\uD83D\uDCBC Gestion"
+                }
+            ],
+            [
+                {
+                    "id": 4947,
+                    "label": "\uD83D\uDC98 Romance"
+                },
+                {
+                    "id": 7702,
+                    "label": "\uD83D\uDCDA Narratif"
+                },
+                {
+                    "id": 3799,
+                    "label": "\uD83D\uDCDA Roman Graphique"
+                }
+            ],
+            [
+                {
+                    "id": 3834,
+                    "label": "\uD83D\uDDFA Exploration"
+                },
+                {
+                    "id": 30358,
+                    "label": "\uD83C\uDF3F Nature"
+                },
+                {
+                    "id": 1662,
+                    "label": "\uD83C\uDF32 Survie"
+                }
+            ],
+            [
+                {
+                    "id": 8369,
+                    "label": "\uD83D\uDD0D Enquête"
+                },
+                {
+                    "id": 5716,
+                    "label": "\uD83E\uDD2B Mystère"
+                },
+                {
+                    "id": 1664,
+                    "label": "\uD83E\uDDE9 Puzzle"
+                }
+            ],
+            [
+                {
+                    "id": 1695,
+                    "label": "\uD83C\uDF0D Open World"
+                },
+                {
+                    "id": 21,
+                    "label": "\uD83D\uDDFA Aventure"
+                },
+                {
+                    "id": 3810,
+                    "label": "\uD83E\uDDF1 Sandbox"
+                }
+            ],
+            [
+                {
+                    "id": 701,
+                    "label": "\uD83C\uDFC5 Sport"
+                },
+                {
+                    "id": 3878,
+                    "label": "\uD83E\uDD47 Compétition"
+                },
+                {
+                    "id": 1773,
+                    "label": "\uD83D\uDD79 Arcade"
+                }
+            ],
+            [
+                {
+                    "id": 19,
+                    "label": "\uD83D\uDCA5 Action"
+                },
+                {
+                    "id": 1663,
+                    "label": "\uD83D\uDD2B FPS"
+                },
+                {
+                    "id": 3814,
+                    "label": "\uD83D\uDD2B TPS"
+                }
+            ],
+            [
+                {
+                    "id": 1684,
+                    "label": "\uD83C\uDFAD Fantasy"
+                },
+                {
+                    "id": 122,
+                    "label": "\uD83C\uDFB2 RPG"
+                },
+                {
+                    "id": 1716,
+                    "label": "\uD83D\uDC7B Roguelike"
+                }
+            ],
+            [
+                {
+                    "id": 9,
+                    "label": "\uD83D\uDCA1 Stratégie"
+                },
+                {
+                    "id": 1036,
+                    "label": "\uD83C\uDFEB Éducation"
+                },
+                {
+                    "id": 1708,
+                    "label": "\uD83E\uDD14 Tactique"
+                }
+            ],
+            [
+                {
+                    "id": 1667,
+                    "label": "\uD83D\uDE31 Horreur"
+                },
+                {
+                    "id": 3952,
+                    "label": "\uD83E\uDD87 Gothique"
+                },
+                {
+                    "id": 1721,
+                    "label": "\uD83D\uDD74 Horreur psychologique"
+                }
+            ],
+            [
+                {
+                    "id": 1685,
+                    "label": "\uD83E\uDD1D Coopération"
+                }
+            ],
+            [
+                {
+                    "id": 492,
+                    "label": "\uD83C\uDF31 Indépendant"
+                }
+            ]
+        ],
+        "CLUES": [
+            "> Vous entrez dans un petit commerce aux étagères débordantes de produits et d’objets variés.\n> Derrière le comptoir, un vieil employé s’affaire, vérifiant les stocks, triant les marchandises et notant des listes sur un carnet usé.\n> Des caisses sont ouvertes, certaines prêtes à être rangées, d’autres à réapprovisionner.\n> Les allées étroites, le va-et-vient discret entre les rayons et le comptoir, ainsi que le rythme silencieux de l’atelier, exigent attention et organisation.\n> Chaque objet semble attendre sa place, et comprendre ce rythme devient une expérience en soi.",
+            "> Les murs s’illuminent de couleurs douces qui changent lentement, comme des aquarelles mouvantes.\n> Des silhouettes se croisent dans les couloirs, échangent des gestes, des regards et des sourires timides.\n> Des pages flottent dans l’air, révélant des fragments de conversations et de petites histoires.\n> Chaque scène se déroule comme un instant suspendu, et il suffit d’observer les mouvements et les interactions pour ressentir l’ambiance particulière du lieu.",
+            "> Le sol devient mousseux, recouvert de racines et de feuilles.\n> Le vent transporte l’odeur de la terre humide et des plantes.\n> Certains sentiers disparaissent dans le vert dense, tandis que d’autres mènent à de petites clairières baignées de lumière.\n> Chaque pas demande prudence et adaptation, et la nature du lieu guide vos déplacements de manière intuitive.",
+            "> Les murs sont tapissés de notes, de symboles et de fragments d’images.\n> Certains éléments semblent se répondre subtilement, d’autres se contredire.\n> En observant et en se déplaçant, on commence à percevoir des relations entre ces signes, sans qu’aucune explication ne soit donnée.\n> Le lieu se comprend par l’attention portée aux détails et aux alignements discrets.",
+            "> Une grande salle s’ouvre sur un panorama infini : collines, vallées, rivières et forêts s’étendent à perte de vue.\n> Les sentiers se multiplient, certains visibles, d’autres cachés derrière des rochers ou des bosquets.\n> Explorer chaque détour, observer les détails et découvrir des endroits inattendus devient une expérience à la fois libre et guidée par l’espace.",
+            "> La pièce est dynamique : plateformes, cordes, obstacles et cibles mouvantes se succèdent.\n> Courir, sauter et se déplacer avec rythme et précision deviennent naturels.\n> Le lieu pulse au rythme des mouvements et demande de suivre le flux sans effort conscient.",
+            "> Le décor se transforme : décombres, obstacles mouvants et drones traversent la salle.\n> Avancer exige vigilance, esquiver et utiliser les éléments du décor.\n> Les chemins possibles apparaissent progressivement, à mesure que l’on s’adapte aux contraintes et au chaos ambiant.",
+            "> Des runes lumineuses flottent et changent de place à chaque pas.\n> Certaines portes disparaissent, d’autres apparaissent.\n> Il faut tester différents passages, observer les effets et découvrir l’organisation cachée de l’espace par l’exploration et les essais.",
+            "> La salle est remplie de cartes et de schémas animés.\n> Des pions bougent selon des règles invisibles, et des motifs se dessinent dans le temps.\n> En observant attentivement, on commence à comprendre les interactions et la logique qui sous-tendent les déplacements.",
+            "> Les couloirs s’assombrissent, les murs semblent se plier, et des ombres glissent dans la vision périphérique.\n> Chaque pas demande attention et prudence.\n> L’espace trompe les sens, et avancer devient une question de rythme et d’adaptation aux illusions qui surgissent autour.",
+            "> Vous découvrez une grande salle circulaire avec un feu central.\n> D’autres voyageurs s’affairent autour, chacun avec ses gestes et ses tâches.\n> Observer leurs routines et participer subtilement aux actions permet de ressentir l’harmonie collective et la coordination silencieuse du groupe.",
+            "> Un petit atelier isolé, éclairé par une seule lampe, vous accueille.\n> Un artisan travaille seul, façonnant chaque objet avec soin et minutie.\n> Le calme, la patience et le rythme régulier des gestes créent une impression de maîtrise et d’autonomie totale.\n> Tout dans cet espace reflète la liberté et la création indépendante."
+        ]
     },
-    "HIDDEN_BOSS": {
-        "name": "Haiepique Fayl",
-        "hp": 150
+    "SEASONS": {
+        "0": {
+            "MAX_ETAGE": 20,
+            "ETAGE_PAR_PALIER": 5,
+            "DAMAGE": 1
+        },
+        "1": {
+            "ETAGE_PAR_PALIER": 5,
+            "NB_PALIERS": 4,
+            "DAMAGE": 1,
+            "NB_YEARS_SMALL_BONUS": 5,
+            "NB_YEARS_BONUS": 10,
+            "HIDDEN_GAME_APPID": {
+                "489830": "Cyborg",
+                "260230": "Cyborg",
+                "292570": "Tigrou",
+                "851850": "Tigrou",
+                "1634860": "Nanaki",
+                "881020": "Nanaki",
+                "292030": "Sqweeb",
+                "237930": "Sqweeb",
+                "22380": "Kekwel"
+            }
+        }
+    },
+    "ENEMIES": {
+        "0": {
+            "BOSS": {
+                "name": "Big Sweeney",
+                "hp": 300
+            },
+            "HIDDEN_BOSS": {
+                "name": "Haiepique Fayl",
+                "hp": 150
+            }
+        },
+        "1": [
+            {
+                "name": "Cyborg",
+                "hp": 40,
+                "image": {
+                    "alive": "cyborg.jpg",
+                    "dead": "cyborg_dead.jpg"
+                }
+            },
+            {
+                "name": "Tigrou",
+                "hp": 80,
+                "image": {
+                    "alive": "tigrou.jpg",
+                    "dead": "tigrou_dead.jpg"
+                }
+            },
+            {
+                "name": "Nanaki",
+                "hp": 120,
+                "image": {
+                    "alive": "nanaki.jpg",
+                    "dead": "nanaki_dead.jpg"
+                }
+            },
+            {
+                "name": "Sqweeb",
+                "hp": 160,
+                "image": {
+                    "alive": "sqweeb.png",
+                    "dead": "sqweeb_dead.jpg"
+                }
+            }
+        ]
+    },
+    "MESSAGE": {
+        "0": {
+            "INTRO": "Tu aperçois au loin une tour, tu décides de t'en approcher.\n  Tu entends de sinistres ricanements provenant du sommet.\n  Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..\n\n  Peut-être en prouvant tes capacités à `maîtriser` un jeu puis en le `validant` ?\n      ```\n             |>>>\n             |\n         _  _|_  _\n        |;|_|;|_|;|\n        \\.    .  /\n         \\:  .  /\n          ||:   |\n          ||:.  |\n          ||:  .|\n          ||:   |\n          ||: , |\n<CDS>     ||:   |\n  o       ||: . |\n /|\\     _||_   |\n / \\----~    ~`---,\n'                  ~~---\n```",
+            "HIT": "En complétant **${gameName}**, ${author} inflige **1 point de dégats** à `${boss}`!\n```\n<\uD83D\uDCAF%>\n \\o/\n  | \n / \\ \n```",
+            "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !\n```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
+            "ETAGE": "En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !",
+            "PALIER": "En complétant **${gameName}**, ${author} arrive au **palier ${palier}** !\nCe palier est vide.. les escaliers montent toujours et les bruits sont de plus en plus oppressants.\n```\n<CDS>       ┏━┛\n  o       ┏━┛\n (|)    ┏━┛\n / \\  ┏━┛        \n￣￣￣\n```",
+            "SOMMET": "${author} a atteint le **palier ${palier}** et est arrivé au sommet de la tour !!\nMais ${author} trébuche sur le cadavre de `Big Sweeney`...\nEn se relevant, ${author} voit ses coéquipiers faire face au grand `Haiepique Fayl`\n\n${author} prends part au combat !\n```\n               _____, ,_ \n             /|  x   x   |\\\n     <CDS>  / |   ___     | \\\n       o_+ |  |  /   \\    |  |\n  <CDS>|   |  |  \\___/    |  |\n    o_+ \\   \\_|   VVV     |_/\n<CDS>         |   ^^^     |\n  o_+\\       /|___________|\\\n  |         /_/          \\_\\\n / \\         /_\\        /_\\\n```",
+            "BOSS_PALIER": "${author} a atteint le **palier ${palier}** et est arrivé au sommet de la tour !!\n${author} aperçoit au loin d'autres joueurs menant une rude bataille..\n${author} prends part au combat !\n```\n              ___________ \n             |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |  \n     <CDS>   |___________|  \n       o_+     |\uD83D\uDCB0  \uD83D\uDCB0 |     \n  <CDS>|       |  ---  |     \n    o_+ \\      \\_______/     \n<CDS>            _|$|_      \n  o_+\\       __ / |$| \\ __ \n  |         / _|  |$|  |_ \\\n / \\        \\_\\   |$|   /_/\n```",
+            "FIRST_BOSS": "${author} a atteint le **palier ${palier}** et est arrivé au sommet de la tour !!\n${author} aperçoit au loin une ombre menaçante.\n\nEn se rapprochant, ${author} reconnait très clairement le cupide `Big Sweeney`\n```\n           ___________\n          |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |\n          |___________|\n            |\uD83D\uDCB0  \uD83D\uDCB0 |   \n            |  ---  |    \n            \\_______/     \n              _|$|_       \n          __ / |$| \\ __   \n         / _|  |$|  |_ \\  \n         \\_\\   |$|   /_/  \n<CDS>          |$|       \n  o_+     _____|_|_____ \n  |     /      |_|      \\\n / \\   /_________________\\\n```",
+            "HIDDEN_BOSS": "En complétant **${gameName}**, ${author} porte le coup fatal à `Big Sweeney`! Bravo !\nAlors que son corps tombe à terre, ${author} entend grogner au loin..\n\nC'est `Haiepique Fayl`, son acolyte, qui bondit et qui veut venger son maître !\n```\n          _____, ,_ \n        /|  x   x   |\\\n       / |   ___     | \\\n      |  |  /   \\    |  |\n      |  |  \\___/    |  |\n       \\_|   VVV     |_/\n<CDS>    |   ^^^     |\n  o_+   /|___________|\\\n  |    /_/          \\_\\\n / \\    /_\\        /_\\\n```",
+            "END": "En complétant **${gameName}**, ${author} porte le coup fatal à `Haiepique Fayl`!! Félicitations ! Grâce à vos efforts communs, vous avez réussi à vaincre `Big Sweeney` et `Haiepique Fayl`..\nLa paix revient enfin dans la tour, et vous êtes acclamés en héros par tous les habitants..\n```\n       * ||￣￣￣\\   *       \n  *      ||--\uD83C\uDFC6-->      *  \n         ||_____/  *       *\n     *   ||                 \n         ||    *        *   \n__ *  ___||  __<CDS>___    _\n  |  |   || |   |o |   |  |\n; |__| ; ||_| ; ||-| ; |__|\n```",
+            "FIRST_BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `Haiepique Fayl`..\nEn prenant le corps de `Big Sweeney`, `Haiepique Fayl` éjecte tout le monde de la tour.\nIl s'enfuit, furieux de ne pas avoir pu venger son maître..\n```\n       | \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8 |\n       |________|\n        |\uD83D\uDCB0 \uD83D\uDCB0| \n        \\  --  /\n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
+            "SECOND_BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `Big Sweeney`..\nCelui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin, suivi de près par une ombre..\n```\n       | \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8 |\n       |________|\n        |\uD83D\uDCB0 \uD83D\uDCB0| \n        \\  --  /\n        |;|_|;|_|;|\n    \\ / \\.    .  /\n \\ / |   \\:  .  /\n  | /o\\   ||:   |\n /o\\      ||:.  |\n          ||:  .|\n          ||:   |\n```",
+            "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..\n```\n<CDS> \n  o ❓ \n (|)  \n / \\  \n￣￣￣\n```"
+        },
+        "1": {
+            "INTRO": "Tu aperçois au loin une tour, tu décides de t'en approcher.\n  Tu entends de **multiples sinistres ricanements** provenant de la tour.\n  Pour surmonter ta peur et commencer ton ascension, tu as besoin d'énergie..\n\n  Peut-être en prouvant tes capacités à `maîtriser` un jeu puis en le `validant` ?",
+            "FIRST": "En complétant **${gameName}**, ${author} ressent assez d'énergie pour pénétrer dans la tour, et gravir les escaliers, pour atteindre le premier **étage** !",
+            "ETAGE": "En complétant **${gameName}**, ${author} gravit les escaliers et monte d'un étage !",
+            "HIT": "En complétant **${gameName}**, ${author} inflige **1 point de dégats** à `${boss}`!",
+            "JOIN_BOSS": "En complétant **${gameName}**, ${author} arrive au **palier ${palier}** !\nVous rejoignez les autres pour combattre `${boss}` !",
+            "DEAD_BOSS": "En complétant **${gameName}**, ${author} arrive au **palier ${palier}** !\nMais `${boss}` ayant été vaincu, il n'y a plus rien à voir ici.",
+            "START_BAD_ENDING": "Vous tournez en rond dans la tour, mais personne n'arrive à trouver le sommet..",
+            "BAD_ENDING": "Malgré tous vos efforts communs, vous n'avez pas réussi à vaincre `${boss}`..\nCelui-ci éjecte tout le monde de la tour, et vous le voyez s'enfuir au loin..\n",
+            "END": "En complétant **${gameName}**, ${author} porte le coup fatal à `Sqweeb`, il disparaît comme s’il n’avait jamais été là.\nL’admin fantôme retourne dans l’ombre, prêt à stalker les gens… parce qu’on ne sait faire que ça.\nLa Tour est terminée ! Bravo, aventurier !\nMais… est-ce vraiment la fin ?",
+            "BOSS": [
+                {
+                    "footer": [
+                        "Coucou les p'tits chats",
+                        "On est large",
+                        "Jeu de merde",
+                        "bouyabouyabouya"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\n\nAu loin, vous entendez au loin des miaulements stridents mêlés à des cris de rage — on dirait qu’un jeu vient encore de sortir un DLC plein de succès.\n\nEt soudain, `Cyborg` fait son apparition !",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nVous rejoignez les autres pour combattre `Cyborg` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Cyborg` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nMais `Cyborg` ayant été vaincu, il n'y a plus rien à voir ici."
+                },
+                {
+                    "footer": ["noob", "Un p'tit bundle à 0.01€ ?"],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\n\n« Noob, noob, noob ! » Ce mot résonne dans votre tête.\n— Tu veux un bundle à un centime ?\nUn sourire plein de dents aiguisées apparaît dans le noir… avant que Tigrou ne sorte de l’ombre et vous attaque !\n",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\nVous rejoignez les autres pour combattre `Tigrou` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Tigrou` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°2** !\nMais `Tigrou` ayant été vaincu, il n'y a plus rien à voir ici."
+                },
+                {
+                    "footer": [
+                        "C'est pas ouf",
+                        "Plume",
+                        "Ca va exploser",
+                        "Dofus, meilleur jeu !!"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°3** !\n\nVous entendez une voix au loin :\n— Mon précieux… c’est mon précieux Dofus !\n— Non, Plume, ce n’est pas le tien, précieux…\nVous distinguez alors un être masqué, recroquevillé sur un œuf pourri.\n\nSon visage couvert d’un masque se tourne lentement vers vous… avant qu’il ne vous fonce dessus comme un furie !",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°3** !\nVous rejoignez les autres pour combattre `Nanaki` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Nanaki` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°3** !\nMais `Nanaki` ayant été vaincu, il n'y a plus rien à voir ici."
+                },
+                {
+                    "footer": [
+                        "5€ ? Trop cher",
+                        "cacahuète",
+                        "J'ai envie de me tabasser les boules"
+                    ],
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\n\nUne ambiance lourde plane dans la salle.\nDes murmures résonnent : « Argent… argent… »\nAu loin, une ombre fantomatique flotte au-dessus d’une montagne de pièces d’or. On l’entend… mais on ne la voit pas.\nSoudain, un souffle glacial frôle votre nuque.\n— Tu ne vaux même pas une pièce…\nLe fantôme surgit et vous attaque ! \uD83D\uDC80",
+                    "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\nVous rejoignez les autres pour combattre `Sqweeb` !",
+                    "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Sqweeb` !",
+                    "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\nMais `Sqweeb` ayant été vaincu, il n'y a plus rien à voir ici."
+                }
+            ]
+        }
     },
     "PRIVATE_JOKES": [
         "Et paf !",
@@ -23,14 +374,5 @@
         "C'est quel jeu ??",
         "noob"
     ],
-    "ASCII_INTRO": "    ```\n             |>>>\n             |\n         _  _|_  _\n        |;|_|;|_|;|\n        \\.    .  /\n         \\:  .  /\n          ||:   |\n          ||:.  |\n          ||:  .|\n          ||:   |\n          ||: , |\n<CDS>     ||:   |\n  o       ||: . |\n /|\\     _||_   |\n / \\----~    ~`---,\n'                  ~~---\n```",
-    "ASCII_FIRST": "```     :  __________   , |\n   :   |  __  __  |    |\n     , | |  ||  | | :  |\n       | |  ||  | |    |\n ,  :  | |__||__| |    |\n       |  __  __()|  : |\n<CDS>  | |  ||  | |,   |\n  o  : | |  ||  | |    |\n ~|~   | |__||__| | :  |\n / \\   |__________|    |```",
-    "ASCII_PALIER": "```\n<CDS>       ┏━┛\n  o       ┏━┛\n (|)    ┏━┛\n / \\  ┏━┛        \n￣￣￣\n```",
-    "ASCII_BOSS_FIRST_TIME": "```\n           ___________\n          |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |\n          |___________|\n            |\uD83D\uDCB0  \uD83D\uDCB0 |   \n            |  ---  |    \n            \\_______/     \n              _|$|_       \n          __ / |$| \\ __   \n         / _|  |$|  |_ \\  \n         \\_\\   |$|   /_/  \n<CDS>          |$|       \n  o_+     _____|_|_____ \n  |     /      |_|      \\\n / \\   /_________________\\\n```",
-    "ASCII_BOSS_PALIER": "```\n              ___________ \n             |  \uD83C\uDDEA  \uD83C\uDDEC  \uD83C\uDDF8   |  \n     <CDS>   |___________|  \n       o_+     |\uD83D\uDCB0  \uD83D\uDCB0 |     \n  <CDS>|       |  ---  |     \n    o_+ \\      \\_______/     \n<CDS>            _|$|_      \n  o_+\\       __ / |$| \\ __ \n  |         / _|  |$|  |_ \\\n / \\        \\_\\   |$|   /_/\n```",
-    "ASCII_100": "```\n<\uD83D\uDCAF%>\n \\o/\n  | \n / \\ \n```",
-    "ASCII_NOT_100": "```\n<CDS>\n  o7  \uD83C\uDFC6❓\n /|\n / \\\n```",
-    "ASCII_HIDDEN_BOSS_FIRST_TIME": "```\n          _____, ,_ \n        /|  x   x   |\\\n       / |   ___     | \\\n      |  |  /   \\    |  |\n      |  |  \\___/    |  |\n       \\_|   VVV     |_/\n<CDS>    |   ^^^     |\n  o_+   /|___________|\\\n  |    /_/          \\_\\\n / \\    /_\\        /_\\\n```",
-    "ASCII_HIDDEN_BOSS_PALIER": "```\n               _____, ,_ \n             /|  x   x   |\\\n     <CDS>  / |   ___     | \\\n       o_+ |  |  /   \\    |  |\n  <CDS>|   |  |  \\___/    |  |\n    o_+ \\   \\_|   VVV     |_/\n<CDS>         |   ^^^     |\n  o_+\\       /|___________|\\\n  |         /_/          \\_\\\n / \\         /_\\        /_\\\n```",
-    "ASCII_END": "```\n       * ||￣￣￣\\   *       \n  *      ||--\uD83C\uDFC6-->      *  \n         ||_____/  *       *\n     *   ||                 \n         ||    *        *   \n__ *  ___||  __<CDS>___    _\n  |  |   || |   |o |   |  |\n; |__| ; ||_| ; ||-| ; |__|\n```"
+    "ASCII_NOT_100": "```\n<CDS>\n  o7  \uD83C\uDFC6❓\n /|\n / \\\n```"
 }

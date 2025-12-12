@@ -21,7 +21,12 @@ module.exports = {
         .addSubcommand((sub) =>
             sub
                 .setName("classement")
-                .setDescription("Classement de l'événement"),
+                .setDescription("Classement de l'événement")
+                .addIntegerOption((option) =>
+                    option
+                        .setName("saison")
+                        .setDescription("Saison de l'événement"),
+                ),
         )
         .addSubcommand((sub) =>
             sub
