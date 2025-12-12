@@ -16,7 +16,7 @@ function getRandomPrivateJokes() {
 
 /**
  * Affiche la barre de vie du boss avec des émojis colorés en fonction de son pourcentage de vie
- * @param boss Boss dont on veut afficher la vie (doit avoir les propriétés hp et maxHp)
+ * @param {{hp: number, maxHp: number}} boss - Boss dont on veut afficher la vie (doit avoir les propriétés hp et maxHp)
  * @returns {string} Chaîne d'émojis représentant la barre de vie
  */
 function displayHealth(boss) {
@@ -43,7 +43,10 @@ function displayHealth(boss) {
 
 /**
  * Vérifie si tous les boss d'une saison sont morts
- * @param season Numéro de la saison
+ * Comportement actuel :
+ *  - season = 0 : vérifie l'existence de boss avec hp > 0 (retourne true si aucun vivant).
+ *  - autres saisons : retourne false (implémentation future possible).
+ * @param {number} season Numéro de la saison
  * @returns {Promise<*|boolean>} True si tous les boss sont morts, sinon false
  */
 async function isAllBossDead(season) {
@@ -63,9 +66,9 @@ async function isAllBossDead(season) {
 
 /**
  * Termine la saison pour un utilisateur donné, sauvegarde les données de la saison dans l'historique et réinitialise les données pour la nouvelle saison
- * @param user Utilisateur dont on termine la saison
- * @param endDate Date de fin de la saison
- * @param seasonNumber Numéro de la saison à terminer
+ * @param {Object} user - Utilisateur dont on termine la saison
+ * @param {number} endDate - Timestamp de fin de la saison
+ * @param {number} seasonNumber - Numéro de la saison à terminer
  * @returns {Promise<void>}
  */
 async function endSeasonForUser(user, endDate, seasonNumber) {
@@ -90,6 +93,10 @@ async function endSeasonForUser(user, endDate, seasonNumber) {
 
 /**
  * Fin de la saison, backup des infos
+ * @param {Object} client - Instance du bot
+ * @param {number} seasonNumber - Numéro de la saison à terminer
+ * @param {Object} guild - Configuration de la guilde
+ * @param {boolean} [cancelled=false] - Indique si la saison a été annulée
  */
 async function endSeason(client, seasonNumber, guild, cancelled = false) {
     logger.info({
