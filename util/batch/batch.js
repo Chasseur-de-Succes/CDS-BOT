@@ -416,7 +416,7 @@ module.exports = {
             // scheduleJob tous les jours pour s'assurer que le job 'monthly_clue' a bien été lancé sur le mois courant
             scheduleJob(
                 "monthly_clue_check",
-                { hour: 0, minute: 5, tz },
+                { hour: 23, minute: 59, tz },
                 async () => {
                     const monthIndex = moment().tz(tz).month(); // 0 = janvier
                     for (const guild of client.guilds.cache.values()) {
