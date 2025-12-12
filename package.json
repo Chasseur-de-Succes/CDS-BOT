@@ -15,7 +15,7 @@
         "discord.js": "^14.22.1",
         "dotenv": "^16.0.3",
         "moment": "^2.29.1",
-        "moment-timezone": "^0.5.39",
+        "moment-timezone": "^0.6.0",
         "mongoose": "^5.13.4",
         "node-schedule": "^2.0.0",
         "signale-logger": "^1.5.1",
