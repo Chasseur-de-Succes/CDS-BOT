@@ -426,6 +426,9 @@ module.exports = {
                         if (!guildConfig?.event?.tower?.started) {
                             continue;
                         }
+                        if (guildConfig?.event?.tower?.currentSeason === 0) {
+                            continue;
+                        }
 
                         if (
                             guildConfig?.event?.tower?.currentMsgClue?.month ===
@@ -473,6 +476,9 @@ module.exports = {
                                 logger.info(
                                     `.. l'événement Tower n'a pas encore commencé pour ${guild.name}, on skip l'envoi de l'indice mensuel.`,
                                 );
+                                continue;
+                            }
+                            if (guildConfig?.event?.tower?.currentSeason === 0) {
                                 continue;
                             }
 
