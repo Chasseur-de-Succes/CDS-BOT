@@ -273,7 +273,7 @@
             },
             {
                 "name": "Nanaki",
-                "hp": 120,
+                "hp": 160,
                 "image": {
                     "alive": "nanaki.jpg",
                     "dead": "nanaki_dead.jpg"
@@ -281,7 +281,7 @@
             },
             {
                 "name": "Sqweeb",
-                "hp": 160,
+                "hp": 250,
                 "image": {
                     "alive": "sqweeb.png",
                     "dead": "sqweeb_dead.jpg"
@@ -323,7 +323,7 @@
                         "Jeu de merde",
                         "bouyabouyabouya"
                     ],
-                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\n\nAu loin, vous entendez au loin des miaulements stridents mêlés à des cris de rage — on dirait qu’un jeu vient encore de sortir un DLC plein de succès.\n\nEt soudain, `Cyborg` fait son apparition !",
+                    "created": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\n\nAu loin, vous entendez des miaulements stridents mêlés à des cris de rage — on dirait qu’un jeu vient encore de sortir un DLC plein de succès.\n\nEt soudain, `Cyborg` fait son apparition !",
                     "joined": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nVous rejoignez les autres pour combattre `Cyborg` !",
                     "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Cyborg` !",
                     "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°1** !\nMais `Cyborg` ayant été vaincu, il n'y a plus rien à voir ici."
