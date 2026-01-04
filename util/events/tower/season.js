@@ -506,7 +506,7 @@ async function seasonOne(
                     `https://store.steampowered.com/app/${appid}/`,
                     descFirst,
                     "#1cff00",
-                    `Étage ${userDb.event.tower.currentEtage}/??`,
+                    `Étage ${userDb.event.tower.currentEtage}/?? | ${getRandomPrivateJokes()}`,
                     infoBonus,
                 ),
             ],
@@ -545,7 +545,7 @@ async function seasonOne(
                     `https://store.steampowered.com/app/${appid}/`,
                     descEtage,
                     "#1cff00",
-                    `Étage ${userDb.event.tower.currentEtage}/??`,
+                    `Étage ${userDb.event.tower.currentEtage}/??  | ${getRandomPrivateJokes()}`,
                     infoBonus,
                 ),
             ],
@@ -644,7 +644,7 @@ async function seasonOne(
                         `https://store.steampowered.com/app/${appid}/`,
                         `${currentBoss.name} étant déjà vaincu, tu continues ton ascension !`,
                         "#1cff00",
-                        `Étage ${userDb.event.tower.currentEtage}/??`,
+                        `Étage ${userDb.event.tower.currentEtage}/?? | ${getRandomPrivateJokes()}`,
                         infoBonus,
                     ),
                 ],
@@ -878,8 +878,7 @@ function initEmbed(title, url, desc, color, footer, infoBonus) {
         desc: desc,
         color: color,
         footer: {
-            // TODO en paramètre le random joke
-            text: `${footer} | ${getRandomPrivateJokes()}`,
+            text: footer,
         },
     });
     if (infoBonus.isHiddenApp) {
