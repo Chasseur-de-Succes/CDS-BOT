@@ -273,7 +273,7 @@
             },
             {
                 "name": "Nanaki",
-                "hp": 120,
+                "hp": 160,
                 "image": {
                     "alive": "nanaki.jpg",
                     "dead": "nanaki_dead.jpg"
@@ -281,7 +281,7 @@
             },
             {
                 "name": "Sqweeb",
-                "hp": 160,
+                "hp": 250,
                 "image": {
                     "alive": "sqweeb.png",
                     "dead": "sqweeb_dead.jpg"
