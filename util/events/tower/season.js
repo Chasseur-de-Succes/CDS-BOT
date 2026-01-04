@@ -472,9 +472,9 @@ async function seasonOne(
             infoBonus.nbYearsBonus = nbYearsBonus;
             infoBonus.dateFirstUnlock = dateFirstUnlock;
         } else if (nbDiffYears >= nbYearsSmallBonus) {
-            desc += `> -- 1er succès il y a déjà ${nbYearsBonus} ans !\n`;
+            desc += `> -- 1er succès il y a déjà ${nbYearsSmallBonus} ans !\n`;
             // ajout dans infoBonus
-            infoBonus.nbYearsBonus = nbYearsBonus;
+            infoBonus.nbYearsBonus = nbYearsSmallBonus;
             infoBonus.dateFirstUnlock = dateFirstUnlock;
         }
         await createLogs(
