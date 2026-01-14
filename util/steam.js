@@ -7,7 +7,7 @@ const { GREEN } = require("../data/colors.json");
 const { EmbedBuilder } = require("discord.js");
 const { delay, crtHour } = require("../util/constants");
 const { retryAfter5min } = require("./util");
-const { sendError, sendStackTrace } = require("./envoiMsg");
+const { sendStackTrace } = require("./envoiMsg");
 
 module.exports = (client) => {
     // TODO revoir exports, un steam.getGamesByName sera mieux qu'un client.getGamesByName
@@ -166,6 +166,42 @@ module.exports = (client) => {
         return reponse?.body?.game;
     };
 
+    /**
+     * Vérifie si un joueur a obtenu tous les succès d'un jeu et si le jeu a été terminé après une date donnée.
+     *
+     * Appelle l'API Steam `ISteamUserStats/GetPlayerAchievements/v1/` et analyse la réponse.
+     *
+     * @param {String|Number} steamId - Identifiant Steam de l'utilisateur.
+     * @param {Number|String} appid - AppID du jeu Steam.
+     * @param {Date} startDate - Date de début pour vérifier si des succès ont été obtenus après.
+     * @returns {Promise<Object>} Objet contenant au minimum :
+     * {
+     *   gameName: String,               // nom du jeu (si disponible)
+     *   hasAllAchievements: Boolean,    // true si tous les succès sont obtenus
+     *   firstUnlock: Date|null,         // date du premier succès débloqué (si calculable), sinon null
+     *   finishedAfterStart: Boolean,    // true si au moins un succès a été débloqué après startDate
+     *   error?: String,                 // présent si l'API retourne une erreur
+     *   noAchievements?: String         // présent si aucun succès trouvé pour ce jeu
+     * }
+     *
+     * Remarque :
+     * - Format attendu de la réponse de l'API Steam :
+     * {
+     *  "playerstats": {
+     *   "steamID": "76561198000000000",
+     *   "gameName": "Half-Life 3",
+     *   "achievements": [
+     *     {
+     *       "apiname": "ACH_CHOMPSKI",
+     *       "achieved": 1,
+     *       "unlocktime": 1625097600
+     *     },
+     *     ...
+     *   ],
+     *   "success": true
+     *  }
+     * }
+     */
     client.hasAllAchievementsAfterDate = async (steamId, appid, startDate) => {
         // Appel à l'API Steam pour vérifier les succès
         const response = await superagent
@@ -194,23 +230,41 @@ module.exports = (client) => {
         }
 
         const achievements = response.body.playerstats.achievements;
+
+        // simple basique
+        const hasAllAchievements = achievements.every(
+            (ach) => ach.achieved === 1,
+        );
+
+        // filtre les succès débloqués avec un unlocktime valide (> 0) (exemple Tigrou42 et succès de Coloring Pixels : 'Starfall'...)
+        const unlockedWithTime = achievements.filter(
+            (ach) => ach.achieved === 1 && ach.unlocktime && ach.unlocktime > 0,
+        );
+
+        // on check si on a tous les succès avant de chercher le premier unlock (logique)
+        let firstUnlock = null;
+        if (hasAllAchievements && unlockedWithTime.length > 0) {
+            let earliestTs = Infinity;
+            // on ne prend pas en compte les succès sans unlocktime
+            for (const ach of unlockedWithTime) {
+                const ts = ach.unlocktime ? ach.unlocktime * 1000 : Infinity;
+                if (ts < earliestTs) earliestTs = ts;
+            }
+            firstUnlock = earliestTs === Infinity ? null : new Date(earliestTs);
+        }
+
+        // check si jeu terminé après le début de l'event
+        // PI : passage en timestamp ms pour éviter de créer une Date à chaque boucle
+        const startTime = new Date(startDate).getTime();
+        const finishedAfterStart = achievements.some(
+            (ach) => ach.unlocktime && ach.unlocktime * 1000 > startTime,
+        );
+
         return {
             gameName: gameName,
-            hasAllAchievements: achievements.every((ach) => ach.achieved === 1),
-            // recupere la date du premier succès débloqué
-            // TODO check si tous succes débloqués ?
-            firstUnlock: achievements.reduce(
-                (earliest, ach) =>
-                    earliest === null ||
-                    new Date(ach.unlocktime * 1000) < earliest
-                        ? new Date(ach.unlocktime * 1000)
-                        : earliest,
-                null,
-            ),
-            // check si jeu terminé après le début de l'event
-            finishedAfterStart: achievements.some(
-                (ach) => new Date(ach.unlocktime * 1000) > startDate,
-            ),
+            hasAllAchievements: hasAllAchievements,
+            firstUnlock: firstUnlock,
+            finishedAfterStart: finishedAfterStart,
         };
     };
 

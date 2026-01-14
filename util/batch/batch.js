@@ -478,7 +478,9 @@ module.exports = {
                                 );
                                 continue;
                             }
-                            if (guildConfig?.event?.tower?.currentSeason === 0) {
+                            if (
+                                guildConfig?.event?.tower?.currentSeason === 0
+                            ) {
                                 continue;
                             }
 
