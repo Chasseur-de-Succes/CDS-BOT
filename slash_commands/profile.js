@@ -52,6 +52,8 @@ module.exports = {
         const member = interaction.guild.members.cache.get(user.id);
         const typeSucces = interaction.options.get("succes")?.value;
 
+        await interaction.deferReply();
+
         const dbUser = await client.getUser(member);
 
         if (!dbUser) {
@@ -59,10 +61,8 @@ module.exports = {
             const embedErr = createError(
                 `${user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
             );
-            return interaction.reply({ embeds: [embedErr] });
+            return interaction.editReply({ embeds: [embedErr] });
         }
-
-        await interaction.deferReply();
 
         const colorEmbed =
             dbUser.banned || dbUser.blacklisted ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
@@ -106,7 +106,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // AFFICHAVE CANVAS
+        // AFFICHAGE CANVAS
         const urlSteam = `[Steam](https://steamcommunity.com/profiles/${dbUser.steamId})`;
         const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
         const urlCme = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
@@ -132,375 +132,206 @@ module.exports = {
         );
 
         // CANVAS
-        const canvas = Canvas.createCanvas(480, 205);
-        const ctx = canvas.getContext("2d");
-        const background = await Canvas.loadImage(
-            path.join(__dirname, "../data/img/background.jpg"),
-        );
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 400;
 
-        const steamAvatar = await Canvas.loadImage(
+        const canvas = Canvas.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+        const ctx = canvas.getContext("2d");
+
+        // BACKGROUND
+        ctx.fillStyle = "#151e32";
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        const gradient = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, 200);
+        gradient.addColorStop(0, "#4b2aad");
+        gradient.addColorStop(1, "#1e1e3f");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, 200);
+
+        // PROFILE PICTURE
+        ctx.save();
+        const userAvatar = await Canvas.loadImage(
             user.displayAvatarURL({ extension: "png", size: 128 }),
         );
 
-        // Arrondir bord background
-        // ctx.beginPath();
-        // ctx.arc(250,250,0.2*Math.PI,0.4*Math.PI);
-        // ctx.closePath();
-        // ctx.clip();
+        let x = 40;
+        const y = 40;
+        const w = 120;
+        const h = 120;
+        const r = 20;
 
-        //ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-        // BACKGROUND
-        ctx.strokeStyle = borderColor;
-        ctx.fillStyle = backgroundColor;
-        // - STYLE BORDER
-        // TODO refactor pour n'avoir qu'une méthode ? car similaire au tracé des bordures de l'avatar
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        ctx.clip();
 
-        if (borderStyle === "double") {
-            ctx.lineWidth = 2;
+        ctx.drawImage(userAvatar, 40, 40, 120, 120);
 
-            // fond couleur (pas derriere meta succes)
-            roundRect(ctx, 5, 5, canvas.width - 10, 120, 10, true, false);
-
-            roundRect(
-                ctx,
-                5,
-                5,
-                canvas.width - 10,
-                canvas.height - 10,
-                15,
-                false,
-                true,
-            );
-            roundRect(
-                ctx,
-                10,
-                10,
-                canvas.width - 20,
-                canvas.height - 20,
-                10,
-                false,
-                true,
-            );
-        } else {
-            ctx.lineWidth = 3;
-            if (borderStyle === "dashed") {
-                ctx.setLineDash([10]);
-            } else if (borderStyle === "dotted") {
-                ctx.setLineDash([2, 5]);
-            }
-
-            // fond couleur (pas derriere meta succes)
-            roundRect(ctx, 5, 5, canvas.width - 10, 120, 10, true, false);
-
-            roundRect(
-                ctx,
-                5,
-                5,
-                canvas.width - 10,
-                canvas.height - 10,
-                10,
-                false,
-                true,
-            );
-        }
-        ctx.setLineDash([]);
-
-        // QUE FAIT LE JOUEUR ACTUELLEMENT ?
-        // TODO ou le dernier jeu joué ?
-        ctx.font = "15px Impact";
-        ctx.fillStyle = textColor;
-
-        if (member.presence) {
-            let activities = member.presence.activities;
-            // - filtre 'type' sur 'PLAYING'
-            activities = activities.filter(
-                (act) => act.type === ActivityType.Playing,
-            );
-            if (activities.length === 1) {
-                const act = activities[0];
-
-                const game = act.name;
-
-                const gameDb = await Game.findOne({ name: game });
-                if (gameDb) {
-                    const gameUrlHeader = `	https://cdn.akamai.steamstatic.com/steam/apps/${gameDb.appid}/capsule_184x69.jpg`;
-                    try {
-                        const gameImg = await Canvas.loadImage(gameUrlHeader);
-                        ctx.drawImage(
-                            gameImg,
-                            canvas.width - 194 - 10,
-                            50,
-                            184,
-                            69,
-                        );
-                    } catch (error) {
-                        logger.warn(
-                            `.. erreur chargement image steam : ${error}`,
-                        );
-                    }
-                }
-
-                ctx.fillText("actuellement sur", canvas.width - 194 - 10, 25);
-                ctx.fillText(`${game}`, canvas.width - 194 - 10, 45);
-            }
-        }
-
-        // AVATAR
-        // ROND
-        // TODO if profile rond
-        ctx.save();
-        //ctx.beginPath();
-        //ctx.arc(10 + steamAvatar.width/2, 10 + steamAvatar.height/2, 50, 0, 2 * Math.PI);
-        //ctx.closePath();
-        //ctx.clip();
-
-        //ctx.drawImage(steamAvatar, 20, 20, steamAvatar.width, steamAvatar.height);
-        // TODO round rect
-        ctx.drawImage(steamAvatar, 20, 20, 96, 96);
-
-        // Bordure avatar
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = borderAvatarColor;
-        ctx.fillStyle = borderAvatarStyle;
-        // TODO si rond
-        //roundRect(ctx, 20, 20, steamAvatar.width, steamAvatar.height, 10, false, true);
-        //roundRect(ctx, 20, 20, 96, 96, 10, false, true);
-
-        // - STYLE BORDER
-        if (borderAvatarStyle === "double") {
-            ctx.lineWidth = 3;
-
-            roundRect(ctx, 20, 20, 96, 96, 15, false, true);
-            roundRect(ctx, 25, 25, 96 - 10, 96 - 10, 10, false, true);
-        } else {
-            if (borderAvatarStyle === "dashed") {
-                ctx.setLineDash([8]);
-            } else if (borderAvatarStyle === "dotted") {
-                ctx.lineWidth = 3;
-                ctx.setLineDash([3, 4]);
-            }
-
-            roundRect(ctx, 20, 20, 96, 96, 10, false, true);
-        }
-        ctx.setLineDash([]);
+        ctx.lineWidth = 7;
+        ctx.strokeStyle = "#9594dbff";
+        roundRect(ctx, 40, 40, 120, 120, 20, false, true);
 
         ctx.restore();
 
         // PSEUDO
-        let x = 126;
+        ctx.fillStyle = "#fff";
 
-        ctx.font = "30px Impact";
-        ctx.fillStyle = textColor;
-        // 145 : si pseudo trop grand
-        ctx.fillText(pseudo, x, 50, 145);
+        pseudo.length > 20
+            ? (ctx.font = "20px Impact")
+            : (ctx.font = "30px Impact");
+        ctx.fillText(pseudo, 190, 80, 370);
 
         // LEVEL
+        x = 190;
+        ctx.font = "18px Arial";
+        ctx.fillStyle = "#fff";
+        ctx.fillText(`Lvl ${level}`, x, 110);
+
         const percentage = Math.floor((xp / nextXpNeeded) * 100);
         const roundedPercent = Math.round(percentage);
+        x += 60;
 
         ctx.lineWidth = 14;
         ctx.strokeStyle = "grey";
         ctx.fillStyle = "grey";
-        ctx.fillRect(x, 55, 100, 10);
+        ctx.fillRect(x, 100, 100, 10);
         ctx.strokeStyle = textColor;
         ctx.fillStyle = textColor;
-        ctx.fillRect(x, 55, roundedPercent, 10);
-
-        ctx.font = "20px Impact";
-        ctx.fillText(`lv. ${level}`, x + 105, 65);
+        ctx.fillRect(x, 100, roundedPercent, 10);
 
         // MONEY
-        ctx.font = "17px Impact";
-        ctx.fillText(`${money} ${process.env.MONEY}`, x, 85);
+        ctx.font = "18px Arial";
+        ctx.fillStyle = "#f1c40f";
+        ctx.fillText(`${money} ${process.env.MONEY}`, 190, 140); // 190, 110 si pas lvl
 
-        // "MEDALS" aka meta achievemnts
-        x = 20;
+        // "MEDALS" - Meta achievments
+        const trophy = await Canvas.loadImage(
+            path.join(__dirname, "../data/img/trophy.png"),
+        );
+        ctx.drawImage(trophy, 30, 220);
+        ctx.font = "18px Arial";
+        ctx.fillStyle = "#fff";
+        ctx.fillText(`Achievements`, 60, 240);
+
+        x = 30;
         ctx.lineWidth = 2;
         ctx.strokeStyle = "black";
         ctx.fillStyle = "grey";
 
         // - recup stats OU achievements lié à user
         const stats = dbUser.stats;
-        let crtX = x;
-        const crtY = 140;
+        let positionXY = { crtX: x, crtY: 280 };
 
         // d'abord l'ombre, puis le fond, puis le trophée (si besoin est)
         // - Hall héros 🏆
         if (stats.img?.heros >= 1) {
-            let filename = "trophy";
-            let colorFill = "grey";
-
-            if (stats.img?.heros >= 100) {
-                filename += "_plat";
-                colorFill = "#1CD6CE"; // ~cyan
-            } else if (stats.img?.heros >= 50) {
-                filename += "_gold";
-                colorFill = "#FAC213";
-            } else if (stats.img?.heros >= 10) {
-                filename += "_silver";
-                colorFill = "silver";
-            }
-
-            // ombre
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = colorFill;
-            roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
-
-            // fond
-            ctx.globalAlpha = 1;
-            roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
-
-            const trophy = await Canvas.loadImage(
-                path.join(
-                    __dirname,
-                    `../data/img/achievements/${filename}.png`,
-                ),
+            const { suffix, colorFill } = getAchievementRarity(
+                stats.img?.heros,
+                100,
+                50,
+                10,
             );
-            ctx.drawImage(trophy, crtX + 5, crtY, 40, 40);
+            const filename = "trophy" + suffix;
+
+            positionXY = await addAchievement(
+                ctx,
+                colorFill,
+                filename,
+                positionXY.crtX,
+                positionXY.crtY,
+            );
         }
 
         // - Hall zéros 💩
-        crtX += 55;
+        positionXY.crtX += 55;
         if (stats.img?.zeros >= 1) {
-            let filename = "poop";
-            let colorFill = "grey";
-
-            if (stats.img?.zeros >= 250) {
-                filename += "_plat";
-                colorFill = "#1CD6CE"; // ~cyan
-            } else if (stats.img?.zeros >= 50) {
-                filename += "_gold";
-                colorFill = "#FAC213";
-            } else if (stats.img?.zeros >= 10) {
-                filename += "_silver";
-                colorFill = "silver";
-            }
-
-            // ombre
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = colorFill;
-            roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
-
-            // fond
-            ctx.globalAlpha = 1;
-            roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
-
-            const poop = await Canvas.loadImage(
-                path.join(
-                    __dirname,
-                    `../data/img/achievements/${filename}.png`,
-                ),
+            const { suffix, colorFill } = getAchievementRarity(
+                stats.img?.zeros,
+                250,
+                50,
+                10,
             );
-            ctx.drawImage(poop, crtX + 5, crtY, 40, 40);
+            const filename = "poop" + suffix;
+
+            positionXY = await addAchievement(
+                ctx,
+                colorFill,
+                filename,
+                positionXY.crtX,
+                positionXY.crtY,
+            );
         }
 
         // - Dmd aides 🤝
-        crtX += 55;
+        positionXY.crtX += 55;
         if (stats.group?.ended >= 1) {
-            let filename = "dmd-aide";
-            let colorFill = "grey";
-
-            if (stats.group?.ended >= 100) {
-                filename += "_plat";
-                colorFill = "#1CD6CE"; // ~cyan
-            } else if (stats.group?.ended >= 50) {
-                filename += "_gold";
-                colorFill = "#FAC213";
-            } else if (stats.group?.ended >= 25) {
-                filename += "_silver";
-                colorFill = "silver";
-            }
-
-            // ombre
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = colorFill;
-            roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
-
-            // fond
-            ctx.globalAlpha = 1;
-            roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
-
-            const dmdAide = await Canvas.loadImage(
-                path.join(
-                    __dirname,
-                    `../data/img/achievements/${filename}.png`,
-                ),
+            const { suffix, colorFill } = getAchievementRarity(
+                stats.group?.ended,
+                100,
+                50,
+                25,
             );
-            ctx.drawImage(dmdAide, crtX + 5, crtY, 40, 40);
+            const filename = "dmd-aide" + suffix;
+
+            positionXY = await addAchievement(
+                ctx,
+                colorFill,
+                filename,
+                positionXY.crtX,
+                positionXY.crtY,
+            );
         }
 
         // - Shop 💰
-        crtX += 55;
+        positionXY.crtX += 55;
         if (stats.shop?.sold >= 1) {
-            let filename = "shop";
-            let colorFill = "grey";
-
-            if (stats.shop?.sold >= 50) {
-                filename += "_plat";
-                colorFill = "#1CD6CE"; // ~cyan
-            } else if (stats.shop?.sold >= 25) {
-                filename += "_gold";
-                colorFill = "#FAC213";
-            } else if (stats.shop?.sold >= 10) {
-                filename += "_silver";
-                colorFill = "silver";
-            }
-
-            // ombre
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = colorFill;
-            roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
-
-            // fond
-            ctx.globalAlpha = 1;
-            roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
-
-            const dmdAide = await Canvas.loadImage(
-                path.join(
-                    __dirname,
-                    `../data/img/achievements/${filename}.png`,
-                ),
+            const { suffix, colorFill } = getAchievementRarity(
+                stats.shop?.sold,
+                50,
+                25,
+                10,
             );
-            ctx.drawImage(dmdAide, crtX + 5, crtY, 40, 40);
+            const filename = "shop" + suffix;
+
+            positionXY = await addAchievement(
+                ctx,
+                colorFill,
+                filename,
+                positionXY.crtX,
+                positionXY.crtY,
+            );
         }
 
         // - Nb messages 💬
-        crtX += 55;
+        positionXY.crtX += 55;
         if (stats.msg >= 50) {
-            let filename = "nbMsg";
-            let colorFill = "grey";
-
-            if (stats.msg >= 10000) {
-                filename += "_plat";
-                colorFill = "#1CD6CE"; // ~cyan
-            } else if (stats.msg >= 2500) {
-                filename += "_gold";
-                colorFill = "#FAC213";
-            } else if (stats.msg >= 500) {
-                filename += "_silver";
-                colorFill = "silver";
-            }
-
-            // ombre
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = colorFill;
-            roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
-
-            // fond
-            ctx.globalAlpha = 1;
-            roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
-
-            const dmdAide = await Canvas.loadImage(
-                path.join(
-                    __dirname,
-                    `../data/img/achievements/${filename}.png`,
-                ),
+            const { suffix, colorFill } = getAchievementRarity(
+                stats.msg,
+                10000,
+                2500,
+                500,
             );
-            ctx.drawImage(dmdAide, crtX + 5, crtY, 40, 40);
+            const filename = "nbMsg" + suffix;
+
+            positionXY = await addAchievement(
+                ctx,
+                colorFill,
+                filename,
+                positionXY.crtX,
+                positionXY.crtY,
+            );
         }
 
         // - Event communautaires
-        crtX += 55;
+        positionXY.crtX += 55;
         // advent 2022 🎄
         // - recup nb enigme resolu => succes participatif
         const nbEnigme = dbUser.event[2022]?.advent?.answers
@@ -537,41 +368,31 @@ module.exports = {
                 colorFill = "silver";
             }
 
-            // ombre
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = colorFill;
-            roundRect(ctx, crtX + 3, 135 + 3, 50, 50, 10, true, false);
-
-            // fond
-            ctx.globalAlpha = 1;
-            roundRect(ctx, crtX, 135, 50, 50, 10, true, false);
-
-            const advent = await Canvas.loadImage(
-                path.join(
-                    __dirname,
-                    `../data/img/achievements/event/${filename}.png`,
-                ),
+            positionXY = await addAchievement(
+                ctx,
+                colorFill,
+                filename,
+                positionXY,
             );
-            ctx.drawImage(advent, crtX + 5, crtY, 40, 40);
         }
         // TODO stat
         //const event = await Canvas.loadImage(path.join(__dirname, '../data/img/achievements/event.png'));
         //ctx.drawImage(event, crtX, crtY, 40, 40);
 
         // - Enigme ❓
-        crtX += 55;
+        positionXY.crtX += 55;
         // TODO manuellement
         //const question = await Canvas.loadImage(path.join(__dirname, '../data/img/achievements/question.png'));
         //ctx.drawImage(question, crtX, crtY, 40, 40);
 
         // - Easter egg 🥚
-        crtX += 55;
+        positionXY.crtX += 55;
         // TODO
         //const egg = await Canvas.loadImage(path.join(__dirname, '../data/img/achievements/egg.png'));
         //ctx.drawImage(egg, crtX, crtY, 40, 40);
 
         const file = new AttachmentBuilder(await canvas.toBuffer(), {
-            name: `profil-${pseudo}.png`,
+            name: `profile_${pseudo}.png`,
         });
         //const attachment = new MessageAttachment(canvas.toBuffer(), `profile_${pseudo}.png`);
 
@@ -591,6 +412,58 @@ function getByValue(map, searchValue) {
             return key;
         }
     }
+}
+
+function getAchievementRarity(
+    progressValue,
+    valuePlat,
+    valueGold,
+    ValueSilver,
+) {
+    let suffix = "";
+    let colorFill = "grey";
+
+    if (progressValue >= valuePlat) {
+        suffix += "_plat";
+        colorFill = "#1CD6CE"; // ~cyan
+    } else if (progressValue >= valueGold) {
+        suffix += "_gold";
+        colorFill = "#FAC213";
+    } else if (progressValue >= ValueSilver) {
+        suffix += "_silver";
+        colorFill = "silver";
+    }
+
+    return {
+        suffix,
+        colorFill,
+    };
+}
+
+/**
+ * Add achievements (shadow and background)
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {String} colorFill Background color
+ * @param {String} filename filename for the achievement
+ * @param {Number} crtX current position X
+ * @param {Number} crtY current position Y
+ */
+async function addAchievement(ctx, colorFill, filename, crtX, crtY) {
+    // Shadow
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = colorFill;
+    roundRect(ctx, crtX + 3, crtY - 2, 50, 50, 10, true, false);
+
+    // Background
+    ctx.globalAlpha = 1;
+    roundRect(ctx, crtX, crtY - 5, 50, 50, 10, true, false);
+
+    const achievement = await Canvas.loadImage(
+        path.join(__dirname, `../data/img/achievements/${filename}.png`),
+    );
+    ctx.drawImage(achievement, crtX + 5, crtY, 40, 40);
+
+    return { crtX, crtY };
 }
 
 /**
