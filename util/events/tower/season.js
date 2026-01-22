@@ -1,4 +1,4 @@
-const { createEmbed, createError, createLogs } = require("../../envoiMsg");
+const { createEmbed, createLogs } = require("../../envoiMsg");
 const {
     MONTHLY,
     SEASONS,
@@ -519,7 +519,7 @@ async function seasonOne(
     for (let i = 0; i <= step; i++) {
         isPalierAtteint |=
             (userDb.event.tower.currentEtage + i) %
-                SEASONS["1"].ETAGE_PAR_PALIER ===
+            SEASONS["1"].ETAGE_PAR_PALIER ===
             0;
         if (isPalierAtteint) {
             step = i;
@@ -555,7 +555,7 @@ async function seasonOne(
     // dans le cas où on arrive à un palier, on incrémente d'abord l'étage courant
     if (
         (userDb.event.tower.currentEtage + step) %
-            SEASONS["1"].ETAGE_PAR_PALIER ===
+        SEASONS["1"].ETAGE_PAR_PALIER ===
         0
     ) {
         // si step 0 (on est pile au palier), on monte d'un étage
@@ -726,6 +726,41 @@ async function seasonOne(
     if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
         dmg++;
     }
+
+    // si aucun tag ni genre du mois n'a été trouvé, il y a une petite chance que le jeu soigne le boss au lieu de le blesser.
+    const HEAL_CHANCE = SEASONS["1"].HEAL_CHANCE;
+    const willAttemptHeal = !isHiddenApp && !isMonthlyGenre && !isMonthlyTag; // aucun tag/genre trouvé ni un jeu caché
+    const healTriggered = willAttemptHeal && Math.random() < HEAL_CHANCE;
+
+    if (healTriggered) {
+        // On soigne le boss au lieu d'infliger des dégâts
+        const healAmount = 1; // on soigne que de 1 quand même
+        currentBoss.hp = Math.min(currentBoss.maxHp, currentBoss.hp + healAmount); // pas + haut que le bord
+        await currentBoss.save();
+
+        // Log et message pour le salon event
+        const descHeal = randomHealDesc();
+        await createLogs(client, guildId, `🗼 - Malus : soin du boss`, descHeal, "", "#5DADE2");
+
+        const embedHeal = initEmbed(
+            `🏥 Pas de chance...`,
+            `https://store.steampowered.com/app/${appid}/`,
+            descHeal,
+            "#00b7ff",
+            `Le boss récupère des forces...`,
+            {},
+        );
+        embedHeal.addFields({
+            name: `${currentBoss.hp}/${currentBoss.maxHp}`,
+            value: `${displayHealth(currentBoss)}`,
+        });
+
+        await client.channels.cache.get(eventChannelId).send({ embeds: [embedHeal] });
+
+        return interaction.editReply("Ton jeu a involontairement soigné le boss !");
+    }
+
+    // si pas de soin, on applique les dégâts comme avant
     userDb.event.tower.totalDamage += dmg;
     await userDb.save();
 
@@ -915,6 +950,11 @@ function initEmbed(title, url, desc, color, footer, infoBonus) {
 function randomFooter(bossIndex) {
     const footers = MESSAGE["1"].BOSS[bossIndex].footer;
     return footers[Math.floor(Math.random() * footers.length)];
+}
+
+function randomHealDesc() {
+    const heals = MESSAGE["1"].HEAL;
+    return heals[Math.floor(Math.random() * heals.length)];
 }
 
 module.exports = { seasonZero, seasonOne };
