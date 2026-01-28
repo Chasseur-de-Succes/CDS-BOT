@@ -9,6 +9,7 @@ const {
     getRandomPrivateJokes,
     displayHealth,
     endSeason,
+    healBoss,
 } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
 const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
@@ -519,7 +520,7 @@ async function seasonOne(
     for (let i = 0; i <= step; i++) {
         isPalierAtteint |=
             (userDb.event.tower.currentEtage + i) %
-            SEASONS["1"].ETAGE_PAR_PALIER ===
+                SEASONS["1"].ETAGE_PAR_PALIER ===
             0;
         if (isPalierAtteint) {
             step = i;
@@ -555,7 +556,7 @@ async function seasonOne(
     // dans le cas où on arrive à un palier, on incrémente d'abord l'étage courant
     if (
         (userDb.event.tower.currentEtage + step) %
-        SEASONS["1"].ETAGE_PAR_PALIER ===
+            SEASONS["1"].ETAGE_PAR_PALIER ===
         0
     ) {
         // si step 0 (on est pile au palier), on monte d'un étage
@@ -734,13 +735,18 @@ async function seasonOne(
 
     if (healTriggered) {
         // On soigne le boss au lieu d'infliger des dégâts
-        const healAmount = 1; // on soigne que de 1 quand même
-        currentBoss.hp = Math.min(currentBoss.maxHp, currentBoss.hp + healAmount); // pas + haut que le bord
-        await currentBoss.save();
+        await healBoss(currentBoss);
 
         // Log et message pour le salon event
         const descHeal = randomHealDesc();
-        await createLogs(client, guildId, `🗼 - Malus : soin du boss`, descHeal, "", "#5DADE2");
+        await createLogs(
+            client,
+            guildId,
+            `🗼 - Malus : soin du boss`,
+            descHeal,
+            "",
+            "#5DADE2",
+        );
 
         const embedHeal = initEmbed(
             `🏥 Pas de chance...`,
@@ -755,9 +761,13 @@ async function seasonOne(
             value: `${displayHealth(currentBoss)}`,
         });
 
-        await client.channels.cache.get(eventChannelId).send({ embeds: [embedHeal] });
+        await client.channels.cache
+            .get(eventChannelId)
+            .send({ embeds: [embedHeal] });
 
-        return interaction.editReply("Ton jeu a involontairement soigné le boss !");
+        return interaction.editReply(
+            "Ton jeu a involontairement soigné le boss !",
+        );
     }
 
     // si pas de soin, on applique les dégâts comme avant
