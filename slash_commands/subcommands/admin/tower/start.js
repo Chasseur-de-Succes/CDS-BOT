@@ -1,6 +1,5 @@
 const { GuildConfig } = require("../../../../models");
 const { createLogs } = require("../../../../util/envoiMsg");
-const { daysDiff } = require("../../../../util/util");
 
 async function start(interaction) {
     const guild = await GuildConfig.findOne({

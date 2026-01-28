@@ -57,7 +57,7 @@ const validerJeu = async (interaction, options) => {
         });
     }
 
-    // si la saison n'a pas encore commencé (à faire manuellement via commage '<préfix>tower start')
+    // si la saison n'a pas encore commencé (à faire manuellement via commande '<préfix>tower start')
     if (!guild.event.tower.started) {
         logger.info(".. évènement tower pas encore commencé");
         return await interaction.editReply({
@@ -65,7 +65,7 @@ const validerJeu = async (interaction, options) => {
         });
     }
 
-    // si pas inscrit
+    // si pas encore inscrit
     if (typeof userDb.event.tower.startDate === "undefined") {
         return await interaction.editReply({
             embeds: [

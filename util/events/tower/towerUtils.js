@@ -65,6 +65,18 @@ async function isAllBossDead(season) {
 }
 
 /**
+ * Soigne le boss.
+ *
+ * @param {Object} boss - Towerboss.
+ * @returns {Promise<void>}
+ */
+async function healBoss(boss) {
+    const healAmount = 1; // on soigne que de 1 quand même
+    boss.hp = Math.min(boss.maxHp, boss.hp + healAmount); // pas + haut que le bord
+    await boss.save();
+}
+
+/**
  * Termine la saison pour un utilisateur donné, sauvegarde les données de la saison dans l'historique et réinitialise les données pour la nouvelle saison
  * @param {Object} user - Utilisateur dont on termine la saison
  * @param {number} endDate - Timestamp de fin de la saison
@@ -182,7 +194,7 @@ async function endSeasonZero() {
 async function endSeasonOne() {
     const currentBoss = await TowerBoss.findOne({
         season: 1,
-        hp: { $ne: 0 },
+        hp: { $gt: 0 },
     });
     if (!currentBoss) return MESSAGE["1"].START_BAD_ENDING;
 
@@ -193,5 +205,6 @@ module.exports = {
     displayHealth,
     getRandomPrivateJokes,
     isAllBossDead,
+    healBoss,
     endSeason,
 };
