@@ -292,7 +292,7 @@ module.exports = {
 
         let filtered = [];
 
-        if (focusedValue.name === "jeu") {
+        if (focusedValue.name === "jeu" && focusedValue.value) {
             if (focusedValue.value) {
                 filtered = await client.findGameItemShopBy({
                     game: focusedValue.value,
