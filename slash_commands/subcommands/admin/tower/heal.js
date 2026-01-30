@@ -24,8 +24,6 @@ async function heal(interaction, options) {
     await interaction.deferReply({ ephemeral: true });
     const adminDb = await client.getUser(author);
 
-    // TODO : vérifier que l'utilisateur est admin ou modérateur
-
     // Récupération du channel de l'event
     const eventChannelId = await interaction.client.getGuildChannel(
         interaction.guild.id,
