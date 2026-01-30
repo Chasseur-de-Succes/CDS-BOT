@@ -56,7 +56,7 @@ module.exports = {
         let exact = [];
 
         // cmd boss valider, autocomplete sur nom jeu
-        if (focusedValue.name === "jeu") {
+        if (focusedValue.name === "jeu" && focusedValue.value) {
             // recherche nom exacte
             exact = await client.findGames({
                 name: focusedValue.value,
