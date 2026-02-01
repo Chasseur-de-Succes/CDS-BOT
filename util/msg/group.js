@@ -335,6 +335,14 @@ async function createCollectorGroup(client, msg) {
 
         // Quitter le groupe
         if (action === "leave") {
+            // Utilisateur non enregistré
+            if (!userDb) {
+                return i.editReply({
+                    content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
+                    ephemeral: true,
+                });
+            }
+
             // Le capitaine ne peut pas quitter le groupe
             if (userDb.userId === group.captain.userId) {
                 return i.editReply({
