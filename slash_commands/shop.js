@@ -153,7 +153,7 @@ module.exports = {
 
                 let filtered = [];
 
-                if (focusedValue.name === "jeu" && focusedValue.value) {
+                if (focusedValue.name === "jeu") {
                     if (focusedValue.value) {
                         filtered = await interaction.client.findGameItemShopBy({
                             game: focusedValue.value,
