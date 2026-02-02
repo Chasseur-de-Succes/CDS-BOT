@@ -230,6 +230,7 @@
             "DAMAGE": 1,
             "NB_YEARS_SMALL_BONUS": 5,
             "NB_YEARS_BONUS": 10,
+            "HEAL_CHANCE": 0.15,
             "HIDDEN_GAME_APPID": {
                 "489830": "Cyborg",
                 "260230": "Cyborg",
@@ -358,6 +359,48 @@
                     "killed": "En complétant **${gameName}**, ${author} porte le coup fatal à `Sqweeb` !",
                     "dead": "En complétant **${gameName}**, ${author} arrive au **palier n°4** !\nMais `Sqweeb` ayant été vaincu, il n'y a plus rien à voir ici."
                 }
+            ],
+            "HEAL": [
+                "Un oubli dans le jeu ! Le Boss lève un sourcil, récupère un PV et vous observe comme si vous étiez des insectes.",
+                "Le genre et le tag du mois ont été oubliés… Le Boss se frotte les mains et regagne 1 PV.",
+                "Vous croyez avoir tout validé ? Le Boss surgit de l’ombre et un PV lui revient aussitôt.",
+                "Le tag ou le genre du mois ont été zappés… Le Boss soupire et récupère un PV en soupirant de façon dramatique.",
+                "Dans un éclair de colère, le Boss récupère un PV alors qu’un joueur trébuche sur les règles.",
+                "Un oubli de tag ou de genre ? Parfait ! Le Boss incline la tête et regagne 1 PV, satisfait.",
+                "Les règles ont été bafouées. Le Boss frappe sa table, et un PV revient à lui comme par magie.",
+                "Le Boss apparaît derrière vous, les bras croisés… et récupère un PV volé par votre négligence.",
+                "Une validation incomplète ! Le Boss se penche, ramasse un PV et le tient comme un trophée.",
+                "Le tag ou le genre manquent… Le Boss sourit, et un PV lui revient sans effort.",
+                "Le Boss observe vos erreurs et récupère un PV avec un petit rire  inquiétant.",
+                "Vous avez oublié le genre ou le tag du mois… Le Boss s’incline légèrement et regagne un PV.",
+                "Le Boss frappe du pied : le sol tremble et un PV s’ajoute à sa réserve.",
+                "Une bévue ! Le Boss tourne autour de vous, récupérant un PV comme un prédateur subtil.",
+                "Le tag ou le genre ont disparu… Le Boss hausse un sourcil et reprend un PV.",
+                "Un PV revient au Boss tandis que vous regardez, impuissants, l’erreur flagrante que vous avez commise.",
+                "Le Boss s’assoit tranquillement et un PV revient à lui, conséquence de votre négligence.",
+                "Le Boss soupire et récupère un PV, visiblement amusé par votre maladresse.",
+                "Tag ou genre manquant ? Le Boss étire ses doigts et récupère un PV en riant doucement.",
+                "Le Boss se tient droit, les mains derrière le dos, et récupère un PV avec calme.",
+                "Vous avez zappé le genre ou le tag ? Le Boss s’avance et un PV lui revient instantanément.",
+                "«Le tag ou le genre manquent encore…» Le Boss sourit et récupère un PV, visiblement ravi.",
+                "Vous avez trébuché sur les règles ! Le Boss s’approche et un PV lui revient comme une offrande.",
+                "Vous avez oublié le tag ou le genre du mois… Le Boss récupère un PV avec un petit rire cruel."
+            ],
+            "ADMIN_HEAL": [
+                "Un stalker a pensé aider l’équipe. Mauvais calcul : +1 PV pour le Boss.",
+                "Un stalker a passé des heures à traquer des collectibles inutiles. Résultat concret : +1 PV pour le Boss.",
+                "Un stalker a sacrifié son temps libre pour la science… et pour soigner le Boss (+1 PV).",
+                "Un stalker a transformé un 100% en acte médical non consenti. Le Boss se régénère (+1 PV).",
+                "Plume décide de PL les stalkers, le boss reprend un pv",
+                "Un stalker a fini un jeu pendant que plume marchait sur son clavier. Le Boss profite pour récupérer +1 PV.",
+                "Un stalker ne vous aime pas et donne un PV au boss. Tu vas faire quoi hein???",
+                "Un stalker a fini un jeu. Le Boss se régale (+1 PV).",
+                "Plume vient en aide à Nanaki : le Boss récupère +1 PV.",
+                "Tigrou a trouvé un bundle à 1 centime. Jour de fête, le Boss récupère +1 PV.",
+                "Sqweeb a fini un jeu à plus de 5 €. Miracle : le Boss récupère +1 PV.",
+                "Cyborg a fini un jeu sans rager. Impossible… le Boss trinque avec lui et récupère +1 PV.",
+                "Un stalker avait trop de temps libre : il vient de finir un jeu. +1 PV pour le Boss.",
+                "Un stalker a touché de l’herbe… puis a fini un jeu. +1 PV pour le Boss."
             ]
         }
     },

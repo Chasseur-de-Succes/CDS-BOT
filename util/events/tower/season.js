@@ -1,4 +1,4 @@
-const { createEmbed, createError, createLogs } = require("../../envoiMsg");
+const { createEmbed, createLogs } = require("../../envoiMsg");
 const {
     MONTHLY,
     SEASONS,
@@ -9,6 +9,7 @@ const {
     getRandomPrivateJokes,
     displayHealth,
     endSeason,
+    healBoss,
 } = require("./towerUtils");
 const { TowerBoss } = require("../../../models");
 const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
@@ -726,6 +727,50 @@ async function seasonOne(
     if (isHiddenApp || isMonthlyGenre || isMonthlyTag) {
         dmg++;
     }
+
+    // si aucun tag ni genre du mois n'a été trouvé, il y a une petite chance que le jeu soigne le boss au lieu de le blesser.
+    const HEAL_CHANCE = SEASONS["1"].HEAL_CHANCE;
+    const willAttemptHeal = !isHiddenApp && !isMonthlyGenre && !isMonthlyTag; // aucun tag/genre trouvé ni un jeu caché
+    const healTriggered = willAttemptHeal && Math.random() < HEAL_CHANCE;
+
+    if (healTriggered) {
+        // On soigne le boss au lieu d'infliger des dégâts
+        await healBoss(currentBoss);
+
+        // Log et message pour le salon event
+        const descHeal = randomHealDesc();
+        await createLogs(
+            client,
+            guildId,
+            `🗼 - Malus : soin du boss`,
+            descHeal,
+            "",
+            "#5DADE2",
+        );
+
+        const embedHeal = initEmbed(
+            `🏥 Pas de chance...`,
+            `https://store.steampowered.com/app/${appid}/`,
+            descHeal,
+            "#00b7ff",
+            `Le boss récupère des forces...`,
+            {},
+        );
+        embedHeal.addFields({
+            name: `${currentBoss.hp}/${currentBoss.maxHp}`,
+            value: `${displayHealth(currentBoss)}`,
+        });
+
+        await client.channels.cache
+            .get(eventChannelId)
+            .send({ embeds: [embedHeal] });
+
+        return interaction.editReply(
+            "Ton jeu a involontairement soigné le boss !",
+        );
+    }
+
+    // si pas de soin, on applique les dégâts comme avant
     userDb.event.tower.totalDamage += dmg;
     await userDb.save();
 
@@ -915,6 +960,11 @@ function initEmbed(title, url, desc, color, footer, infoBonus) {
 function randomFooter(bossIndex) {
     const footers = MESSAGE["1"].BOSS[bossIndex].footer;
     return footers[Math.floor(Math.random() * footers.length)];
+}
+
+function randomHealDesc() {
+    const heals = MESSAGE["1"].HEAL;
+    return heals[Math.floor(Math.random() * heals.length)];
 }
 
 module.exports = { seasonZero, seasonOne };

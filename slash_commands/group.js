@@ -170,7 +170,7 @@ module.exports = {
         let exact = [];
 
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
-        if (focusedValue.name === "jeu" && focusedValue.value != "") {
+        if (focusedValue.name === "jeu" && focusedValue.value) {
             // recherche nom exacte
             exact = await client.findGames({
                 name: focusedValue.value,

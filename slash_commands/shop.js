@@ -86,7 +86,7 @@ module.exports = {
                 let exact = [];
 
                 // cmd shop sell, autocomplete sur nom jeu
-                if (focusedValue.name === "jeu" && focusedValue.value != "") {
+                if (focusedValue.name === "jeu" && focusedValue.value) {
                     // recherche nom exacte
                     exact = await interaction.client.findGames({
                         name: focusedValue.value,
