@@ -1,7 +1,13 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
-const { start, stop, down, allGame } = require("./subcommands/admin/tower");
+const {
+    start,
+    stop,
+    down,
+    allGame,
+    heal,
+} = require("./subcommands/admin/tower");
 const {
     add: addObservation,
     remove: removeObservation,
@@ -39,6 +45,24 @@ module.exports = {
                                 .setName("user")
                                 .setDescription("L'utilisateur")
                                 .setRequired(true),
+                        ),
+                )
+                .addSubcommand((sub) =>
+                    sub
+                        .setName("heal")
+                        .setDescription(
+                            "Valider un jeu (100%) et soigner le boss courant",
+                        )
+                        .addIntegerOption((option) =>
+                            option
+                                .setName("appid")
+                                .setDescription("Appid du jeu Steam"),
+                        )
+                        .addIntegerOption((option) =>
+                            option
+                                .setName("jeu")
+                                .setDescription("Nom du jeu")
+                                .setAutocomplete(true),
                         ),
                 )
                 .addSubcommand((sub) =>
@@ -347,6 +371,8 @@ module.exports = {
                 await allGame(interaction, interaction.options);
             } else if (subcommand === "down") {
                 await down(interaction, interaction.options);
+            } else if (subcommand === "heal") {
+                await heal(interaction, interaction.options);
             }
         } else if (subcommandGroup === "shop") {
             if (subcommand === "cancel") {
