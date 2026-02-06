@@ -134,6 +134,7 @@ module.exports = {
         // CANVAS
         const CANVAS_WIDTH = 800;
         const CANVAS_HEIGHT = 400;
+        const SPACING_ACHIEVEMENTS = 75;
 
         const canvas = Canvas.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
         const ctx = canvas.getContext("2d");
@@ -185,13 +186,13 @@ module.exports = {
         ctx.fillStyle = "#fff";
 
         pseudo.length > 20
-            ? (ctx.font = "20px Impact")
-            : (ctx.font = "30px Impact");
+            ? (ctx.font = "25px Impact")
+            : (ctx.font = "35px Impact");
         ctx.fillText(pseudo, 190, 80, 370);
 
         // LEVEL
         x = 190;
-        ctx.font = "18px Arial";
+        ctx.font = "20px Arial";
         ctx.fillStyle = "#fff";
         ctx.fillText(`Lvl ${level}`, x, 110);
 
@@ -208,16 +209,34 @@ module.exports = {
         ctx.fillRect(x, 100, roundedPercent, 10);
 
         // MONEY
-        ctx.font = "18px Arial";
+        ctx.font = "20px Arial";
         ctx.fillStyle = "#f1c40f";
-        ctx.fillText(`${money} ${process.env.MONEY}`, 190, 140); // 190, 110 si pas lvl
+        ctx.fillText(`${money} ${process.env.MONEY}`, 190, 140);
+
+        // MONEY + STEAM PLAYTIME
+        // TEST - WORK IN PROGRESS
+        // const boxWidth = 300;
+        // const boxHeight = 70;
+        // const boxX = 450;
+        // const boxY = 130;
+        // x = 450;
+
+        // ctx.strokeStyle = "#00f7ff";
+        // ctx.lineWidth = 2;
+        // ctx.shadowColor = "#00f7ff";
+        // ctx.shadowBlur = 15;
+        // roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 20);
+        // ctx.shadowBlur = 0;
+        // ctx.font = "20px Arial";
+        // ctx.fillStyle = "#fff";
+        // ctx.fillText(`Temps de jeu ${1000}h`, x + 20, boxY + (boxHeight/2));
 
         // "MEDALS" - Meta achievments
         const trophy = await Canvas.loadImage(
             path.join(__dirname, "../data/img/trophy.png"),
         );
         ctx.drawImage(trophy, 30, 220);
-        ctx.font = "18px Arial";
+        ctx.font = "22px Arial";
         ctx.fillStyle = "#fff";
         ctx.fillText(`Achievements`, 60, 240);
 
@@ -229,109 +248,105 @@ module.exports = {
         // - recup stats OU achievements lié à user
         const stats = dbUser.stats;
         let positionXY = { crtX: x, crtY: 280 };
+        let suffix, colorFill, locked, filename;
 
         // d'abord l'ombre, puis le fond, puis le trophée (si besoin est)
         // - Hall héros 🏆
-        if (stats.img?.heros >= 1) {
-            const { suffix, colorFill } = getAchievementRarity(
-                stats.img?.heros,
-                100,
-                50,
-                10,
-            );
-            const filename = "trophy" + suffix;
+        ({ suffix, colorFill, locked } = getAchievementRarity(
+            stats.img?.heros,
+            100,
+            50,
+            10,
+            1,
+        ));
+        filename = locked ? "locked" : "trophy" + suffix;
 
-            positionXY = await addAchievement(
-                ctx,
-                colorFill,
-                filename,
-                positionXY.crtX,
-                positionXY.crtY,
-            );
-        }
+        positionXY = await addAchievement(
+            ctx,
+            colorFill,
+            filename,
+            positionXY.crtX,
+            positionXY.crtY,
+        );
 
         // - Hall zéros 💩
-        positionXY.crtX += 55;
-        if (stats.img?.zeros >= 1) {
-            const { suffix, colorFill } = getAchievementRarity(
-                stats.img?.zeros,
-                250,
-                50,
-                10,
-            );
-            const filename = "poop" + suffix;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
+        ({ suffix, colorFill, locked } = getAchievementRarity(
+            stats.img?.zeros,
+            250,
+            50,
+            10,
+            1,
+        ));
+        filename = locked ? "locked" : "poop" + suffix;
 
-            positionXY = await addAchievement(
-                ctx,
-                colorFill,
-                filename,
-                positionXY.crtX,
-                positionXY.crtY,
-            );
-        }
+        positionXY = await addAchievement(
+            ctx,
+            colorFill,
+            filename,
+            positionXY.crtX,
+            positionXY.crtY,
+        );
 
         // - Dmd aides 🤝
-        positionXY.crtX += 55;
-        if (stats.group?.ended >= 1) {
-            const { suffix, colorFill } = getAchievementRarity(
-                stats.group?.ended,
-                100,
-                50,
-                25,
-            );
-            const filename = "dmd-aide" + suffix;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
+        ({ suffix, colorFill, locked } = getAchievementRarity(
+            stats.group?.ended,
+            100,
+            50,
+            25,
+            1,
+        ));
+        filename = locked ? "locked" : "dmd-aide" + suffix;
 
-            positionXY = await addAchievement(
-                ctx,
-                colorFill,
-                filename,
-                positionXY.crtX,
-                positionXY.crtY,
-            );
-        }
+        positionXY = await addAchievement(
+            ctx,
+            colorFill,
+            filename,
+            positionXY.crtX,
+            positionXY.crtY,
+        );
 
         // - Shop 💰
-        positionXY.crtX += 55;
-        if (stats.shop?.sold >= 1) {
-            const { suffix, colorFill } = getAchievementRarity(
-                stats.shop?.sold,
-                50,
-                25,
-                10,
-            );
-            const filename = "shop" + suffix;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
+        ({ suffix, colorFill, locked } = getAchievementRarity(
+            stats.shop?.sold,
+            50,
+            25,
+            10,
+            1,
+        ));
+        filename = locked ? "locked" : "shop" + suffix;
 
-            positionXY = await addAchievement(
-                ctx,
-                colorFill,
-                filename,
-                positionXY.crtX,
-                positionXY.crtY,
-            );
-        }
+        positionXY = await addAchievement(
+            ctx,
+            colorFill,
+            filename,
+            positionXY.crtX,
+            positionXY.crtY,
+        );
 
         // - Nb messages 💬
-        positionXY.crtX += 55;
-        if (stats.msg >= 50) {
-            const { suffix, colorFill } = getAchievementRarity(
-                stats.msg,
-                10000,
-                2500,
-                500,
-            );
-            const filename = "nbMsg" + suffix;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
+        ({ suffix, colorFill, locked } = getAchievementRarity(
+            stats.msg,
+            10000,
+            2500,
+            500,
+            50,
+        ));
+        filename = locked ? "locked" : "nbMsg" + suffix;
 
-            positionXY = await addAchievement(
-                ctx,
-                colorFill,
-                filename,
-                positionXY.crtX,
-                positionXY.crtY,
-            );
-        }
+        positionXY = await addAchievement(
+            ctx,
+            colorFill,
+            filename,
+            positionXY.crtX,
+            positionXY.crtY,
+        );
 
         // - Event communautaires
-        positionXY.crtX += 55;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
         // advent 2022 🎄
         // - recup nb enigme resolu => succes participatif
         const nbEnigme = dbUser.event[2022]?.advent?.answers
@@ -380,13 +395,13 @@ module.exports = {
         //ctx.drawImage(event, crtX, crtY, 40, 40);
 
         // - Enigme ❓
-        positionXY.crtX += 55;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
         // TODO manuellement
         //const question = await Canvas.loadImage(path.join(__dirname, '../data/img/achievements/question.png'));
         //ctx.drawImage(question, crtX, crtY, 40, 40);
 
         // - Easter egg 🥚
-        positionXY.crtX += 55;
+        positionXY.crtX += SPACING_ACHIEVEMENTS;
         // TODO
         //const egg = await Canvas.loadImage(path.join(__dirname, '../data/img/achievements/egg.png'));
         //ctx.drawImage(egg, crtX, crtY, 40, 40);
@@ -418,10 +433,12 @@ function getAchievementRarity(
     progressValue,
     valuePlat,
     valueGold,
-    ValueSilver,
+    valueSilver,
+    valueBronze
 ) {
     let suffix = "";
-    let colorFill = "grey";
+    let colorFill;
+    let locked = false;
 
     if (progressValue >= valuePlat) {
         suffix += "_plat";
@@ -429,14 +446,21 @@ function getAchievementRarity(
     } else if (progressValue >= valueGold) {
         suffix += "_gold";
         colorFill = "#FAC213";
-    } else if (progressValue >= ValueSilver) {
+    } else if (progressValue >= valueSilver) {
         suffix += "_silver";
         colorFill = "silver";
+    } else if (progressValue >= valueBronze) {
+        suffix = "";
+        colorFill = "grey";
+    } else {
+        locked = true;
+        colorFill = "#313131";
     }
 
     return {
         suffix,
         colorFill,
+        locked,
     };
 }
 
@@ -452,16 +476,16 @@ async function addAchievement(ctx, colorFill, filename, crtX, crtY) {
     // Shadow
     ctx.globalAlpha = 0.5;
     ctx.fillStyle = colorFill;
-    roundRect(ctx, crtX + 3, crtY - 2, 50, 50, 10, true, false);
+    roundRect(ctx, crtX + 3, crtY - 2, 60, 60, 10, true, false);
 
     // Background
     ctx.globalAlpha = 1;
-    roundRect(ctx, crtX, crtY - 5, 50, 50, 10, true, false);
+    roundRect(ctx, crtX, crtY - 5, 60, 60, 10, true, false);
 
     const achievement = await Canvas.loadImage(
         path.join(__dirname, `../data/img/achievements/${filename}.png`),
     );
-    ctx.drawImage(achievement, crtX + 5, crtY, 40, 40);
+    ctx.drawImage(achievement, crtX + 5, crtY, 50, 50);
 
     return { crtX, crtY };
 }
