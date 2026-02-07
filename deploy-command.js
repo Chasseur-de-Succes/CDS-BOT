@@ -5,7 +5,8 @@ require("dotenv").config();
 // recup config
 process.env.cli;
 
-const commands = [];
+const globalCommands = [];
+const guildCommands = [];
 // Grab all the command files from the commands directory you created earlier
 const commandFiles = fs
     .readdirSync("./slash_commands/")
@@ -14,7 +15,14 @@ const commandFiles = fs
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
     const command = require(`./slash_commands/${file}`);
-    commands.push(command.data.toJSON());
+
+    if (!command.data) continue;
+
+    if (command.devOnly) {
+        guildCommands.push(command.data.toJSON());
+    } else {
+        globalCommands.push(command.data.toJSON());
+    }
 }
 
 // Construct and prepare an instance of the REST module
@@ -35,18 +43,29 @@ const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 (async () => {
     try {
         console.log(
-            `Started refreshing ${commands.length} application (/) commands.`,
+            `Started refreshing ${globalCommands.length + guildCommands.length} application (/) commands.`,
         );
 
         // The put method is used to fully refresh all commands in the guild with the current set
+        // GLOBAL !
         const data = await rest.put(
-            // GLOBAL !
             Routes.applicationCommands(process.env.CLIENTID),
-            { body: commands },
+            { body: globalCommands },
+        );
+        console.log(
+            `Successfully reloaded ${data.length} global application (/) commands.`,
         );
 
+        // Guild-only (DEV)
+        const dataDev = await rest.put(
+            Routes.applicationGuildCommands(
+                process.env.CLIENTID,
+                process.env.DEV_GUILD_ID,
+            ),
+            { body: guildCommands },
+        );
         console.log(
-            `Successfully reloaded ${data.length} application (/) commands.`,
+            `Successfully reloaded ${dataDev.length} dev (guild-only) application (/) commands.`,
         );
     } catch (error) {
         // And of course, make sure you catch and log any errors!
