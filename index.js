@@ -3,8 +3,8 @@ const { loadSlashCommands, loadEvents } = require("./util/loader");
 const { sendStackTrace } = require("./util/envoiMsg");
 const winston = require("winston");
 require("winston-daily-rotate-file");
-require('dotenv').config({ path: '.env' });
-require('dotenv').config({ path: '.env.tower' });
+require("dotenv").config({ path: ".env" });
+require("dotenv").config({ path: ".env.tower" });
 
 const transport = new winston.transports.DailyRotateFile({
     filename: "logs/app-%DATE%.log",

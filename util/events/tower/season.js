@@ -729,7 +729,7 @@ async function seasonOne(
     }
 
     // si aucun tag ni genre du mois n'a été trouvé, il y a une petite chance que le jeu soigne le boss au lieu de le blesser.
-    const HEAL_CHANCE = parse_float(process.env.HEAL_CHANCE) || 0.05;
+    const HEAL_CHANCE = parseFloat(process.env.HEAL_CHANCE) || 0.05;
     const willAttemptHeal = !isHiddenApp && !isMonthlyGenre && !isMonthlyTag; // aucun tag/genre trouvé ni un jeu caché
     const healTriggered = willAttemptHeal && Math.random() < HEAL_CHANCE;
 
