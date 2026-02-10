@@ -10,6 +10,7 @@ services:
       - bdd
     env_file:
       - .env
+      - .env.tower
     depends_on:
       - mongodb
   mongodb:
