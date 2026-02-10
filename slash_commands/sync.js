@@ -26,16 +26,16 @@ module.exports = {
             ephemeral: true,
         });
 
-        const commaandsPath = path.join(__dirname);
+        const commandsPath = path.join(__dirname);
         const commandFiles = fs
-            .readdirSync(commaandsPath)
+            .readdirSync(commandsPath)
             .filter((file) => file.endsWith(".js"));
 
         const globalCommands = [];
         const guildCommands = [];
 
         for (const file of commandFiles) {
-            const filePath = path.join(commaandsPath, file);
+            const filePath = path.join(commandsPath, file);
             const command = require(filePath);
 
             if (!command.data) continue;
