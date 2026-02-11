@@ -442,8 +442,10 @@ async function seasonOne(
     // par défaut, on monte d'un étage
     let step = 1;
     // si jeu caché / tag du mois / backlog, on monte d'un étage supplémentaire
-    const nbYearsSmallBonus = process.env.NB_YEARS_SMALL_BONUS || SEASONS["1"].NB_YEARS_SMALL_BONUS;
-    const nbYearsBonus = process.env.NB_YEARS_BONUS || SEASONS["1"].NB_YEARS_BONUS;
+    const nbYearsSmallBonus =
+        process.env.NB_YEARS_SMALL_BONUS || SEASONS["1"].NB_YEARS_SMALL_BONUS;
+    const nbYearsBonus =
+        process.env.NB_YEARS_BONUS || SEASONS["1"].NB_YEARS_BONUS;
     if (
         isHiddenApp ||
         isMonthlyGenre ||
@@ -729,7 +731,8 @@ async function seasonOne(
     }
 
     // si aucun tag ni genre du mois n'a été trouvé, il y a une petite chance que le jeu soigne le boss au lieu de le blesser.
-    const HEAL_CHANCE = parseFloat(process.env.HEAL_CHANCE) || SEASONS["1"].HEAL_CHANCE;
+    const HEAL_CHANCE =
+        parseFloat(process.env.HEAL_CHANCE) || SEASONS["1"].HEAL_CHANCE;
     const willAttemptHeal = !isHiddenApp && !isMonthlyGenre && !isMonthlyTag; // aucun tag/genre trouvé ni un jeu caché
     const healTriggered = willAttemptHeal && Math.random() < HEAL_CHANCE;
 
