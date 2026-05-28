@@ -80,8 +80,9 @@ async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
     const gameAppid = group.game.appid;
     const astatLink = `[AStats](https://astats.astats.nl/astats/Steam_Game_Info.php?AppID=${gameAppid})`;
     const completionistLink = `[Completionist](https://completionist.me/steam/app/${gameAppid})`;
+    const steamHunterLink = `[SteamHunter](https://steamhunters.com/apps/${gameAppid})`;
     const steamGuidesLink = `[Steam Guides](https://steamcommunity.com/app/${gameAppid}/guides/?browsefilter=trend&requiredtags[]=Achievements#scrollTop=0)`;
-    const links = `${astatLink} | ${completionistLink} | ${steamGuidesLink}`;
+    const links = `${astatLink} | ${completionistLink} | ${steamHunterLink} | ${steamGuidesLink}`;
 
     // TODO icon plutot que l'image ? -> recup via API..
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
