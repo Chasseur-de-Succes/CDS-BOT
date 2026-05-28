@@ -51,7 +51,7 @@ async function list(interaction, options) {
         desc += `\n${user} - ${usersList[i].count} notes`;
     }
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(CRIMSON)
         .setTitle(
             `📜 Liste des utilisateurs ayant une/des note(s) d'observation`,
@@ -59,7 +59,7 @@ async function list(interaction, options) {
         .setFooter({ text: `Page ${currentPage}/${nbPages}` })
         .setDescription(desc);
 
-    let row = new ActionRowBuilder().addComponents(
+    const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId("previous")
             .setEmoji("⏪")
@@ -70,7 +70,7 @@ async function list(interaction, options) {
             .setStyle(ButtonStyle.Secondary),
     );
 
-    let msg = await interaction.editReply({
+    const msg = await interaction.editReply({
         embeds: [embed],
         components: [row],
         fetchReply: true,

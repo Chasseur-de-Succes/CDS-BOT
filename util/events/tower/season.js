@@ -88,7 +88,7 @@ async function seasonZero(
                 });
                 await createBoss(0, false);
 
-                let firstboss = MESSAGE["0"].FIRST_BOSS.replace(
+                const firstboss = MESSAGE["0"].FIRST_BOSS.replace(
                     /\${author}/g,
                     author,
                 ).replace(
@@ -120,7 +120,7 @@ async function seasonZero(
                     prefix: "TOWER",
                     message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier..`,
                 });
-                let descPalier = MESSAGE["0"].BOSS_PALIER.replace(
+                const descPalier = MESSAGE["0"].BOSS_PALIER.replace(
                     /\${author}/g,
                     author,
                 ).replace(
@@ -147,7 +147,7 @@ async function seasonZero(
                 prefix: "TOWER",
                 message: `${author.user.tag} 100% ${gameName} (${appid}): dernier palier, 1er boss mort..`,
             });
-            let descSommet = MESSAGE["0"].SOMMET.replace(
+            const descSommet = MESSAGE["0"].SOMMET.replace(
                 /\${author}/g,
                 author,
             ).replace(
@@ -180,7 +180,7 @@ async function seasonZero(
                 }..`,
             });
 
-            let descPalier = MESSAGE["0"].PALIER.replace(
+            const descPalier = MESSAGE["0"].PALIER.replace(
                 /\${gameName}/g,
                 gameName,
             )
@@ -214,7 +214,7 @@ async function seasonZero(
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
         });
-        let descEtage = MESSAGE["0"].ETAGE.replace(
+        const descEtage = MESSAGE["0"].ETAGE.replace(
             /\${author}/g,
             author,
         ).replace(/\${gameName}/g, gameName);
@@ -258,7 +258,7 @@ async function seasonZero(
             // si boss caché meurt, on arrête TOUT et on backup la saison
             await endSeason(client, 0, guild);
 
-            let descEnd = MESSAGE["0"].END.replace(
+            const descEnd = MESSAGE["0"].END.replace(
                 /\${gameName}/g,
                 gameName,
             ).replace(/\${author}/g, author);
@@ -285,7 +285,7 @@ async function seasonZero(
         });
         await createBoss(0, true);
 
-        let descHiddenBoss = MESSAGE["0"].HIDDEN_BOSS.replace(
+        const descHiddenBoss = MESSAGE["0"].HIDDEN_BOSS.replace(
             /\${gameName}/g,
             gameName,
         ).replace(/\${author}/g, author);
@@ -309,7 +309,7 @@ async function seasonZero(
         prefix: "TOWER",
         message: `${author.user.tag} 100% ${gameName} (${appid}): hit ${SEASONS["0"].DAMAGE}..`,
     });
-    let desc100 = MESSAGE["0"].HIT.replace(/\${gameName}/g, gameName)
+    const desc100 = MESSAGE["0"].HIT.replace(/\${gameName}/g, gameName)
         .replace(/\${boss}/g, currentBoss.name)
         .replace(/\${author}/g, author);
     const embed = createEmbed({
@@ -352,8 +352,7 @@ async function seasonOne(
     // si jeu caché donné par les admins
     const hiddenMap = SEASONS["1"].HIDDEN_GAME_APPID;
     const appidStr = String(appid);
-    const isHiddenApp =
-        hiddenMap && Object.prototype.hasOwnProperty.call(hiddenMap, appidStr);
+    const isHiddenApp = hiddenMap && Object.hasOwn(hiddenMap, appidStr);
 
     // récupère les genres/tags
     const genres = await client.fetchAppGenres(appid);
@@ -566,7 +565,7 @@ async function seasonOne(
         await userDb.save();
     }
 
-    let currentBossIndex =
+    const currentBossIndex =
         userDb.event.tower.currentEtage / SEASONS["1"].ETAGE_PAR_PALIER - 1;
     // Si l'utilisateur est arrivé à un palier (boss)
     const bossCreated = await TowerBoss.exists({

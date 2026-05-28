@@ -51,13 +51,15 @@ function displayHealth(boss) {
  */
 async function isAllBossDead(season) {
     switch (season) {
-        case 0: // Saison 0 : 2 boss dont un caché
+        case 0: {
+            // Saison 0 : 2 boss dont un caché
             // Check if there are any bosses in this season that are not dead
             const anyAlive = await TowerBoss.exists({
                 season: season,
                 hp: { $gt: 0 },
             });
             return !anyAlive;
+        }
         case 1: // Saison 1 : X boss TODO
         default:
             return false;
@@ -157,7 +159,7 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
         const eventChannel = client.channels.cache.get(eventChannelId);
 
         // si boss pas mort
-        let embedEnd = new EmbedBuilder()
+        const embedEnd = new EmbedBuilder()
             .setTitle("Fin de l'évènement")
             // .setDescription(option.desc)
             .setColor("#ff0000")

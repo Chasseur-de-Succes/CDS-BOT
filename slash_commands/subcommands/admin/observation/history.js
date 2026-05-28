@@ -18,7 +18,7 @@ async function history(interaction, options) {
     const userList = await client.getUserObservations(userId);
     const nbPages = Math.ceil(userList.length / EMBED_FIELD_LIMIT);
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(CRIMSON)
         .setTitle(`🕵️ Historique des notes d'observation de ${user.displayName}`)
         .setDescription(`${user}`)
@@ -33,8 +33,8 @@ async function history(interaction, options) {
             value: `\u200B`,
         });
     } else {
-        let startIndex = (currentPage - 1) * EMBED_FIELD_LIMIT;
-        let endIndex = Math.min(
+        const startIndex = (currentPage - 1) * EMBED_FIELD_LIMIT;
+        const endIndex = Math.min(
             startIndex + EMBED_FIELD_LIMIT,
             userList.length,
         );
@@ -57,7 +57,7 @@ async function history(interaction, options) {
         }
     }
 
-    let row = new ActionRowBuilder().addComponents(
+    const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId("previous")
             .setEmoji("⏪")
@@ -68,7 +68,7 @@ async function history(interaction, options) {
             .setStyle(ButtonStyle.Secondary),
     );
 
-    let msg = await interaction.editReply({
+    const msg = await interaction.editReply({
         embeds: [embed],
         components: [row],
         fetchReply: true,
