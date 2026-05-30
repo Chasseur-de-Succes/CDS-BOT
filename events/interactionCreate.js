@@ -22,18 +22,6 @@ module.exports = {
                 return;
             }
 
-            let developers = [];
-            for (const devId of process.env.DEVELOPERS.split(",")) {
-                developers.push(devId);
-            }
-
-            if (command.devOnly && !developers.includes(interaction.user.id)) {
-                return interaction.reply({
-                    content: "🚫 Commande réservée aux développeurs.",
-                    ephemeral: true,
-                });
-            }
-
             try {
                 await command.execute(interaction);
             } catch (error) {
