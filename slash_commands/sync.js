@@ -1,7 +1,7 @@
 const { GREEN, NIGHT } = require("../data/colors.json");
 const {
     SlashCommandBuilder,
-    PermissionFlagsBits,
+    MessageFlags,
     EmbedBuilder,
     REST,
     Routes,
@@ -10,11 +10,12 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
+    devOnly: true,
+
     data: new SlashCommandBuilder()
         .setName("sync")
         .setDescription("Synchronise les slash commands (dev only)")
-        .setDMPermission(false)
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+        .setDMPermission(false),
 
     async execute(interaction) {
         let embed = new EmbedBuilder()
@@ -23,7 +24,7 @@ module.exports = {
 
         await interaction.reply({
             embeds: [embed],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
         const commandsPath = path.join(__dirname);
