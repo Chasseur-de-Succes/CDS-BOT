@@ -1,10 +1,11 @@
 {
     "name": "cds-bot",
-    "version": "1.0.0",
+    "version": "1.8.0",
     "description": "private bot",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "migrate": "knex migrate:up"
     },
     "author": "TobiBiotex",
     "license": "AGPL-3.0",
@@ -14,10 +15,13 @@
         "date.format": "^1.1.2",
         "discord.js": "^14.22.1",
         "dotenv": "^16.0.3",
+        "knex": "^3.1.0",
         "moment": "^2.29.1",
         "moment-timezone": "^0.6.0",
         "mongoose": "^5.13.4",
         "node-schedule": "^2.0.0",
+        "objection": "^3.1.5",
+        "pg": "^8.20.0",
         "signale-logger": "^1.5.1",
         "steam-user": "^5.2.3",
         "superagent": "^6.1.0",

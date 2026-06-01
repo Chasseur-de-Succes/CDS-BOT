@@ -54,6 +54,13 @@ loadSlashCommands(client);
 // EVENTS
 loadEvents(client);
 
+// POSTGRE / KNEX
+const { Model } = require("objection");
+const Knex = require("knex");
+const knexConfig = require("./knexfile");
+const knex = Knex(knexConfig);
+Model.knex(knex);
+
 // MONGO DB
 client.mongoose.init();
 
