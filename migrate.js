@@ -122,7 +122,7 @@ async function migrate() {
     // USERS
     logStep("USERS", "Récupération des utilisateurs MongoDB");
     let users = await UserMG.find();
-    let usersIds = [];
+    let usersIds = [], towerStatIds = [];
     logStep("USERS", `${users.length} utilisateur(s) à migrer`);
     for (const [index, user] of users.entries()) {
         let userId = await User.query()
@@ -162,15 +162,14 @@ async function migrate() {
         // seulement saison 0 normalement !!
         if (user.event.tower.seasonHistory) {
             for (const event of user.event.tower.seasonHistory) {
-                let towerStatsId = await TowerStats.query()
+                await TowerStats.query()
                     .insert({
                         userId: userId.id,
-                        season: event.season,
+                        season: event.seasonNumber,
                         startDate: event.startDate,
                         nbValidatedGames: event.maxEtage,
                         totalDamage: event.totalDamage,
-                    })
-                    .returning("id");
+                    });
             }
         }
         // si saison courante
@@ -178,23 +177,26 @@ async function migrate() {
             let towerStatsId = await TowerStats.query()
                 .insert({
                     userId: userId.id,
-                    season: user.event.tower.seasonNumber,
+                    season: user.event.tower.season,
                     startDate: user.event.tower.startDate,
                     nbValidatedGames: user.event.tower.etage,
                     currentFloor: user.event.tower.currentEtage,
                     totalDamage: user.event.tower.totalDamage,
                     completedGames: user.event.tower.completedGames,
-                })
-                .returning("id");
+                }).returning("id");
+            // ordre temporaire du boss courant (-1 si aucun)
+            towerStatsId.currentBossOrder = user.event.tower.currentBoss;
+            towerStatIds.push(towerStatsId);
         }
 
-        if ((index + 1) % 100 === 0 || index === users.length - 1) {
+        if ((index + 1) % 10 === 0 || index === users.length - 1) {
             logStep(
                 "USERS",
                 `${index + 1}/${users.length} utilisateur(s) migré(s)`,
             );
         }
     }
+    logStep("USERS", `.. ${users.length} migrés`);
 
     // GUILD CONFIG
     logStep("GUILD", "Récupération des configurations serveur");
@@ -350,7 +352,6 @@ async function migrate() {
                     });
 
                 if (crtTower.length > 0) {
-                    // recupere l'id de l'user (+tard vu que User pas encore migré)
                     await TowerBoss.query().insert({
                         towerId: crtTower[0].id,
                         name: boss.name,
@@ -361,6 +362,7 @@ async function migrate() {
                         order: boss.ordre,
                         killedBy: killer.length > 0 ? killer[0].id : null,
                     });
+
                     insertedTowerBosses++;
                 } else {
                     skippedTowerBosses++;
@@ -370,6 +372,23 @@ async function migrate() {
                 "TOWER_BOSS",
                 `Guild ${gc.guildId}: ${insertedTowerBosses} boss migré(s), ${skippedTowerBosses} ignoré(s)`,
             );
+
+            // maj du currentBoss des TowerStat
+            for (const stat of towerStatIds.filter((s) => s.season === tower.currentSeason)) {
+                // recupere l'id du boss (s'il existe)
+                let bossId = await TowerBoss.query()
+                    .select("id")
+                    .where({
+                        season: stat.season,
+                        order: stat.currentBossOrder ? stat.currentBossOrder : null,
+                    });
+
+                await TowerStats.query()
+                    .where({ id: stat.id })
+                    .patch({
+                        currentBoss: bossId.length > 0 ? bossId[0].id : null
+                    });
+            }
         }
     }
     logStep("GUILD", "Migration des configurations et tours terminée");
