@@ -31,7 +31,7 @@ class User extends BaseModel {
         const Stats = require("./Stats");
         const TowerBoss = require("./TowerBoss");
         const TowerStats = require("./TowerStats");
-        const UserMetaAchievementTiers = require("./UserMetaAchievementTiers");
+        const UserMetaAchievementUnlocks = require("./UserMetaAchievementUnlocks");
 
         return {
             captainedGroups: {
@@ -76,10 +76,10 @@ class User extends BaseModel {
             },
             achievementTiers: {
                 relation: BaseModel.HasManyRelation,
-                modelClass: UserMetaAchievementTiers,
+                modelClass: UserMetaAchievementUnlocks,
                 join: {
                     from: "User.id",
-                    to: "UserMetaAchievementTiers.userid",
+                    to: "UserMetaAchievementUnlocks.userid",
                 },
             },
         };

@@ -1,9 +1,11 @@
+const achievements = require("../data/achievements.json");
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function (knex) {
-    return knex.schema
+exports.up = async function (knex) {
+    await knex.schema
         .createTable("GuildConfig", (table) => {
             table.string("guildId", 255).notNullable().unique().primary();
             table.string("channelWelcome", 255);
@@ -24,7 +26,7 @@ exports.up = function (knex) {
         .createTable("Game", (table) => {
             table.string("appid", 255).notNullable().unique().primary();
             table.string("iconHash", 255);
-            table.string("name", 255).notNullable();
+            table.text("name").notNullable();
             table.string("type", 255);
             table.boolean("isMulti").notNullable().defaultTo(false);
             table.boolean("isCoop").notNullable().defaultTo(false);
@@ -151,7 +153,6 @@ exports.up = function (knex) {
                 .defaultTo("tag");
             table.string("name", 255);
             table.integer("value");
-            table.string("type", 255);
             table.boolean("found").defaultTo(false);
         })
         .createTable("Tower", (table) => {
@@ -230,31 +231,93 @@ exports.up = function (knex) {
             table.specificType("args", "varchar(255)[]");
             table.boolean("pending").defaultTo(true);
         })
-        .createTable("UserMetaAchievementTiers", (table) => {
-            table.increments("userid").primary();
-            table.integer("achievementTier").notNullable();
-            table.timestamp("unlockedAt");
-            table.primary(["userid", "achievementTier"]);
-            table
-                .foreign("userid")
-                .references("id")
-                .inTable("User")
-                .onUpdate("NO ACTION")
-                .onDelete("NO ACTION");
-        })
         .createTable("MetaAchievements", (table) => {
             table.increments("id").primary();
             table.string("code", 255).notNullable().unique();
-            table.text("name").notNullable();
+            table.text("title").notNullable();
             table.text("description");
-            table.timestamp("createdAt");
+            table.string("db", 255).notNullable();
+            table.timestamp("createdAt").defaultTo(knex.fn.now());
         })
         .createTable("MetaAchievementTiers", (table) => {
             table.increments("id").primary();
-            table.integer("tier").notNullable();
+            table
+                .integer("metaAchievementId")
+                .notNullable()
+                .references("id")
+                .inTable("MetaAchievements")
+                .onUpdate("NO ACTION")
+                .onDelete("CASCADE");
             table.integer("requirement").notNullable();
-            table.text("name");
+            table.text("title").notNullable();
+            table.text("description").notNullable();
+            table.string("img", 255);
+            table.unique(["metaAchievementId", "requirement"]);
+        })
+        .createTable("UserMetaAchievementUnlocks", (table) => {
+            table.integer("userId").notNullable();
+            table.integer("metaAchievementTierId").notNullable();
+            table.timestamp("unlockedAt");
+
+            table
+                .foreign("userId")
+                .references("id")
+                .inTable("User")
+                .onUpdate("NO ACTION")
+                .onDelete("CASCADE");
+
+            table
+                .foreign("metaAchievementTierId")
+                .references("id")
+                .inTable("MetaAchievementTiers")
+                .onUpdate("NO ACTION")
+                .onDelete("CASCADE");
+            table.primary(["userId", "metaAchievementTierId"]);
         });
+
+    // récup des achievements du json
+    const metaAchievements = Object.entries(achievements).map(
+        ([code, achievement]) => ({
+            code,
+            title: achievement.title,
+            db: achievement.dbPG,
+            description: achievement.desc,
+        }),
+    );
+
+    if (metaAchievements.length > 0) {
+        await knex("MetaAchievements").insert(metaAchievements);
+    }
+
+    const persistedAchievements = await knex("MetaAchievements").select(
+        "id",
+        "code",
+    );
+
+    const tiers = [];
+    for (const [code, achievement] of Object.entries(achievements)) {
+        const persistedAchievement = persistedAchievements.find(
+            (row) => row.code === code,
+        );
+
+        if (!persistedAchievement) {
+            continue;
+        }
+
+        for (const [requirement, tier] of Object.entries(achievement.succes)) {
+            tiers.push({
+                metaAchievementId: persistedAchievement.id,
+                requirement: Number(requirement),
+                title: tier.title,
+                description: tier.desc,
+                img: tier.img ?? null,
+            });
+        }
+    }
+
+    if (tiers.length > 0) {
+        await knex("MetaAchievementTiers").insert(tiers);
+    }
 };
 
 /**
@@ -263,14 +326,15 @@ exports.up = function (knex) {
  */
 exports.down = function (knex) {
     return knex.schema
+        .dropTableIfExists("UserMetaAchievementUnlocks")
         .dropTableIfExists("MetaAchievementTiers")
         .dropTableIfExists("MetaAchievements")
-        .dropTableIfExists("UserMetaAchievementTiers")
         .dropTableIfExists("Job")
         .dropTableIfExists("TowerStats")
         .dropTableIfExists("TowerBoss")
         .dropTableIfExists("Tower")
         .dropTableIfExists("ClueField")
+        .raw(`DROP TYPE IF EXISTS "type_cluefield"`)
         .dropTableIfExists("MessageClue")
         .dropTableIfExists("Stats")
         .dropTableIfExists("Observation")
