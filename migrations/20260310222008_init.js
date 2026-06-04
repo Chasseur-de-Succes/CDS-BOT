@@ -24,7 +24,7 @@ exports.up = function (knex) {
         .createTable("Game", (table) => {
             table.string("appid", 255).notNullable().unique().primary();
             table.string("iconHash", 255);
-            table.string("name", 255).notNullable();
+            table.text("name").notNullable();
             table.string("type", 255);
             table.boolean("isMulti").notNullable().defaultTo(false);
             table.boolean("isCoop").notNullable().defaultTo(false);
@@ -151,7 +151,6 @@ exports.up = function (knex) {
                 .defaultTo("tag");
             table.string("name", 255);
             table.integer("value");
-            table.string("type", 255);
             table.boolean("found").defaultTo(false);
         })
         .createTable("Tower", (table) => {
@@ -271,6 +270,7 @@ exports.down = function (knex) {
         .dropTableIfExists("TowerBoss")
         .dropTableIfExists("Tower")
         .dropTableIfExists("ClueField")
+            .raw(`DROP TYPE IF EXISTS "type_cluefield"`)
         .dropTableIfExists("MessageClue")
         .dropTableIfExists("Stats")
         .dropTableIfExists("Observation")

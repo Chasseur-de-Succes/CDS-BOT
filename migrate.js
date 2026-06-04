@@ -19,12 +19,20 @@ const {
     TowerBoss,
     TowerStats,
     Job,
+    Observation,
+    Game,
+    Achievement,
+    Group,
+    GroupUser
 } = require("./models/objection");
 const {
     User: UserMG,
     GuildConfig: GuildConfigMG,
     TowerBoss: TowerBossMG,
     Job: JobMG,
+    Observation: ObservationMG,
+    Game: GameMG,
+    Group: GroupMG,
 } = require("./models");
 const constants = require("./data/event/tower/constants.json");
 
@@ -35,6 +43,33 @@ const ANSI = {
     green: "\x1b[32m",
     yellow: "\x1b[33m",
     red: "\x1b[31m",
+};
+
+const toSec = (start, end) => {
+    // Affiche la différence entre start et end en min/sec
+    const diffMs = Math.max(0, Number(end) - Number(start));
+
+    const totalSec = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = totalSec % 60;
+
+    if (minutes === 0) return `${seconds}s`;
+    if (seconds === 0) return `${minutes}min`;
+    return `${minutes}min ${seconds}s`;
+};
+
+const chunkArray = (array, size) => {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += size) {
+        chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+};
+
+const truncate = (value, maxLength) => {
+    if (value == null) return value;
+    const str = String(value);
+    return str.length > maxLength ? str.slice(0, maxLength) : str;
 };
 
 const logStep = (section, message, level = "info") => {
@@ -67,8 +102,13 @@ async function truncateAllTables() {
         "MessageClue",
         "Stats",
         "Job",
+        "Observation",
         "GuildConfig",
         "User",
+        "Game",
+        "Achievement",
+        "GroupUser",
+        "Group",
     ];
 
     try {
@@ -197,6 +237,29 @@ async function migrate() {
         }
     }
     logStep("USERS", `.. ${users.length} migrés`);
+
+    // OBSERVATIONS
+    logStep("OBSERVATIONS", "Récupération des observations MongoDB");
+    let observations = await ObservationMG.find();
+    let insertedObservations = 0;
+    for (const obs of observations) {
+        // recupere l'id de l'utilisateur concerné
+        let userId = usersIds.find((u) => u.discordId === obs.userId);
+        let reporterId = usersIds.find((u) => u.discordId === obs.reporterId);
+        if (userId && reporterId) {
+            await Observation.query().insert({
+                userId: userId.id,
+                reporterId: reporterId.id,
+                reason: obs.reason,
+                date: obs.date,
+            });
+            insertedObservations++;
+        }
+    }
+    logStep(
+        "OBSERVATIONS",
+        `${insertedObservations}/${observations.length} observation(s) migrée(s)`,
+    );
 
     // GUILD CONFIG
     logStep("GUILD", "Récupération des configurations serveur");
@@ -409,6 +472,95 @@ async function migrate() {
         insertedJobs++;
     }
     logStep("JOB", `${insertedJobs} job(s) migré(s)`);
+
+    // GAME
+    let deb = Date.now();
+    logStep("GAME", "Récupération des jeux MongoDB");
+    let games = await GameMG.find();
+    let insertedGames = 0;
+    const gameChunks = chunkArray(games, 100);
+    for (const gameChunk of gameChunks) {
+        const gamesToInsert = gameChunk.map((game) => ({
+            appid: game.appid,
+            iconHash: game.iconHash,
+            name: game.name ? game.name : '???',
+            type: game.type,
+            isMulti: game.isMulti,
+            isCoop: game.isCoop,
+            hasAchievements: game.hasAchievements,
+            isRemoved: game.isRemoved,
+        }));
+
+        await Game.query().insert(gamesToInsert);
+
+        for (const game of gameChunk) {
+            if (game.achievements && game.achievements.length > 0) {
+                const achievementsToInsert = game.achievements.map((ach) => ({
+                    appid: game.appid,
+                    apiName: ach.apiName,
+                    displayName: ach.displayName,
+                    description: ach.description,
+                    icon: ach.icon,
+                    icongray: ach.icongray,
+                }));
+                await Achievement.query().insert(achievementsToInsert);
+            }
+
+            insertedGames++;
+        }
+
+        if (insertedGames % 1000 === 0) {
+            logStep("GAME", `${insertedGames}/${games.length} jeu(s) migré(s)`);
+        }
+    }
+    let fin = Date.now();
+    logStep("GAME", `${insertedGames} jeux migrés, en ${toSec(deb, fin)}`);
+
+    // GROUP
+    deb = Date.now();
+    logStep("GROUP", "Récupération des groupes MongoDB");
+    let groups = await GroupMG.find().populate("captain").populate("members").populate("game");
+    let insertedGroups = 0;
+    for (const group of groups) {
+        // recupere l'id du capitaine
+        let captainId = usersIds.find((u) => u.discordId === group.captain.userId);
+        let gameId = group.game.appid;
+
+        if (captainId && gameId) {
+            const insertedGroup = await Group.query()
+                .insert({
+                    guildId: group.guildId,
+                    name: truncate(group.name, 255),
+                    desc: truncate(group.desc, 500),
+                    idMsg: group.idMsg,
+                    nbMax: group.nbMax,
+                    captain: captainId.id,
+                    game: gameId,
+                    dates: group.dateEvent,
+                    dateCreated: group.dateCreated,
+                    dateUpdated: group.dateUpdated,
+                    validated: group.validated,
+                    channelId: group.channelId,
+                })
+                .returning("id");
+
+            // members
+            const membersToInsert = group.members.map((member) => {
+                const userId = usersIds.find((u) => u.discordId === member.userId);
+                return {
+                    groupid: insertedGroup.id,
+                    userid: userId ? userId.id : null,
+                };
+            }).filter(m => m.userId !== null);
+
+            await GroupUser.query().insert(membersToInsert);
+
+            insertedGroups++;
+        }
+    }
+    fin = Date.now();
+    logStep("GROUP", `${insertedGroups} groupe migrés, en ${toSec(deb, fin)}`);
+
 
     logStep("DONE", "Migration terminée", "success");
     await knex.destroy();
