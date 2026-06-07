@@ -40,7 +40,7 @@ module.exports = {
             return interaction.editReply({
                 embeds: [
                     createError(
-                        `❎ Échec du rechargement des commandes : ${error.message}.`,
+                        `Échec du rechargement des commandes : ${error.message}.`,
                     ),
                 ],
             });
