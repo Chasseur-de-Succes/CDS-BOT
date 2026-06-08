@@ -61,6 +61,36 @@ exports.up = async function (knex) {
             table.timestamp("lastBuy");
             table.smallint("nbWarning").defaultTo(0);
         })
+        .createTable("GameItemShop", (table) => {
+            table.increments("id").primary();
+            table.string("guildId", 255);
+            table
+                .string("game")
+                .references("appid")
+                .inTable("Game")
+                .onUpdate("NO ACTION")
+                .onDelete("NO ACTION");
+            table
+                .integer("seller")
+                .references("id")
+                .inTable("User")
+                .onUpdate("NO ACTION")
+                .onDelete("NO ACTION");
+            table
+                .integer("buyer")
+                .references("id")
+                .inTable("User")
+                .onUpdate("NO ACTION")
+                .onDelete("NO ACTION");
+            table.integer("price");
+            table
+                .enu("state", ["listed", "pending", "done"], {
+                    useNative: true,
+                    enumName: "item_shop_state", // Nom de l'enum dans la base de données
+                })
+                .notNullable()
+                .defaultTo("listed")
+        })
         .createTable("Group", (table) => {
             table.increments("id").primary();
             table.string("guildId", 255);
@@ -341,6 +371,8 @@ exports.down = function (knex) {
         .dropTableIfExists("GroupUser")
         .dropTableIfExists("Group")
         .dropTableIfExists("User")
+        .dropTableIfExists("GameItemShop")
+        .raw(`DROP TYPE IF EXISTS "item_shop_state"`)
         .dropTableIfExists("Achievement")
         .dropTableIfExists("Game")
         .dropTableIfExists("GuildConfig");

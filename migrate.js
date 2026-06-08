@@ -24,6 +24,7 @@ const {
     Achievement,
     Group,
     GroupUser,
+    GameItemShop,
 } = require("./models/objection");
 const {
     User: UserMG,
@@ -33,6 +34,7 @@ const {
     Observation: ObservationMG,
     Game: GameMG,
     Group: GroupMG,
+    GameItem: GameItemMG,
 } = require("./models");
 const achievements = require("./data/achievements.json");
 const constants = require("./data/event/tower/constants.json");
@@ -94,6 +96,22 @@ const logStep = (section, message, level = "info") => {
     );
 };
 
+function getAchievementStatFromPostgres(userRow, statsRow, statColumn) {
+    if (!statColumn) {
+        return 0;
+    }
+
+    if (statColumn === "money") {
+        return userRow?.money || 0;
+    }
+
+    if (!statsRow) {
+        return 0;
+    }
+
+    return statsRow[statColumn] || 0;
+}
+
 async function truncateAllTables() {
     const tables = [
         "TowerBoss",
@@ -111,6 +129,7 @@ async function truncateAllTables() {
         "UserMetaAchievementUnlocks",
         "GroupUser",
         "Group",
+        "GameItemShop"
     ];
 
     try {
@@ -609,47 +628,37 @@ async function migrate() {
     fin = Date.now();
     logStep("GROUP", `${insertedGroups} groupe migrés, en ${toSec(deb, fin)}`);
 
+    // SHOP
+    logStep("SHOP", "Récupération des items du shop MongoDB");
+    let itemsShop = await GameItemMG.find().populate("seller").populate("buyer").populate("game");
+    let insertedItemShop = 0;
+    for (const item of itemsShop) {
+        let seller = usersIds.find((u) => u.discordId === item.seller.userId);
+        let buyer = usersIds.find((u) => u.discordId === item.buyer?.userId);
+        let gameId = item.game.appid;
+
+        if (seller && gameId) {
+            await GameItemShop.query()
+                .insert({
+                    guildId: item.guildId,
+                    game: gameId,
+                    seller: seller.id,
+                    buyer: buyer?.id,
+                    price: item.montant,
+                    state: item.state
+                });
+
+            insertedItemShop++;
+        }
+    }
+
+    logStep("SHOP", `${insertedItemShop} items du shop migrés`);
+
 
     logStep("DONE", "Migration terminée", "success");
     await knex.destroy();
 }
 
-function getAchievementStatFromPostgres(userRow, statsRow, statColumn) {
-    if (!statColumn) {
-        return 0;
-    }
-
-    if (statColumn === "money") {
-        return userRow?.money || 0;
-    }
-
-    if (!statsRow) {
-        return 0;
-    }
-
-    return statsRow[statColumn] || 0;
-}
-
 migrate().catch((error) => {
     logStep("FATAL", error?.stack || error?.message || String(error), "error");
 });
-
-// // Insérer l'utilisateur
-// const [userId] = await knex('users')
-//     .insert({
-//         id: user._id.toString(),
-//         name: user.name,
-//         created_at: user.created_at || new Date(),
-//     })
-//     .returning('id');
-//
-// // Insérer les commandes (si elles existent)
-// if (user.orders) {
-//     for (const order of user.orders) {
-//         await knex('orders').insert({
-//             user_id: userId,
-//             product: order.product,
-//             price: order.price,
-//         });
-//     }
-// }

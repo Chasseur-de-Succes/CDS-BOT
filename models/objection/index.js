@@ -14,7 +14,8 @@ module.exports = {
     TowerBoss: require("./TowerBoss"),
     TowerStats: require("./TowerStats"),
     Job: require("./Job"),
-    UserMetaAchievementTiers: require("./UserMetaAchievementTiers"),
+    UserMetaAchievementUnlocks: require("./UserMetaAchievementUnlocks"),
     MetaAchievements: require("./MetaAchievements"),
     MetaAchievementTiers: require("./MetaAchievementTiers"),
+    GameItemShop: require("./GameItemShop"),
 };
