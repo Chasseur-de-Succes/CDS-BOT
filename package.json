@@ -9,7 +9,7 @@
     "author": "TobiBiotex",
     "license": "AGPL-3.0",
     "dependencies": {
-        "canvas": "^2.9.3",
+        "canvas": "^3.2.3",
         "cpu-stat": "^2.0.1",
         "date.format": "^1.1.2",
         "discord.js": "^14.26.4",
