@@ -41,11 +41,11 @@ exports.up = async function (knex) {
                 .inTable("Game")
                 .onUpdate("NO ACTION")
                 .onDelete("NO ACTION");
-            table.string("apiName", 255);
-            table.string("displayName", 255);
+            table.text("apiName");
+            table.text("displayName");
             table.text("description");
-            table.string("icon", 255);
-            table.string("icongray", 255);
+            table.text("icon");
+            table.text("icongray");
         })
         .createTable("User", (table) => {
             table.increments("id").primary();
@@ -370,8 +370,8 @@ exports.down = function (knex) {
         .dropTableIfExists("Observation")
         .dropTableIfExists("GroupUser")
         .dropTableIfExists("Group")
-        .dropTableIfExists("User")
         .dropTableIfExists("GameItemShop")
+        .dropTableIfExists("User")
         .raw(`DROP TYPE IF EXISTS "item_shop_state"`)
         .dropTableIfExists("Achievement")
         .dropTableIfExists("Game")

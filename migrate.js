@@ -75,6 +75,13 @@ const truncate = (value, maxLength) => {
     return str.length > maxLength ? str.slice(0, maxLength) : str;
 };
 
+const extractFileNameFromUrl = (value) => {
+    if (value == null) return value;
+    const str = String(value);
+    const lastSlashIndex = str.lastIndexOf("/");
+    return lastSlashIndex === -1 ? str : str.slice(lastSlashIndex + 1);
+};
+
 const logStep = (section, message, level = "info") => {
     const isNoColor =
         process.env.NO_COLOR === "1" || process.env.NO_COLOR === "true";
@@ -542,15 +549,51 @@ async function migrate() {
 
     // GAME
     let deb = Date.now();
-    logStep("GAME", "Récupération des jeux MongoDB");
-    let games = await GameMG.find();
+    logStep("GAME", "Récupération des jeux MongoDB avec pagination");
+
+    // Récupérer le nombre total de jeux
+    const totalGames = await GameMG.countDocuments();
+    logStep("GAME", `${totalGames} jeu(s) à migrer`);
+
     let insertedGames = 0;
-    const gameChunks = chunkArray(games, 100);
-    for (const gameChunk of gameChunks) {
-        const gamesToInsert = gameChunk.map((game) => ({
-            appid: game.appid,
+    const pageSize = Number(process.env.MIGRATE_GAME_PAGE_SIZE || 5000);
+    const insertBatchSize = Number(process.env.MIGRATE_INSERT_BATCH_SIZE || 2000);
+    const totalPages = Math.ceil(totalGames / pageSize);
+
+    let lastMongoId = null;
+    let page = 0;
+
+    while (true) {
+        page++;
+        logStep("GAME", `Lecture du batch ${page}/${totalPages}`);
+
+        const query = lastMongoId ? { _id: { $gt: lastMongoId } } : {};
+        const games = await GameMG.find(query)
+            .sort({ _id: 1 })
+            .limit(pageSize)
+            .select({
+                _id: 1,
+                appid: 1,
+                iconHash: 1,
+                name: 1,
+                type: 1,
+                isMulti: 1,
+                isCoop: 1,
+                hasAchievements: 1,
+                isRemoved: 1,
+                achievements: 1,
+            })
+            .lean()
+            .exec();
+
+        if (games.length === 0) {
+            break;
+        }
+
+        const gamesToInsert = games.map((game) => ({
+            appid: String(game.appid),
             iconHash: game.iconHash,
-            name: game.name ? game.name : '???',
+            name: game.name ? game.name : "???",
             type: game.type,
             isMulti: game.isMulti,
             isCoop: game.isCoop,
@@ -558,27 +601,39 @@ async function migrate() {
             isRemoved: game.isRemoved,
         }));
 
-        await Game.query().insert(gamesToInsert);
+        const allAchievements = [];
+        for (const game of games) {
+            if (!game.achievements || game.achievements.length === 0) continue;
 
-        for (const game of gameChunk) {
-            if (game.achievements && game.achievements.length > 0) {
-                const achievementsToInsert = game.achievements.map((ach) => ({
-                    appid: game.appid,
+            for (const ach of game.achievements) {
+                allAchievements.push({
+                    appid: String(game.appid),
                     apiName: ach.apiName,
                     displayName: ach.displayName,
                     description: ach.description,
-                    icon: ach.icon,
-                    icongray: ach.icongray,
-                }));
-                await Achievement.query().insert(achievementsToInsert);
+                    icon: extractFileNameFromUrl(ach.icon),
+                    icongray: extractFileNameFromUrl(ach.icongray),
+                    // apiName: ach.apiName ? truncate(ach.apiName, 500) : null,
+                    // displayName: ach.displayName ? truncate(ach.displayName, 500) : null,
+                    // description: ach.description ? truncate(ach.description, 2000) : null,
+                    // icon: ach.icon ? truncate(ach.icon, 1000) : null,
+                    // icongray: ach.icongray ? truncate(ach.icongray, 1000) : null,
+                });
             }
-
-            insertedGames++;
         }
 
-        if (insertedGames % 1000 === 0) {
-            logStep("GAME", `${insertedGames}/${games.length} jeu(s) migré(s)`);
+        await knex.batchInsert("Game", gamesToInsert, insertBatchSize);
+
+        if (allAchievements.length > 0) {
+            await knex.batchInsert("Achievement", allAchievements, insertBatchSize);
         }
+
+        insertedGames += games.length;
+        if (insertedGames % 1000 === 0 || insertedGames === totalGames) {
+            logStep("GAME", `${insertedGames}/${totalGames} jeu(s) migré(s)`);
+        }
+
+        lastMongoId = games[games.length - 1]._id;
     }
     let fin = Date.now();
     logStep("GAME", `${insertedGames} jeux migrés, en ${toSec(deb, fin)}`);
