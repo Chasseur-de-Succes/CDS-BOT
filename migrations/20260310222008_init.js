@@ -24,7 +24,7 @@ exports.up = async function (knex) {
             table.string("webhook", 255);
         })
         .createTable("Game", (table) => {
-            table.string("appid", 255).notNullable().unique().primary();
+            table.integer("appid").notNullable().unique().primary();
             table.string("iconHash", 255);
             table.text("name").notNullable();
             table.string("type", 255);
@@ -36,7 +36,7 @@ exports.up = async function (knex) {
         .createTable("Achievement", (table) => {
             table.increments("id").primary();
             table
-                .string("appid", 255)
+                .integer("appid")
                 .references("appid")
                 .inTable("Game")
                 .onUpdate("NO ACTION")
@@ -65,7 +65,7 @@ exports.up = async function (knex) {
             table.increments("id").primary();
             table.string("guildId", 255);
             table
-                .string("game")
+                .integer("game")
                 .references("appid")
                 .inTable("Game")
                 .onUpdate("NO ACTION")
@@ -105,7 +105,7 @@ exports.up = async function (knex) {
                 .onUpdate("NO ACTION")
                 .onDelete("NO ACTION");
             table
-                .string("game", 255)
+                .integer("game")
                 .references("appid")
                 .inTable("Game")
                 .onUpdate("NO ACTION")

@@ -9,7 +9,7 @@ const BaseModel = require("./BaseModel");
  * @property {string | null} idMsg
  * @property {number | null} nbMax
  * @property {number | null} captain
- * @property {string | null} game
+ * @property {number | null} game
  * @property {Date | null} dateCreated
  * @property {Date | null} dateUpdated
  * @property {boolean | null} validated

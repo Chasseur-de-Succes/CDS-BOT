@@ -3,7 +3,7 @@ const BaseModel = require("./BaseModel");
 /**
  * @typedef {Object} AchievementRow
  * @property {number} id
- * @property {string | null} appid
+ * @property {number | null} appid
  * @property {string | null} apiName
  * @property {string | null} displayName
  * @property {string | null} description

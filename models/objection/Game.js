@@ -2,7 +2,7 @@ const BaseModel = require("./BaseModel");
 
 /**
  * @typedef {Object} GameRow
- * @property {string} appid
+ * @property {number} appid
  * @property {string | null} iconHash
  * @property {string} name
  * @property {string | null} type

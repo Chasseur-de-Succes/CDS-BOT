@@ -5,7 +5,7 @@ const User = require("./User");
  * @typedef {Object} GameItemShopRow
  * @property {number} id
  * @property {string | null} guildId
- * @property {string | null} game
+ * @property {number | null} game
  * @property {number | null} seller
  * @property {number | null} buyer
  * @property {number | null} price

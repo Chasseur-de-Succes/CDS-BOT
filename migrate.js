@@ -82,6 +82,11 @@ const extractFileNameFromUrl = (value) => {
     return lastSlashIndex === -1 ? str : str.slice(lastSlashIndex + 1);
 };
 
+const normalizeShopState = (value) => {
+    const normalized = String(value || "").toLowerCase().trim();
+    return normalized === "pending" || normalized === "done" ? normalized : "done";
+};
+
 const logStep = (section, message, level = "info") => {
     const isNoColor =
         process.env.NO_COLOR === "1" || process.env.NO_COLOR === "true";
@@ -556,6 +561,9 @@ async function migrate() {
     logStep("GAME", `${totalGames} jeu(s) à migrer`);
 
     let insertedGames = 0;
+    let scannedGames = 0;
+    let duplicateGames = 0;
+    const processedAppids = new Set();
     const pageSize = Number(process.env.MIGRATE_GAME_PAGE_SIZE || 5000);
     const insertBatchSize = Number(process.env.MIGRATE_INSERT_BATCH_SIZE || 2000);
     const totalPages = Math.ceil(totalGames / pageSize);
@@ -590,24 +598,34 @@ async function migrate() {
             break;
         }
 
-        const gamesToInsert = games.map((game) => ({
-            appid: String(game.appid),
-            iconHash: game.iconHash,
-            name: game.name ? game.name : "???",
-            type: game.type,
-            isMulti: game.isMulti,
-            isCoop: game.isCoop,
-            hasAchievements: game.hasAchievements,
-            isRemoved: game.isRemoved,
-        }));
-
+        const gamesToInsert = [];
         const allAchievements = [];
         for (const game of games) {
+            const appid = String(game.appid);
+            scannedGames++;
+
+            if (processedAppids.has(appid)) {
+                duplicateGames++;
+                continue;
+            }
+            processedAppids.add(appid);
+
+            gamesToInsert.push({
+                appid,
+                iconHash: game.iconHash,
+                name: game.name ? game.name : "???",
+                type: game.type,
+                isMulti: game.isMulti,
+                isCoop: game.isCoop,
+                hasAchievements: game.hasAchievements,
+                isRemoved: game.isRemoved,
+            });
+
             if (!game.achievements || game.achievements.length === 0) continue;
 
             for (const ach of game.achievements) {
                 allAchievements.push({
-                    appid: String(game.appid),
+                    appid,
                     apiName: ach.apiName,
                     displayName: ach.displayName,
                     description: ach.description,
@@ -622,15 +640,23 @@ async function migrate() {
             }
         }
 
-        await knex.batchInsert("Game", gamesToInsert, insertBatchSize);
+        if (gamesToInsert.length > 0) {
+            const gameChunks = chunkArray(gamesToInsert, insertBatchSize);
+            for (const gameChunk of gameChunks) {
+                await knex("Game").insert(gameChunk).onConflict("appid").ignore();
+            }
+        }
 
         if (allAchievements.length > 0) {
             await knex.batchInsert("Achievement", allAchievements, insertBatchSize);
         }
 
-        insertedGames += games.length;
-        if (insertedGames % 1000 === 0 || insertedGames === totalGames) {
-            logStep("GAME", `${insertedGames}/${totalGames} jeu(s) migré(s)`);
+        insertedGames += gamesToInsert.length;
+        if (scannedGames % 1000 === 0 || scannedGames === totalGames) {
+            logStep(
+                "GAME",
+                `${scannedGames}/${totalGames} jeu(x) lu(s), ${insertedGames} inséré(s), ${duplicateGames} doublon(s)`,
+            );
         }
 
         lastMongoId = games[games.length - 1]._id;
@@ -690,7 +716,7 @@ async function migrate() {
     for (const item of itemsShop) {
         let seller = usersIds.find((u) => u.discordId === item.seller.userId);
         let buyer = usersIds.find((u) => u.discordId === item.buyer?.userId);
-        let gameId = item.game.appid;
+        let gameId = item.game?.appid;
 
         if (seller && gameId) {
             await GameItemShop.query()
@@ -700,7 +726,7 @@ async function migrate() {
                     seller: seller.id,
                     buyer: buyer?.id,
                     price: item.montant,
-                    state: item.state
+                    state: normalizeShopState(item.state),
                 });
 
             insertedItemShop++;
