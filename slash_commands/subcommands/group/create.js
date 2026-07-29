@@ -173,49 +173,18 @@ const create = async (interaction, options) => {
 
     let channel;
     try {
-        const idDiscussionGroupe = await client.getGuildChannel(
+        // obtention du channel de discussion
+        const category = await getAvailableDiscussionCategory(
+            client,
+            interaction,
             guildId,
-            SALON.CAT_DISCUSSION_GROUPE,
         );
-        const idDiscussionGroupe2 = await client.getGuildChannel(
-            guildId,
-            SALON.CAT_DISCUSSION_GROUPE_2,
-        );
-        let cat = await client.channels.cache.get(idDiscussionGroupe);
-        const cat2 = await client.channels.cache.get(idDiscussionGroupe2);
-        if (!cat) {
-            logger.info(
-                "Catégorie des discussions de groupe n'existe pas ! Création en cours...",
-            );
-            const nameCat = "Discussions groupes";
-            cat = await createCategory(
-                nameCat,
-                SALON.CAT_DISCUSSION_GROUPE,
-                interaction,
-            );
-        }
 
-        if (cat.children.cache.size >= 50) {
-            // limite par Discord
-            cat = cat2; // utiliser cat2 au lieu du 1
-            if (!cat2) {
-                logger.info(
-                    "Catégorie des discussions de groupe 2 n'existe pas ! Création en cours...",
-                );
-                const nameCat = "Discussion groupes 2";
-                cat = await createCategory(
-                    nameCat,
-                    SALON.CAT_DISCUSSION_GROUPE_2,
-                    interaction,
-                );
-            }
-        }
-
-        // création channel de discussion
+        // création du channel de discussion
         channel = await interaction.guild.channels.create({
             name: nameGrp,
             type: ChannelType.GuildText,
-            parent: cat,
+            parent: category,
             permissionOverwrites: [
                 {
                     id: interaction.guild.roles.everyone.id,
@@ -242,7 +211,7 @@ const create = async (interaction, options) => {
             ),
         );
 
-        // creation groupe dans la BDD
+        // creation du groupe dans la BDD
         const newGrp = {
             name: nameGrp,
             desc: description,
@@ -276,7 +245,7 @@ const create = async (interaction, options) => {
 
         await interaction.editReply({ embeds: [newMsgEmbed] });
     } catch (error) {
-        logger.error("Erreur lors de la création du groupe :", error);
+        logger.error("Erreur lors de la création du groupe : ", error);
 
         if (channel) {
             await channel
@@ -285,10 +254,20 @@ const create = async (interaction, options) => {
                 )
                 .catch((err) => {
                     logger.error(
-                        "Impossible de supprimer le salon après erreur :",
+                        "Impossible de supprimer le salon après erreur : ",
                         err,
                     );
                 });
+        }
+
+        if (error.code === "CATEGORY_FULL") {
+            return interaction.editReply({
+                embeds: [
+                    createError(
+                        `Impossible de créer le groupe : toutes les catégories sont pleines.`,
+                    ),
+                ],
+            });
         }
 
         await interaction.editReply({
@@ -297,12 +276,64 @@ const create = async (interaction, options) => {
                     `Une erreur est survenue lors de la création du groupe. Contacter un développeur si le problème persiste.`,
                 ),
             ],
+            ephemeral: true,
         });
     }
 };
 
+// Obtention de la catégorie de discussion de groupe
+async function getAvailableDiscussionCategory(client, interaction, guildId) {
+    const configs = [
+        [SALON.CAT_DISCUSSION_GROUPE, "Discussions groupes"],
+        [SALON.CAT_DISCUSSION_GROUPE_2, "Discussions groupes 2"],
+    ];
+
+    for (const [id, name] of configs) {
+        const category = await getOrCreateCategory(
+            client,
+            interaction,
+            guildId,
+            id,
+            name,
+        );
+
+        if (category.children.cache.size < 2) {
+            // todo implémenter fichier limite discord
+            return category;
+        }
+    }
+
+    const error = new Error(
+        "Toutes les catégories de discussion sont pleines.",
+    );
+    error.code = "CATEGORY_FULL";
+    throw error;
+}
+
+// Obtention ou création de la catégorie des discussions de groupes
+async function getOrCreateCategory(
+    client,
+    interaction,
+    guildId,
+    salonId,
+    name,
+) {
+    const channelId = await client.getGuildChannel(guildId, salonId);
+
+    let category = client.channels.cache.get(channelId);
+
+    if (!category) {
+        logger.info(
+            `La catégorie "${name}" n'existe pas, création en cours...`,
+        );
+        category = await createCategory(interaction, salonId, name);
+    }
+
+    return category;
+}
+
 // Création catégorie discussions groupes
-async function createCategory(nameCat, catConfig, interaction) {
+async function createCategory(interaction, catConfig, nameCat) {
     const cat = await interaction.guild.channels.create({
         name: nameCat,
         type: ChannelType.GuildCategory,
