@@ -16,7 +16,7 @@ const { CHECK_MARK } = require("../../../data/emojis.json");
 
 const create = async (interaction, options) => {
     const nameGrp = options.get("nom")?.value;
-    const nbMaxMember = options.get("max")?.value; // INTEGER
+    const nbMaxMember = options.getInteger("max")?.value; // INTEGER
     const gameName = options.get("jeu")?.value;
     const description = options.get("description")?.value;
     const client = interaction.client;
@@ -171,108 +171,169 @@ const create = async (interaction, options) => {
     // on recupere le custom id "APPID_GAME"
     const game = await client.findGameByAppid(gameId);
 
-    const idDiscussionGroupe = await client.getGuildChannel(
-        guildId,
-        SALON.CAT_DISCUSSION_GROUPE,
-    );
-    const idDiscussionGroupe2 = await client.getGuildChannel(
-        guildId,
-        SALON.CAT_DISCUSSION_GROUPE_2,
-    );
-    let cat = await client.channels.cache.get(idDiscussionGroupe);
-    const cat2 = await client.channels.cache.get(idDiscussionGroupe2);
-    if (!cat) {
-        logger.info(
-            "Catégorie des discussions de groupe n'existe pas ! Création en cours...",
-        );
-        const nameCat = "Discussions groupes";
-        cat = await createCategory(
-            nameCat,
-            SALON.CAT_DISCUSSION_GROUPE,
+    let channel;
+    try {
+        // obtention du channel de discussion
+        const category = await getAvailableDiscussionCategory(
+            client,
             interaction,
+            guildId,
         );
-    }
 
-    if (cat.children.size >= 50) {
-        // limite par Discord
-        cat = cat2; // utiliser cat2 au lieu du 1
-        if (!cat2) {
-            logger.info(
-                "Catégorie des discussions de groupe 2 n'existe pas ! Création en cours...",
+        // création du channel de discussion
+        channel = await interaction.guild.channels.create({
+            name: nameGrp,
+            type: ChannelType.GuildText,
+            parent: category,
+            permissionOverwrites: [
+                {
+                    id: interaction.guild.roles.everyone.id,
+                    deny: [PermissionFlagsBits.ViewChannel],
+                },
+                {
+                    id: captain.id,
+                    allow: [
+                        PermissionFlagsBits.PinMessages,
+                        PermissionFlagsBits.SendMessages,
+                        PermissionFlagsBits.ViewChannel,
+                    ],
+                },
+            ],
+        });
+
+        await Promise.all(
+            process.env.DEVELOPERS.split(",").map((devId) =>
+                channel.permissionOverwrites.edit(devId, {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    MentionEveryone: true,
+                }),
+            ),
+        );
+
+        // creation du groupe dans la BDD
+        const newGrp = {
+            name: nameGrp,
+            desc: description,
+            nbMax: nbMaxMember,
+            captain: captainDb._id,
+            members: [captainDb._id],
+            game: game,
+            channelId: channel.id,
+        };
+        await createGroup(client, interaction.guildId, newGrp);
+
+        channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
+        channel.send(`> ${captain} a créé le groupe`);
+
+        const newMsgEmbed = new EmbedBuilder()
+            .setTitle(
+                `${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`,
+            )
+            .addFields(
+                { name: "Jeu", value: `${game.name}`, inline: true },
+                { name: "Capitaine", value: `${captain}`, inline: true },
             );
-            const nameCat = "Discussion groupes 2";
-            cat = await createCategory(
-                nameCat,
-                SALON.CAT_DISCUSSION_GROUPE_2,
-                interaction,
-            );
+
+        if (nbMaxMember) {
+            newMsgEmbed.addFields({
+                name: "Nb max joueurs",
+                value: `${nbMaxMember}`,
+                inline: true,
+            });
+        }
+
+        await interaction.editReply({ embeds: [newMsgEmbed] });
+    } catch (error) {
+        logger.error("Erreur lors de la création du groupe : ", error);
+
+        if (channel) {
+            await channel
+                .delete(
+                    "Rollback suite à une erreur lors de la création du groupe",
+                )
+                .catch((err) => {
+                    logger.error(
+                        "Impossible de supprimer le salon après erreur : ",
+                        err,
+                    );
+                });
+        }
+
+        if (error.code === "CATEGORY_FULL") {
+            return interaction.editReply({
+                embeds: [
+                    createError(
+                        `Impossible de créer le groupe : toutes les catégories sont pleines.`,
+                    ),
+                ],
+            });
+        }
+
+        await interaction.editReply({
+            embeds: [
+                createError(
+                    `Une erreur est survenue lors de la création du groupe. Contacter un développeur si le problème persiste.`,
+                ),
+            ],
+            ephemeral: true,
+        });
+    }
+};
+
+// Obtention de la catégorie de discussion de groupe
+async function getAvailableDiscussionCategory(client, interaction, guildId) {
+    const configs = [
+        [SALON.CAT_DISCUSSION_GROUPE, "Discussions groupes"],
+        [SALON.CAT_DISCUSSION_GROUPE_2, "Discussions groupes 2"],
+    ];
+
+    for (const [id, name] of configs) {
+        const category = await getOrCreateCategory(
+            client,
+            interaction,
+            guildId,
+            id,
+            name,
+        );
+
+        if (category.children.cache.size < 2) {
+            // todo implémenter fichier limite discord
+            return category;
         }
     }
 
-    // création channel de discussion
-    const channel = await interaction.guild.channels.create({
-        name: nameGrp,
-        type: ChannelType.GuildText,
-        parent: cat,
-        permissionOverwrites: [
-            {
-                id: interaction.guild.roles.everyone.id,
-                deny: [PermissionFlagsBits.ViewChannel],
-            },
-            {
-                id: captain.id,
-                allow: [
-                    PermissionFlagsBits.PinMessages,
-                    PermissionFlagsBits.SendMessages,
-                    PermissionFlagsBits.ViewChannel,
-                ],
-            },
-        ],
-    });
+    const error = new Error(
+        "Toutes les catégories de discussion sont pleines.",
+    );
+    error.code = "CATEGORY_FULL";
+    throw error;
+}
 
-    for (const devId of process.env.DEVELOPERS.split(",")) {
-        channel.permissionOverwrites.edit(devId, {
-            ViewChannel: true,
-            SendMessages: true,
-            MentionEveryone: true,
-        });
-    }
+// Obtention ou création de la catégorie des discussions de groupes
+async function getOrCreateCategory(
+    client,
+    interaction,
+    guildId,
+    salonId,
+    name,
+) {
+    const channelId = await client.getGuildChannel(guildId, salonId);
 
-    channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
-    channel.send(`> ${captain} a créé le groupe`);
+    let category = client.channels.cache.get(channelId);
 
-    // creation groupe
-    const newGrp = {
-        name: nameGrp,
-        desc: description,
-        nbMax: nbMaxMember,
-        captain: captainDb._id,
-        members: [captainDb._id],
-        game: game,
-        channelId: channel.id,
-    };
-    createGroup(client, interaction.guildId, newGrp);
-
-    const newMsgEmbed = new EmbedBuilder()
-        .setTitle(`${CHECK_MARK} Le groupe **${nameGrp}** a bien été créé !`)
-        .addFields(
-            { name: "Jeu", value: `${game.name}`, inline: true },
-            { name: "Capitaine", value: `${captain}`, inline: true },
+    if (!category) {
+        logger.info(
+            `La catégorie "${name}" n'existe pas, création en cours...`,
         );
-
-    if (nbMaxMember) {
-        newMsgEmbed.addFields({
-            name: "Nb max joueurs",
-            value: `${nbMaxMember}`,
-            inline: true,
-        });
+        category = await createCategory(interaction, salonId, name);
     }
 
-    await interaction.editReply({ embeds: [newMsgEmbed] });
-};
+    return category;
+}
 
 // Création catégorie discussions groupes
-async function createCategory(nameCat, catConfig, interaction) {
+async function createCategory(interaction, catConfig, nameCat) {
     const cat = await interaction.guild.channels.create({
         name: nameCat,
         type: ChannelType.GuildCategory,
