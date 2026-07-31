@@ -9,7 +9,7 @@ const {
     ChannelType,
     PermissionFlagsBits,
 } = require("discord.js");
-const { SALON } = require("../../../util/constants");
+const { SALON, DISCORD_LIMITS } = require("../../../util/constants");
 const { createGroup } = require("../../../util/msg/group");
 const { NIGHT } = require("../../../data/colors.json");
 const { CHECK_MARK } = require("../../../data/emojis.json");
@@ -297,8 +297,9 @@ async function getAvailableDiscussionCategory(client, interaction, guildId) {
             name,
         );
 
-        if (category.children.cache.size < 2) {
-            // todo implémenter fichier limite discord
+        if (
+            category.children.cache.size < DISCORD_LIMITS.CHANNELS_PER_CATEGORY
+        ) {
             return category;
         }
     }

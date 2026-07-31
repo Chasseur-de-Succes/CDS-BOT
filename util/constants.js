@@ -117,6 +117,35 @@ const WEBHOOK = {
 
 const MIN_PRICE_SHOP = 1000; // Prix minimum pour les jeux du shop
 
+// Discord limites
+// https://support.discord.com/hc/fr/articles/33694251638295-Plafonds-de-compte-Discord-plafonds-de-serveur-et-plus
+const DISCORD_LIMITS = {
+    CHOICES_PER_AUTOCOMPLETE: 25,
+
+    // Roles
+    ROLES_PER_GUILD: 250,
+    ROLE_MAX_LENGTH: 100,
+
+    // Channels
+    CHANNELS_PER_GUILD: 500,
+    CATEGORIES_PER_GUILD: 50,
+    CHANNELS_PER_CATEGORY: 50,
+    PINS_PER_CHANNEL: 250,
+
+    // Messages
+    MESSAGE_CONTENT: 2000,
+    EMBEDS_PER_MESSAGE: 10,
+
+    // Embeds
+    EMBED_TOTAL_MAX_LENGTH: 6000,
+    EMBED_TITLE_MAX_LENGTH: 256,
+    EMBED_DESCRIPTION_MAX_LENGTH: 4096,
+    EMBED_FIELDS: 25,
+    EMBED_FIELD_NAME_MAX_LENGTH: 256,
+    EMBED_FIELD_VALUE_MAX_LENGTH: 1024,
+    EMBED_FOOTER_MAX_LENGTH: 2048,
+};
+
 exports.DAILY_MONEY_LIMIT = DAILY_MONEY_LIMIT;
 exports.NB_MAX = NB_MAX;
 exports.TAGS = TAGS;
@@ -130,3 +159,4 @@ exports.SALON = SALON;
 exports.WEBHOOK_ARRAY = WEBHOOK_ARRAY;
 exports.WEBHOOK = WEBHOOK;
 exports.MIN_PRICE_SHOP = MIN_PRICE_SHOP;
+exports.DISCORD_LIMITS = DISCORD_LIMITS;
