@@ -131,7 +131,9 @@ module.exports = {
             true,
         );
 
+        // ---------------
         // CANVAS
+        // ---------------
         const CANVAS_WIDTH = 800;
         const CANVAS_HEIGHT = 400;
         const SPACING_ACHIEVEMENTS = 75;
@@ -139,17 +141,41 @@ module.exports = {
         const canvas = Canvas.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
         const ctx = canvas.getContext("2d");
 
+        // ---------------
         // BACKGROUND
+        // ---------------
         ctx.fillStyle = "#151e32";
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-        const gradient = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, 200);
-        gradient.addColorStop(0, "#4b2aad");
-        gradient.addColorStop(1, "#1e1e3f");
-        ctx.fillStyle = gradient;
+        const bgGradient = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, 200);
+        bgGradient.addColorStop(0, "#4c1d95"); // #4b2aad
+        bgGradient.addColorStop(0.5, "#312e81");
+        bgGradient.addColorStop(1, "#1e1b4b"); // #1e1e3f
+        ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, CANVAS_WIDTH, 200);
 
+        ctx.save();
+
+        // GRADIENT
+        const gradient = ctx.createLinearGradient(40, 40, 160, 160);
+        gradient.addColorStop(0, "#9594db");
+        gradient.addColorStop(0.5, "#c084fc");
+        gradient.addColorStop(1, "#6366f1");
+
+        // GLOW
+        ctx.lineWidth = 6; //7
+        ctx.strokeStyle = gradient;
+        ctx.shadowColor = "#9594db";
+        ctx.shadowBlur = 10;
+        ctx.globalAlpha = 0.8;
+
+        roundRect(ctx, 40, 40, 120, 120, 20, false, true, 3);
+
+        ctx.restore();
+
+        // ---------------
         // PROFILE PICTURE
+        // ---------------
         ctx.save();
         const userAvatar = await Canvas.loadImage(
             user.displayAvatarURL({ extension: "png", size: 128 }),
@@ -176,13 +202,22 @@ module.exports = {
 
         ctx.drawImage(userAvatar, 40, 40, 120, 120);
 
-        ctx.lineWidth = 7;
-        ctx.strokeStyle = "#9594dbff";
+        ctx.restore();
+        ctx.save();
+
+        ctx.lineWidth = 4; //7
+        ctx.strokeStyle = gradient; //"#9594dbff";
+        // ctx.shadowColor = "#a78bfa";
+        // ctx.shadowBlur = 12;
+        // ctx.globalAlpha = 0.9;
+
         roundRect(ctx, 40, 40, 120, 120, 20, false, true);
 
         ctx.restore();
 
+        // ---------------
         // PSEUDO
+        // ---------------
         ctx.fillStyle = "#fff";
 
         pseudo.length > 20
@@ -190,28 +225,80 @@ module.exports = {
             : (ctx.font = "35px Impact");
         ctx.fillText(pseudo, 190, 80, 370);
 
+        // ---------------
         // LEVEL
+        // ---------------
+        ctx.save();
+
         x = 190;
+
+        //const barX = 250;
+        const barY = 100;
+        const barWidth = 150;
+        const barHeight = 10;
+        const levelText = `Lvl ${level}`;
+
         ctx.font = "20px Arial";
         ctx.fillStyle = "#fff";
-        ctx.fillText(`Lvl ${level}`, x, 110);
+        ctx.fillText(levelText, x, 110); // Lvl -> Niveau ??
 
-        const percentage = Math.floor((xp / nextXpNeeded) * 100);
-        const roundedPercent = Math.round(percentage);
+        const levelWidth = ctx.measureText(levelText).width;
+        const barX = x + levelWidth + 15;
+
+        const percentage = Math.min(xp / nextXpNeeded, 1);
+        const progressWidth = barWidth * percentage;
         x += 60;
 
-        ctx.lineWidth = 14;
-        ctx.strokeStyle = "grey";
-        ctx.fillStyle = "grey";
-        ctx.fillRect(x, 100, 100, 10);
-        ctx.strokeStyle = textColor;
-        ctx.fillStyle = textColor;
-        ctx.fillRect(x, 100, roundedPercent, 10);
+        // ---------------
+        // XP BAR
+        // ---------------
+        ctx.fillStyle = "#111827";
+        roundRect(ctx, barX, barY, barWidth, barHeight, 5, true, false);
+
+        if (progressWidth > 0) {
+            const xpGradient = ctx.createLinearGradient(x, 0, x + barWidth, 0);
+            xpGradient.addColorStop(0, "#818cf8");
+            xpGradient.addColorStop(1, "#c084fc");
+
+            ctx.fillStyle = xpGradient;
+
+            roundRect(
+                ctx,
+                barX,
+                barY,
+                progressWidth,
+                barHeight,
+                5,
+                true,
+                false,
+            );
+        }
+
+        ctx.restore();
 
         // MONEY
         ctx.font = "20px Arial";
-        ctx.fillStyle = "#f1c40f";
+        ctx.fillStyle = "#a5b4fc"; // #f1c40f
         ctx.fillText(`${money} ${process.env.MONEY}`, 190, 140);
+
+        // ---------------
+        // PLAY
+        // ---------------
+        x = 550;
+        const game = member.presence?.activities.find((a) => a.type === 0);
+        if (game) {
+            const controller = await Canvas.loadImage(
+                path.join(
+                    __dirname,
+                    "../data/img/discord-green-controller.png",
+                ),
+            );
+            ctx.drawImage(controller, x, 60, 25, 25); // 50
+            x += 30;
+            ctx.fillText(`${game.name}`, x, 80, 170); // 70
+        }
+
+        // -----
 
         // MONEY + STEAM PLAYTIME
         // TEST - WORK IN PROGRESS
@@ -231,16 +318,29 @@ module.exports = {
         // ctx.fillStyle = "#fff";
         // ctx.fillText(`Temps de jeu ${1000}h`, x + 20, boxY + (boxHeight/2));
 
+        // ---------------
+        // SEPARATOR
+        // ---------------
+        const separator = ctx.createLinearGradient(0, 0, 800, 0);
+        separator.addColorStop(0, "transparent");
+        separator.addColorStop(0.5, "#6366f1");
+        separator.addColorStop(1, "transparent");
+
+        ctx.fillStyle = separator;
+        ctx.fillRect(50, 199, 700, 1);
+
+        // ---------------
         // "MEDALS" - Meta achievments
+        // ---------------
         const trophy = await Canvas.loadImage(
             path.join(__dirname, "../data/img/trophy.png"),
         );
-        ctx.drawImage(trophy, 30, 220);
+        ctx.drawImage(trophy, 40, 220);
         ctx.font = "22px Arial";
         ctx.fillStyle = "#fff";
-        ctx.fillText(`Achievements`, 60, 240);
+        ctx.fillText(`Achievements`, 70, 240);
 
-        x = 30;
+        x = 40;
         ctx.lineWidth = 2;
         ctx.strokeStyle = "black";
         ctx.fillStyle = "grey";
@@ -434,7 +534,7 @@ function getAchievementRarity(
     valuePlat,
     valueGold,
     valueSilver,
-    valueBronze
+    valueBronze,
 ) {
     let suffix = "";
     let colorFill;
