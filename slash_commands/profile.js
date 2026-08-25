@@ -15,6 +15,7 @@ const { createError } = require("../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../util/xp");
 
 const Canvas = require("canvas");
+const sharp = require("sharp");
 const path = require("node:path");
 const { Game, User } = require("../models");
 const { getJsonValue } = require("../util/util");
@@ -115,20 +116,39 @@ module.exports = {
         const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
 
         // recup settings de l'user
-        const configProfile = await client.getOrInitProfile(dbUser);
+        // const configProfile = await client.getOrInitProfile(dbUser);
         // -- couleur texte
-        const textColor = getByValue(configProfile.text, true);
+        // const textColor = getByValue(configProfile.text, true);
         // -- couleur/style bordure
-        const borderStyle = getByValue(configProfile.border?.style, true);
-        const borderColor = getByValue(configProfile.border?.color, true);
+        // const borderStyle = getByValue(configProfile.border?.style, true);
+        // const borderColor = getByValue(configProfile.border?.color, true);
         // -- couleur/style bordure avatar
-        const borderAvatarStyle = getByValue(configProfile.avatar?.style, true);
-        const borderAvatarColor = getByValue(configProfile.avatar?.color, true);
+        // const borderAvatarStyle = getByValue(configProfile.avatar?.style, true);
+        // const borderAvatarColor = getByValue(configProfile.avatar?.color, true);
         // -- couleur/style fond
-        const backgroundStyle = "";
-        const backgroundColor = getByValue(
-            configProfile.background?.color,
-            true,
+        // const backgroundStyle = "";
+        // const backgroundColor = getByValue(
+        //     configProfile.background?.color,
+        //     true,
+        // );
+
+        // ---------------
+        // CUSTOM FONTS
+        // ---------------
+        Canvas.registerFont(
+            path.join(__dirname, "../data/fonts/Oxanium-Medium.ttf"),
+            {
+                family: "Oxanium",
+                weight: "500",
+            },
+        );
+
+        Canvas.registerFont(
+            path.join(__dirname, "../data/fonts/Oxanium-SemiBold.ttf"),
+            {
+                family: "Oxanium",
+                weight: "600",
+            },
         );
 
         // ---------------
@@ -216,14 +236,22 @@ module.exports = {
         ctx.restore();
 
         // ---------------
+        // FLAG
+        // ---------------
+        //const codeFlag = "BE"; // TODO : Récupéré valeur
+
+        const resultFlag = undefined; //await drawFlag(ctx, codeFlag, 190, 59, 28, 21); // ou bien 32 × 24 ?
+
+        // ---------------
         // PSEUDO
         // ---------------
+        const xPseudo = resultFlag ? 228 : 190;
         ctx.fillStyle = "#fff";
 
-        pseudo.length > 20
-            ? (ctx.font = "25px Impact")
-            : (ctx.font = "35px Impact");
-        ctx.fillText(pseudo, 190, 80, 370);
+        pseudo.length > 25
+            ? (ctx.font = "600 25px Oxanium") // Impact
+            : (ctx.font = "600 35px Oxanium");
+        ctx.fillText(pseudo, xPseudo, 80, 470);
 
         // ---------------
         // LEVEL
@@ -238,7 +266,7 @@ module.exports = {
         const barHeight = 10;
         const levelText = `Lvl ${level}`;
 
-        ctx.font = "20px Arial";
+        ctx.font = "500 20px Oxanium";
         ctx.fillStyle = "#fff";
         ctx.fillText(levelText, x, 110); // Lvl -> Niveau ??
 
@@ -276,15 +304,17 @@ module.exports = {
 
         ctx.restore();
 
+        // ---------------
         // MONEY
-        ctx.font = "20px Arial";
+        // ---------------
+        ctx.font = "500 20px Oxanium";
         ctx.fillStyle = "#a5b4fc"; // #f1c40f
         ctx.fillText(`${money} ${process.env.MONEY}`, 190, 140);
 
         // ---------------
-        // PLAY
+        // PLAYING
         // ---------------
-        x = 550;
+        x = 550; //550
         const game = member.presence?.activities.find((a) => a.type === 0);
         if (game) {
             const controller = await Canvas.loadImage(
@@ -293,30 +323,11 @@ module.exports = {
                     "../data/img/discord-green-controller.png",
                 ),
             );
-            ctx.drawImage(controller, x, 60, 25, 25); // 50
+            ctx.font = "600 20px Oxanium";
+            ctx.drawImage(controller, x, 90, 25, 25); // 60
             x += 30;
-            ctx.fillText(`${game.name}`, x, 80, 170); // 70
+            ctx.fillText(`${game.name}`, x, 110, 170); // 80
         }
-
-        // -----
-
-        // MONEY + STEAM PLAYTIME
-        // TEST - WORK IN PROGRESS
-        // const boxWidth = 300;
-        // const boxHeight = 70;
-        // const boxX = 450;
-        // const boxY = 130;
-        // x = 450;
-
-        // ctx.strokeStyle = "#00f7ff";
-        // ctx.lineWidth = 2;
-        // ctx.shadowColor = "#00f7ff";
-        // ctx.shadowBlur = 15;
-        // roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 20);
-        // ctx.shadowBlur = 0;
-        // ctx.font = "20px Arial";
-        // ctx.fillStyle = "#fff";
-        // ctx.fillText(`Temps de jeu ${1000}h`, x + 20, boxY + (boxHeight/2));
 
         // ---------------
         // SEPARATOR
@@ -330,15 +341,15 @@ module.exports = {
         ctx.fillRect(50, 199, 700, 1);
 
         // ---------------
-        // "MEDALS" - Meta achievments
+        // "MEDALS" - Meta achievements
         // ---------------
         const trophy = await Canvas.loadImage(
             path.join(__dirname, "../data/img/trophy.png"),
         );
         ctx.drawImage(trophy, 40, 220);
-        ctx.font = "22px Arial";
+        ctx.font = "600 22px Oxanium";
         ctx.fillStyle = "#fff";
-        ctx.fillText(`Achievements`, 70, 240);
+        ctx.fillText(`SUCCÈS`, 70, 240);
 
         x = 40;
         ctx.lineWidth = 2;
@@ -644,5 +655,59 @@ function roundRect(
     }
     if (stroke) {
         ctx.stroke();
+    }
+}
+
+/**
+ * Draw a flag
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {String} countryCode The ISO 3166-1-alpha-2 code of a country
+ * @param {Number} x The bottom left x coordinate
+ * @param {Number} y The bottom left y coordinate
+ * @param {Number} width The width of the flag
+ * @param {Number} height The height of the flag
+ * @returns True if the flag was successfully drawn, false otherwise
+ */
+async function drawFlag(ctx, countryCode, x, y, width, height) {
+    const code = countryCode.toLowerCase();
+
+    const svgPath = path.join(
+        __dirname,
+        `../node_modules/flag-icons/flags/4x3/${code}.svg`,
+    );
+
+    try {
+        const pngBuffer = await sharp(svgPath)
+            .resize(width, height)
+            .png()
+            .toBuffer();
+
+        const flag = await Canvas.loadImage(pngBuffer);
+
+        ctx.save();
+
+        // Shadow
+        ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 2;
+
+        // Coins arrondis
+        const radius = 5;
+
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, radius, false, true);
+        ctx.clip();
+
+        ctx.drawImage(flag, x, y, width, height);
+
+        ctx.restore();
+
+        return true;
+    } catch (error) {
+        logger.error(`Impossible de charger le drapeau "${code}"`);
+        logger.error(error);
+
+        return false;
     }
 }
