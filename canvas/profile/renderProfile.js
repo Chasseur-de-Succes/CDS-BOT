@@ -1,5 +1,8 @@
 const themes = require("./themes");
-const { getAchievementRarity, getAdventAchievementRarity } = require("./achievementUtils");
+const {
+    getAchievementRarity,
+    getAdventAchievementRarity,
+} = require("./achievementUtils");
 
 const Canvas = require("canvas");
 const sharp = require("sharp");
@@ -54,7 +57,12 @@ async function renderProfile(data, themeName = "default") {
     ctx.fillStyle = theme.background.color;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    const bgGradient = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, HEIGHT_HEADER);
+    const bgGradient = ctx.createLinearGradient(
+        0,
+        0,
+        CANVAS_WIDTH,
+        HEIGHT_HEADER,
+    );
     bgGradient.addColorStop(0, theme.background.headerGradient[0]);
     bgGradient.addColorStop(0.5, theme.background.headerGradient[1]);
     bgGradient.addColorStop(1, theme.background.headerGradient[2]);
@@ -124,7 +132,8 @@ async function renderProfile(data, themeName = "default") {
     // FLAG
     // ---------------
     let hasFlag = false;
-    if (data.codeFlag) { // undefined si pas de drapeau
+    if (data.codeFlag) {
+        // undefined si pas de drapeau
         hasFlag = await drawFlag(ctx, data.codeFlag, 190, 59, 28, 21); // ou bien 32 × 24 ?
     }
 
@@ -175,16 +184,7 @@ async function renderProfile(data, themeName = "default") {
 
         ctx.fillStyle = xpGradient;
 
-        roundRect(
-            ctx,
-            barX,
-            barY,
-            progressWidth,
-            barHeight,
-            5,
-            true,
-            false,
-        );
+        roundRect(ctx, barX, barY, progressWidth, barHeight, 5, true, false);
     }
 
     ctx.restore();
@@ -203,10 +203,7 @@ async function renderProfile(data, themeName = "default") {
     const game = data.game;
     if (game) {
         const controller = await Canvas.loadImage(
-            path.join(
-                __dirname,
-                "../../data/img/discord-green-controller.png",
-            ),
+            path.join(__dirname, "../../data/img/discord-green-controller.png"),
         );
         ctx.font = "600 20px Oxanium";
         ctx.drawImage(controller, x, 90, 25, 25);
@@ -285,7 +282,7 @@ async function renderProfile(data, themeName = "default") {
             achievement.progressValue,
             achievement.thresholds,
             achievement.filename,
-            theme
+            theme,
         );
         positionXY.crtX += SPACING_ACHIEVEMENTS;
     }
@@ -330,7 +327,7 @@ async function renderProfile(data, themeName = "default") {
             filename,
             positionXY.crtX,
             positionXY.crtY,
-            true
+            true,
         );
     }
 
@@ -363,7 +360,14 @@ async function renderProfile(data, themeName = "default") {
  * @param {Number} crtY current position Y
  * @param {Boolean} [event = false] if event achievement
  */
-async function addAchievement(ctx, colorFill, filename, crtX, crtY, event = false) {
+async function addAchievement(
+    ctx,
+    colorFill,
+    filename,
+    crtX,
+    crtY,
+    event = false,
+) {
     // Shadow
     ctx.globalAlpha = 0.5;
     ctx.fillStyle = colorFill;
@@ -376,13 +380,10 @@ async function addAchievement(ctx, colorFill, filename, crtX, crtY, event = fals
     // Achievement
     const achievementPath = event
         ? path.join(
-            __dirname,
-            `../../data/img/achievements/event/${filename}.png`,
-        )
-        : path.join(
-            __dirname,
-            `../../data/img/achievements/${filename}.png`,
-        );
+              __dirname,
+              `../../data/img/achievements/event/${filename}.png`,
+          )
+        : path.join(__dirname, `../../data/img/achievements/${filename}.png`);
 
     const achievement = await Canvas.loadImage(achievementPath);
     ctx.drawImage(achievement, crtX + 5, crtY, 50, 50);
@@ -390,14 +391,21 @@ async function addAchievement(ctx, colorFill, filename, crtX, crtY, event = fals
 
 /**
  * Add achievements by rarity
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} ctx
  * @param {*} positionXY current position X & Y
  * @param {Number} progressValue progress value of stats user
  * @param {*} thresholds thresholds for the different rarity levels of achievements
  * @param {String} baseFilename filename for the achievement
  * @param {String} theme name of the theme
  */
-async function addAchievementByRarity(ctx, positionXY, progressValue, thresholds, baseFilename, theme) {
+async function addAchievementByRarity(
+    ctx,
+    positionXY,
+    progressValue,
+    thresholds,
+    baseFilename,
+    theme,
+) {
     const rarity = getAchievementRarity(progressValue, ...thresholds);
 
     const colorFill = {
@@ -408,7 +416,10 @@ async function addAchievementByRarity(ctx, positionXY, progressValue, thresholds
         locked: theme.medals.achievement.locked,
     }[rarity];
 
-    const filename = rarity === "locked" ? "locked" : baseFilename + ACHIEVEMENT_RARITY_SUFFIX[rarity];
+    const filename =
+        rarity === "locked"
+            ? "locked"
+            : baseFilename + ACHIEVEMENT_RARITY_SUFFIX[rarity];
 
     addAchievement(ctx, colorFill, filename, positionXY.crtX, positionXY.crtY);
 }

@@ -109,7 +109,7 @@ module.exports = {
 
         const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
 
-        const codeFlag = undefined // todo pour après migration bdd
+        const codeFlag = undefined; // todo pour après migration bdd
 
         // create image
         const dataCanvas = {
@@ -126,7 +126,7 @@ module.exports = {
             dbUser, // temporaire (rework des succès nécessaire)
         };
 
-        const image = await renderProfile(dataCanvas, 'default');
+        const image = await renderProfile(dataCanvas, "default");
 
         const file = new AttachmentBuilder(image, {
             name: `profile_${pseudo}.png`,
@@ -138,5 +138,5 @@ module.exports = {
 
         // Send message
         await interaction.editReply({ embeds: [embed], files: [file] });
-    }
-}
+    },
+};

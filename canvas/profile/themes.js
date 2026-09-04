@@ -8,22 +8,15 @@ const themes = {
                 "#1e1b4b", // #1e1e3f
             ],
         },
-        
+
         avatar: {
-            gradient: [
-                "#9594db",
-                "#c084fc",
-                "#6366f1"
-            ],
+            gradient: ["#9594db", "#c084fc", "#6366f1"],
             glow: "#9594db",
         },
 
         xpBar: {
             background: "#111827",
-            fillGradient: [
-                "#818cf8",
-                "#c084fc",
-            ],
+            fillGradient: ["#818cf8", "#c084fc"],
         },
 
         text: {
@@ -31,11 +24,7 @@ const themes = {
             secondary: "#a5b4fc",
         },
 
-        separator: [
-            "transparent",
-            "#6366f1",
-            "transparent",
-        ],
+        separator: ["transparent", "#6366f1", "transparent"],
 
         medals: {
             title: "#ffffff",

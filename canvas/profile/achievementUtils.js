@@ -21,7 +21,7 @@ function getAdventAchievementRarity(indexUser) {
     return "bronze";
 }
 
-module.exports = { 
+module.exports = {
     getAchievementRarity,
     getAdventAchievementRarity,
 };
