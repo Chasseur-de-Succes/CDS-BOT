@@ -400,7 +400,18 @@
                 "Sqweeb a fini un jeu à plus de 5 €. Miracle : le Boss récupère +1 PV.",
                 "Cyborg a fini un jeu sans rager. Impossible… le Boss trinque avec lui et récupère +1 PV.",
                 "Un stalker avait trop de temps libre : il vient de finir un jeu. +1 PV pour le Boss.",
-                "Un stalker a touché de l’herbe… puis a fini un jeu. +1 PV pour le Boss."
+                "Un stalker a touché de l’herbe… puis a fini un jeu. +1 PV pour le Boss.",
+                "Une anomalie dans la tour a été détectée : un stalker a terminé un jeu. Le Boss absorbe l’énergie (+1 PV).",
+                "Le Boss a reçu un colis : “100% complété par un stalker”. Contenu : +1 PV.",
+                "La tour a tenté de cacher l’information… mais oui : un stalker a encore fini un jeu. +1 PV.",
+                "Le Boss vient de recevoir une notification : “Stalker – 100% terminé”. Il sourit… +1 PV.",
+                "Une ligne de code inconnue est apparue : boss.hp += 1 // stalker_100_percent.",
+                "Le Boss remercie chaleureusement le département “Stalkers trop efficaces”. +1 PV",
+                "Une énergie étrange traverse la tour… ah non, c’est juste un stalker qui a fini un jeu. +1 PV.",
+                "Un succès caché vient d’être débloqué : Soigneur de Boss involontaire. Récompense : +1 PV.",
+                "Un stalker a ouvert un coffre… You obtained: Boss Healing. +1 PV.",
+                "Un stalker a trouvé un médikit. Le Boss passe avant : +1 PV.",
+                "Un stalker a activé un levier clairement marqué “ne pas toucher”. Le Boss récupère +1 PV."
             ]
         }
     },

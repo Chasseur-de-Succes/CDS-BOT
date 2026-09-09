@@ -5,25 +5,47 @@ const {
     ButtonStyle,
 } = require("discord.js");
 const { CRIMSON } = require("../../../../data/colors.json");
+const { ObservationRepository } = require("../../../../repositories");
+
+async function addObservationFields(embed, observations, currentPage, pageSize, client) {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, observations.length);
+
+    embed.setFields([]);
+    for (const observation of observations.slice(startIndex, endIndex)) {
+        const timestamp = Math.floor(observation.date.getTime() / 1000);
+        let reporter;
+        try {
+            const fetched = await client.users.fetch(observation.reporterId);
+            reporter = fetched.toString();
+        } catch {
+            reporter = `Utilisateur inconnu (\`${observation.userId}\`)`;
+        }
+
+        embed.addFields({
+            name: `🔸 ID: ${observation.id}`,
+            value: `${observation.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
+        });
+    }
+}
 
 async function history(interaction, options) {
-    const userId = options.get("user")?.value;
+    const user = options.get("user")?.user;
     const client = interaction.client;
     const EMBED_FIELD_LIMIT = 5; // Limite par Discord de 25 !
     let currentPage = 1;
 
     await interaction.deferReply();
 
-    const user = await client.users.fetch(userId);
-    const userList = await client.getUserObservations(userId);
-    const nbPages = Math.ceil(userList.length / EMBED_FIELD_LIMIT);
+    const userList = await ObservationRepository.findByUserId(user.id);
+    const nbPages = Math.max(Math.ceil(userList.length / EMBED_FIELD_LIMIT), 1);
 
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
         .setTitle(`🕵️ Historique des notes d'observation de ${user.displayName}`)
         .setDescription(`${user}`)
         .setFooter({
-            text: `Page ${currentPage}/${nbPages == 0 ? 1 : nbPages}`,
+            text: `Page ${currentPage}/${nbPages}`,
         })
         .setTimestamp();
 
@@ -33,28 +55,13 @@ async function history(interaction, options) {
             value: `\u200B`,
         });
     } else {
-        let startIndex = (currentPage - 1) * EMBED_FIELD_LIMIT;
-        let endIndex = Math.min(
-            startIndex + EMBED_FIELD_LIMIT,
-            userList.length,
+        await addObservationFields(
+            embed,
+            userList,
+            currentPage,
+            EMBED_FIELD_LIMIT,
+            client,
         );
-        for (let i = startIndex; i < endIndex; i++) {
-            const timestamp = Math.floor(userList[i].date.getTime() / 1000);
-            let reporter;
-            try {
-                const fetched = await client.users.fetch(
-                    userList[i].reporterId,
-                );
-                reporter = fetched.toString();
-            } catch {
-                reporter = `Utilisateur inconnu (\`${userList[i].userId}\`)`;
-            }
-
-            embed.addFields({
-                name: `🔸 ID: ${userList[i]._id}`,
-                value: `${userList[i].reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
-            });
-        }
     }
 
     let row = new ActionRowBuilder().addComponents(
@@ -90,26 +97,21 @@ async function history(interaction, options) {
             currentPage++;
         }
 
-        startIndex = (currentPage - 1) * EMBED_FIELD_LIMIT;
-        endIndex = Math.min(startIndex + EMBED_FIELD_LIMIT, userList.length);
-        //embed = new EmbedBuilder(embed.data);
-        embed.setFields([]); // reset Fields
-        for (let i = startIndex; i < endIndex; i++) {
-            const timestamp = Math.floor(userList[i].date.getTime() / 1000);
-            let reporter;
-            try {
-                const fetched = await client.users.fetch(
-                    userList[i].reporterId,
-                );
-                reporter = fetched.toString();
-            } catch {
-                reporter = `Utilisateur inconnu (\`${userList[i].userId}\`)`;
-            }
-
-            embed.addFields({
-                name: `🔸 ID: ${userList[i]._id}`,
-                value: `${userList[i].reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
-            });
+        if (userList.length === 0) {
+            embed.setFields([
+                {
+                    name: `😎 Aucune note d'observation.`,
+                    value: `\u200B`,
+                },
+            ]);
+        } else {
+            await addObservationFields(
+                embed,
+                userList,
+                currentPage,
+                EMBED_FIELD_LIMIT,
+                client,
+            );
         }
 
         embed.setFooter({ text: `Page ${currentPage}/${nbPages}` });

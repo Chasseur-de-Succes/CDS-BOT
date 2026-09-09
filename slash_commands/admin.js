@@ -158,7 +158,7 @@ module.exports = {
                         .setDescription(
                             "Supprimer une note d'observation pour l'utilisateur mentionné.",
                         )
-                        .addStringOption((option) =>
+                        .addIntegerOption((option) =>
                             option
                                 .setName("id")
                                 .setDescription(

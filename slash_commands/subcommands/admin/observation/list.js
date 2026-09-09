@@ -6,6 +6,23 @@ const {
 } = require("discord.js");
 const { createError } = require("../../../../util/envoiMsg");
 const { CRIMSON } = require("../../../../data/colors.json");
+const { ObservationRepository } = require("../../../../repositories");
+
+async function generateDesc(observations, client) {
+    let desc = `**Nombre total d'utilisateurs : ${observations.length}**\n`;
+    for (let obs in observations) {
+        let user;
+        try {
+            const fetched = await client.users.fetch(obs.userId);
+            user = fetched.toString();
+        } catch {
+            user = `Utilisateur inconnu (\`${obs.userId}\`)`;
+        }
+
+        desc += `\n${user} - ${obs.total} notes`;
+    }
+    return desc;
+}
 
 async function list(interaction, options) {
     let currentPage = options.get("page")?.value || 1;
@@ -14,10 +31,11 @@ async function list(interaction, options) {
 
     await interaction.deferReply();
 
-    const usersList = await client.getAllUsersObservations();
-    const nbPages = Math.ceil(usersList.length / pageSize);
+    const observations = await ObservationRepository.findAllGroupedByUser();
+    console.log(`[DEBUG] observations: ${JSON.stringify(observations)}`);
+    const nbPages = Math.ceil(observations.length / pageSize);
 
-    if (usersList.length === 0) {
+    if (observations.length === 0) {
         const embed = new EmbedBuilder()
             .setColor(CRIMSON)
             .setTitle(
@@ -37,19 +55,8 @@ async function list(interaction, options) {
         });
 
     let startIndex = (currentPage - 1) * pageSize;
-    let endIndex = Math.min(startIndex + pageSize, usersList.length);
-    let desc = `**Nombre total d'utilisateurs : ${usersList.length}**\n`;
-    for (let i = startIndex; i < endIndex; i++) {
-        let user;
-        try {
-            const fetched = await client.users.fetch(usersList[i].userId);
-            user = fetched.toString();
-        } catch {
-            user = `Utilisateur inconnu (\`${usersList[i].userId}\`)`;
-        }
-
-        desc += `\n${user} - ${usersList[i].count} notes`;
-    }
+    let endIndex = Math.min(startIndex + pageSize, observations.length);
+    let desc = await generateDesc(observations, client);
 
     let embed = new EmbedBuilder()
         .setColor(CRIMSON)
@@ -93,19 +100,8 @@ async function list(interaction, options) {
         }
 
         startIndex = (currentPage - 1) * pageSize;
-        endIndex = Math.min(startIndex + pageSize, usersList.length);
-        desc = `**Nombre total d'utilisateurs : ${usersList.length}**\n`;
-        for (let i = startIndex; i < endIndex; i++) {
-            let user;
-            try {
-                const fetched = await client.users.fetch(usersList[i].userId);
-                user = fetched.toString();
-            } catch {
-                user = `Utilisateur inconnu (\`${usersList[i].userId}\`)`;
-            }
-
-            desc += `\n${user} - ${usersList[i].count} notes`;
-        }
+        endIndex = Math.min(startIndex + pageSize, observations.length);
+        desc = generateDesc(observations.slice(startIndex, endIndex), client);
 
         embed.setDescription(desc);
         embed.setFooter({ text: `Page ${currentPage}/${nbPages}` });

@@ -12,7 +12,7 @@ class ObservationRepository extends BaseRepository {
   findByUserId(userId) {
     return this.Model.query()
       .where('userId', userId)
-      .orderBy('createdAt', 'desc');
+      .orderBy('date', 'desc');
   }
 
   /**
@@ -20,18 +20,30 @@ class ObservationRepository extends BaseRepository {
    */
   findRecent(limit = 50) {
     return this.Model.query()
-      .orderBy('createdAt', 'desc')
+      .orderBy('date', 'desc')
       .limit(limit);
+  }
+
+  /**
+   * Retourne toutes les observations, groupé par l'utilisateur et avec le nombre total
+   */
+  findAllGroupedByUser() {
+    return this.Model.query()
+      .select('userId')
+      .count('id as total')
+      .groupBy('userId');
   }
 
   /**
    * Crée une observation
    */
-  createObservation(userId, content) {
-    return this.create({
+  create(userId, reporterId, reason) {
+    logger.info('[DB] Nouvelle note d\'observation créée', userId, reporterId);
+    return super.create({
       userId,
-      content,
-      createdAt: new Date(),
+      reporterId,
+      reason,
+      date: new Date(),
     });
   }
 }

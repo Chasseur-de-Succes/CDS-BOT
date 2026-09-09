@@ -8,6 +8,7 @@ const {
 const { GREEN, DARK_RED } = require("../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
 const { createError } = require("../util/envoiMsg");
+const { UserRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,7 +30,7 @@ module.exports = {
         const client = interaction.client;
         const member = interaction.member;
         const user = interaction.user;
-        const dbUser = await client.getUser(member);
+        const dbUser = await UserRepository.findByDiscordId(member.id);
 
         if (dbUser)
             // Si dans la BDD
@@ -106,11 +107,7 @@ module.exports = {
             await i.deferUpdate();
             await i.editReply({ components: [] });
 
-            await client.createUser({
-                userId: member.id,
-                username: user.tag,
-                steamId: steamId64,
-            });
+            await UserRepository.createWithDefaults(member.id, user.tag, steamId64);
 
             const embed = new EmbedBuilder()
                 .setColor(GREEN)

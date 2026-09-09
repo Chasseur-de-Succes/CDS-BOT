@@ -1,6 +1,6 @@
 const superagent = require("superagent");
 //const { STEAM_API_KEY } = require('../config');
-const { Game } = require("../models");
+const { GameRepository } = require("../repositories");
 const { TAGS } = require("./constants");
 const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
 const { GREEN } = require("../data/colors.json");
@@ -272,6 +272,7 @@ module.exports = (client) => {
      *
      */
     client.fetchGame = async (appId, tag, nameTmp, steamClient) => {
+        logger.info(`.. fetchGame ${appId}`);
         // TODO check error
         const app = await client.getAppDetails(appId);
         // -- recup nom si pas trouvé
@@ -346,8 +347,9 @@ module.exports = (client) => {
         // TODO icon plutot que l'image ? -> recup via API..
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${appId}/header.jpg`;
 
-        const query = { appid: appId };
-        const update = {
+        // on update ou créé le jeu
+        await GameRepository.upsertFromSteam({
+            appid: appId,
             name: gameName,
             type: type,
             iconHash: iconHash,
@@ -356,14 +358,10 @@ module.exports = (client) => {
             hasAchievements: hasAchievements,
             isRemoved: isRemoved,
             achievements: lSucces,
-        };
-
-        // on update ou créé le jeu
-        await Game.findOneAndUpdate(query, update, { upsert: true });
+        });
 
         const msgCustom = `'${type}' trouvé et mis à jour !`;
-
-        //createLogs(client, interaction.guildId, `${gameName}`, `${msgCustom}`, '', GREEN)
+        logger.info(`.. ${gameName} ('${type}') trouvé et mis à jour !`);
 
         const embed = new EmbedBuilder()
             .setColor(GREEN)
@@ -386,7 +384,7 @@ module.exports = (client) => {
                     value: hasAchievements ? CHECK_MARK : CROSS_MARK,
                     inline: true,
                 },
-                // TODO ajouter lien Steam, ASTATS, CME etc
+                // TODO ajouter lien Steam, CME etc
             )
             .setFooter({ text: `par ${tag}` });
 
@@ -415,15 +413,14 @@ module.exports = (client) => {
 
         // - remove appids déjà dans la bdd
         // - recup tous les appids de la bdd
-        const appidsDb = await Game.distinct("appid");
+        const appidsDb = await GameRepository.getAppIds();
         const appsDistinct = apps.filter(
             (item) => !appidsDb.includes(item.appid),
         );
         logger.info(` distinct ${appsDistinct.length}`);
 
         // ne garde que ceux qui n'ont pas de 'type'
-        const noTypeObj = await Game.find({ type: null });
-        const noType = noTypeObj.map((obj) => obj.appid);
+        const noType = await GameRepository.getAppIdsWithoutType();
         const appsNoType = apps.filter((item) => noType.includes(item.appid));
         logger.info(` no type ${appsNoType.length}`);
 
