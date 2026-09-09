@@ -60,6 +60,15 @@ const Knex = require("knex");
 const knexConfig = require("./knexfile");
 const knex = Knex(knexConfig);
 Model.knex(knex);
+// test connexion
+knex.raw("SELECT 1")
+    .then(() => {
+        logger.info("Connexion PostgreSQL OK");
+    })
+    .catch((error) => {
+        logger.error(`Connexion PostgreSQL ${process.env.DATABASE_URL} impossible`, error);
+        process.exit(1);
+    });
 
 // MONGO DB
 client.mongoose.init();
