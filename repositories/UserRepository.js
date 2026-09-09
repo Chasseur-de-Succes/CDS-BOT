@@ -7,6 +7,12 @@ class UserRepository extends BaseRepository {
   }
 
   /**
+   * Trouve un utilisateur par son User Discord
+   */
+  findByDiscordUser(user) {
+    return this.findByDiscordId(user?.id);
+  }
+  /**
    * Trouve un utilisateur par son ID Discord
    */
   findByDiscordId(discordId) {

@@ -33,6 +33,43 @@ class GroupRepository extends BaseRepository {
   }
 
   /**
+   * Trouve les groupes d'un utilisateur ayant un événement sur une journée donnée.
+   * Équivalent PostgreSQL de:
+   * Group.where("dateEvent").gte(start).lte(end).where("members").in(user).populate("game")
+   */
+  findByEventDateAndMember(date, dbUser, guildId = null) {
+    const { GroupUser } = require('../models/objection');
+    const userId = typeof dbUser === 'object' ? dbUser?.id : dbUser;
+
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    return this.Model.query()
+      .withGraphFetched('gameInfo')
+      .modify((qb) => {
+        if (guildId) {
+          qb.where('guildId', guildId);
+        }
+      })
+      .whereExists(
+        GroupUser.query()
+          .select(1)
+          .whereColumn('GroupUser.groupid', 'Group.id')
+          .where('GroupUser.userid', userId),
+      )
+      .whereRaw(
+        `EXISTS (
+          SELECT 1
+          FROM unnest("Group"."dates") AS date_event
+          WHERE date_event >= ? AND date_event <= ?
+        )`,
+        [dayStart, dayEnd],
+      );
+  }
+
+  /**
    * Crée un nouveau groupe
    */
   createGroup(data) {

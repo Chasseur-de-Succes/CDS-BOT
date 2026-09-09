@@ -43,6 +43,7 @@ module.exports = (client) => {
      * @param {string} id Id Discord de l'user
      * @returns undefined si non trouvé, {@link User} sinon
      */
+    // TODO utilisé dans group.js mais faut d'abord migré group
     client.findUserById = async (id) => {
         const data = await User.findOne({ userId: id });
         if (data) {

@@ -15,6 +15,7 @@ const { daysDiff, retryAfter5min, getMonthName } = require("../util");
 
 const SteamUser = require("steam-user");
 const { SALON } = require("../constants");
+const { UserRepository } = require("../../repositories");
 const steamClient = new SteamUser();
 
 module.exports = {
@@ -261,6 +262,7 @@ module.exports = {
                     logger.info(`.. recherche @Helper dans ${guild.name}..`);
 
                     guild.roles
+                        // role Helper dans CDS seulement
                         .fetch("971508881165545544")
                         .then((roleHelper) => {
                             if (roleHelper?.members) {
@@ -269,17 +271,14 @@ module.exports = {
                                     .join(", ");
                                 roleHelper.members.each(async (member) => {
                                     const user = member.user;
-                                    const userDb = await client.getUser(user);
+                                    const userDb = await UserRepository.findByDiscordUser(user);
 
                                     // si dans bdd
                                     if (userDb) {
                                         logger.info(
                                             `.. On est lundi ! On donne 100 point à ${userDb.username}`,
                                         );
-                                        await User.updateOne(
-                                            { userId: user.id },
-                                            { $inc: { money: 100 } },
-                                        );
+                                        await UserRepository.addMoney(user.id, 100)
                                     }
                                 });
 

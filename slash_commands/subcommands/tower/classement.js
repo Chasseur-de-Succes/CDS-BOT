@@ -6,8 +6,6 @@ const classement = async (interaction, options) => {
     // TODO option pour afficher le classement d'un joueur précis ?
     const client = interaction.client;
     const guildId = interaction.guildId;
-    const crtUser = interaction.user;
-    const dbUser = await client.findUserById(crtUser.id);
     const guild = await GuildConfig.findOne({ guildId: guildId });
 
     let season = options.getInteger("saison");

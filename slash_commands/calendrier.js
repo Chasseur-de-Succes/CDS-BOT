@@ -7,8 +7,8 @@ const {
     time, InteractionContextType,
 } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
-const { Group } = require("../models");
 const { TimestampStyles } = require("@discordjs/formatters");
+const { UserRepository, GroupRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,7 +29,7 @@ module.exports = {
         // si aucun argument pour target, on prend l'utilisateur qui a envoyé la commande
         const user = interaction.options.getUser("target") ?? interaction.user;
 
-        const dbUser = await client.findUserById(user.id);
+        const dbUser = await UserRepository.findByDiscordId(user.id);
 
         if (!dbUser) {
             // Si pas dans la BDD
@@ -159,7 +159,7 @@ async function createEmbed(date, guildId, dbUser, username) {
         .addFields(jours);
 }
 
-// cherche les événements d'un utilisateur donnée, sur une période donnée
+// cherche les événements d'un utilisateur donné, sur une période donnée
 // retourne un tableau de field ({name: "..", value: "..}) pour être inséré directement dans l'embed
 async function findEventBetween(lundi, dimanche, guildId, dbUser) {
     const options = {
@@ -182,25 +182,22 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
         date.setDate(date.getDate() + i);
 
         // recup groupes qui ont la date courante
-        const groups = await Group
-            // .where('guildId', guildId)
-            .where("dateEvent")
-            .gte(new Date(date.setHours(0, 0)))
-            .lte(new Date(date.setHours(23, 59)))
-            .where("members")
-            .in(dbUser)
-            .populate("game")
-            .exec();
+        const groups = await GroupRepository.findByEventDateAndMember(
+            date,
+            dbUser,
+            guildId,
+        );
 
         let fieldValue = "◾◾◾";
         for (const group of groups) {
             const {
                 channelId,
-                dateEvent,
-                game: { name: game },
+                dates,
+                gameInfo,
             } = group;
+            const game = gameInfo?.name ?? "Jeu inconnu";
 
-            const found = dateEvent.filter(
+            const found = (dates ?? []).filter(
                 (d) =>
                     date.getDate() === d.getDate() &&
                     date.getDay() === d.getDay(),
