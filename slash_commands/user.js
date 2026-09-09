@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require("discord.js");
 const { VERY_PALE_VIOLET } = require("../data/colors.json");
 const {
     ONLINE_STATUS,
@@ -11,7 +11,7 @@ const { discordTimestamp } = require("../util/discordFormatters");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("user")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Informations sur un utilisateur")
         .addUserOption((option) =>
             option

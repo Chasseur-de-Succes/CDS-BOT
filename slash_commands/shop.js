@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const customItems = require("../data/customShop.json");
 const { Game } = require("../models");
 const { escapeRegExp } = require("../util/util");
@@ -8,7 +8,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("shop")
         .setDescription("Affiche la boutique")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addSubcommand((sub) =>
             sub.setName("list").setDescription("Liste les jeux achetable"),
         )

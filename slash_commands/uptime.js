@@ -1,11 +1,11 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require("discord.js");
 const { CORNFLOWER_BLUE } = require("../data/colors.json");
 const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("uptime")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Depuis quand le bot est up ?"),
     async execute(interaction) {
         const client = interaction.client;

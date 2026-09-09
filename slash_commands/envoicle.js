@@ -2,7 +2,7 @@ const {
     EmbedBuilder,
     SlashCommandBuilder,
     StringSelectMenuBuilder,
-    ActionRowBuilder,
+    ActionRowBuilder, InteractionContextType,
 } = require("discord.js");
 const { YELLOW } = require("../data/colors.json");
 const { createError, feedBotMetaAch } = require("../util/envoiMsg");
@@ -14,7 +14,10 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("envoi-cle")
         .setDescription(`Envoi ta clé steam à l'acheteur`)
-        .setDMPermission(true)
+        .setContexts([
+            InteractionContextType.Guild,
+            InteractionContextType.BotDM
+        ])
         .addStringOption((option) =>
             option
                 .setRequired(true)

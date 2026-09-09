@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const {
@@ -23,7 +23,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("admin")
         .setDescription("Gestion des différents paramètres du bot")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addSubcommandGroup((subcommandGroup) =>
             subcommandGroup
                 .setName("tower")

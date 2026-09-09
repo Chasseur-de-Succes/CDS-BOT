@@ -1,11 +1,11 @@
-const { version, EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { version, EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { GREEN } = require("../data/colors.json");
 const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("info")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Informations sur le bot"),
 
     async execute(interaction) {

@@ -2,7 +2,7 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
     AttachmentBuilder,
-    ActivityType,
+    ActivityType, InteractionContextType,
 } = require("discord.js");
 const succes = require("../data/achievements.json");
 const {
@@ -22,7 +22,7 @@ const { getJsonValue } = require("../util/util");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("profile")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Affiche le profil d'un utilisateur.")
         .addUserOption((option) =>
             option

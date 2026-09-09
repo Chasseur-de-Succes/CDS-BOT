@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { escapeRegExp } = require("../util/util");
 const {
     create,
@@ -15,7 +15,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("group")
         .setDescription("Gestion des groupes")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addSubcommand((sub) =>
             sub
                 .setName("create")

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const {
     inscription,
     validerJeu,
@@ -12,7 +12,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("tower")
         .setDescription("Événement communautaire lié à une tour")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addSubcommand((sub) =>
             sub
                 .setName("inscription")

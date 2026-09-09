@@ -1,11 +1,11 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { GREEN } = require("../data/colors.json");
 const { createError } = require("../util/envoiMsg");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("money")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription(`Combien j'ai de ${process.env.MONEY} ?`)
         .addUserOption((option) =>
             option

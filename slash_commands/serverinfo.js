@@ -1,11 +1,11 @@
 const { NIGHT } = require("../data/colors.json");
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require("discord.js");
 const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("serverinfo")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Informations sur le serveur"),
     async execute(interaction) {
         const client = interaction.client;

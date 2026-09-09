@@ -3,7 +3,7 @@ const {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
-    ButtonBuilder,
+    ButtonBuilder, InteractionContextType,
 } = require("discord.js");
 const { GREEN, DARK_RED } = require("../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
@@ -14,7 +14,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("register")
         .setDescription(`Création d'un compte CDS`)
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addStringOption((option) =>
             option
                 .setName("id-steam-64")

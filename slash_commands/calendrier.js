@@ -4,7 +4,7 @@ const {
     ButtonBuilder,
     ButtonStyle,
     ActionRowBuilder,
-    time,
+    time, InteractionContextType,
 } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { Group } = require("../models");
@@ -14,7 +14,10 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("calendrier")
         .setDescription("Affiche le calendrier des prochains événements")
-        .setDMPermission(true)
+        .setContexts([
+            InteractionContextType.Guild,
+            InteractionContextType.BotDM
+        ])
         .addUserOption((option) =>
             option
                 .setName("target")
