@@ -32,62 +32,50 @@ const BAREME_MONEY = {
     MSG: 5,
 };
 
-/* const CHANNEL = {
-    WELCOME: 'Salon de bienvenue', // channel de bienvenue, affiche les nouveaux arrivants
-    ROLE: 'Salon choix de rôle (cf /role)', // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
-    LIST_GROUP: 'Salon qui liste les groupes', // channel qui affichera tous les groupes
-    HALL_HEROS: 'Salon du hall des héros', // channel eponyme (pour stat)
-    HALL_ZEROS: 'Salon du hall des zéros', // channel eponyme (pour stat)
-    LOGS: 'Salon de logs (admin)' // channel de logs (discord: join, leave, modification surnom,...)
-} */
 const CHANNEL = [
     {
         name: "Salon de bienvenue",
-        value: "welcome", // channel de bienvenue, affiche les nouveaux arrivants
-    },
-    {
-        name: "Salon choix de rôle (cf /role)",
-        value: "role", // channel où l'on peut choisir ses rôles, ne doit contenir qu'un seul message : celui du bot qui est créé automatiquement
+        value: "Welcome", // channel de bienvenue, affiche les nouveaux arrivants
     },
     {
         name: "Salon qui liste les groupes",
-        value: "list_group", // channel qui affichera tous les groupes
+        value: "ListGroup", // channel qui affichera tous les groupes
     },
     {
         name: "Salon du hall des héros",
-        value: "hall_heros", // channel eponyme (pour stat)
+        value: "Heros", // channel eponyme (pour stat)
     },
     {
         name: "Salon du hall des zéros",
-        value: "hall_zeros", // channel eponyme (pour stat)
+        value: "Zeros", // channel eponyme (pour stat)
     },
     {
         name: "Salon de logs (admin)",
-        value: "logs", // channel de logs (discord: join, leave, modification surnom,...)
+        value: "Logs", // channel de logs (discord: join, leave, modification surnom,...)
     },
     {
         name: "Catégorie des discussions de groupe",
-        value: "cat_discussion_groupe",
+        value: "CatGroup",
     },
     {
         name: "Catégorie des discussions de groupe 2",
-        value: "cat_discussion_groupe_2",
+        value: "CatGroup2",
     },
     {
         name: "Feed bot 🤖",
-        value: "feed_bot",
+        value: "Feed",
     },
     {
         name: "Feed achievement 🆕",
-        value: "feed_achievement",
+        value: "FeedAchievement",
     },
     {
         name: "Salon de tickets",
-        value: "tickets",
+        value: "Tickets",
     },
     {
         name: "Événement Tower",
-        value: "event_tower",
+        value: "EventTower",
     },
 ];
 const SALON = {

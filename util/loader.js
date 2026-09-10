@@ -25,6 +25,7 @@ const { SALON } = require("./constants");
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { GuildConfigRepository } = require("../repositories");
 
 // Charge les commandes
 const loadSlashCommands = (client, dir = "./slash_commands/") => {
@@ -95,10 +96,8 @@ const loadReactionGroup = async (client) => {
 
     // recupere TOUS les messages du channel de listage des groupes
     for (const msgDb of lMsgGrp) {
-        const idListGroup = await client.getGuildChannel(
-            msgDb.guildId,
-            SALON.LIST_GROUP,
-        );
+        const guildDb = await GuildConfigRepository.findByGuildId(msgDb.guildId);
+        const idListGroup = guildDb.channelListGroup;
 
         if (idListGroup) {
             // recup msg sur bon channel
@@ -317,13 +316,9 @@ const loadVocalCreator = async (client) => {
     // pour chaque guild, on check si le vocal "créer un chan vocal" est présent
     for (const guild of client.guilds.cache.values()) {
         // si le chan vocal n'existe pas, on le créé + save
-        const config = await GuildConfig.findOne({ guildId: guild.id });
+        const config = await GuildConfigRepository.findByGuildId(guild.id);
 
-        if (!config.channels || !config.channels.create_vocal) {
-            if (!config.channels) {
-                config.channels = {};
-            }
-
+        if (!config.channelCreateVocal) {
             // créer un voice channel
             // TODO parent ?
             const voiceChannel = await guild.channels.create({
@@ -331,15 +326,10 @@ const loadVocalCreator = async (client) => {
                 type: ChannelType.GuildVoice,
             });
 
-            // on ajoute le salon vocal dans la config
-            config.channels.create_vocal = voiceChannel.id;
-
-            // on save
-            await config.save();
-
+            // on save le salon vocal
+            await GuildConfigRepository.upsert(guild.id, { channelCreateVocal: voiceChannel.id });
             logger.warn(`.. salon vocal 'créateur' créé`);
         } else {
-            // TODO test si le salon existe bien
             // s'il n'existe pas, on supprime la valeur dans la bdd
         }
     }

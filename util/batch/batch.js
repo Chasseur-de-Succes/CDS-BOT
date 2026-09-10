@@ -1,22 +1,18 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
-const { WEBHOOK } = require("../../util/constants");
 const {
     GREEN,
     VERY_PALE_BLUE,
-    DARK_RED,
-    ORANGE,
 } = require("../../data/colors.json");
 const moment = require("moment-timezone");
 const { User, Game, GuildConfig } = require("../../models");
 const { createLogs } = require("../envoiMsg");
-const { EmbedBuilder, WebhookClient } = require("discord.js");
-const { daysDiff, retryAfter5min, getMonthName } = require("../util");
+const { EmbedBuilder } = require("discord.js");
+const { daysDiff, getMonthName } = require("../util");
 
 const SteamUser = require("steam-user");
 const { SALON } = require("../constants");
 const { UserRepository } = require("../../repositories");
-const steamClient = new SteamUser();
 
 module.exports = {
     /**
@@ -579,191 +575,7 @@ module.exports = {
             logger.error("Impossible de créer le job monthly_clue :", err);
         }
     },
-
-    async loadSteamPics(client) {
-        logger.info(".. init PICS");
-        steamClient.setOption("enablePicsCache", true);
-        //steamClient.setOption('changelistUpdateInterval', 1000)
-        steamClient.logOn(); // Log onto Steam anonymously
-
-        steamClient.on("changelist", async (changenumber, apps) => {
-            // console.log(' --- changelist ', changenumber);
-            console.log(`-- appId changes ${apps.join(", ")}`);
-            for (const appid of apps.filter(
-                (value, index, array) => array.indexOf(value) === index,
-            )) {
-                // console.log('--- changelist ', appid);
-                // - recup jeu BDD
-                const game = await Game.findOne({ appid: appid });
-
-                if (game) {
-                    // - getProductInfo
-                    const result = await steamClient.getProductInfo(
-                        [appid],
-                        [],
-                        true,
-                    ); // Passing true as the third argument automatically requests access tokens, which are required for some apps
-                    const appinfo = result.apps[appid].appinfo;
-
-                    // si update est un jeu ou demo ?
-                    if (
-                        appinfo?.common?.type === "Game" ||
-                        appinfo?.common?.type === "Demo"
-                    ) {
-                        // recup icon
-                        await recupIcon(steamClient, appid, game);
-
-                        // - recup achievements (si présent)
-                        recupAchievements(client, game);
-                    }
-                } else {
-                    createNewGame(client, steamClient, appid);
-                }
-            }
-            // console.log('--------');
-        });
-        steamClient.on("appUpdate", async (appid, data) => {
-            logger.info("-- UPDATE ", appid);
-            // console.log(data);
-
-            // si update est un jeu ou demo ?
-            if (
-                data?.appinfo?.common?.type === "Game" ||
-                data?.appinfo?.common?.type === "Demo"
-            ) {
-                // - recup jeu BDD
-                // on le créé seulement,
-                const game = await Game.findOne({ appid: appid });
-                if (game) {
-                    // recup icon
-                    // await recupIcon(steamClient, appid, game);
-                    // // - recup achievements (si présent)
-                    // recupAchievements(client, game);
-                } else {
-                    createNewGame(client, steamClient, appid);
-                }
-            }
-        });
-    },
 };
-
-async function recupIcon(steamClient, appId, game) {
-    // recup icon
-    // Passing true as the third argument automatically requests access tokens, which are required for some apps
-    const result = await steamClient.getProductInfo([appId], [], true);
-    // if (result.apps[appId].appinfo?.common?.clienticon)
-    // game.iconHash = result.apps[appId].appinfo.common.clienticon;
-    // else
-    if (result.apps[appId].appinfo?.common?.icon) {
-        game.iconHash = result.apps[appId].appinfo.common.icon;
-    }
-
-    await game.save();
-}
-
-function recupAchievements(client, game) {
-    // - si trop de requete (error 429) => timeout 5min, et on recommence
-    retryAfter5min(async () => {
-        const resp = await client.getSchemaForGame(game.appid);
-
-        // si jeu a des succès
-        if (resp.availableGameStats?.achievements) {
-            const achievementsDb = game.achievements;
-            const achievements = resp.availableGameStats.achievements;
-
-            // - ajout & save succes dans Game
-            for (const el of achivements) {
-                el.apiName = el.name;
-                el.name = undefined;
-                el.defaultvalue = undefined;
-                el.hidden = undefined;
-            }
-
-            // - comparer succès
-            // - ajouté (difference entre PICS et DB)
-            const deleted = achievementsDb.filter(
-                ({ apiName: api1 }) =>
-                    !achievements.some(({ apiName: api2 }) => api2 === api1),
-            );
-            // - supprimé (difference entre DB et PICS)
-            const added = achievements.filter(
-                ({ apiName: api1 }) =>
-                    !achievementsDb.some(({ apiName: api2 }) => api2 === api1),
-            );
-
-            let deletedStr = deleted
-                .map((a) => `**${a.displayName}** : ${a.description ?? ""}`)
-                .join("\n");
-            // - limit 4096 caracteres
-            if (deletedStr.length > 4000) {
-                deletedStr = `${deletedStr.substring(0, 4000)}...`;
-            }
-            let addedStr = added
-                .map((a) => `**${a.displayName}** : ${a.description ?? ""}`)
-                .join("\n");
-            // - limit 4096 caracteres
-            if (addedStr.length > 4000) {
-                addedStr = `${addedStr.substring(0, 4000)}...`;
-            }
-
-            const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
-            const links = createGameLinks(game.appid);
-
-            // - embed info jeu
-            const embeds = [];
-            const jeuEmbed = new EmbedBuilder()
-                .setTitle(`${game.name}`)
-                .addFields({ name: "Liens", value: links })
-                .setThumbnail(gameUrlHeader)
-                .setColor(0x00ffff)
-                .setTimestamp();
-            embeds.push(jeuEmbed);
-
-            // - embed deleted / added succès
-            const deletedEmbed = new EmbedBuilder()
-                .setTitle("❌ Supprimé")
-                .setColor(DARK_RED);
-            // - nouveau ? (ssi 0 succes dans game)
-            const newSucces = game.achievements.length === 0;
-            const addedEmbed = new EmbedBuilder()
-                .setTitle(newSucces ? "✅ Nouveau" : "➕ Ajouté")
-                .setColor(newSucces ? ORANGE : GREEN);
-
-            if (deleted.length > 0) {
-                deletedEmbed.setDescription(`${deleted.length} succès supprimé${
-                    deleted.length > 1 ? "s" : ""
-                }
-                    ${deletedStr}`);
-                embeds.push(deletedEmbed);
-            }
-            if (added.length > 0) {
-                if (newSucces) {
-                    addedEmbed.setDescription(
-                        `**${added.length}** nouveau${
-                            added.length > 1 ? "x" : ""
-                        } succès !`,
-                    );
-                } else {
-                    addedEmbed.setDescription(`${added.length} nouveau${
-                        added.length > 1 ? "x" : ""
-                    } succès (${achievements.length} au total)
-                        ${addedStr}`);
-                }
-                embeds.push(addedEmbed);
-            }
-
-            if (deleted.length > 0 || added.length > 0) {
-                sendToWebhook(client, game, embeds);
-            }
-
-            // et on save
-            game.achievements = achievements;
-            await game.save();
-        } else {
-            // TODO si genre tout supprimer ? tester si game a des succes du coup
-        }
-    });
-}
 
 function createGameLinks(appid) {
     const steamLink = `[Steam](https://steamcommunity.com/app/${appid})`;
@@ -773,72 +585,3 @@ function createGameLinks(appid) {
 
     return `${steamLink} | ${astatLink} | ${shLink} | ${cmeLink}`;
 }
-
-function createNewGame(client, steamClient, appid) {
-    logger.info(` ** ${appid} pas dans bdd, on créé`);
-
-    retryAfter5min(async () => {
-        await client.fetchGame(appid, "system", "unknown", steamClient);
-
-        // si pas de succès, balek
-        if (game.achievements.length !== 0) {
-            // - recup GameDB récemment créé
-            const game = await Game.findOne({ appid: appid });
-            let gamename = game.name;
-
-            // - limit 80 caracteres
-            if (gamename.length > 80) {
-                gamename = `${gamename.substring(0, 76)}...`;
-            }
-
-            const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
-
-            const links = createGameLinks(game.appid);
-
-            const jeuEmbed = new EmbedBuilder()
-                .setTitle(`🆕 ${gamename}`)
-                .addFields({ name: "Liens", value: links })
-                .setThumbnail(gameUrlHeader)
-                .setColor(0x00ffff)
-                .setTimestamp();
-
-            const addedEmbed = new EmbedBuilder()
-                .setTitle(`avec ${game.achievements.length} succès`)
-                .setColor(0x00ffff);
-
-            sendToWebhook(client, game, [jeuEmbed, addedEmbed]);
-        }
-    });
-}
-
-async function sendToWebhook(client, game, embeds) {
-    for (const guild of client.guilds.cache.values()) {
-        const webhookUrl = await client.getGuildWebhook(
-            guild.id,
-            WEBHOOK.FEED_ACHIEVEMENT,
-        );
-
-        if (webhookUrl) {
-            const webhookClient = new WebhookClient({ url: webhookUrl });
-
-            let avatarUrl;
-            if (game.iconHash) {
-                // avatarURL = `http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.ico`;
-                avatarUrl = `https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/${game.appid}/${game.iconHash}.jpg`;
-            } else {
-                avatarUrl =
-                    "https://avatars.cloudflare.steamstatic.com/cc288975bf62c132f5132bc3452960f3341b665c_full.jpg";
-            }
-
-            await webhookClient.send({
-                username: game.name,
-                avatarURL: avatarUrl,
-                embeds: embeds,
-            });
-        } else {
-            logger.warn("URL Webhook non défini !");
-        }
-    }
-}
-
-// exports.createRappelJob = createRappelJob

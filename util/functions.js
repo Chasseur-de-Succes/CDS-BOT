@@ -501,11 +501,6 @@ module.exports = (client) => {
         return guildDb?.channels[salon];
     };
 
-    client.getGuildWebhook = async (id, hook) => {
-        const guildDb = await client.findGuildById(id);
-        return guildDb?.webhook[hook];
-    };
-
     // config profile
     client.getOrInitProfile = async (user) => {
         const configProfile = user.profile;

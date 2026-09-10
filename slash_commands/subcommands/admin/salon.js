@@ -1,10 +1,10 @@
 const { EmbedBuilder } = require("discord.js");
 const { createLogs } = require("../../../util/envoiMsg");
-const { GuildConfig } = require("../../../models");
 const { GREEN } = require("../../../data/colors.json");
+const { GuildConfigRepository } = require("../../../repositories");
 
 const salon = async (interaction, options) => {
-    const nomConfig = options.get("nom_param_salon")?.value;
+    let nomConfig = interaction.options.get("nom_param_salon")?.value;
     const salon = options.get("salon");
     const hook = options.get("hook")?.value;
 
@@ -16,12 +16,12 @@ const salon = async (interaction, options) => {
 
     if (salon) {
         msgCustom = `${salon.channel} est maintenant considéré comme '${nomConfig}'`;
+        nomConfig = 'channel' + nomConfig;
 
-        await GuildConfig.updateOne(
-            { guildId: guildId },
-            { $set: { [`channels.${nomConfig}`]: salon.value } },
-        );
-        // await client.update(guildDB, { channels: val });
+        await GuildConfigRepository.upsert(guildId, {
+            [nomConfig]: salon.value,
+        });
+
         logger.warn(
             `${user.tag} a effectué la commande admin : /salon ${nomConfig} ${salon.channel.name} `,
         );
@@ -36,10 +36,7 @@ const salon = async (interaction, options) => {
     } else if (hook) {
         msgCustom = `L'URL du Webhook ${nomConfig} a été modifié !`;
 
-        await GuildConfig.updateOne(
-            { guildId: guildId },
-            { $set: { [`webhook.${nomConfig}`]: hook } },
-        );
+        await GuildConfigRepository.upsert(guildId, { webhook: hook });
 
         logger.warn(
             `${user.tag} a effectué la commande admin : /salon ${nomConfig} ${hook} `,
