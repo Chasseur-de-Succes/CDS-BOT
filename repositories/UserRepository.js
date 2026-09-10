@@ -1,5 +1,5 @@
 const BaseRepository = require('./BaseRepository');
-const { User } = require('../models/objection');
+const { User } = require("../models/objection");
 
 class UserRepository extends BaseRepository {
   constructor() {
@@ -99,6 +99,11 @@ class UserRepository extends BaseRepository {
     return this.Model.query()
       .findById(userId)
       .increment('money', amount);
+  }
+  addMoneyLimit(userId, amount) {
+    return this.Model.query()
+      .findById(userId)
+      .increment('moneyLimit', amount);
   }
 
   /**

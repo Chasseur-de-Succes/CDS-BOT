@@ -11,4 +11,5 @@ module.exports = {
   StatsRepository: require('./StatsRepository'),
   GuildConfigRepository: require('./GuildConfigRepository'),
   ObservationRepository: require('./ObservationRepository'),
+  MetaAchRepository: require('./MetaAchievementRepository'),
 };

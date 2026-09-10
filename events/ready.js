@@ -6,6 +6,7 @@ const {
     loadReactionMsg,
     loadVocalCreator,
 } = require("../util/loader");
+const { GuildConfigRepository } = require("../repositories");
 
 module.exports = {
     name: Events.ClientReady,
@@ -35,9 +36,9 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
 
         client.guilds.cache.map(async (g) => {
             const guildId = g.id;
-            const dbGuild = await client.findGuildById(guildId);
+            const dbGuild = await GuildConfigRepository.findByGuildId(guildId);
             if (!dbGuild) {
-                await client.createGuild({
+                await GuildConfigRepository.upsert(guildId, {
                     guildId: guildId,
                 });
             }

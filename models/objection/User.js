@@ -79,7 +79,7 @@ class User extends BaseModel {
                 modelClass: UserMetaAchievementUnlocks,
                 join: {
                     from: "User.id",
-                    to: "UserMetaAchievementUnlocks.userid",
+                    to: "UserMetaAchievementUnlocks.userId",
                 },
             },
         };

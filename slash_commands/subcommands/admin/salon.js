@@ -4,7 +4,7 @@ const { GREEN } = require("../../../data/colors.json");
 const { GuildConfigRepository } = require("../../../repositories");
 
 const salon = async (interaction, options) => {
-    let nomConfig = interaction.options.get("nom_param_salon")?.value;
+    let nomConfig = options.get("nom_param_salon")?.value;
     const salon = options.get("salon");
     const hook = options.get("hook")?.value;
 

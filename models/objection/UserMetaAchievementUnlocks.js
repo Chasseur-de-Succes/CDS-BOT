@@ -2,8 +2,8 @@ const BaseModel = require("./BaseModel");
 
 /**
  * @typedef {Object} UserMetaAchievementUnlocksRow
- * @property {number} userid
- * @property {number} achievementTier
+ * @property {number} userId
+ * @property {number} metaAchievementTierId
  * @property {Date | null} unlockedAt
  */
 
@@ -13,7 +13,7 @@ class UserMetaAchievementUnlocks extends BaseModel {
     }
 
     static get idColumn() {
-        return ["userid", "achievementTier"];
+        return ["userId", "metaAchievementTierId"];
     }
 
     static get relationMappings() {
@@ -25,18 +25,18 @@ class UserMetaAchievementUnlocks extends BaseModel {
                 relation: BaseModel.BelongsToOneRelation,
                 modelClass: User,
                 join: {
-                    from: "UserMetaAchievementUnlocks.userid",
+                    from: "UserMetaAchievementUnlocks.userId",
                     to: "User.id",
                 },
             },
-            achievementTier:     {
+            metaAchievementTier: {
                 relation: BaseModel.BelongsToOneRelation,
                 modelClass: MetaAchievementTiers,
                 join: {
-                    from: "UserMetaAchievementUnlocks.achievementTier",
+                    from: "UserMetaAchievementUnlocks.metaAchievementTierId",
                     to: "MetaAchievementTiers.id",
-                }
-            }
+                },
+            },
         };
     }
 }

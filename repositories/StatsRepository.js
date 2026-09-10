@@ -15,31 +15,55 @@ class StatsRepository extends BaseRepository {
   }
 
   /**
-   * Crée ou met à jour les stats d'un utilisateur pour une partie
+   * Retourne les stats d'un utilisateur pour l'année courante
    */
-  async upsertStats(userId, gameId, data) {
-    const existing = await this.Model.query()
+  findCurrentYear(userId) {
+    const currentYear = new Date().getFullYear();
+    return this.Model.query()
       .where('userId', userId)
-      .where('gameId', gameId)
+      .where('year', currentYear)
       .first();
-
-    if (existing) {
-      return this.update(existing.id, data);
-    }
-    return this.create({
-      userId,
-      gameId,
-      ...data,
-    });
   }
 
   /**
-   * Incrémente un compteur de stats
+   * Retourne le total d'une stat sur toutes les années
    */
-  increment(statsId, field, amount = 1) {
+  findTotalStat(userId, field) {
     return this.Model.query()
-      .findById(statsId)
-      .increment(field, amount);
+      .where('userId', userId)
+      .sum({ total: field })
+      .first();
+  }
+
+  /**
+   * Incrémente un compteur de stats d'un user sur l'année courante
+   */
+  async increment(userId, field, amount = 1) {
+    const currentYear = new Date().getFullYear();
+
+    const statsRow = await Stats.query()
+        .where("userId", userId)
+        .where("year", currentYear)
+        .first();
+
+    if (statsRow) {
+      return this.Model.query().findById(statsRow.id).increment(field, amount);
+    }
+    return this.Model.query().insert({ userId, year: currentYear, [field]: amount });
+  }
+
+  /**
+   * Incrémente le compteur de messages
+   */
+  async incrementMsgStat(userId) {
+    return this.increment(userId, 'nbMsg', 1);
+  }
+
+  async incrementHero(userId) {
+    return this.increment(userId, 'nbHero', 1);
+  }
+  async incrementZero(userId) {
+    return this.increment(userId, 'nbZero', 1);
   }
 }
 

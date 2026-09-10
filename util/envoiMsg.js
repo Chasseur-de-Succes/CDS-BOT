@@ -1,9 +1,9 @@
 const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
 const { DARK_RED, CORNFLOWER_BLUE, GREEN } = require("../data/colors.json");
 const { CROSS_MARK } = require("../data/emojis.json");
-const { SALON } = require("./constants");
 const path = require("node:path");
 const fs = require("node:fs");
+const { GuildConfigRepository } = require("../repositories");
 
 /* Nourri feed bot - Lvl Up */
 module.exports.feedBotLevelUp = async (
@@ -13,7 +13,8 @@ module.exports.feedBotLevelUp = async (
     userDb,
     nextPalier,
 ) => {
-    const idFeedBot = await client.getGuildChannel(guildId, SALON.FEED_BOT);
+    const guildDb = await GuildConfigRepository.findByGuildId(guildId);
+    const idFeedBot = guildDb.channelFeed;
     const feed = await client.channels.cache.get(idFeedBot);
 
     if (feed) {
@@ -35,7 +36,8 @@ module.exports.feedBotLevelUp = async (
 
 /* Nourri feed bot - Meta Succès */
 module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
-    const idFeedBot = await client.getGuildChannel(guildId, SALON.FEED_BOT);
+    const guildDb = await GuildConfigRepository.findByGuildId(guildId);
+    const idFeedBot = guildDb.channelFeed;
     const feed = await client.channels.cache.get(idFeedBot);
 
     if (feed) {
@@ -101,7 +103,8 @@ module.exports.sendError = (message, text, cmd) => {
  * @returns
  */
 module.exports.sendLogs = async (client, guildId, embedLog) => {
-    const idLogs = await client.getGuildChannel(guildId, SALON.LOGS);
+    const guildDb = await GuildConfigRepository.findByGuildId(guildId);
+    const idLogs = guildDb.channelLogs;
     if (idLogs) {
         await client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
     } else {

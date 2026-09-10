@@ -1,26 +1,30 @@
 const { ChannelType, Events } = require("discord.js");
-const { GuildConfig } = require("../models");
 const { names, places } = require("../data/channelNames.json");
+const { GuildConfigRepository } = require("../repositories");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
     async execute(oldState, newState) {
         const guild = newState.guild;
         const member = newState.member;
-        const config = await GuildConfig.findOne({ guildId: guild.id });
+        const config = await GuildConfigRepository.findByGuildId(guild.id);
 
         // si old channeldi is null => arrive sur le channel
         // si new channeldi is null => quitte le channel
         // si old et new rempli => passe de old à new
 
         // si le channel vocal 'creator' est bien save dans bdd
-        if (config?.channels?.create_vocal) {
+        if (config?.channelCreateVocal) {
+            const savedVoiceChannels = Array.isArray(config.channelVoice)
+                ? [...config.channelVoice]
+                : [];
+
             // si user arrive sur le channel 'créateur'
-            if (config.channels.create_vocal === newState.channelId) {
+            if (config.channelCreateVocal === newState.channelId) {
                 // ici newState est le 'creator'
                 const parent = newState.channel.parent;
 
-                // -- trouver un nom random parmis liste
+                // -- trouver un nom random parmi liste
                 const name = getChannelName();
                 logger.info(
                     `.. voice channel creator, on créé un nouveau channel ${name}`,
@@ -34,11 +38,13 @@ module.exports = {
                     parent: parent,
                 });
                 // -- le save dans config
-                config.voice_channels.push(voiceChannel.id);
-                await config.save();
+                savedVoiceChannels.push(voiceChannel.id);
+                await GuildConfigRepository.upsert(guild.id, {
+                    channelVoice: savedVoiceChannels,
+                });
 
                 // -- déplacer l'utilisateur vers ce salon
-                member.voice.setChannel(voiceChannel);
+                await member.voice.setChannel(voiceChannel);
             }
 
             // si user quitte l'un des channel créé par 'creator' (newstate null)
@@ -49,7 +55,7 @@ module.exports = {
             ) {
                 // -- si plus personne dedans, on delete
                 if (oldState.channel?.members.size === 0) {
-                    const idxVoiceSaved = config.voice_channels.indexOf(
+                    const idxVoiceSaved = savedVoiceChannels.indexOf(
                         oldState.channelId.toString(),
                     );
 
@@ -59,8 +65,10 @@ module.exports = {
                         );
                         try {
                             // -- le supprime dans config
-                            config.voice_channels.splice(idxVoiceSaved, 1);
-                            await config.save();
+                            savedVoiceChannels.splice(idxVoiceSaved, 1);
+                            await GuildConfigRepository.upsert(guild.id, {
+                                channelVoice: savedVoiceChannels,
+                            });
 
                             // -- le supprime
                             oldState.channel
