@@ -1,6 +1,5 @@
 const { Collection, ChannelType } = require("discord.js");
 const {
-    RolesChannel,
     Msg,
     MsgDmdeAide,
 } = require("../models");
@@ -18,7 +17,6 @@ const {
     createCollectorGroup,
 } = require("./msg/group");
 const { Group } = require("../models/index");
-const { SALON } = require("./constants");
 
 const fs = require("node:fs");
 const path = require("node:path");

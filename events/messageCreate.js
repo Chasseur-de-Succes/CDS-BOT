@@ -2,14 +2,13 @@ const { Collection, Events } = require("discord.js");
 const {
     BAREME_XP,
     BAREME_MONEY,
-    SALON,
     DAILY_MONEY_LIMIT,
 } = require("../util/constants");
 
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
 const { feedBotMetaAch } = require("../util/envoiMsg");
-const { UserRepository, StatsRepository } = require("../repositories");
+const { UserRepository, StatsRepository, GuildConfigRepository } = require("../repositories");
 
 module.exports = {
     name: Events.MessageCreate,
@@ -50,17 +49,9 @@ module.exports = {
                 }
             }
 
-            const idHeros = await msg.client.getGuildChannel(
-                msg.guildId,
-                SALON.HALL_HEROS,
-            );
-            const idZeros = await msg.client.getGuildChannel(
-                msg.guildId,
-                SALON.HALL_ZEROS,
-            );
-
-            const isHallHeros = msg.channelId === idHeros;
-            const isHallZeros = msg.channelId === idZeros;
+            const config = await GuildConfigRepository.findByGuildId(msg.guildId);
+            const isHallHeros = msg.channelId === config.channelHeros;
+            const isHallZeros = msg.channelId === config.channelZeros;
 
             const hasPJ = msg.attachments.size > 0;
             // nb img dans hall héros
