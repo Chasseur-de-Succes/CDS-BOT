@@ -177,6 +177,11 @@ class UserRepository extends BaseRepository {
       .orderBy('money', 'desc')
       .limit(limit);
   }
+
+  resetMoneyLimit() {
+    return this.Model.query()
+        .patch({ moneyLimit: 0 });
+  }
 }
 
 module.exports = new UserRepository();

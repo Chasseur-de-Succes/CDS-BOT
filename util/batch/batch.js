@@ -5,14 +5,11 @@ const {
     VERY_PALE_BLUE,
 } = require("../../data/colors.json");
 const moment = require("moment-timezone");
-const { User, Game, GuildConfig } = require("../../models");
 const { createLogs } = require("../envoiMsg");
 const { EmbedBuilder } = require("discord.js");
 const { daysDiff, getMonthName } = require("../util");
 
-const SteamUser = require("steam-user");
-const { SALON } = require("../constants");
-const { UserRepository } = require("../../repositories");
+const { UserRepository, JobRepository, GuildConfigRepository, TowerRepository } = require("../../repositories");
 
 module.exports = {
     /**
@@ -128,40 +125,34 @@ module.exports = {
      * Charge les différents jobs (rappels, ...)
      * @param {*} client
      */
-    loadJobs(client) {
-        // récupére les job de la DB non terminé
-        client.findJob({ pending: true }).then((jobs) => {
-            logger.info(`-- Chargement de ${jobs.length} jobs..`);
-            // lancement jobs
-            for (const job of jobs) {
-                scheduleJob(job.name, job.when, () => {
-                    require("./batch")[job.what](
-                        client,
-                        job.guildId,
-                        job.args[0],
-                        job.args[1],
-                    );
-                });
-            }
-        });
+    async loadJobs(client) {
+        // récupère les jobs de la DB non terminé
+        const jobsPending = await JobRepository.findPending();
+        logger.info(`-- Chargement de ${jobsPending.length} jobs..`);
+        for (const job of jobsPending) {
+            scheduleJob(job.name, job.when, () => {
+                require("./batch")[job.what](
+                    client,
+                    job.guildId,
+                    job.args[0],
+                    job.args[1],
+                );
+            });
+        }
 
-        // clean ceux qui sont terminés ou qui ont dates dépassées, à minuit
-        scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, () => {
-            client
-                .findJob({
-                    $or: [{ pending: false }, { when: { $lte: new Date() } }],
-                })
-                .then((jobs) => {
-                    logger.info(`-- Suppression de ${jobs.length} jobs..`);
-                    // lancement jobs
-                    for (const job of jobs) {
-                        // cancel ancien job si existe
-                        if (scheduledJobs[job.name]) {
-                            scheduledJobs[job.name].cancel();
-                        }
-                        client.deleteJob(job);
-                    }
-                });
+
+        // clean ceux qui sont terminés ou qui ont des dates dépassées, à minuit
+        scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, async () => {
+            const jobsToCancel = await JobRepository.findObsolete();
+            logger.info(`-- Suppression de ${jobsToCancel.length} jobs..`);
+            for (const job of jobsToCancel) {
+                logger.info(`.. suppression du job ${job.id} (date dépassée)`);
+                // cancel ancien job si existe
+                if (scheduledJobs[job.name]) {
+                    scheduledJobs[job.name].cancel();
+                }
+                await JobRepository.delete(job.id);
+            }
         });
     },
 
@@ -232,12 +223,12 @@ module.exports = {
     },
 
     resetMoneyLimit() {
-        logger.info("--  Mise en place batch reset limit money");
+        logger.info("-- Mise en place batch reset limit money");
         // refresh games tous les soirs à 0h
         scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, async () => {
             logger.info("Début reset limit money ..");
 
-            User.updateMany({}, { moneyLimit: 0 })
+            UserRepository.resetMoneyLimit()
                 .then(() => logger.info("..reset limit money ok"))
                 .catch((err) =>
                     logger.error(`Erreur lors reset limit money ${err}`),
@@ -247,7 +238,7 @@ module.exports = {
 
     loadJobHelper(client) {
         logger.info(
-            `--  Mise en place batch envoi money au @helper du discord CDS (s'il existe)`,
+            `-- Mise en place batch envoi money au @helper du discord CDS (s'il existe)`,
         );
         // 971508881165545544
         // tous les lundi, à 0h01
@@ -297,7 +288,7 @@ module.exports = {
     },
 
     async testEcuyer(client) {
-        logger.info(`--  Mise en place batch 'écuyer'`);
+        logger.info(`-- Mise en place batch 'écuyer'`);
         // tous les soirs à minuit
         scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, async () => {
             for (const guild of client.guilds.cache.values()) {
@@ -327,7 +318,7 @@ module.exports = {
                     // sinon Ecuyer
                     members.each(async (m) => {
                         if (daysDiff(m.joinedAt, new Date()) === 61) {
-                            // - prevenir user
+                            // - prévenir user
                             logger.info(
                                 `.. ${m.user.tag} devient Chasseur ! (présence de +2mois)`,
                             );
@@ -400,10 +391,11 @@ module.exports = {
 
     async startMonthlyClueJob(client, tz = "Europe/Paris") {
         try {
-            logger.info("--  Mise en place batch indice mensuel pour la tour");
+            logger.info("-- Mise en place batch indice mensuel pour la tour");
             // annule un job existant si présent
-            if (scheduledJobs["monthly_clue"])
+            if (scheduledJobs["monthly_clue"]) {
                 scheduledJobs["monthly_clue"].cancel();
+            }
 
             // charge les constantes (chemin relatif depuis `util/batch/batch.js`)
             const constants = require("../../data/event/tower/constants.json");
@@ -415,20 +407,16 @@ module.exports = {
                 async () => {
                     const monthIndex = moment().tz(tz).month(); // 0 = janvier
                     for (const guild of client.guilds.cache.values()) {
-                        const guildConfig = await GuildConfig.findOne({
-                            guildId: guild.id,
-                        });
-                        if (!guildConfig?.event?.tower?.started) {
+                        const tower = await TowerRepository.findByGuildIdAndStarted(guild.id);
+
+                        if (!tower || tower.length === 0) {
                             continue;
                         }
-                        if (guildConfig?.event?.tower?.currentSeason === 0) {
+                        if (tower.season === 0) {
                             continue;
                         }
 
-                        if (
-                            guildConfig?.event?.tower?.currentMsgClue?.month ===
-                            monthIndex
-                        ) {
+                        if (tower.messageClue?.month === monthIndex) {
                             continue;
                         }
 
@@ -450,13 +438,12 @@ module.exports = {
                     try {
                         const monthIndex = moment().tz(tz).month(); // 0 = janvier
                         const monthName = getMonthName(monthIndex);
-                        const clue =
-                            constants?.MONTHLY?.CLUES?.[monthIndex] ||
-                            "Aucun indice disponible pour ce mois.";
-                        const genres =
-                            constants?.MONTHLY?.GENRES?.[monthIndex] || [];
-                        const tags =
-                            constants?.MONTHLY?.TAGS?.[monthIndex] || [];
+                        const msgClue = await TowerRepository.findCurrentClue(monthIndex);
+                        const clue = msgClue?.description ||  "Aucun indice disponible pour ce mois.";
+
+                        const clueFields = await TowerRepository.findClueFields(msgClue.id);
+                        const genres = clueFields?.filter(cf => cf.type === 'genre') || [];
+                        const tags = clueFields?.filter(cf => cf.type === 'tag') || [];
                         const nbFields = genres.length + tags.length;
 
                         // envoi embed dans le salon event_tower de chaque guild
@@ -464,23 +451,19 @@ module.exports = {
                             logger.info(
                                 `.. création monthly_clue pour ${guild.name}..`,
                             );
-                            const guildConfig = await GuildConfig.findOne({
-                                guildId: guild.id,
-                            });
-                            if (!guildConfig?.event?.tower?.started) {
+                            const tower = await TowerRepository.findByGuildIdAndStarted(guild.id);
+                            if (!tower) {
                                 logger.info(
                                     `.. l'événement Tower n'a pas encore commencé pour ${guild.name}, on skip l'envoi de l'indice mensuel.`,
                                 );
                                 continue;
                             }
-                            if (
-                                guildConfig?.event?.tower?.currentSeason === 0
-                            ) {
+                            if (tower.season === 0) {
                                 continue;
                             }
 
-                            const eventChannelId =
-                                guildConfig.channels[SALON.EVENT_TOWER];
+                            const guildConfig = await GuildConfigRepository.findByGuildId(guild.id);
+                            const eventChannelId = guildConfig.channelEventTower;
 
                             const embed = new EmbedBuilder()
                                 .setTitle(`🏷️ ${monthName}`)
@@ -506,12 +489,9 @@ module.exports = {
 
                                 // si message existant, le unpin
                                 if (
-                                    guildConfig?.event?.tower?.currentMsgClue
-                                        ?.id
+                                    tower?.messageClue?.idMsg
                                 ) {
-                                    const oldMsgId =
-                                        guildConfig.event.tower.currentMsgClue
-                                            .id;
+                                    const oldMsgId = tower.messageClue.idMsg;
                                     const oldMsg = await channel.messages
                                         .fetch(oldMsgId)
                                         .catch(() => null);
@@ -523,37 +503,13 @@ module.exports = {
                                 // pin le message
                                 await msg.pin().catch(() => null);
 
-                                // prepare fields
-                                const fields = [];
-                                for (const genre of genres) {
-                                    fields.push({
-                                        id: genre.id,
-                                        name: "Genre",
-                                        value: genre.label,
-                                    });
-                                }
-                                for (const tag of tags) {
-                                    fields.push({
-                                        id: tag.id,
-                                        name: "Tag",
-                                        value: tag.label,
-                                    });
-                                }
-
                                 // save id message pour edit fields plus tard
-                                await GuildConfig.updateOne(
-                                    { guildId: guild.id },
-                                    {
-                                        $set: {
-                                            "event.tower.currentMsgClue.month":
-                                                monthIndex,
-                                            "event.tower.currentMsgClue.id":
-                                                msg.id,
-                                            "event.tower.currentMsgClue.fields":
-                                                fields,
-                                        },
-                                    },
-                                );
+                                await TowerRepository.update(tower.id, {
+                                    msgClueId: msgClue.id,
+                                })
+                                await TowerRepository.updateMessageClue(msgClue.id, {
+                                    idMsg: msg.id
+                                })
                                 logger.info(
                                     `.. Embed mensuel envoyé pour le mois ${monthName}`,
                                 );

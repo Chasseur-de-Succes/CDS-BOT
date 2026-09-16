@@ -12,4 +12,6 @@ module.exports = {
   GuildConfigRepository: require('./GuildConfigRepository'),
   ObservationRepository: require('./ObservationRepository'),
   MetaAchRepository: require('./MetaAchievementRepository'),
+  JobRepository: require('./JobRepository'),
+  TowerRepository: require('./TowerRepository'),
 };

@@ -340,6 +340,48 @@ async function migrate() {
         `${insertedObservations}/${observations.length} observation(s) migrée(s)`,
     );
 
+    // Message Clue & Clue Field from constants
+    const genres = constants.MONTHLY.GENRES;
+    const tags = constants.MONTHLY.TAGS;
+    const clues = constants.MONTHLY.CLUES;
+    const messagesClue = [];
+    // d'abord le MessageClue
+    // créer MessageClue pour chaque mois avec idMsg null du coup
+    for (let i = 0; i < 12; i++) {
+        messagesClue.push({
+            month: i,
+            description: clues[i],
+        });
+    }
+    let messagesClueId = await MessageClue.query()
+        .insert(messagesClue)
+        .returning("id");
+
+    for (const element of messagesClueId) {
+        const month = element.month;
+        const messageClueId = element.id;
+        const clueFields = [];
+        for (const genre of genres[month]) {
+            clueFields.push({
+                idMsgClue: messageClueId,
+                name: genre.label,
+                value: genre.id,
+                type: "genre",
+            });
+        }
+        for (const tag of tags[month]) {
+            clueFields.push({
+                idMsgClue: messageClueId,
+                name: tag.label,
+                value: tag.id,
+                type: "tag",
+            });
+        }
+        await ClueField.query()
+            .insert(clueFields)
+            .returning("id");
+    }
+
     // GUILD CONFIG
     logStep("GUILD", "Récupération des configurations serveur");
     let guildConfigs = await GuildConfigMG.find();
@@ -367,49 +409,6 @@ async function migrate() {
             })
             .onConflict("guildId")
             .ignore();
-
-        // Message Clue & Clue Field
-        const genres = constants.MONTHLY.GENRES;
-        const tags = constants.MONTHLY.TAGS;
-        const clues = constants.MONTHLY.CLUES;
-        const messagesClue = [];
-        // d'abord le MessageClue
-        // créer MessageClue pour chaque mois avec idMsg null du coup
-        for (let i = 0; i < 12; i++) {
-            messagesClue.push({
-                month: i,
-                description: clues[i],
-            });
-        }
-        let messagesClueId = await MessageClue.query()
-            .insert(messagesClue)
-            .returning("id");
-
-        let clueFieldsId = [];
-        for (const element of messagesClueId) {
-            const month = element.month;
-            const messageClueId = element.id;
-            const clueFields = [];
-            for (const genre of genres[month]) {
-                clueFields.push({
-                    idMsgClue: messageClueId,
-                    name: genre.label,
-                    value: genre.id,
-                    type: "genre",
-                });
-            }
-            for (const tag of tags[month]) {
-                clueFields.push({
-                    idMsgClue: messageClueId,
-                    name: tag.label,
-                    value: tag.id,
-                    type: "tag",
-                });
-            }
-            clueFieldsId = await ClueField.query()
-                .insert(clueFields)
-                .returning("id");
-        }
 
         // tower
         if (gc.event?.tower) {

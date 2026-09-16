@@ -72,11 +72,11 @@ const loadBatch = async (client) => {
     // TODO utiliser dir comme pour les autres load ?
     await loadJobs(client);
 
-    await searchNewGamesJob(client);
+    searchNewGamesJob(client);
 
-    await resetMoneyLimit();
+    resetMoneyLimit();
 
-    await loadJobHelper(client);
+    loadJobHelper(client);
 
     await testEcuyer(client);
 
