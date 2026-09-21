@@ -41,7 +41,7 @@ const end = async (interaction, options) => {
     }
 
     // si un seul participant
-    if (grp.size === 1) {
+    if (grp.members.length === 1) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -74,8 +74,8 @@ const end = async (interaction, options) => {
     const base = 20;
     const baseJoueur = 5;
     const baseSession = 50;
-    const nbSession = grp.dateEvent.length;
-    const nbJoueur = grp.size;
+    const nbSession = grp.dates.length;
+    const nbJoueur = grp.members.length;
     const prize =
         (base + baseJoueur * nbJoueur) * nbJoueur + baseSession * nbSession;
 

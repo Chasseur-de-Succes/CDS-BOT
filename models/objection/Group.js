@@ -56,6 +56,18 @@ class Group extends BaseModel {
                     to: "GroupUser.groupid",
                 },
             },
+            members: {
+                relation: BaseModel.ManyToManyRelation,
+                modelClass: User,
+                join: {
+                    from: "Group.id",
+                    through: {
+                        from: "GroupUser.groupid",
+                        to: "GroupUser.userid"
+                    },
+                    to: "User.id"
+                }
+            }
         };
     }
 }

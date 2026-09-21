@@ -1,6 +1,7 @@
 const { ChannelType, Events } = require("discord.js");
 const { names, places } = require("../data/channelNames.json");
 const { GuildConfigRepository } = require("../repositories");
+const { NEW_SALON } = require("../util/constants");
 
 module.exports = {
     name: Events.VoiceStateUpdate,

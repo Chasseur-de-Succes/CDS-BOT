@@ -1,5 +1,5 @@
 const BaseRepository = require('./BaseRepository');
-const { Group } = require('../models/objection');
+const { Group, GroupUser } = require('../models/objection');
 
 class GroupRepository extends BaseRepository {
   constructor() {
@@ -11,16 +11,36 @@ class GroupRepository extends BaseRepository {
    */
   findByIdWithRelations(id) {
     return this.Model.query()
-      .findById(id)
-      .withGraphFetched('[captain, members, groupLinks]');
+        .findById(id)
+        .withGraphFetched('[captainUser, members, gameInfo]');
+  }
+
+  /**
+   * Trouve tous les groupes, avec ses relations
+   */
+  findAllWithRelations() {
+    return this.Model.query()
+        .whereNull('validated')
+        .withGraphFetched('[captainUser, members, gameInfo]');
+  }
+  /**
+   * Trouve tous les groupes, en cours (avec un id msg), avec ses relations
+   */
+  findAllInProgressWithRelations() {
+    return this.Model.query()
+        .whereNotNull('idMsg')
+        .withGraphFetched('[captainUser, members, gameInfo]');
   }
 
   /**
    * Cherche les groupes par nom
    */
-  findByName(name) {
+  findByNameAndGuildId(name, guildId) {
+    const escapedName = name?.replace(/[%_]/g, "\\$&");
     return this.Model.query()
-      .where('name', 'like', `%${name}%`);
+        .where('name', 'ilike', `%${escapedName}%`)
+        .where('guildId', guildId)
+        .whereNull('validated');
   }
 
   /**
@@ -29,6 +49,7 @@ class GroupRepository extends BaseRepository {
   findByCaptain(captainId) {
     return this.Model.query()
       .where('captain', captainId)
+      .whereNull('validated')
       .withGraphFetched('[members]');
   }
 
@@ -38,7 +59,6 @@ class GroupRepository extends BaseRepository {
    * Group.where("dateEvent").gte(start).lte(end).where("members").in(user).populate("game")
    */
   findByEventDateAndMember(date, dbUser, guildId = null) {
-    const { GroupUser } = require('../models/objection');
     const userId = typeof dbUser === 'object' ? dbUser?.id : dbUser;
 
     const dayStart = new Date(date);
@@ -72,21 +92,36 @@ class GroupRepository extends BaseRepository {
   /**
    * Crée un nouveau groupe
    */
-  createGroup(data) {
-    const {
-      name,
-      captain,
-      description = null,
-      createdAt = new Date(),
-      updatedAt = new Date(),
-    } = data;
+  async createGroup(data) {
+    const { guildId, name, desc, nbMax, captain, members = [], game, channelId } = data;
+    const captainId = captain?.id ?? captain;
+    const gameAppid = game?.appid ?? game ?? null;
 
-    return this.Model.query().insert({
-      name,
-      captain,
-      description,
-      createdAt,
-      updatedAt,
+    return await this.Model.transaction(async (trx) => {
+      // 1. Insertion du groupe
+      const grp = await this.Model.query(trx).insertAndFetch({
+        guildId,
+        name,
+        desc,
+        nbMax,
+        captain: captainId,
+        game: gameAppid,
+        channelId,
+        dateCreated: new Date(),
+      });
+
+      // 2. Insertion des membres dans la table de jonction
+      const memberIds = members.map((m) => m?.id ?? m);
+      if (memberIds.length > 0) {
+        await GroupUser.query(trx).insert(
+            memberIds.map((userId) => ({ groupid: grp.id, userid: userId }))
+        );
+      }
+
+      // 3. On recharge le groupe avec sa relation
+      return await this.Model.query(trx)
+          .findById(grp.id)
+          .withGraphFetched('[captainUser, members, gameInfo]');
     });
   }
 
@@ -94,7 +129,6 @@ class GroupRepository extends BaseRepository {
    * Ajoute un utilisateur au groupe via GroupUser
    */
   async addMember(groupId, userId) {
-    const { GroupUser } = require('../models/objection');
     return GroupUser.query().insert({
       groupid: groupId,
       userid: userId,
@@ -105,7 +139,6 @@ class GroupRepository extends BaseRepository {
    * Retire un utilisateur du groupe
    */
   async removeMember(groupId, userId) {
-    const { GroupUser } = require('../models/objection');
     return GroupUser.query()
       .delete()
       .where('groupid', groupId)
@@ -118,6 +151,7 @@ class GroupRepository extends BaseRepository {
   getMembers(groupId) {
     return this.Model.query()
       .findById(groupId)
+      .whereNull('validated')
       .withGraphFetched('members');
   }
 
@@ -125,22 +159,40 @@ class GroupRepository extends BaseRepository {
    * Retourne le nombre de membres
    */
   async getMemberCount(groupId) {
-    const { GroupUser } = require('../models/objection');
-    const result = await GroupUser.query()
-      .where('groupid', groupId)
-      .resultSize();
-    return result;
+    return await GroupUser.query()
+        .where('groupid', groupId)
+        .resultSize();
   }
 
   /**
    * Supprime un groupe et ses associations
    */
   async deleteGroupFull(groupId) {
-    const { GroupUser } = require('../models/objection');
     await GroupUser.query()
       .delete()
       .where('groupid', groupId);
     return this.delete(groupId);
+  }
+
+  async countOngoingByMember(userDb) {
+    return this.Model.query()
+        .whereExists(
+            GroupUser.query()
+                .select(1)
+                .whereColumn('GroupUser.groupid', 'Group.id')
+                .where('GroupUser.userid', userDb.id),
+        )
+        .whereNull('validated')
+        .resultSize();
+  }
+
+  async existsByName(name) {
+    const result = await this.Model.query()
+        .select('id')
+        .where('name', name)
+        .whereNull('validated')
+        .first();
+    return Boolean(result);
   }
 }
 

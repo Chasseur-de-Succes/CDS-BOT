@@ -65,6 +65,22 @@ class StatsRepository extends BaseRepository {
   async incrementZero(userId) {
     return this.increment(userId, 'nbZero', 1);
   }
+
+  async incrementGroupCreated(userId) {
+    return this.increment(userId, 'nbGroupCreated', 1);
+  }
+  async incrementGroupJoined(userId) {
+    return this.increment(userId, 'nbGroupJoined', 1);
+  }
+  async incrementGroupLeft(userId) {
+    return this.increment(userId, 'nbGroupLeft', 1);
+  }
+  async incrementGroupDissolved(userId) {
+    return this.increment(userId, 'nbGroupDissolved', 1);
+  }
+  async incrementGroupEnded(userId) {
+    return this.increment(userId, 'nbGroupEnded', 1);
+  }
 }
 
 module.exports = new StatsRepository();

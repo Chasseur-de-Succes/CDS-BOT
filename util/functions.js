@@ -64,23 +64,6 @@ module.exports = (client) => {
 
     /* Group */
     /**
-     * Créer un nouveau {@link Group} et le sauvegarde en base
-     * @param {Object} group Groupe à sauvegarder
-     * @returns
-     */
-    client.createGroup = async (group) => {
-        const merged = Object.assign({ _id: mongoose.Types.ObjectId() }, group);
-        const createGroup = await new Group(merged);
-        const grp = await createGroup.save();
-        await grp.populate("captain members").execPopulate();
-        logger.info({
-            prefix: "[DB]",
-            message: `Nouveau groupe : ${grp.name}`,
-        });
-        return grp;
-    };
-
-    /**
      * Supprime un groupe
      * @param {Object} group
      */

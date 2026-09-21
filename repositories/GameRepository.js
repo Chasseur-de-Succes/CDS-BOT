@@ -6,37 +6,26 @@ class GameRepository extends BaseRepository {
     super(Game);
   }
 
-  /**
-   * Trouve une partie avec ses relations
-   */
-  findByIdWithRelations(id) {
+  findByNameExactly(name) {
     return this.Model.query()
-      .findById(id)
-      .withGraphFetched('[clueFields, messageClues]');
+      .whereIn("type", ["game", "dlc"])
+      .where('name', name)
+      .limit(1);
   }
 
-  /**
-   * Cherche une partie par nom
-   */
-  findByName(name) {
+  findByName(name, limit = 25) {
+    // On échappe les caractères spéciaux propres à SQL (LIKE/ILIKE)
+    const escapedName = name?.replace(/[%_]/g, "\\$&");
     return this.Model.query()
-      .where('name', 'like', `%${name}%`)
-      .first();
+      .whereIn("type", ["game", "dlc"])
+      .where('name', 'ilike', `%${escapedName}%`)
+      .limit(limit);
   }
 
-  /**
-   * Crée une nouvelle partie
-   */
-  createGame(data) {
-    const {
-      appid,
-      name,
-    } = data;
-
-    return this.Model.query().insert({
-      appid,
-      name,
-    });
+  async findByAppid(appid) {
+    return this.Model.query()
+        .where("appid", appid)
+        .first();
   }
 
   /**

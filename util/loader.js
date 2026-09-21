@@ -20,7 +20,8 @@ const { Group } = require("../models/index");
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { GuildConfigRepository } = require("../repositories");
+const { GuildConfigRepository, GroupRepository } = require("../repositories");
+const { NEW_SALON } = require("./constants");
 
 // Charge les commandes
 const loadSlashCommands = (client, dir = "./slash_commands/") => {
@@ -87,29 +88,27 @@ const loadBatch = async (client) => {
 
 // Charge les réactions des messages des groupes
 const loadReactionGroup = async (client) => {
-    const lMsgGrp = await MsgDmdeAide.find();
+    const lGrp = await GroupRepository.findAllInProgressWithRelations();
 
     // recupere TOUS les messages du channel de listage des groupes
-    for (const msgDb of lMsgGrp) {
-        const guildDb = await GuildConfigRepository.findByGuildId(msgDb.guildId);
-        const idListGroup = guildDb.channelListGroup;
+    for (const group of lGrp) {
+        const idListGroup = await GuildConfigRepository.getChannel(group.guildId, NEW_SALON.LIST_GROUP);
 
         if (idListGroup) {
             // recup msg sur bon channel
             client.channels.cache
                 .get(idListGroup)
-                .messages.fetch(msgDb.msgId)
+                .messages.fetch(group.idMsg)
                 .then(async (msg) => {
-                    const grp = await Group.findOne({ idMsg: msg.id });
                     // filtre group encore en cours
-                    if (grp.validated) {
-                        await moveToArchive(client, idListGroup, grp.idMsg);
+                    if (group.validated) {
+                        await moveToArchive(client, idListGroup, group);
                     } else {
                         // enleve réactions
                         await msg.reactions.removeAll();
 
                         // "maj" msg group pour ajouter boutons + collector
-                        const row = await createRowGroupButtons(grp);
+                        const row = await createRowGroupButtons(group);
                         await msg.edit({ components: [row] });
                         await createCollectorGroup(client, msg);
                     }
@@ -118,8 +117,7 @@ const loadReactionGroup = async (client) => {
                     logger.error(
                         `Erreur load listener reaction groupes ${err}, suppression msg`,
                     );
-                    // on supprime les msg qui n'existent plus
-                    await Msg.deleteOne({ _id: msgDb._id });
+                    await GroupRepository.update(group.id, { idMsg: null });
                 });
         } else {
             logger.error("- Config salon msg groupe non défini !");

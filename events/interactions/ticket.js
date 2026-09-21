@@ -8,6 +8,7 @@ const {
 } = require("discord.js");
 const { GREEN } = require("../../data/colors.json");
 const { GuildConfigRepository } = require("../../repositories");
+const { NEW_SALON } = require("../../util/constants");
 
 module.exports = {
     async execute(interaction) {
@@ -46,8 +47,7 @@ module.exports = {
                     interaction.fields.getTextInputValue("ticket-content");
 
                 // Récupération du channel de ticket
-                let guildDb = await GuildConfigRepository.findByGuildId(interaction.guild.id);
-                const ticketChannelId = guildDb.channelTickets;
+                const ticketChannelId = await GuildConfigRepository.getChannel(interaction.guild.id, NEW_SALON.TICKETS);
 
                 // Gestion d'erreur si aucun salon de ticket n'est défini
                 if (!ticketChannelId) {

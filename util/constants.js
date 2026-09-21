@@ -92,6 +92,20 @@ const SALON = {
     TICKETS: "tickets",
     EVENT_TOWER: "event_tower",
 };
+const NEW_SALON = {
+    WELCOME: "channelWelcome",
+    LIST_GROUP: "channelListGroup",
+    HALL_HEROS: "channelHeros",
+    HALL_ZEROS: "channelZeros",
+    LOGS: "channelLogs",
+    CAT_DISCUSSION_GROUPE: "channelCatGroup",
+    CAT_DISCUSSION_GROUPE_2: "channelCatGroup2",
+    FEED_BOT: "channelFeed",
+    FEED_ACHIEVEMENT: "channelFeedAchievement",
+    TICKETS: "channelTickets",
+    EVENT_TOWER: "channelEventTower",
+    CREATE_VOCAL: "channelCreateVocal",
+};
 
 const WEBHOOK_ARRAY = [
     {
@@ -115,6 +129,7 @@ exports.delay = delay;
 exports.crtHour = crtHour;
 exports.CHANNEL = CHANNEL;
 exports.SALON = SALON;
+exports.NEW_SALON = NEW_SALON;
 exports.WEBHOOK_ARRAY = WEBHOOK_ARRAY;
 exports.WEBHOOK = WEBHOOK;
 exports.MIN_PRICE_SHOP = MIN_PRICE_SHOP;

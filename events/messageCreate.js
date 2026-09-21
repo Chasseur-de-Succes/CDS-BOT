@@ -2,7 +2,7 @@ const { Collection, Events } = require("discord.js");
 const {
     BAREME_XP,
     BAREME_MONEY,
-    DAILY_MONEY_LIMIT,
+    DAILY_MONEY_LIMIT, NEW_SALON,
 } = require("../util/constants");
 
 const { addXp } = require("../util/xp.js");
@@ -49,9 +49,10 @@ module.exports = {
                 }
             }
 
-            const config = await GuildConfigRepository.findByGuildId(msg.guildId);
-            const isHallHeros = msg.channelId === config.channelHeros;
-            const isHallZeros = msg.channelId === config.channelZeros;
+            const channelHeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_HEROS);
+            const channelZeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_ZEROS);
+            const isHallHeros = msg.channelId === channelHeros;
+            const isHallZeros = msg.channelId === channelZeros;
 
             const hasPJ = msg.attachments.size > 0;
             // nb img dans hall héros

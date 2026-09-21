@@ -1,5 +1,6 @@
 const { Events } = require("discord.js");
 const { GuildConfigRepository } = require("../repositories");
+const { NEW_SALON } = require("../util/constants");
 
 module.exports = {
     name: Events.MessageReactionAdd,
@@ -20,9 +21,10 @@ module.exports = {
                     )
                 ) {
                     /* HALL HEROS / ZEROS */
-                    const config = await GuildConfigRepository.findByGuildId(msg.guildId);
-                    const isHallHeros = msg.channelId === config.channelHeros;
-                    const isHallZeros = msg.channelId === config.channelZeros;
+                    const channelHeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_HEROS);
+                    const channelZeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_ZEROS);
+                    const isHallHeros = msg.channelId === channelHeros;
+                    const isHallZeros = msg.channelId === channelZeros;
 
                     // TODO si emoji special =>  meta achievement, à définir avec Sqweeb
                     if (isHallHeros) {

@@ -9,7 +9,7 @@ const { createLogs } = require("../envoiMsg");
 const { EmbedBuilder } = require("discord.js");
 const { daysDiff, getMonthName } = require("../util");
 
-const { UserRepository, JobRepository, GuildConfigRepository, TowerRepository } = require("../../repositories");
+const { UserRepository, JobRepository, GuildConfigRepository, TowerRepository, GroupRepository } = require("../../repositories");
 
 module.exports = {
     /**
@@ -98,7 +98,7 @@ module.exports = {
             if (scheduledJobs[job.name]) scheduledJobs[job.name].cancel();
 
             // save job
-            const jobDb = await client.createJob(job);
+            const jobDb = await JobRepository.create(job);
 
             logger.info(
                 `-- Création rappel le ${when} pour groupe ${groupe.name}..`,
@@ -113,8 +113,7 @@ module.exports = {
                     job.args[1],
                 );
                 // update job
-                jobDb.pending = false;
-                client.update(jobDb, { pending: false });
+                JobRepository.update(jobDb.id, { pending: false });
             });
         } catch (error) {
             logger.error("ERREUR lors creation rappel job", error);
@@ -164,7 +163,7 @@ module.exports = {
      */
     envoiMpRappel: (client, guildId, groupeId, typeHoraire) => {
         const membersGuild = client.guilds.cache.get(guildId).members.cache;
-        client.findGroupById(groupeId).then(async (groupe) => {
+        GroupRepository.findByIdWithRelations(groupeId).then(async (groupe) => {
             // TODO a filtrer depuis findGroupe
             if (!groupe?.validated) {
                 logger.info(
@@ -189,7 +188,7 @@ module.exports = {
 
                 // va MP tous les joueurs présents dans le groupe
                 for (const member of groupe.members) {
-                    const crtUser = membersGuild.get(member.userId);
+                    const crtUser = membersGuild.get(member.discordId);
                     if (crtUser) {
                         const rappelEmbed = await createEmbedGroupInfo(
                             client,

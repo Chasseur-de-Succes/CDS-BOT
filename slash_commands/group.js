@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
-const { escapeRegExp } = require("../util/util");
 const {
     create,
     dissolve,
@@ -9,7 +8,7 @@ const {
     transfert,
     editNbParticipant,
 } = require("./subcommands/group");
-const { Game, Group } = require("../models");
+const { GameRepository, GroupRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -164,7 +163,6 @@ module.exports = {
                 ),
         ),
     async autocomplete(interaction) {
-        const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
         let filtered = [];
         let exact = [];
@@ -172,25 +170,10 @@ module.exports = {
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
         if (focusedValue.name === "jeu" && focusedValue.value) {
             // recherche nom exacte
-            exact = await client.findGames({
-                name: focusedValue.value,
-                type: "game",
-            });
+            exact = await GameRepository.findByNameExactly(focusedValue.value);
 
             // recup limit de 25 jeux, correspondant a la value rentré
-            filtered = await Game.aggregate([
-                {
-                    $match: {
-                        name: new RegExp(escapeRegExp(focusedValue.value), "i"),
-                    },
-                },
-                {
-                    $match: { type: "game" },
-                },
-                {
-                    $limit: 25,
-                },
-            ]);
+            filtered = await GameRepository.findByName(focusedValue.value);
 
             // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
             filtered = filtered.filter(
@@ -200,23 +183,18 @@ module.exports = {
 
         // autocomplete sur nom groupe
         if (focusedValue.name === "nom") {
-            filtered = await Group.find({
-                $and: [
-                    { validated: false },
-                    { name: new RegExp(escapeRegExp(focusedValue.value), "i") },
-                    { guildId: interaction.guildId },
-                ],
-            });
+            filtered = await GroupRepository.findByNameAndGuildId(focusedValue.value, interaction.guildId);
         }
 
-        // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
-        filtered = filtered
-            .slice(0, 25)
-            .map((element) =>
-                element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
-            );
+        // Formatage des objets pour l'autocomplete Discord ({ name, value })
+        let choices = filtered.map((element) => ({
+            // si nom jeu dépasse limite imposé par Discord (100 char)
+            name: element.name?.length > 100
+                ? `${element.name.substring(0, 96)}...`
+                : element.name,
+            // on utilise l'appid pour le jeu
+            value: String(element.appid),
+        }));
 
         // si nom exact trouvé
         if (exact.length === 1) {
@@ -224,12 +202,18 @@ module.exports = {
             // on récupère les 24 premiers
             filtered = filtered.slice(0, 24);
             // et on ajoute en 1er l'exact
-            filtered.unshift(jeuExact.name);
+            choices.unshift({
+                name: jeuExact.name.length > 100
+                    ? `${jeuExact.name.substring(0, 96)}...`
+                    : jeuExact.name,
+                value: String(jeuExact.appid),
+            });
+        } else {
+            // Sinon on garde les 25 premiers choix
+            choices = choices.slice(0, 25);
         }
 
-        await interaction.respond(
-            filtered.map((choice) => ({ name: choice, value: choice })),
-        );
+        await interaction.respond(choices);
     },
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();

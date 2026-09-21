@@ -6,6 +6,11 @@ class JobRepository extends BaseRepository {
         super(Job);
     }
 
+    findByName(name) {
+        return this.Model.query()
+            .where('name', name)
+    }
+
     findPending() {
         return this.Model.query()
             .where('pending', true)
