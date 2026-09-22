@@ -18,6 +18,7 @@ const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { Group } = require("../models");
 const { escapeRegExp } = require("../util/util");
+const { GroupRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -322,23 +323,19 @@ module.exports = {
 
         // sur nom du groupe
         if (focusedValue.name === "nom_group") {
-            filtered = await Group.find({
-                $and: [
-                    { validated: false },
-                    { name: new RegExp(escapeRegExp(focusedValue.value), "i") },
-                    { guildId: interaction.guildId },
-                ],
-            });
+            filtered = await GroupRepository.findByNameAndGuildId(focusedValue.value, interaction.guildId);
 
             // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
             filtered = filtered
                 .slice(0, 25)
-                .map((element) =>
-                    element.name?.length > 100
+                .map((element) => ({
+                    // si nom jeu dépasse limite imposé par Discord (100 char)
+                    name: element.name?.length > 100
                         ? `${element.name.substring(0, 96)}...`
                         : element.name,
-                )
-                .map((choice) => ({ name: choice, value: choice }));
+                    // on utilise l'id pour le groupe
+                    value: String(element.id),
+                }));
         }
 
         await interaction.respond(filtered);

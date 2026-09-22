@@ -2,15 +2,16 @@ const { createError, sendLogs } = require("../../../util/envoiMsg");
 const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { leaveGroup, editMsgHubGroup } = require("../../../util/msg/group");
 const { CHECK_MARK } = require("../../../data/emojis.json");
+const { UserRepository, GroupRepository } = require("../../../repositories");
 
 const kick = async (interaction, options) => {
-    const grpName = options.get("nom")?.value;
+    const idGrp = options.get("nom")?.value;
     const toKicked = options.get("membre")?.member; // USER
     const client = interaction.client;
     const author = interaction.member;
 
     // test si captain est register
-    const authorDb = await client.getUser(author);
+    const authorDb = await UserRepository.findByDiscordId(author.id);
     if (!authorDb)
         // Si pas dans la BDD
         return interaction.reply({
@@ -20,7 +21,7 @@ const kick = async (interaction, options) => {
                 ),
             ],
         });
-    const toKickedDb = await client.getUser(toKicked);
+    const toKickedDb = await UserRepository.findByDiscordUser(toKicked);
     if (!toKickedDb)
         return interaction.reply({
             embeds: [
@@ -31,38 +32,40 @@ const kick = async (interaction, options) => {
         });
 
     // Récupération du groupe
-    const grp = await client.findGroupByName(grpName);
+    const grp = await GroupRepository.findByIdWithRelations(idGrp);
     if (!grp)
         return interaction.reply({
-            embeds: [createError(`Le groupe **${grpName}** n'existe pas !`)],
+            embeds: [createError(`Le groupe n'existe pas !`)],
         });
 
     // si user a kick est capitaine
-    if (grp.captain._id.equals(toKickedDb._id))
+    if (grp.captainUser.id === toKickedDb.id) {
         return interaction.reply({
             embeds: [
                 createError(
-                    `Tu ne peux pas kick le capitaine du groupe **${grpName}** !`,
+                    `Tu ne peux pas kick le capitaine du groupe **${grp.name}** !`,
                 ),
             ],
         });
+    }
 
     // Si l'auteur n'est pas capitaine ou non admin
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
-    if (!isAdmin && !grp.captain._id.equals(authorDb._id))
+    if (!(isAdmin || grp.captainUser.id === authorDb.id)) {
         return interaction.reply({
             embeds: [
-                createError(`Tu n'es pas capitaine du groupe **${grpName}** !`),
+                createError(`Tu n'es pas capitaine du groupe **${grp.name}** !`),
             ],
         });
+    }
 
     // Si l'utilisateur à kick fait partie du groupe
-    const memberGrp = grp.members.find((u) => u._id.equals(toKickedDb._id));
+    const memberGrp = grp.members.find((u) => u.id === toKickedDb.id);
     if (!memberGrp)
         return interaction.reply({
             embeds: [
                 createError(
-                    `${toKicked} ne fait pas parti du groupe **${grpName}** !`,
+                    `${toKicked} ne fait pas parti du groupe **${grp.name}** !`,
                 ),
             ],
         });
@@ -73,16 +76,16 @@ const kick = async (interaction, options) => {
     // update msg
     await editMsgHubGroup(client, interaction.guildId, grp);
     logger.info(
-        `${author.user.tag} vient de kick ${toKicked.user.tag} du groupe ${grpName}`,
+        `${author.user.tag} vient de kick ${toKicked.user.tag} du groupe ${grp.name}`,
     );
 
     const kickLogEmbed = new EmbedBuilder()
         .setTitle("Kick d'un groupe")
         .setDescription(
-            `**${author.user.tag}** vient de kick **${toKicked.user.tag}** du groupe **${grpName}**`,
+            `**${author.user.tag}** vient de kick **${toKicked.user.tag}** du groupe **${grp.name}**`,
         );
     const kickEmbed = new EmbedBuilder().setDescription(
-        `${CHECK_MARK} ${toKicked} a été kick du groupe **${grpName}** !`,
+        `${CHECK_MARK} ${toKicked} a été kick du groupe **${grp.name}** !`,
     );
 
     // - send logs

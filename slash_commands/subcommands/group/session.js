@@ -5,9 +5,10 @@ const { createRappelJob } = require("../../../util/batch/batch");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const moment = require("moment-timezone");
 const { discordTimestamp } = require("../../../util/discordFormatters");
+const { UserRepository, GroupRepository } = require("../../../repositories");
 
 const schedule = async (interaction, options) => {
-    const nameGrp = options.get("nom")?.value;
+    const idGrp = options.get("nom")?.value;
     const dateVoulue = options.get("jour")?.value; // INTEGER
     const heureVoulue = options.get("heure")?.value;
     const client = interaction.client;
@@ -18,7 +19,7 @@ const schedule = async (interaction, options) => {
     await interaction.deferReply();
 
     // Test si le capitaine est inscrit
-    const authorDb = await client.getUser(author);
+    const authorDb = await UserRepository.findByDiscordId(author.id);
     if (!authorDb) {
         // Si pas dans la BDD
         return interaction.editReply({
@@ -31,10 +32,10 @@ const schedule = async (interaction, options) => {
     }
 
     // Récupération du groupe
-    const grp = await client.findGroupByName(nameGrp);
+    const grp = await GroupRepository.findByIdWithRelations(idGrp);
     if (!grp) {
         return interaction.editReply({
-            embeds: [createError(`Le groupe ${nameGrp} n'existe pas !`)],
+            embeds: [createError(`Le groupe n'existe pas !`)],
         });
     }
 
@@ -42,7 +43,7 @@ const schedule = async (interaction, options) => {
     if (!isAdmin && !grp.captain._id.equals(authorDb._id)) {
         return interaction.editReply({
             embeds: [
-                createError(`Tu n'es pas capitaine du groupe ${nameGrp} !`),
+                createError(`Tu n'es pas capitaine du groupe ${grp.name} !`),
             ],
         });
     }
@@ -86,21 +87,25 @@ const schedule = async (interaction, options) => {
         });
     }
 
+    if (!grp.dates) {
+        grp.dates = [];
+    }
+
     // Si la date existe déjà, la supprimer
-    const indexDateEvent = grp.dateEvent.findIndex(
+    const indexDateEvent = grp.dates.findIndex(
         (d) => d.getTime() === dateEvent.valueOf(),
     );
     let titreReponse = `${CHECK_MARK} `;
     let msgReponse = "▶️ ";
     if (indexDateEvent >= 0) {
-        grp.dateEvent.splice(indexDateEvent, 1);
+        grp.dates.splice(indexDateEvent, 1);
 
         titreReponse += "Rdv enlevé 🚮";
         msgReponse += `Session enlevée, le ${dateTimestamp.short} !`;
         logger.info(`.. date ${dateEvent} retiré`);
     } else {
         // Sinon, on l'ajoute, dans le bon ordre
-        grp.dateEvent.push(dateEvent);
+        grp.dates.push(dateEvent);
 
         titreReponse += "Rdv ajouté 🗓";
         msgReponse += `Session ajoutée, le ${dateTimestamp.short} !`;
@@ -118,8 +123,8 @@ const schedule = async (interaction, options) => {
         logger.info(`.. date ${dateEvent} ajouté`);
     }
 
-    grp.dateUpdated = Date.now();
-    grp.save();
+    grp.dateUpdated = new Date();
+    await GroupRepository.update(grp.id, { dates: grp.dates, dateUpdated: grp.dateUpdated });
 
     // créer/update rappel
     if (indexDateEvent >= 0) {

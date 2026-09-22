@@ -165,6 +165,7 @@ module.exports = {
     async autocomplete(interaction) {
         const focusedValue = interaction.options.getFocused(true);
         let filtered = [];
+        let choices = [];
         let exact = [];
 
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
@@ -179,24 +180,34 @@ module.exports = {
             filtered = filtered.filter(
                 (jeu) => jeu.name && jeu.name !== exact[0]?.name,
             );
+
+            // Formatage des objets pour l'autocomplete Discord ({ name, value })
+            choices = filtered.map((element) => ({
+                // si nom jeu dépasse limite imposé par Discord (100 char)
+                name: element.name?.length > 100
+                    ? `${element.name.substring(0, 96)}...`
+                    : element.name,
+                // on utilise l'appid pour le jeu
+                value: String(element.appid),
+            }));
         }
 
         // autocomplete sur nom groupe
         if (focusedValue.name === "nom") {
             filtered = await GroupRepository.findByNameAndGuildId(focusedValue.value, interaction.guildId);
+
+            // Formatage des objets pour l'autocomplete Discord ({ name, value })
+            choices = filtered.map((element) => ({
+                // si nom jeu dépasse limite imposé par Discord (100 char)
+                name: element.name?.length > 100
+                    ? `${element.name.substring(0, 96)}...`
+                    : element.name,
+                // on utilise l'id pour le groupe
+                value: String(element.id),
+            }));
         }
 
-        // Formatage des objets pour l'autocomplete Discord ({ name, value })
-        let choices = filtered.map((element) => ({
-            // si nom jeu dépasse limite imposé par Discord (100 char)
-            name: element.name?.length > 100
-                ? `${element.name.substring(0, 96)}...`
-                : element.name,
-            // on utilise l'appid pour le jeu
-            value: String(element.appid),
-        }));
-
-        // si nom exact trouvé
+        // si nom exact trouvé (pour 'jeu')
         if (exact.length === 1) {
             const jeuExact = exact[0];
             // on récupère les 24 premiers

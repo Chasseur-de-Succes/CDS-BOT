@@ -40,8 +40,8 @@ module.exports = {
                 name: jobName,
                 guildId: guildId,
                 when: minus1day,
-                what: "envoiMpRappel",
-                args: [groupe._id, "jour"],
+                functionName: "envoiMpRappel",
+                args: [groupe.id, "jour"],
             };
 
             if (minus1day.isAfter(moment().tz("Europe/Paris"))) {
@@ -69,8 +69,8 @@ module.exports = {
                 name: jobName,
                 guildId: guildId,
                 when: minus1hour,
-                what: "envoiMpRappel",
-                args: [groupe._id, "heure"],
+                functionName: "envoiMpRappel",
+                args: [groupe.id, "heure"],
             };
 
             if (minus1hour.isAfter(moment().tz("Europe/Paris"))) {
@@ -130,7 +130,7 @@ module.exports = {
         logger.info(`-- Chargement de ${jobsPending.length} jobs..`);
         for (const job of jobsPending) {
             scheduleJob(job.name, job.when, () => {
-                require("./batch")[job.what](
+                require("./batch")[job.functionName](
                     client,
                     job.guildId,
                     job.args[0],
