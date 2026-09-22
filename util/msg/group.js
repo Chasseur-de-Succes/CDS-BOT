@@ -211,10 +211,11 @@ async function editMsgHubGroup(client, guildId, group) {
 /**
  * Supprime un message
  * @param {*} client
+ * @param {*} guildId
  * @param {*} group
  */
 async function deleteMsgHubGroup(client, guildId, group) {
-    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
     if (idListGroup) {
         const msg = await client.channels.cache
             .get(idListGroup)
@@ -360,8 +361,10 @@ async function createCollectorGroup(client, msg) {
 
 /**
  * Enlève un utilisateur d'un groupe
+ * @param {*} client
+ * @param {*} guildId
  * @param {*} grp Le groupe
- * @param {*} userDB L'utilisateur a enlever
+ * @param {*} userDb L'utilisateur à enlever
  */
 async function leaveGroup(client, guildId, grp, userDb) {
     await GroupRepository.removeMember(grp.id, userDb.id);
@@ -449,7 +452,6 @@ async function createGroup(client, guildId, newGrp) {
         const msgChannel = await client.channels.cache
             .get(idListGroup)
             .messages.fetch(idMsg);
-        console.log(`msgChannel : ${msgChannel} pour ${idListGroup} et ${idMsg}`);
 
         // Création du collecteur pour les boutons
         await createCollectorGroup(client, msgChannel);
@@ -494,7 +496,7 @@ async function endGroup(client, guildId, grp) {
     for (const member of grp.members) {
         const usr = await client.users.fetch(member.discordId);
         // xp bonus captain
-        if (member.id.equals(grp.captainUser.id)) {
+        if (member.id === grp.captainUser.id) {
             await addXp(client, guildId, usr, xp + xpBonusCaptain);
         } else if (usr) {
             await addXp(client, guildId, usr, xp);
@@ -506,7 +508,7 @@ async function endGroup(client, guildId, grp) {
     const base = 20;
     const baseJoueur = 5;
     const baseSession = 50;
-    const nbSession = grp.dates.length;
+    const nbSession = grp.dates?.length ?? 0;
     const nbJoueur = grp.members.length;
     const prize =
         (base + baseJoueur * nbJoueur) * nbJoueur + baseSession * nbSession;
@@ -526,7 +528,7 @@ async function endGroup(client, guildId, grp) {
     }
 
     // déplacer event terminé
-    const idListGroup = await client.getGuildChannel(guildId, SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
     if (idListGroup) {
         await moveToArchive(client, idListGroup, grp);
     } else {
@@ -578,7 +580,7 @@ async function moveToArchive(client, idListGroup, grp) {
  */
 function deleteAllRappelJob(client, groupe) {
     // pour chaque date de session :
-    for (const date of groupe.dates) {
+    for (const date of groupe.dates || []) {
         deleteRappelJob(client, groupe, date);
     }
 }

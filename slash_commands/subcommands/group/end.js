@@ -2,16 +2,17 @@ const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { endGroup } = require("../../../util/msg/group");
 const { CHECK_MARK } = require("../../../data/emojis.json");
+const { UserRepository, GroupRepository } = require("../../../repositories");
 
 const end = async (interaction, options) => {
-    const grpName = options.get("nom")?.value;
+    const idGrp = options.get("nom")?.value;
     const client = interaction.client;
     const author = interaction.member;
 
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
-    const authorDb = await client.getUser(author);
+    const authorDb = await UserRepository.findByDiscordId(author.id);
     if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
@@ -24,15 +25,15 @@ const end = async (interaction, options) => {
     }
 
     // Récupération du groupe
-    const grp = await client.findGroupByName(grpName);
+    const grp = await GroupRepository.findByIdWithRelations(idGrp);
     if (!grp) {
         return interaction.reply({
-            embeds: [createError(`Le groupe ${grpName} n'existe pas !`)],
+            embeds: [createError(`Le groupe n'existe pas !`)],
         });
     }
 
     // Si l'auteur n'est pas admin et n'est pas capitaine
-    if (!(isAdmin || grp.captain._id.equals(authorDb._id))) {
+    if (!(isAdmin || grp.captainUser.id === authorDb.id)) {
         return interaction.reply({
             embeds: [
                 createError(`Tu n'es pas capitaine du groupe ${grp.name} !`),
@@ -51,7 +52,7 @@ const end = async (interaction, options) => {
         });
     }
 
-    await client.update(grp, { validated: true });
+    await GroupRepository.update(grp.id, { validated: true });
 
     // suppression du channel de discussion
     if (grp.channelId) {
@@ -66,7 +67,7 @@ const end = async (interaction, options) => {
 
     let mentionsUsers = "";
     for (const member of grp.members) {
-        mentionsUsers += `<@${member.userId}> `;
+        mentionsUsers += `<@${member.discordId}> `;
     }
 
     // - MONEY
@@ -74,7 +75,7 @@ const end = async (interaction, options) => {
     const base = 20;
     const baseJoueur = 5;
     const baseSession = 50;
-    const nbSession = grp.dates.length;
+    const nbSession = grp.dates?.length ?? 0;
     const nbJoueur = grp.members.length;
     const prize =
         (base + baseJoueur * nbJoueur) * nbJoueur + baseSession * nbSession;
