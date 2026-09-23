@@ -174,6 +174,23 @@ class GroupRepository extends BaseRepository {
     return this.delete(groupId);
   }
 
+  /**
+   * Retourne les groupes non validés dont l'utilisateur est capitaine ou membre.
+   */
+  findGroupByUser(userId) {
+    return this.Model.query()
+      .whereNull('validated')
+      .where(builder => builder
+          .where('captain', userId)
+          .orWhereExists(
+            GroupUser.query()
+              .select(1)
+              .whereColumn('GroupUser.groupid', 'Group.id')
+              .where('GroupUser.userid', userId),
+          ))
+      .withGraphFetched('[captainUser, members, gameInfo]');
+  }
+
   async countOngoingByMember(userDb) {
     return this.Model.query()
         .whereExists(

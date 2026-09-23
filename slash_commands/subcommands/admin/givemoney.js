@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { GREEN } = require("../../../data/colors.json");
+const { UserRepository } = require("../../../repositories");
 
 const givemoney = async (interaction, options) => {
     const client = interaction.client;
@@ -10,7 +11,7 @@ const givemoney = async (interaction, options) => {
     let montant = interaction.options.get("montant")?.value;
     const MONEY = process.env.MONEY;
 
-    const dbUser = await client.getUser(member);
+    const dbUser = await UserRepository.findByDiscordUser(member);
     if (!dbUser) {
         // Si pas dans la BDD
         const embedErr = createError(
@@ -31,7 +32,7 @@ const givemoney = async (interaction, options) => {
         montant,
     )}** ${MONEY} à ${user}\nSon argent est désormais de : **${money}** ${MONEY}`;
 
-    await client.update(dbUser, { money: money });
+    await UserRepository.update(dbUser.id, { money: money });
     logger.warn(
         `${author.tag} a effectué la commande admin : givemoney ${montant}`,
     );

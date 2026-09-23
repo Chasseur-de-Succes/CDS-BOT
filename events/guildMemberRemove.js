@@ -7,6 +7,7 @@ const {
     editMsgHubGroup,
 } = require("../util/msg/group");
 const { discordTimestamp } = require("../util/discordFormatters");
+const { UserRepository, GroupRepository } = require("../repositories");
 
 module.exports = {
     name: Events.GuildMemberRemove,
@@ -36,37 +37,35 @@ module.exports = {
 
         const systemChannel = member.guild.systemChannel;
         if (systemChannel) {
-            const msgLeave = `😢 ${member.user} a quitté le serveur. Bonne continuation à toi !`;
+            const msgLeave = `😢 ${member.user} (${member.user.tag}) a quitté le serveur. Bonne continuation à toi !`;
             await member.client.channels.cache
                 .get(systemChannel.id)
                 .send(msgLeave);
         }
 
         // leave all joined groups
-        const userDB = await client.getUser(member);
-        const groups = await client.findGroupByUser(userDB);
-
+        const userDB = await UserRepository.findByDiscordUser(member.user);
+        const groups = await GroupRepository.findGroupByUser(userDB.id);
         for (const group of groups) {
-            if (group.captain.userId === userDB.userId) {
+            if (group.captainUser.id === userDB.id) {
                 if (group.members.length === 1) {
                     await dissolveGroup(client, guildId, group);
                 } else {
-                    const memberGrp = group.members.find((u) =>
-                        u._id.equals(userDB._id),
-                    );
+                    await GroupRepository.removeMember(group.id, userDB.id);
+
+                    const memberGrp = group.members.find((u) => u.id === userDB.id);
                     const indexMember = group.members.indexOf(memberGrp);
                     group.members.splice(indexMember, 1);
-                    group.size--;
+
                     const newCaptainDB = group.members[0];
                     const newCaptain = member.guild.members.cache.get(
-                        newCaptainDB.userId,
+                        newCaptainDB.discordId,
                     );
-                    group.captain = newCaptainDB;
-                    await client.update(group, {
-                        captain: group.captain,
+
+                    await GroupRepository.update(group.id, {
+                        captain: newCaptainDB.id,
                         members: group.members,
-                        size: group.size,
-                        dateUpdated: Date.now(),
+                        dateUpdated: new Date(),
                     });
 
                     // update msg
@@ -76,7 +75,7 @@ module.exports = {
                         `${member.user.tag} a quitté le serveur, ${newCaptain.user.tag} est le nouveau capitaine du groupe : ${group.name}`,
                     );
                     const newMsgEmbed = new EmbedBuilder().setDescription(
-                        `${member.user.tag} a quitté le serveur, ${newCaptain.user.tag} est le nouveau capitaine du groupe ! (membres dans le groupe : ${group.size})`,
+                        `${member.user.tag} a quitté le serveur, ${newCaptain.user.tag} est le nouveau capitaine du groupe ! (membres dans le groupe : ${group.members.length})`,
                     );
                     const channelGroup = await client.channels.cache.get(
                         group.channelId,

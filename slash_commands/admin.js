@@ -16,8 +16,6 @@ const {
 } = require("./subcommands/admin/observation");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
-const { Group } = require("../models");
-const { escapeRegExp } = require("../util/util");
 const { GroupRepository } = require("../repositories");
 
 module.exports = {

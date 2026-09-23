@@ -1,6 +1,5 @@
 const { createError, sendLogs } = require("../../../util/envoiMsg");
 const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
-const { Group } = require("../../../models");
 const { editMsgHubGroup } = require("../../../util/msg/group");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const { UserRepository, GroupRepository } = require("../../../repositories");
@@ -44,8 +43,10 @@ const editNbParticipant = async (interaction, options) => {
 
     if (nbMax > 0) {
         await GroupRepository.update(grp.id, { nbMax: nbMax });
+        grp.nbMax = nbMax;
     } else {
         await GroupRepository.update(grp.id, { nbMax: null });
+        grp.nbMax = null;
     }
 
     // Update message

@@ -2,31 +2,32 @@ const { EmbedBuilder } = require("discord.js");
 const { createLogs, createError } = require("../../../util/envoiMsg");
 const { GREEN, ORANGE, CRIMSON } = require("../../../data/colors.json");
 const { leaveGroup, dissolveGroup } = require("../../../util/msg/group");
+const { UserRepository, GroupRepository } = require("../../../repositories");
 
 const avertissement = async (interaction, options) => {
     const client = interaction.client;
     const guildId = interaction.guildId;
-    const user = interaction.options.getUser("target");
+    const user = options.getUser("target");
     const nb = interaction.options.getInteger("nb");
     const raison = interaction.options.getString("raison");
-    const member = interaction.guild.members.cache.get(user.id);
+    const member = await interaction.guild.members.fetch(user.id);
 
-    const dbUser = await client.getUser(member);
-    if (!dbUser) {
+    const userDb = await UserRepository.findByDiscordId(user.id);
+    if (!userDb) {
         // Si pas dans la BDD
         return interaction.reply({
             embeds: [
-                createError(`${member.user.tag} n'a pas encore de compte !`),
+                createError(`${user.tag} n'a pas encore de compte !`),
             ],
         });
     }
 
     // si nb defini, on set
     if (nb || nb === 0) {
-        dbUser.warning = nb;
+        userDb.nbWarning = nb;
     } else {
         // sinon on incremente
-        dbUser.warning++;
+        userDb.nbWarning++;
     }
 
     let color = "";
@@ -34,26 +35,26 @@ const avertissement = async (interaction, options) => {
     let desc = "";
 
     // on ignore si déja 3 warning
-    if (dbUser.warning <= 3) {
-        title = `${dbUser.warning} ${
-            dbUser.warning === 1 ? "avertissement" : "avertissements"
+    if (userDb.nbWarning <= 3) {
+        title = `${userDb.nbWarning} ${
+            userDb.nbWarning === 1 ? "avertissement" : "avertissements"
         } !`;
 
-        if (dbUser.warning === 3) {
+        if (userDb.nbWarning === 3) {
             color = CRIMSON;
             desc = `${user} est maintenant **interdit** d'event ! 🔨`;
-        } else if (dbUser.warning === 0) {
+        } else if (userDb.nbWarning === 0) {
             color = GREEN;
             desc = `${user} est maintenant clean ! 👼`;
         } else {
             color = ORANGE;
-            desc = `Encore **${3 - dbUser.warning}** ${
-                3 - dbUser.warning === 1 ? "avertissement" : "avertissements"
+            desc = `Encore **${3 - userDb.nbWarning}** ${
+                3 - userDb.nbWarning === 1 ? "avertissement" : "avertissements"
             } et ${user} est puni ! 😈`;
         }
     } else {
         color = CRIMSON;
-        title = `${dbUser.warning} avertissements !`;
+        title = `${userDb.nbWarning} avertissements !`;
         desc = `${user} est déjà interdit d'event (depuis 3 avertissements déjà) ! 🔨
                     Ca fait beaucoup là non ?`;
     }
@@ -72,25 +73,23 @@ const avertissement = async (interaction, options) => {
     if (role404) {
         // si warning == 3 => on donne le role
         // sinon, si <= 2 on l'enleve (si a le role)
-        if (dbUser.warning === 3) {
+        if (userDb.nbWarning === 3) {
             member.roles.add(role404);
             // - l'enlever de tous les groupes
-            const groupes = await client.findGroup({
-                $and: [{ members: dbUser._id }, { validated: false }],
-            });
+            const groupes = await GroupRepository.findGroupByUser(userDb.id);
 
             for (const groupe of groupes) {
                 // si capitaine
-                if (groupe.captain._id.equals(dbUser._id)) {
+                if (groupe.captainUser.id === userDb.id) {
                     // si groupes a encore des membres
                     if (groupe.size > 1) {
-                        await leaveGroup(client, guildId, groupe, dbUser);
+                        await leaveGroup(client, guildId, groupe, userDb);
 
                         logger.info(
                             ` - ${groupe.members[0].username} est nouveau capitaine pour groupe ${groupe.name}`,
                         );
-                        groupe.captain = groupe.members[0];
-                        await groupe.save();
+                        groupe.captain = groupe.members[0].id;
+                        await GroupRepository.update(groupe.id, { captain: groupe.captain });
 
                         // - notif groupe
                         if (groupe.channelId) {
@@ -119,7 +118,7 @@ const avertissement = async (interaction, options) => {
                     }
                 } else {
                     logger.info(
-                        ` - ${dbUser.username} est kick du groupe ${groupe.name}`,
+                        ` - ${userDb.username} est kick du groupe ${groupe.name}`,
                     );
                     // - notif groupe
                     if (groupe.channelId) {
@@ -129,9 +128,9 @@ const avertissement = async (interaction, options) => {
                             );
 
                         // send message channel group
-                        channel.send(`> <@${dbUser.userId}> a été kick.`);
+                        channel.send(`> <@${userDb.userId}> a été kick.`);
                     }
-                    await leaveGroup(client, guildId, groupe, dbUser);
+                    await leaveGroup(client, guildId, groupe, userDb);
                 }
             }
 
@@ -148,7 +147,7 @@ const avertissement = async (interaction, options) => {
                                                      
                                                      Si cela est une erreur, n'hésite pas à contacter un administrateur.`);
             user.send({ embeds: [mp] });
-        } else if (dbUser.warning <= 2) {
+        } else if (userDb.nbWarning <= 2) {
             // eneleve le role
             member.roles.remove(role404);
 
@@ -156,16 +155,16 @@ const avertissement = async (interaction, options) => {
             let titleMp = "";
             let descMp = "";
 
-            if (dbUser.warning === 0) {
+            if (userDb.nbWarning === 0) {
                 titleMp = "👼 Tu n'es plus **puni** 👼";
                 descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
                              ▶️ Tu peux de nouveau rejoindre un groupe`;
-            } else if (dbUser === 1) {
-                titleMp = `⚠️ **${dbUser.warning}er avertissement** ⚠️`;
+            } else if (userDb === 1) {
+                titleMp = `⚠️ **${userDb.nbWarning}er avertissement** ⚠️`;
                 descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
                              ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
             } else {
-                titleMp = `⚠️ **${dbUser.warning}ème avertissement** ⚠️`;
+                titleMp = `⚠️ **${userDb.nbWarning}ème avertissement** ⚠️`;
                 descMp = `${raison ? `Pour la raison : \n*${raison}*` : ""}
                              ▶️ Au 3ème, tu ne pourras plus rejoindre de groupe.`;
             }
@@ -187,7 +186,7 @@ const avertissement = async (interaction, options) => {
         .setTitle(title)
         .setDescription(desc);
 
-    await dbUser.save();
+    await UserRepository.update(userDb.id, { nbWarning: userDb.nbWarning });
 
     await createLogs(
         client,

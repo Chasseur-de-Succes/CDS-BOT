@@ -2,7 +2,6 @@ const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { editMsgHubGroup } = require("../../../util/msg/group");
 const { CHECK_MARK } = require("../../../data/emojis.json");
-const { User } = require("../../../models");
 const { UserRepository, GroupRepository } = require("../../../repositories");
 
 const transfert = async (interaction, options) => {
