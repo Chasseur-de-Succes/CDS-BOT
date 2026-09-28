@@ -6,9 +6,9 @@ const {
 } = require("discord.js");
 const { YELLOW } = require("../data/colors.json");
 const { createError, feedBotMetaAch } = require("../util/envoiMsg");
-const { GameItem } = require("../models");
 const { getAchievement } = require("../util/msg/stats");
 const { createLogs } = require("../util/envoiMsg");
+const { UserRepository, GameItemShopRepository, StatsRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -31,7 +31,7 @@ module.exports = {
         const isInGuild = interaction.inGuild();
 
         // recupere l'user dans la db
-        const vendeurDb = await client.getUser(vendeur);
+        const vendeurDb = await UserRepository.findByDiscordUser(vendeur);
         if (!vendeurDb) {
             // Si pas dans la BDD
             return interaction.reply({
@@ -44,10 +44,7 @@ module.exports = {
         }
 
         // cherche l'item en 'pending'
-        const items = await client.findGameItemShop({
-            seller: vendeurDb,
-            state: "pending",
-        });
+        const items = await GameItemShopRepository.findPendingItems(vendeurDb.id, "pending");
 
         let embed = new EmbedBuilder();
 
@@ -67,9 +64,9 @@ module.exports = {
         const itemsSelect = [];
         for (const i of items) {
             itemsSelect.push({
-                label: i.game.name,
-                description: `acheté par ${i.buyer.username}`,
-                value: `${i._id}`,
+                label: i.gameInfo.name,
+                description: `acheté par ${i.buyerInfo.username}`,
+                value: `${i.id}`,
             });
         }
 
@@ -109,8 +106,7 @@ module.exports = {
 
         const idItem = itrSelect.values[0];
 
-        const item =
-            await GameItem.findById(idItem).populate("game seller buyer");
+        const item = await GameItemShopRepository.findByIdWithRelations(idItem);
         embed = await sendKey(client, vendeur, vendeurDb, item, daKey);
 
         await interaction.editReply({
@@ -125,20 +121,20 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
     const embed = new EmbedBuilder();
 
     const guildId = item.guildId;
-    const buyerDb = item.buyer;
-    const game = item.game;
+    const buyerDb = item.buyerInfo;
+    const game = item.gameInfo;
 
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
 
     // recherche de l'acheteur
     const guild = await client.guilds.cache.get(guildId);
-    const acheteur = guild.members.cache.get(buyerDb.userId);
+    const acheteur = guild.members.cache.get(buyerDb.discordId);
 
     // si acheteur trouvé
     // TODO si error lors envoi message (acheteur a bloqué MP ou X raison)
     // TODO si envoi ok, msg confirmation, sinon msg erreur
     if (acheteur) {
-        const acheteurDb = await client.getUser(acheteur);
+        const acheteurDb = await UserRepository.findByDiscordUser(acheteur);
 
         // - envoi cle a l'acheteur
         const kdOembed = new EmbedBuilder()
@@ -160,11 +156,11 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
         });
 
         // maj state
-        await client.update(item, { state: "done" });
+        await GameItemShopRepository.update(item.id, { state: "done" });
 
         // maj stat vendeur & acheteur
-        vendeurDb.stats.shop.sold++;
-        acheteurDb.stats.shop.bought++;
+        await StatsRepository.incrementShopSold(vendeurDb.id)
+        await StatsRepository.incrementShopBought(acheteurDb.id)
 
         // test si achievement unlock
         const achievementUnlock = await getAchievement(vendeurDb, "shop");
@@ -172,30 +168,25 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
             await feedBotMetaAch(client, guildId, vendeur, achievementUnlock);
         }
 
-        // save
-        await vendeurDb.save();
-        await acheteurDb.save();
-
         // log 'Acheteur a confirmé et à reçu la clé JEU en MP - done'
         await createLogs(
             client,
             guildId,
             "Achat jeu dans le shop",
-            `~~1️⃣ ${acheteur} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**~~
+            `~~1️⃣ ${acheteur} achète **${game.name}** à **${item.price} ${process.env.MONEY}**~~
             2️⃣ ${vendeur} a envoyé la clé & ${acheteur} a reçu la clé ! C'est terminé !`,
-            `ID vente : ${item._id}`,
+            `ID vente : ${item.id}`,
             YELLOW,
         );
 
         // ajoute montant du jeu au porte-monnaie du vendeur
-        vendeurDb.money += item.montant;
-        await client.update(vendeurDb, { money: vendeurDb.money });
+        await UserRepository.addMoney(vendeurDb.id, item.price);
 
         embed
             .setTitle("💰 BOUTIQUE - VENTE FINIE 💰")
             .setDescription(`${acheteur} a reçu la clé du jeu ***${game.name}*** que vous aviez mis en vente !
     
-                Vous avez bien reçu vos ***${item.montant} ${process.env.MONEY}***, ce qui vous fait un total de ...
+                Vous avez bien reçu vos ***${item.price} ${process.env.MONEY}***, ce qui vous fait un total de ...
                 💰 **${vendeurDb.money} ${process.env.MONEY}** !
                 
                 *En cas de problème, contactez un admin !*`);

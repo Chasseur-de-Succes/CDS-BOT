@@ -81,11 +81,8 @@ module.exports = {
             )
             .setThumbnail(userSteam.body.response.players[0].avatarmedium); // .avatarfull -> pour plus grande image
 
-        const msg = await interaction.reply({
-            embeds: [embedVerif],
-            components: [row],
-            fetchReply: true,
-        });
+        await interaction.reply({ embeds: [embedVerif], components: [row] });
+        const msg = await interaction.fetchReply();
 
         const confirmFilter = (i) =>
             i.customId === "confirm" && i.user.id === interaction.user.id;

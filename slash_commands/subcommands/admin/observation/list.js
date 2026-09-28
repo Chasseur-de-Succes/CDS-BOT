@@ -77,11 +77,8 @@ async function list(interaction, options) {
             .setStyle(ButtonStyle.Secondary),
     );
 
-    let msg = await interaction.editReply({
-        embeds: [embed],
-        components: [row],
-        fetchReply: true,
-    });
+    await interaction.editReply({ embeds: [embed], components: [row] });
+    let msg = await interaction.fetchReply();
 
     const collectorFilter = (i) => i.user.id === interaction.user.id;
 

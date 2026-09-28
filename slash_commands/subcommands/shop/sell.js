@@ -3,9 +3,10 @@ const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const { YELLOW } = require("../../../data/colors.json");
 const { MIN_PRICE_SHOP } = require("../../../util/constants");
+const { UserRepository, GameRepository, GameItemShopRepository } = require("../../../repositories");
 
 async function sell(interaction, options) {
-    const gameId = options.get("jeu")?.value;
+    const gameAppid = options.get("jeu")?.value;
     const montant = options.get("prix")?.value;
     const client = interaction.client;
     const author = interaction.member;
@@ -13,7 +14,7 @@ async function sell(interaction, options) {
     // "Bot réfléchit.."
     await interaction.deferReply();
 
-    const userDb = await client.getUser(author);
+    const userDb = await UserRepository.findByDiscordId(author.id);
     if (!userDb) {
         return interaction.editReply({
             embeds: [
@@ -24,7 +25,7 @@ async function sell(interaction, options) {
         });
     }
 
-    if (!Number.parseInt(gameId)) {
+    if (!Number.parseInt(gameAppid)) {
         return interaction.editReply({
             embeds: [
                 createError("Jeu non trouvé ou donne trop de résultats !"),
@@ -49,15 +50,15 @@ async function sell(interaction, options) {
     // Jeu déjà recherché via autocomplete
 
     // On récupère le custom id "APPID_GAME"
-    const game = await client.findGameByAppid(gameId);
+    const game = await GameRepository.findByAppid(gameAppid);
 
     const item = {
         guildId: interaction.guildId,
-        montant: montant,
-        game: game,
-        seller: userDb,
+        price: montant,
+        game: gameAppid,
+        seller: userDb.id,
     };
-    const itemDb = await client.createGameItemShop(item);
+    const itemDb = await GameItemShopRepository.create(item);
 
     const embed = new EmbedBuilder()
         .setColor(YELLOW)
@@ -74,7 +75,7 @@ async function sell(interaction, options) {
         interaction.guildId,
         "Nouveau jeu dans le shop",
         `${author} vient d'ajouter **${game.name}** à **${montant} ${process.env.MONEY}** !`,
-        `ID : ${itemDb._id}`,
+        `ID : ${itemDb.id}`,
         YELLOW,
     );
 }

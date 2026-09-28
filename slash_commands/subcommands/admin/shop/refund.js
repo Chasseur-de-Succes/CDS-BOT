@@ -2,34 +2,22 @@ const { createError, createLogs } = require("../../../../util/envoiMsg");
 const { EmbedBuilder } = require("discord.js");
 const { YELLOW, NIGHT } = require("../../../../data/colors.json");
 const { CHECK_MARK } = require("../../../../data/emojis.json");
+const { GameItemShopRepository, UserRepository } = require("../../../../repositories");
 
 async function refund(interaction, options) {
     const id = options.get("id")?.value;
     const client = interaction.client;
     const author = interaction.member;
 
-    let gameItem = await client.findGameItemShop({ _id: id });
+    const gameItem = await GameItemShopRepository.findByIdWithRelations(id);
 
-    if (gameItem.length === 0) {
+    if (!gameItem) {
         return interaction.reply({
             embeds: [createError("Vente non trouvée")],
         });
     }
 
-    // on recup [0] car findGameItemShop retourne un array...
-    gameItem = gameItem[0];
-
     // teste si state existe et si == 'done'
-    if (!gameItem.state) {
-        return interaction.reply({
-            embeds: [
-                createError(
-                    "La vente n'a pas encore **commencée** ! Utiliser `/admin shop delete <id>`",
-                ),
-            ],
-        });
-    }
-
     if (gameItem.state !== "done") {
         return interaction.reply({
             embeds: [
@@ -40,13 +28,17 @@ async function refund(interaction, options) {
         });
     }
 
-    // maj statut item
-    await client.update(gameItem, { $unset: { state: 1, buyer: 1 } });
+    // Remet l'item (dispo dans le shop)
+    await GameItemShopRepository.update(gameItem.id, {
+        state: "listed",
+        buyer: null,
+    });
 
     // rembourse acheteur
     try {
-        await client.update(gameItem.buyer, {
-            money: gameItem.buyer.money + gameItem.montant,
+        await UserRepository.update(gameItem.buyerInfo.id, {
+            lastBuy: null,
+            money: gameItem.buyerInfo.money + gameItem.price,
         });
     } catch (error) {
         return interaction.reply({
@@ -60,8 +52,8 @@ async function refund(interaction, options) {
 
     // reprend argent au vendeur
     try {
-        await client.update(gameItem.seller, {
-            money: gameItem.seller.money - gameItem.montant,
+        await UserRepository.update(gameItem.sellerInfo.id, {
+            money: gameItem.sellerInfo.money - gameItem.price,
         });
     } catch (error) {
         return interaction.reply({
@@ -78,15 +70,15 @@ async function refund(interaction, options) {
     const embed = new EmbedBuilder()
         .setColor(NIGHT)
         .setTitle(`${CHECK_MARK} Achat remboursé !`)
-        .setDescription(`▶️ L'acheteur <@${gameItem.buyer.userId}> a été **remboursé**
-                         ▶️ ${process.env.MONEY} **repris** au vendeur <@${gameItem.buyer.userId}> 
+        .setDescription(`▶️ L'acheteur <@${gameItem.buyerInfo.discordId}> a été **remboursé**
+                         ▶️ ${process.env.MONEY} **repris** au vendeur <@${gameItem.sellerInfo.discordId}> 
                          ▶️ L'item est de nouveau **disponible** dans le shop`);
     interaction.reply({ embeds: [embed] });
     createLogs(
         client,
         interaction.guildId,
         "Annulation vente",
-        `${author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyer.username}**, du jeu **${gameItem.game.name}**, vendu par **${gameItem.seller.username}**`,
+        `${author} a annulé la vente, pour rembourser l'achat de **${gameItem.buyerInfo.username}**, du jeu **${gameItem.gameInfo.name}**, vendu par **${gameItem.sellerInfo.username}**`,
         `ID : ${id}`,
         YELLOW,
     );

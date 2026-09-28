@@ -81,6 +81,13 @@ class StatsRepository extends BaseRepository {
   async incrementGroupEnded(userId) {
     return this.increment(userId, 'nbGroupEnded', 1);
   }
+
+  async incrementShopSold(userId) {
+    return this.increment(userId, 'nbShopSold', 1);
+  }
+  async incrementShopBought(userId) {
+    return this.increment(userId, 'nbShopBought', 1);
+  }
 }
 
 module.exports = new StatsRepository();

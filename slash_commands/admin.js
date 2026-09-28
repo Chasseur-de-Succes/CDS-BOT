@@ -16,7 +16,7 @@ const {
 } = require("./subcommands/admin/observation");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
-const { GroupRepository } = require("../repositories");
+const { GroupRepository, GameItemShopRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -285,7 +285,6 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
-        const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
         const vendeurId = interaction.options.get("vendeur")?.value;
 
@@ -293,14 +292,14 @@ module.exports = {
 
         if (focusedValue.name === "jeu") {
             if (focusedValue.value) {
-                filtered = await client.findGameItemShopBy({
+                filtered = await GameItemShopRepository.findGameItemShopBy({
                     game: focusedValue.value,
                     seller: vendeurId,
                     notSold: true,
                     limit: 25,
                 });
             } else {
-                filtered = await client.findGameItemShopBy({
+                filtered = await GameItemShopRepository.findGameItemShopBy({
                     seller: vendeurId,
                     notSold: true,
                     limit: 25,
@@ -309,8 +308,8 @@ module.exports = {
 
             // on ne prend que les 25 1er (au cas où)
             filtered = filtered.slice(0, 25).map((choice) => ({
-                name: choice.game.name,
-                value: choice._id,
+                name: choice.gameInfo.name,
+                value: String(choice.id),
             }));
         }
 

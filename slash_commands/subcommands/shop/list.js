@@ -6,13 +6,13 @@ const {
 } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { YELLOW } = require("../../../data/colors.json");
+const { UserRepository, GameItemShopRepository } = require("../../../repositories");
 const NB_PAR_PAGES = 10;
 
 async function list(interaction) {
-    const client = interaction.client;
     const author = interaction.member;
 
-    const userDb = await client.getUser(author);
+    const userDb = await UserRepository.findByDiscordId(author.id);
     if (!userDb) {
         return interaction.reply({
             embeds: [
@@ -23,7 +23,7 @@ async function list(interaction) {
         });
     }
 
-    const items = await client.findGameItemShopByGame();
+    const items = await GameItemShopRepository.findGameItemShopByGame();
     let embed = new EmbedBuilder()
         .setColor(YELLOW)
         .setTitle("💰 BOUTIQUE - LISTE JEUX DISPONIBLES 💰")
@@ -60,11 +60,11 @@ async function list(interaction) {
 
     /* 1ere page liste */
     embed = createListGame(items, userDb.money);
-    const msgListEmbed = await interaction.reply({
+    await interaction.reply({
         embeds: [embed],
         components: rows,
-        fetchReply: true,
     });
+    const msgListEmbed = await interaction.fetchReply();
 
     // Collect button interactions
     const collector = msgListEmbed.createMessageComponentCollector({
@@ -125,13 +125,11 @@ function createListGame(items, money, currentIndex = 0) {
         const item = items[i];
         if (item) {
             pages.push(`**[${i + 1}]**`);
-            jeux.push(`*${item._id.name}*`);
+            jeux.push(`*${item.game.name}*`);
 
             // recupere montant minimum
             prixMin.push(
-                item.items.reduce((min, p) =>
-                    p.montant < min ? p.montant : min,
-                ).montant,
+                Math.min(...item.items.map((p) => p.price)),
             );
         }
     }

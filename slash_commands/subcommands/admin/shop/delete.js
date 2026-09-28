@@ -3,6 +3,7 @@ const { EmbedBuilder } = require("discord.js");
 const { YELLOW, NIGHT } = require("../../../../data/colors.json");
 const { CHECK_MARK } = require("../../../../data/emojis.json");
 const mongoose = require("mongoose");
+const { GameItemShopRepository } = require("../../../../repositories");
 
 async function deleteItem(interaction, options) {
     // const id = options.get('id')?.value;
@@ -11,13 +12,11 @@ async function deleteItem(interaction, options) {
     const client = interaction.client;
     const author = interaction.member;
 
-    const gameItem = await client.findGameItemShop({
-        _id: new mongoose.Types.ObjectId(idItem),
-    });
-    logger.info(`.. Item ${gameItem[0]._id} choisi`);
+    const gameItem = await GameItemShopRepository.findByIdWithRelations(idItem);
+    logger.info(`.. Item ${gameItem.id} choisi`);
 
     // Test si state n'existe pas
-    if (gameItem[0].state) {
+    if (gameItem.state === 'pending') {
         return interaction.reply({
             embeds: [
                 createError(
@@ -27,11 +26,11 @@ async function deleteItem(interaction, options) {
         });
     }
 
-    const gameName = gameItem[0].game.name;
+    const gameName = gameItem.gameInfo.name;
 
     // Supprimer item boutique
     try {
-        await client.deleteGameItemById(idItem);
+        await GameItemShopRepository.delete(idItem);
     } catch (error) {
         return interaction.reply({
             embeds: [createError("Item du shop non trouvé !")],

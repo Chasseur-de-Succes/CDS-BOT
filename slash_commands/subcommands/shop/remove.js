@@ -2,29 +2,27 @@ const { EmbedBuilder } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK } = require("../../../data/emojis.json");
 const { NIGHT, YELLOW } = require("../../../data/colors.json");
-const mongoose = require("mongoose");
+const { GameItemShopRepository } = require("../../../repositories");
 
 async function remove(interaction, options) {
-    const gameId = options.get("jeu")?.value;
+    const gameItemId = options.get("jeu")?.value;
     const client = interaction.client;
     const author = interaction.member;
     const guild = interaction.guild;
 
     await interaction.deferReply();
 
-    if (!Number.parseInt(gameId)) {
+    if (!Number.parseInt(gameItemId)) {
         return interaction.editReply({
             embeds: [createError("Jeu non valide !")],
         });
     }
 
-    const gameItem = await client.findGameItemShop({
-        _id: new mongoose.Types.ObjectId(gameId),
-    });
-    logger.info(`.. Item ${gameItem[0]._id} choisi`);
+    const gameItem = await GameItemShopRepository.findByIdWithRelations(gameItemId);
+    logger.info(`.. Item ${gameItem.id} choisi`);
 
     // Test si bien le vendeur
-    const seller = guild.members.cache.get(gameItem[0].seller.userId);
+    const seller = guild.members.cache.get(gameItem.sellerInfo.discordId);
     if (author !== seller) {
         return interaction.editReply({
             embeds: [createError("Tu n'es pas le vendeur du jeu !")],
@@ -32,7 +30,7 @@ async function remove(interaction, options) {
     }
 
     // Test si state n'existe pas
-    if (gameItem[0].state) {
+    if (gameItem.state === 'pending') {
         return interaction.editReply({
             embeds: [
                 createError("Le jeu ne peut pas avoir une demande d'achat !"),
@@ -40,11 +38,11 @@ async function remove(interaction, options) {
         });
     }
 
-    const gameName = gameItem[0].game.name;
+    const gameName = gameItem.gameInfo.name;
 
     // Supprimer item boutique
     try {
-        await client.deleteGameItemById(gameId);
+        await GameItemShopRepository.delete(gameItemId);
     } catch (error) {
         return interaction.editReply({
             embeds: [createError("Item du shop non trouvé !")],
@@ -63,7 +61,7 @@ async function remove(interaction, options) {
         interaction.guildId,
         "Jeu retiré dans le shop",
         `${author} vient de retirer **${gameName}**`,
-        `ID : ${gameId}`,
+        `ID : ${gameItemId}`,
         YELLOW,
     );
 }

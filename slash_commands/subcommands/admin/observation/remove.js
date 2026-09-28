@@ -7,7 +7,6 @@ const {
 const { createError, createLogs } = require("../../../../util/envoiMsg");
 const { CRIMSON, GREEN, DARK_RED } = require("../../../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require("../../../../data/emojis.json");
-const mongoose = require("mongoose");
 const { ObservationRepository } = require("../../../../repositories");
 
 async function remove(interaction, options) {
@@ -68,11 +67,11 @@ async function remove(interaction, options) {
             value: `${observation.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
         });
 
-    const msg = await interaction.editReply({
+    await interaction.editReply({
         embeds: [embedConfirmation],
         components: [row],
-        fetchReply: true,
     });
+    const msg = await interaction.fetchReply();
 
     const confirmFilter = (i) =>
         i.customId === "confirm" && i.user.id === interaction.user.id;
