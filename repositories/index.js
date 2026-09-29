@@ -14,5 +14,6 @@ module.exports = {
   MetaAchRepository: require('./MetaAchievementRepository'),
   JobRepository: require('./JobRepository'),
   TowerRepository: require('./TowerRepository'),
+  TowerStatsRepository: require('./TowerStatsRepository'),
   GameItemShopRepository: require('./GameItemShopRepository'),
 };
