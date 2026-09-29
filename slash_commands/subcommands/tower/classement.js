@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const { CDS } = require("../../../data/emojis.json");
-const { TowerRepository, UserRepository } = require("../../../repositories");
+const { TowerRepository, UserRepository, TowerStatsRepository } = require("../../../repositories");
 const { createError } = require("../../../util/envoiMsg");
 
 const classement = async (interaction, options) => {
@@ -33,7 +33,7 @@ const classement = async (interaction, options) => {
     await interaction.deferReply({ ephemeral: true });
 
     // Récupérer le top10 des utilisateurs ayant participé à la saison donnée
-    const top10 = await TowerRepository.findTop10UsersBySeason(season);
+    const top10 = await TowerStatsRepository.findTop10UsersBySeason(season);
 
     if (top10.length === 0) {
         return interaction.editReply({
@@ -43,7 +43,7 @@ const classement = async (interaction, options) => {
     }
 
     // Trouver la position de l'utilisateur courant
-    const rankingCurrentUser = await TowerRepository.findRankingForSeason(season, authorDb);
+    const rankingCurrentUser = await TowerStatsRepository.findRankingForSeason(season, authorDb);
     const positionsUserCourant = rankingCurrentUser ? rankingCurrentUser.rank : undefined;
     const degatsUserCourant = rankingCurrentUser ? rankingCurrentUser.totalDamage : undefined;
 
