@@ -1,8 +1,6 @@
-const { User, GuildConfig } = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
 const { CDS } = require("../../../data/emojis.json");
 const { TowerRepository, UserRepository } = require("../../../repositories");
-const { Tower } = require("../../../models/objection");
 const { createError } = require("../../../util/envoiMsg");
 
 const classement = async (interaction, options) => {
@@ -27,8 +25,6 @@ const classement = async (interaction, options) => {
             ],
         });
     }
-
-    const isCurrentSeason = season === currentTower.season;
 
     logger.info(
         `[TOWER] ${interaction.user.tag} consulte le classement de la saison ${season} (saison en cours: ${currentTower.season})`,

@@ -1,15 +1,15 @@
-const { TowerBoss, GuildConfig } = require("../../../models");
 const { EmbedBuilder } = require("discord.js");
 const {
     displayHealth,
     getRandomPrivateJokes,
 } = require("../../../util/events/tower/towerUtils");
+const { TowerRepository } = require("../../../repositories");
 
 const infoBoss = async (interaction, options) => {
     const guildId = interaction.guildId;
-    const guild = await GuildConfig.findOne({ guildId: guildId });
-    const season = guild.event.tower.currentSeason;
-    if (typeof season === "undefined" || !guild.event.tower.started) {
+    const currentTower = await TowerRepository.findCurrentSeason(guildId);
+    const season = currentTower.season;
+    if (typeof season === "undefined") {
         return interaction.reply({
             content: "Aucune saison en cours.",
             ephemeral: true,
@@ -17,10 +17,7 @@ const infoBoss = async (interaction, options) => {
     }
 
     // Récupère le boss courant non mort
-    const currentBoss = await TowerBoss.findOne({
-        season: season,
-        hp: { $gt: 0 },
-    });
+    const currentBoss = await TowerRepository.findCurrentBoss(currentTower.id, currentTower.season);
     if (!currentBoss) {
         return interaction.reply({
             content: "Aucun boss n'est actif actuellement.",

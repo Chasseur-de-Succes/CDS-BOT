@@ -1,5 +1,5 @@
 const BaseRepository = require('./BaseRepository');
-const { Tower, MessageClue, ClueField, TowerStats } = require("../models/objection");
+const { Tower, MessageClue, ClueField, TowerStats, TowerBoss } = require("../models/objection");
 
 class TowerRepository extends BaseRepository {
     constructor() {
@@ -16,9 +16,20 @@ class TowerRepository extends BaseRepository {
 
     findCurrentSeason(guildId) {
         return this.Model.query()
-            .select("season")
+            .select("id", "season")
             .where("guildId", guildId)
             .where("started", true)
+            .first();
+    }
+
+    /* Boss */
+    findCurrentBoss(towerId, season) {
+        return TowerBoss.query()
+            .where("towerId", towerId)
+            .where("season", season)
+            .where("hp", ">", 0)
+            .where('isDiscovered', true)
+            .orderBy("order")
             .first();
     }
 

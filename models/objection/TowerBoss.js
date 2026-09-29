@@ -11,6 +11,7 @@ const BaseModel = require("./BaseModel");
  * @property {boolean | null} hidden
  * @property {number | null} order
  * @property {number | null} killedBy
+ * @property {boolean | null} isDiscovered
  */
 
 class TowerBoss extends BaseModel {
