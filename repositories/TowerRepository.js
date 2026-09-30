@@ -16,7 +16,7 @@ class TowerRepository extends BaseRepository {
 
     findCurrentSeason(guildId) {
         return this.Model.query()
-            .select("id", "season")
+            .select("id", "season", "start")
             .where("guildId", guildId)
             .where("started", true)
             .first();
@@ -31,6 +31,13 @@ class TowerRepository extends BaseRepository {
             .where('isDiscovered', true)
             .orderBy("order")
             .first();
+    }
+
+    async isAllBossDead(season) {
+        return await TowerBoss.query()
+            .where("season", season)
+            .where("hp", ">", 0)
+            .resultSize() === 0;
     }
 
     /* Clue Field && Message Clue*/

@@ -47,7 +47,7 @@ const inscription = async (interaction, options) => {
     }
 
     // si déjà inscrit
-    const userFound = await TowerStatsRepository.findByUserAndSeason(userDb, season);
+    const userFound = await TowerStatsRepository.hasUserAndSeason(userDb, season);
     if (userFound) {
         return await interaction.reply({
             content: "Tu es déjà inscrit !",

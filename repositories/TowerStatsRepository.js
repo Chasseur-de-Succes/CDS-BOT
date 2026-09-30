@@ -6,13 +6,35 @@ class TowerStatsRepository extends BaseRepository {
         super(TowerStats);
     }
 
-    async findByUserAndSeason(userDb, season) {
+    async hasCompletedGames(userDb, season, appid) {
+        const hasCompleted = await TowerStats.query()
+            .select(1)
+            .where('userId', userDb.id)
+            .where('season', season)
+            .whereRaw('completed_games @> ARRAY[?]', [appid])
+            .first();
+
+        return !!hasCompleted;
+    }
+
+    async hasUserAndSeason(userDb, season) {
         return await TowerStats.query()
-            .where("season", season)
             .where("userId", userDb.id)
+            .where("season", season)
             .resultSize() > 0;
     }
 
+    async completeGames(userDb, season, appid) {
+        await TowerStats.query()
+            .where('userId', userDb.id)
+            .where('season', season)
+            .patch({
+                etage: TowerStats.raw('etage + 1'),
+                completed_games: TowerStats.raw('completed_games || ARRAY[?]', [appid])
+            });
+    }
+
+    /* Classement */
     findTop10UsersBySeason(season, limit = 10) {
         return TowerStats.query()
             .where("season", season)

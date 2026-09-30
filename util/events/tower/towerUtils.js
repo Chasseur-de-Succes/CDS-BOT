@@ -5,6 +5,7 @@ const { daysDiff } = require("../../util");
 const { EmbedBuilder } = require("discord.js");
 const { SALON } = require("../../constants");
 const { MESSAGE } = require("../../../data/event/tower/constants.json");
+const { TowerRepository } = require("../../../repositories");
 
 /**
  * Récupère une private joke aléatoire à partir de la liste définie dans les constantes
@@ -51,14 +52,9 @@ function displayHealth(boss) {
  */
 async function isAllBossDead(season) {
     switch (season) {
-        case 0: // Saison 0 : 2 boss dont un caché
-            // Check if there are any bosses in this season that are not dead
-            const anyAlive = await TowerBoss.exists({
-                season: season,
-                hp: { $gt: 0 },
-            });
-            return !anyAlive;
-        case 1: // Saison 1 : X boss TODO
+        case 0:
+        case 1:
+            return await TowerRepository.isAllBossDead(season);
         default:
             return false;
     }

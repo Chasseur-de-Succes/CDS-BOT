@@ -5,9 +5,10 @@ const {
 } = require("../../../util/envoiMsg");
 const { ASCII_NOT_100 } = require("../../../data/event/tower/constants.json");
 const { GuildConfig, User } = require("../../../models");
-const { SALON } = require("../../../util/constants");
+const { NEW_SALON } = require("../../../util/constants");
 const { isAllBossDead } = require("../../../util/events/tower/towerUtils");
 const { seasonZero, seasonOne } = require("../../../util/events/tower/season");
+const { UserRepository, GuildConfigRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
 
 const validerJeu = async (interaction, options) => {
     const guildId = interaction.guildId;
@@ -21,7 +22,7 @@ const validerJeu = async (interaction, options) => {
     await interaction.deferReply({ ephemeral: true });
 
     // Récupérer l'utilisateur
-    const userDb = await client.getUser(author);
+    const userDb = await UserRepository.findByDiscordUser(interaction.user);
     if (!userDb) {
         // Si pas dans la BDD
         return await interaction.editReply({
@@ -34,11 +35,7 @@ const validerJeu = async (interaction, options) => {
     }
 
     // Récupération du channel de l'event
-    const eventChannelId = await interaction.client.getGuildChannel(
-        interaction.guild.id,
-        SALON.EVENT_TOWER,
-    );
-
+    const eventChannelId = await GuildConfigRepository.getChannel(guildId, NEW_SALON.EVENT_TOWER);
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
         return interaction.editReply({
@@ -58,7 +55,9 @@ const validerJeu = async (interaction, options) => {
     }
 
     // si la saison n'a pas encore commencé (à faire manuellement via commande '<préfix>tower start')
-    if (!guild.event.tower.started) {
+    const currentTower = await TowerRepository.findCurrentSeason(guildId);
+    const season = currentTower.season;
+    if (typeof season === "undefined") {
         logger.info(".. évènement tower pas encore commencé");
         return await interaction.editReply({
             embeds: [createError("L'évènement n'a pas encore commencé..")],
@@ -66,7 +65,8 @@ const validerJeu = async (interaction, options) => {
     }
 
     // si pas encore inscrit
-    if (typeof userDb.event.tower.startDate === "undefined") {
+    const userFound = await TowerStatsRepository.hasUserAndSeason(userDb, season);
+    if (!userFound) {
         return await interaction.editReply({
             embeds: [
                 createError(
@@ -86,8 +86,6 @@ const validerJeu = async (interaction, options) => {
             ],
         });
     }
-
-    const season = guild.event.tower.currentSeason;
 
     // teste si les boss sont en vie, sinon on skip
     const allBossDead = await isAllBossDead(season);
@@ -112,7 +110,7 @@ const validerJeu = async (interaction, options) => {
     } = await client.hasAllAchievementsAfterDate(
         steamId,
         appid,
-        guild.event.tower.startDate,
+        currentTower.started,
     );
 
     if (error) {
@@ -134,7 +132,8 @@ const validerJeu = async (interaction, options) => {
     }
 
     // Vérifier si l'utilisateur a déjà 100% le jeu
-    if (userDb.event.tower.completedGames.includes(appid)) {
+    const hasCompleted = await TowerStatsRepository.hasCompletedGames(userDb, season, appid);
+    if (hasCompleted) {
         logger.warn({
             prefix: "TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): déjà fait ..`,
@@ -172,9 +171,7 @@ ${ASCII_NOT_100}`,
     }
 
     if (hasAllAchievements) {
-        userDb.event.tower.etage += 1; // On monte d'un étage
-        userDb.event.tower.completedGames.push(appid); // Ajouter l'appId aux jeux déjà 100%
-        await userDb.save();
+        await TowerStatsRepository.completeGames(userDb, season, appid);
 
         // logs
         await createLogs(
@@ -186,7 +183,7 @@ ${ASCII_NOT_100}`,
             "#DC8514",
         );
 
-        // TODO fonctionnement différent en fonction de la saison
+        // fonctionnement différent en fonction de la saison
         switch (season) {
             // Saison 0 : Tour à 20 étages, avec 2 boss dont un caché
             case 0:
