@@ -16,7 +16,7 @@
         "dotenv": "^17.4.2",
         "flag-icons": "^7.5.0",
         "moment": "^2.29.1",
-        "moment-timezone": "^0.6.3",
+        "moment-timezone": "^0.6.4",
         "mongoose": "^5.13.4",
         "node-schedule": "^2.0.0",
         "sharp": "^0.35.3",
