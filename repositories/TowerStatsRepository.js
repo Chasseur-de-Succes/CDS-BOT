@@ -45,27 +45,33 @@ class TowerStatsRepository extends BaseRepository {
     }
 
     async incrementCurrentFloor(userDb, season, step = 1) {
-        return TowerStats.query()
+        const stat = await TowerStats.query()
             .where('userId', userDb.id)
             .where('season', season)
-            .patchAndFetch({
-                currentFloor: TowerStats.raw(
-                    'COALESCE("currentFloor", 0) + ?',
-                    [step],
-                ),
-            });
+            .first();
+        if (!stat) return null;
+
+        return stat.$query().patchAndFetch({
+            currentFloor: TowerStats.raw(
+                'COALESCE("currentFloor", 0) + ?',
+                [step],
+            ),
+        });
     }
 
     async decrementCurrentFloor(userDb, season, step = 1) {
-        return TowerStats.query()
+        const stat = await TowerStats.query()
             .where('userId', userDb.id)
             .where('season', season)
-            .patchAndFetch({
-                currentFloor: TowerStats.raw(
-                    'GREATEST(COALESCE("currentFloor", 0) - ?, 0)',
-                    [step],
-                ),
-            });
+            .first();
+        if (!stat) return null;
+
+        return stat.$query().patchAndFetch({
+            currentFloor: TowerStats.raw(
+                'GREATEST(COALESCE("currentFloor", 0) - ?, 0)',
+                [step],
+            ),
+        });
     }
 
     async setCurrentBoss(userDb, season, bossId) {
