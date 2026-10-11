@@ -6,37 +6,102 @@ class TowerStatsRepository extends BaseRepository {
         super(TowerStats);
     }
 
+    async findByUserAndSeason(userDb, season) {
+        return this.Model.query()
+            .where("userId", userDb.id)
+            .where("season", season)
+            .first();
+    }
+
     async hasCompletedGames(userDb, season, appid) {
-        const hasCompleted = await TowerStats.query()
+        const hasCompleted = await this.Model.query()
             .select(1)
             .where('userId', userDb.id)
             .where('season', season)
-            .whereRaw('completed_games @> ARRAY[?]', [appid])
+            .whereRaw('"completedGames" @> ARRAY[?]::varchar[]', [appid])
             .first();
 
         return !!hasCompleted;
     }
 
     async hasUserAndSeason(userDb, season) {
-        return await TowerStats.query()
+        return await this.Model.query()
             .where("userId", userDb.id)
             .where("season", season)
             .resultSize() > 0;
     }
 
     async completeGames(userDb, season, appid) {
-        await TowerStats.query()
+        await this.Model.query()
             .where('userId', userDb.id)
             .where('season', season)
             .patch({
-                etage: TowerStats.raw('etage + 1'),
-                completed_games: TowerStats.raw('completed_games || ARRAY[?]', [appid])
+                nbValidatedGames: TowerStats.raw('COALESCE("nbValidatedGames", 0) + 1'),
+                completedGames: TowerStats.raw(
+                    'COALESCE("completedGames", ARRAY[]::varchar[]) || ARRAY[?]::varchar[]',
+                    [appid]
+                )
+            });
+    }
+
+    async incrementCurrentFloor(userDb, season, step = 1) {
+        return TowerStats.query()
+            .where('userId', userDb.id)
+            .where('season', season)
+            .patchAndFetch({
+                currentFloor: TowerStats.raw(
+                    'COALESCE("currentFloor", 0) + ?',
+                    [step],
+                ),
+            });
+    }
+
+    async decrementCurrentFloor(userDb, season, step = 1) {
+        return TowerStats.query()
+            .where('userId', userDb.id)
+            .where('season', season)
+            .patchAndFetch({
+                currentFloor: TowerStats.raw(
+                    'GREATEST(COALESCE("currentFloor", 0) - ?, 0)',
+                    [step],
+                ),
+            });
+    }
+
+    async setCurrentBoss(userDb, season, bossId) {
+        return TowerStats.query()
+            .where('userId', userDb.id)
+            .where('season', season)
+            .patch({ currentBoss: bossId });
+    }
+
+    async addDamage(userDb, season, dmg) {
+        return TowerStats.query()
+            .where('userId', userDb.id)
+            .where('season', season)
+            .patch({
+                totalDamage: TowerStats.raw(
+                    'COALESCE("totalDamage", 0) + ?',
+                    [dmg],
+                ),
+            });
+    }
+
+    async addCompletedGame(userDb, season, appid) {
+        return TowerStats.query()
+            .where('userId', userDb.id)
+            .where('season', season)
+            .patch({
+                completedGames: TowerStats.raw(
+                    'COALESCE("completedGames", ARRAY[]::varchar[]) || ARRAY[?]::varchar[]',
+                    [appid],
+                ),
             });
     }
 
     /* Classement */
     findTop10UsersBySeason(season, limit = 10) {
-        return TowerStats.query()
+        return this.Model.query()
             .where("season", season)
             .orderBy('totalDamage', 'desc')
             .withGraphFetched('user')
@@ -44,7 +109,7 @@ class TowerStatsRepository extends BaseRepository {
     }
 
     findRankingForSeason(season, userDb) {
-        return TowerStats.query()
+        return this.Model.query()
             .select('rank', 'totalDamage')
             .from(
                 TowerStats.query()

@@ -7,12 +7,12 @@ const { ASCII_NOT_100 } = require("../../../data/event/tower/constants.json");
 const { GuildConfig, User } = require("../../../models");
 const { NEW_SALON } = require("../../../util/constants");
 const { isAllBossDead } = require("../../../util/events/tower/towerUtils");
-const { seasonZero, seasonOne } = require("../../../util/events/tower/season");
+const { seasonOne } = require("../../../util/events/tower/season");
 const { UserRepository, GuildConfigRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
+const { EmbedBuilder } = require("discord.js");
 
 const validerJeu = async (interaction, options) => {
     const guildId = interaction.guildId;
-    const guild = await GuildConfig.findOne({ guildId: guildId });
     let appid = options.getInteger("appid");
     appid = !appid ? options.get("jeu")?.value : appid;
 
@@ -187,22 +187,18 @@ ${ASCII_NOT_100}`,
         switch (season) {
             // Saison 0 : Tour à 20 étages, avec 2 boss dont un caché
             case 0:
-                // gestion de la saison 0 dans un fichier séparé
-                return seasonZero(
-                    client,
-                    guild,
-                    guildId,
-                    interaction,
-                    userDb,
-                    author,
-                    gameName,
-                    appid,
-                );
+                // obsolète suite au passage vers PostGre, saison déjà passé donc on a skip
+                return interaction.editReply({
+                    embeds: [new EmbedBuilder()
+                        .setTitle("🏆 Saison 0")
+                        .setDescription("Cette saison ne fonctionne plus actuellement !")
+                        .setColor("#ff0000")],
+                    ephemeral: true,
+                });
             // Saison 1 : Tour à 4 paliers, avec un boss à chaque palier (admin CDS)
             case 1:
                 return seasonOne(
                     client,
-                    guild,
                     guildId,
                     interaction,
                     userDb,

@@ -1,11 +1,13 @@
-const { TowerBoss, User } = require("../../../models");
 const { PRIVATE_JOKES } = require("../../../data/event/tower/constants.json");
 const { createLogs } = require("../../envoiMsg");
 const { daysDiff } = require("../../util");
 const { EmbedBuilder } = require("discord.js");
-const { SALON } = require("../../constants");
+const { NEW_SALON } = require("../../constants");
 const { MESSAGE } = require("../../../data/event/tower/constants.json");
-const { TowerRepository } = require("../../../repositories");
+const {
+    TowerRepository,
+    GuildConfigRepository,
+} = require("../../../repositories");
 
 /**
  * Récupère une private joke aléatoire à partir de la liste définie dans les constantes
@@ -69,93 +71,60 @@ async function isAllBossDead(season) {
 async function healBoss(boss) {
     const healAmount = 1; // on soigne que de 1 quand même
     boss.hp = Math.min(boss.maxHp, boss.hp + healAmount); // pas + haut que le bord
-    await boss.save();
+    await boss.$query().patch({ hp: boss.hp });
 }
 
 /**
- * Termine la saison pour un utilisateur donné, sauvegarde les données de la saison dans l'historique et réinitialise les données pour la nouvelle saison
- * @param {Object} user - Utilisateur dont on termine la saison
- * @param {number} endDate - Timestamp de fin de la saison
- * @param {number} seasonNumber - Numéro de la saison à terminer
- * @returns {Promise<void>}
- */
-async function endSeasonForUser(user, endDate, seasonNumber) {
-    // Sauvegarder les données de la saison actuelle dans l'historique
-    user.event.tower.seasonHistory.push({
-        seasonNumber: seasonNumber,
-        startDate: user.event.tower.startDate,
-        endDate: endDate,
-        maxEtage: user.event.tower.etage,
-        totalDamage: user.event.tower.totalDamage,
-    });
-
-    // Réinitialiser les données pour la nouvelle saison
-    user.event.tower.startDate = undefined;
-    user.event.tower.etage = 0;
-    user.event.tower.totalDamage = 0;
-    // user.completedGames = [];
-    // user.season = seasonNumber + 1;
-
-    await user.save();
-}
-
-/**
- * Fin de la saison, backup des infos
+ * Fin de la saison : clôture la tour en cours et (si annulée) affiche un message de fin.
+ * Les données par joueur sont déjà persistées dans `TowerStats` (une ligne par saison),
+ * il n'y a donc plus de backup/reset à faire côté utilisateur.
  * @param {Object} client - Instance du bot
  * @param {number} seasonNumber - Numéro de la saison à terminer
- * @param {Object} guild - Configuration de la guilde
+ * @param {string} guildId - Id de la guilde
  * @param {boolean} [cancelled=false] - Indique si la saison a été annulée
  */
-async function endSeason(client, seasonNumber, guild, cancelled = false) {
+async function endSeason(client, seasonNumber, guildId, cancelled = false) {
     logger.info({
         prefix: "TOWER",
         message: `fin de la saison ${seasonNumber} ..`,
     });
+
+    const tower = await TowerRepository.findByGuildIdAndSeason(
+        guildId,
+        seasonNumber,
+    );
+
     await createLogs(
         client,
-        guild.guildId,
+        guildId,
         !cancelled
             ? `🗼 TOWER : Saison ${seasonNumber} terminée`
             : `🗼 TOWER : Saison ${seasonNumber} arrêtée`,
         !cancelled ? "Évènement terminé !" : "Évènement arrêté !",
-        `en ${daysDiff(guild.event.tower.startDate, Date.now())} jours`,
+        tower ? `en ${daysDiff(tower.start, Date.now())} jours` : "",
         "#DC8514",
     );
 
-    // Edite Guild Config
-    guild.event.tower.started = false;
-    // on garde une trace
-    guild.event.tower.history.push({
-        season: guild.event.tower.currentSeason,
-        startDate: guild.event.tower.startDate,
-        endDate: Date.now(),
-        finished: !cancelled,
-    });
-    await guild.save();
-
-    // Récupérer tous les utilisateurs qui ont participé
-    const users = await User.find({
-        "event.tower.startDate": { $exists: true },
-    });
-
-    // Sauvegarder les informations de la saison actuelle pour chaque utilisateur
-    const endDate = Date.now();
-    for (const user of users) {
-        await endSeasonForUser(user, endDate, seasonNumber);
+    // clôture la tour en cours
+    if (tower) {
+        await TowerRepository.update(tower.id, {
+            started: false,
+            finished: !cancelled,
+            finish: new Date(),
+        });
     }
 
-    // Envoi d'un message de fin
+    // Envoi d'un message de fin (uniquement si annulée)
     if (cancelled) {
-        const eventChannelId = await client.getGuildChannel(
-            guild.guildId,
-            SALON.EVENT_TOWER,
+        const eventChannelId = await GuildConfigRepository.getChannel(
+            guildId,
+            NEW_SALON.EVENT_TOWER,
         );
         const eventChannel = client.channels.cache.get(eventChannelId);
 
         // si boss pas mort
-        let embedEnd = new EmbedBuilder()
+        const embedEnd = new EmbedBuilder()
             .setTitle("Fin de l'évènement")
-            // .setDescription(option.desc)
             .setColor("#ff0000")
             .setFooter({
                 text: "Seuls ceux qui ne font rien n'échouent pas..",
@@ -164,34 +133,37 @@ async function endSeason(client, seasonNumber, guild, cancelled = false) {
         let description = "";
         switch (seasonNumber) {
             case 0:
-                description = await endSeasonZero();
+                description = await endSeasonZero(tower?.id);
                 break;
             case 1:
-                description = await endSeasonOne();
+                description = await endSeasonOne(tower?.id);
                 break;
             default:
                 break;
         }
         embedEnd.setDescription(description);
 
-        eventChannel.send({ embeds: [embedEnd] });
+        if (eventChannel) {
+            eventChannel.send({ embeds: [embedEnd] });
+        }
     }
 }
 
 /* Description de fin de saison annulée */
-async function endSeasonZero() {
-    const currentBoss = await TowerBoss.findOne({ season: 0, hp: { $ne: 0 } });
+async function endSeasonZero(towerId) {
+    const currentBoss = towerId
+        ? await TowerRepository.findAliveBoss(towerId, 0)
+        : await TowerRepository.findAliveBossBySeason(0);
     if (!currentBoss) return MESSAGE["0"].START_BAD_ENDING;
 
     return currentBoss.hidden
         ? MESSAGE["0"].SECOND_BAD_ENDING
         : MESSAGE["0"].FIRST_BAD_ENDING;
 }
-async function endSeasonOne() {
-    const currentBoss = await TowerBoss.findOne({
-        season: 1,
-        hp: { $gt: 0 },
-    });
+async function endSeasonOne(towerId) {
+    const currentBoss = towerId
+        ? await TowerRepository.findAliveBoss(towerId, 1)
+        : await TowerRepository.findAliveBossBySeason(1);
     if (!currentBoss) return MESSAGE["1"].START_BAD_ENDING;
 
     return MESSAGE["1"].BAD_ENDING.replace(/\${boss}/g, currentBoss.name);

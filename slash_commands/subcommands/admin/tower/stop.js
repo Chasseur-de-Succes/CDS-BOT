@@ -1,21 +1,26 @@
-const { GuildConfig, User } = require("../../../../models");
 const { endSeason } = require("../../../../util/events/tower/towerUtils");
+const { TowerRepository } = require("../../../../repositories");
 
 async function stop(interaction) {
-    const guild = await GuildConfig.findOne({
-        guildId: interaction.guildId,
-    });
+    // tour en cours (started = true)
+    const currentTower = await TowerRepository.findCurrentSeason(
+        interaction.guildId,
+    );
 
     // si déjà stop, on skip
-    if (!guild.event.tower.started) {
+    if (!currentTower) {
         return await interaction.reply({
             content: "Évènement déjà arrêté !",
         });
     }
     logger.info(".. arrêt event tower");
 
-    const season = guild.event.tower.currentSeason;
-    await endSeason(interaction.client, season, guild, true);
+    await endSeason(
+        interaction.client,
+        currentTower.season,
+        interaction.guildId,
+        true,
+    );
 
     return await interaction.reply({ content: "Évènement arrêté !" });
 }

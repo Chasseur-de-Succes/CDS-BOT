@@ -1,19 +1,19 @@
-const { GuildConfig, TowerBoss } = require("../../../../models");
-const { SALON } = require("../../../../util/constants");
-const {
-    createError,
-    createLogs,
-    createEmbed,
-} = require("../../../../util/envoiMsg");
+const { createError, createLogs, createEmbed } = require("../../../../util/envoiMsg");
+const { NEW_SALON } = require("../../../../util/constants");
 const {
     healBoss,
     displayHealth,
 } = require("../../../../util/events/tower/towerUtils");
 const { MESSAGE } = require("../../../../data/event/tower/constants.json");
+const {
+    GuildConfigRepository,
+    UserRepository,
+    TowerRepository,
+    TowerStatsRepository,
+} = require("../../../../repositories");
 
 async function heal(interaction, options) {
     const guildId = interaction.guildId;
-    const guild = await GuildConfig.findOne({ guildId: guildId });
     let appid = options.getInteger("appid");
     appid = !appid ? options.get("jeu")?.value : appid;
     logger.info(`.. lancement heal event tower (${appid})`);
@@ -22,12 +22,11 @@ async function heal(interaction, options) {
     const client = interaction.client;
 
     await interaction.deferReply({ ephemeral: true });
-    const adminDb = await client.getUser(author);
 
     // Récupération du channel de l'event
-    const eventChannelId = await interaction.client.getGuildChannel(
-        interaction.guild.id,
-        SALON.EVENT_TOWER,
+    const eventChannelId = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.EVENT_TOWER,
     );
 
     // Gestion d'erreur si aucun salon n'est défini
@@ -36,16 +35,35 @@ async function heal(interaction, options) {
             content: `Aucun salon de l'évènement tower n'a été trouvé.`,
         });
     }
-    // si la saison n'a pas encore commencé
-    if (!guild.event.tower.started) {
+
+    // saison en cours (via la ligne Tower)
+    const currentTower = await TowerRepository.findCurrentSeason(guildId);
+    if (!currentTower || !currentTower.started) {
         logger.info(".. évènement tower pas encore commencé");
         return await interaction.editReply({
             embeds: [createError("L'évènement n'a pas encore commencé..")],
         });
     }
+    const season = currentTower.season;
 
-    // si pas encore inscrit
-    if (typeof adminDb.event.tower.startDate === "undefined") {
+    // récup l'admin et test si register
+    const adminDb = await UserRepository.findByDiscordUser(interaction.user);
+    if (!adminDb) {
+        return await interaction.editReply({
+            embeds: [
+                createError(
+                    `${author.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
+                ),
+            ],
+        });
+    }
+
+    // si pas encore inscrit à l'évènement
+    const adminStats = await TowerStatsRepository.findByUserAndSeason(
+        adminDb,
+        season,
+    );
+    if (!adminStats) {
         return await interaction.editReply({
             embeds: [
                 createError(
@@ -66,13 +84,11 @@ async function heal(interaction, options) {
         });
     }
 
-    const season = guild.event.tower.currentSeason;
-
-    // recup boss courant
-    const currentBoss = await TowerBoss.findOne({
-        season: season,
-        hp: { $gt: 0 },
-    });
+    // recup boss courant (via la tour)
+    const currentBoss = await TowerRepository.findAliveBoss(
+        currentTower.id,
+        season,
+    );
     if (!currentBoss) {
         return interaction.editReply({
             content: "Aucun boss n'est actif actuellement. Heal impossible.",
@@ -92,7 +108,7 @@ async function heal(interaction, options) {
     } = await client.hasAllAchievementsAfterDate(
         steamId,
         appid,
-        guild.event.tower.startDate,
+        currentTower.start,
     );
 
     if (error) {
@@ -114,7 +130,12 @@ async function heal(interaction, options) {
     }
 
     // Vérifier si l'utilisateur a déjà 100% le jeu
-    if (adminDb.event.tower.completedGames.includes(appid)) {
+    const hasCompleted = await TowerStatsRepository.hasCompletedGames(
+        adminDb,
+        season,
+        appid,
+    );
+    if (hasCompleted) {
         logger.warn({
             prefix: "ADMIN TOWER",
             message: `${author.user.tag} 100% ${gameName} (${appid}): déjà fait ..`,
@@ -141,47 +162,40 @@ async function heal(interaction, options) {
     }
 
     // on peut heal !!
-    if (hasAllAchievements) {
-        adminDb.event.tower.completedGames.push(appid); // Ajouter l'appId aux jeux déjà 100%
-        await adminDb.save();
+    await TowerStatsRepository.addCompletedGame(adminDb, season, appid);
 
-        // heal le boss
-        await healBoss(currentBoss);
-        const descHeal = randomHealDesc();
+    // heal le boss
+    await healBoss(currentBoss);
+    const descHeal = randomHealDesc();
 
-        // logs
-        await createLogs(
-            client,
-            guildId,
-            `🗼 ADMIN TOWER [${season}] : Nouveau jeu validé`,
-            `${author} vient de valider **${gameName}** (${appid}) ! Le boss se heal !`,
-            "",
-            "#DC8514",
-        );
+    // logs
+    await createLogs(
+        client,
+        guildId,
+        `🗼 ADMIN TOWER [${season}] : Nouveau jeu validé`,
+        `${author} vient de valider **${gameName}** (${appid}) ! Le boss se heal !`,
+        "",
+        "#DC8514",
+    );
 
-        const embed = createEmbed({
-            title: "🛡️ Intervention d'un stalker",
-            url: `https://store.steampowered.com/app/${appid}/`,
-            desc: descHeal,
-            color: "#00b7ff",
-            footer: {
-                text: `Le boss récupère des forces...`,
-            },
-        });
-        embed.addFields({
-            name: `${currentBoss.hp}/${currentBoss.maxHp}`,
-            value: `${displayHealth(currentBoss)}`,
-        });
-
-        await client.channels.cache
-            .get(eventChannelId)
-            .send({ embeds: [embed] });
-        return interaction.editReply("Ton jeu a bien soigné le boss !");
-    }
-
-    return await interaction.editReply({
-        content: "Il faut d'abord terminer le jeu !",
+    const embed = createEmbed({
+        title: "🛡️ Intervention d'un stalker",
+        url: `https://store.steampowered.com/app/${appid}/`,
+        desc: descHeal,
+        color: "#00b7ff",
+        footer: {
+            text: `Le boss récupère des forces...`,
+        },
     });
+    embed.addFields({
+        name: `${currentBoss.hp}/${currentBoss.maxHp}`,
+        value: `${displayHealth(currentBoss)}`,
+    });
+
+    await client.channels.cache
+        .get(eventChannelId)
+        .send({ embeds: [embed] });
+    return interaction.editReply("Ton jeu a bien soigné le boss !");
 }
 
 function randomHealDesc() {
