@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const {
     displayHealth,
     getRandomPrivateJokes,
@@ -12,7 +12,7 @@ const infoBoss = async (interaction, options) => {
     if (typeof season === "undefined") {
         return interaction.reply({
             content: "Aucune saison en cours.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 
@@ -21,7 +21,7 @@ const infoBoss = async (interaction, options) => {
     if (!currentBoss) {
         return interaction.reply({
             content: "Aucun boss n'est actif actuellement.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 

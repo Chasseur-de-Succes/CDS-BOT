@@ -11,7 +11,7 @@ const {
     healBoss,
 } = require("./towerUtils");
 const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
-const { SALON, NEW_SALON } = require("../../constants");
+const { NEW_SALON } = require("../../constants");
 const moment = require("moment");
 const { GuildConfigRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
 
@@ -89,7 +89,9 @@ async function seasonOne(
             await Promise.all(
                 newlyFound.map((f) => TowerRepository.update(f.id, { found: true })),
             );
-            newlyFound.forEach((f) => (f.found = true));
+            newlyFound.forEach((f) => {
+                f.found = true;
+            });
 
             // 1 seule édition du message au lieu d'une par field
             const newEmbed = EmbedBuilder.from(msgClue.embeds[0]).setFields(

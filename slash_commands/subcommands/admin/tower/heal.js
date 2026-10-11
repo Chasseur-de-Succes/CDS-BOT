@@ -1,3 +1,4 @@
+const { MessageFlags } = require("discord.js");
 const { createError, createLogs, createEmbed } = require("../../../../util/envoiMsg");
 const { NEW_SALON } = require("../../../../util/constants");
 const {
@@ -21,7 +22,7 @@ async function heal(interaction, options) {
     const author = interaction.member;
     const client = interaction.client;
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     // Récupération du channel de l'event
     const eventChannelId = await GuildConfigRepository.getChannel(

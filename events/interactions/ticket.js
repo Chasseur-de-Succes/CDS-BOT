@@ -5,6 +5,7 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    MessageFlags,
 } = require("discord.js");
 const { GREEN } = require("../../data/colors.json");
 const { GuildConfigRepository } = require("../../repositories");
@@ -53,7 +54,7 @@ module.exports = {
                 if (!ticketChannelId) {
                     return interaction.reply({
                         content: `Aucun salon de ticket n'a été trouvé.`,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                 }
 
@@ -102,7 +103,7 @@ module.exports = {
 
                 await interaction.reply({
                     content: `Ton ticket \`${ticketTitle}\` a bien été reçu !`,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
         }

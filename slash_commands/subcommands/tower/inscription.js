@@ -1,4 +1,4 @@
-const { Colors, EmbedBuilder } = require("discord.js");
+const { Colors, EmbedBuilder, MessageFlags } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { GuildConfig } = require("../../../models");
 const { MESSAGE } = require("../../../data/event/tower/constants.json");
@@ -14,7 +14,7 @@ const inscription = async (interaction, options) => {
     if (!eventChannelId) {
         return interaction.reply({
             content: `Aucun salon de l'événement tower n'a été trouvé.`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 
@@ -51,7 +51,7 @@ const inscription = async (interaction, options) => {
     if (userFound) {
         return await interaction.reply({
             content: "Tu es déjà inscrit !",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 
@@ -93,7 +93,10 @@ const inscription = async (interaction, options) => {
         .setDescription(`${MESSAGE[season].INTRO}
   On se retrouve par ici : ${eventChannel}
 `);
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+    });
 };
 
 exports.inscription = inscription;

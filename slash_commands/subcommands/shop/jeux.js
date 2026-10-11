@@ -3,6 +3,7 @@ const {
     ButtonBuilder,
     ButtonStyle,
     EmbedBuilder,
+    MessageFlags,
 } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK, NO_SUCCES } = require("../../../data/emojis.json");
@@ -143,7 +144,7 @@ async function jeux(interaction, options, showGame = false) {
                     embeds: [
                         createError("Tu ne peux pas acheter ton propre jeu !"),
                     ],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -159,7 +160,7 @@ async function jeux(interaction, options, showGame = false) {
                             "Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !",
                         ),
                     ],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 

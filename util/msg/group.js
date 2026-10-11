@@ -5,6 +5,7 @@ const {
     ButtonStyle,
     ActionRowBuilder,
     ComponentType,
+    MessageFlags,
 } = require("discord.js");
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { WARNING, CHECK_MARK, CROSS_MARK } = require("../../data/emojis.json");
@@ -258,7 +259,7 @@ async function createCollectorGroup(client, msg) {
     });
 
     collector.on("collect", async (i) => {
-        await i.deferReply({ ephemeral: true });
+        await i.deferReply({ flags: MessageFlags.Ephemeral });
 
         // récup info customID group-<id>-<action>
         const groupId = i.customId.split("-")[1];
@@ -272,7 +273,7 @@ async function createCollectorGroup(client, msg) {
             if (!userDb) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe, car tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande \`/register <steamid>\`.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -280,7 +281,7 @@ async function createCollectorGroup(client, msg) {
             if (userDb.blacklisted) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es blacklisté.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -288,7 +289,7 @@ async function createCollectorGroup(client, msg) {
             if (group.nbMax === group.members.length) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car celui-ci est complet.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -296,7 +297,7 @@ async function createCollectorGroup(client, msg) {
             if (userDb.nbWarning === 3) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es puni.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -304,7 +305,7 @@ async function createCollectorGroup(client, msg) {
             if (group.members.find((us) => us.discordId === userDb.discordId)) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es déjà membre de ce groupe.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -313,14 +314,14 @@ async function createCollectorGroup(client, msg) {
             if (nbGrps === process.env.MAX_GRPS) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu as rejoins trop de groupes.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
             await joinGroup(client, msg.guildId, group, userDb);
             await i.editReply({
                 content: "🥳 Tu as bien rejoint le groupe !",
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
 
@@ -330,7 +331,7 @@ async function createCollectorGroup(client, msg) {
             if (!userDb) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -338,7 +339,7 @@ async function createCollectorGroup(client, msg) {
             if (userDb.discordId === group.captainUser.discordId) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu es le capitaine. \nTu peux toujours transférer le statut de 👑capitaine vers un autre membre du groupe.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -346,14 +347,14 @@ async function createCollectorGroup(client, msg) {
             if (!group.members.find((us) => us.discordId === userDb.discordId)) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
-                    ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                 });
             }
 
             await leaveGroup(client, msg.guildId, group, userDb);
             await i.editReply({
                 content: "🥲 Tu as bien quitté le groupe !",
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
     });

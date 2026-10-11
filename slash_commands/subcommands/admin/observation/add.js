@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { createLogs, createError } = require("../../../../util/envoiMsg");
 const { CRIMSON, GREEN } = require("../../../../data/colors.json");
 const { CHECK_MARK } = require("../../../../data/emojis.json");
@@ -20,7 +20,7 @@ async function add(interaction, options) {
                     `La raison dépasse la limite autorisée (${reason.length}/500 caractères).`,
                 ),
             ],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
     await ObservationRepository.create(user.id, author.id, reason);

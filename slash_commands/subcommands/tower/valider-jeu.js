@@ -9,7 +9,7 @@ const { NEW_SALON } = require("../../../util/constants");
 const { isAllBossDead } = require("../../../util/events/tower/towerUtils");
 const { seasonOne } = require("../../../util/events/tower/season");
 const { UserRepository, GuildConfigRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 
 const validerJeu = async (interaction, options) => {
     const guildId = interaction.guildId;
@@ -19,7 +19,7 @@ const validerJeu = async (interaction, options) => {
     const author = interaction.member;
     const client = interaction.client;
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     // Récupérer l'utilisateur
     const userDb = await UserRepository.findByDiscordUser(interaction.user);
@@ -193,7 +193,7 @@ ${ASCII_NOT_100}`,
                         .setTitle("🏆 Saison 0")
                         .setDescription("Cette saison ne fonctionne plus actuellement !")
                         .setColor("#ff0000")],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             // Saison 1 : Tour à 4 paliers, avec un boss à chaque palier (admin CDS)
             case 1:

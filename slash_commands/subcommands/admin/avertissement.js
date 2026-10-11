@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { createLogs, createError } = require("../../../util/envoiMsg");
 const { GREEN, ORANGE, CRIMSON } = require("../../../data/colors.json");
 const { leaveGroup, dissolveGroup } = require("../../../util/msg/group");
@@ -196,7 +196,10 @@ const avertissement = async (interaction, options) => {
         `par ${interaction.member.user.tag}`,
         color,
     );
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+    });
 };
 
 exports.avertissement = avertissement;

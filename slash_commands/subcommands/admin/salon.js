@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { createLogs } = require("../../../util/envoiMsg");
 const { GREEN } = require("../../../data/colors.json");
 const { GuildConfigRepository } = require("../../../repositories");
@@ -55,7 +55,10 @@ const salon = async (interaction, options) => {
         .setColor(GREEN)
         .setDescription(`${msgCustom}`);
 
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+    });
 };
 
 exports.salon = salon;

@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { CDS } = require("../../../data/emojis.json");
 const { TowerRepository, UserRepository, TowerStatsRepository } = require("../../../repositories");
 const { createError } = require("../../../util/envoiMsg");
@@ -30,7 +30,7 @@ const classement = async (interaction, options) => {
         `[TOWER] ${interaction.user.tag} consulte le classement de la saison ${season} (saison en cours: ${currentTower.season})`,
     );
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     // Récupérer le top10 des utilisateurs ayant participé à la saison donnée
     const top10 = await TowerStatsRepository.findTop10UsersBySeason(season);
@@ -38,7 +38,7 @@ const classement = async (interaction, options) => {
     if (top10.length === 0) {
         return interaction.editReply({
             content: `Aucun classement n'est disponible pour la saison ${season}..`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 
@@ -83,7 +83,10 @@ const classement = async (interaction, options) => {
             text: messageFooter,
         });
 
-    return interaction.editReply({ embeds: [embed], ephemeral: true });
+    return interaction.editReply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+    });
 };
 
 exports.classement = classement;

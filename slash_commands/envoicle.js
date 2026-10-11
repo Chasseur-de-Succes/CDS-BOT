@@ -3,6 +3,7 @@ const {
     SlashCommandBuilder,
     StringSelectMenuBuilder,
     ActionRowBuilder, InteractionContextType,
+    MessageFlags,
 } = require("discord.js");
 const { YELLOW } = require("../data/colors.json");
 const { createError, feedBotMetaAch } = require("../util/envoiMsg");
@@ -50,7 +51,7 @@ module.exports = {
 
         if (items.length === 0) {
             embed.setDescription("Pas de jeu en cours de vente");
-            return interaction.reply({ embeds: [embed], ephemeral: isInGuild });
+            return interaction.reply({ embeds: [embed], flags: isInGuild ? MessageFlags.Ephemeral : undefined });
         }
 
         if (items.length === 1) {
@@ -58,7 +59,7 @@ module.exports = {
 
             embed = await sendKey(client, vendeur, vendeurDb, item, daKey);
 
-            return interaction.reply({ embeds: [embed], ephemeral: isInGuild });
+            return interaction.reply({ embeds: [embed], flags: isInGuild ? MessageFlags.Ephemeral : undefined });
         }
 
         const itemsSelect = [];
@@ -81,7 +82,7 @@ module.exports = {
             content:
                 "Plusieurs jeux en cours de vente !\nPour quel **jeu** et pour **qui** est cette clé ?",
             components: [row],
-            ephemeral: isInGuild,
+            flags: isInGuild ? MessageFlags.Ephemeral : undefined,
         });
 
         // attend une interaction bouton de l'auteur de la commande
@@ -112,7 +113,7 @@ module.exports = {
         await interaction.editReply({
             embeds: [embed],
             components: [],
-            ephemeral: isInGuild,
+            flags: isInGuild ? MessageFlags.Ephemeral : undefined,
         });
     },
 };
