@@ -2,7 +2,6 @@ const { createError, createLogs } = require("../../../../util/envoiMsg");
 const { EmbedBuilder } = require("discord.js");
 const { YELLOW, NIGHT } = require("../../../../data/colors.json");
 const { CHECK_MARK } = require("../../../../data/emojis.json");
-const mongoose = require("mongoose");
 const { GameItemShopRepository } = require("../../../../repositories");
 
 async function deleteItem(interaction, options) {

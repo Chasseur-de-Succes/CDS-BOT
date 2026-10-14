@@ -1,8 +1,7 @@
 const { Colors, EmbedBuilder, MessageFlags } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
-const { GuildConfig } = require("../../../models");
 const { MESSAGE } = require("../../../data/event/tower/constants.json");
-const { SALON, NEW_SALON } = require("../../../util/constants");
+const { NEW_SALON } = require("../../../util/constants");
 const { GuildConfigRepository, UserRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
 
 const inscription = async (interaction, options) => {
@@ -20,7 +19,6 @@ const inscription = async (interaction, options) => {
 
     const eventChannel = interaction.client.channels.cache.get(eventChannelId);
     const author = interaction.member;
-    const guild = await GuildConfig.findOne({ guildId: guildId });
 
     // test si auteur est register
     const userDb = await UserRepository.findByDiscordUser(interaction.user);

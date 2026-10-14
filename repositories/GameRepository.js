@@ -6,18 +6,18 @@ class GameRepository extends BaseRepository {
     super(Game);
   }
 
-  findByNameExactly(name) {
+  findByNameExactly(name, types = ["game", "dlc"]) {
     return this.Model.query()
-      .whereIn("type", ["game", "dlc"])
+      .whereIn("type", types)
       .where('name', name)
       .limit(1);
   }
 
-  findByName(name, limit = 25) {
+  findByName(name, limit = 25, types = ["game", "dlc"]) {
     // On échappe les caractères spéciaux propres à SQL (LIKE/ILIKE)
     const escapedName = name?.replace(/[%_]/g, "\\$&");
     return this.Model.query()
-      .whereIn("type", ["game", "dlc"])
+      .whereIn("type", types)
       .where('name', 'ilike', `%${escapedName}%`)
       .limit(limit);
   }

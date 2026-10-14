@@ -1,9 +1,5 @@
 const { Collection, ChannelType } = require("discord.js");
 const {
-    Msg,
-    MsgDmdeAide,
-} = require("../models");
-const {
     loadJobs,
     searchNewGamesJob,
     resetMoneyLimit,
@@ -16,7 +12,6 @@ const {
     createRowGroupButtons,
     createCollectorGroup,
 } = require("./msg/group");
-const { Group } = require("../models/index");
 
 const fs = require("node:fs");
 const path = require("node:path");

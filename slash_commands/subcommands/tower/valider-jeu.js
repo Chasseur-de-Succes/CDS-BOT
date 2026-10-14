@@ -4,7 +4,6 @@ const {
     createLogs,
 } = require("../../../util/envoiMsg");
 const { ASCII_NOT_100 } = require("../../../data/event/tower/constants.json");
-const { GuildConfig, User } = require("../../../models");
 const { NEW_SALON } = require("../../../util/constants");
 const { isAllBossDead } = require("../../../util/events/tower/towerUtils");
 const { seasonOne } = require("../../../util/events/tower/season");

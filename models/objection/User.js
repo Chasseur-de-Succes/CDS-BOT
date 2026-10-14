@@ -14,6 +14,8 @@ const BaseModel = require("./BaseModel");
  * @property {number} moneyLimit
  * @property {Date | null} lastBuy
  * @property {number} nbWarning
+ * @property {Object | null} profile
+ * @property {Object | null} event
  */
 
 class User extends BaseModel {
@@ -23,6 +25,10 @@ class User extends BaseModel {
 
     static get idColumn() {
         return "id";
+    }
+
+    static get jsonAttributes() {
+        return ["profile", "event"];
     }
 
     static get relationMappings() {

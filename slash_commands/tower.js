@@ -5,8 +5,7 @@ const {
     classement,
     infoBoss,
 } = require("./subcommands/tower");
-const { Game } = require("../models");
-const { escapeRegExp } = require("../util/util");
+const { GameRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -50,7 +49,6 @@ module.exports = {
                 ),
         ),
     async autocomplete(interaction) {
-        const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
         let filtered = [];
         let exact = [];
@@ -58,25 +56,17 @@ module.exports = {
         // cmd boss valider, autocomplete sur nom jeu
         if (focusedValue.name === "jeu" && focusedValue.value) {
             // recherche nom exacte
-            exact = await client.findGames({
-                name: focusedValue.value,
-                type: "game",
-            });
+            exact = await GameRepository.findByNameExactly(
+                focusedValue.value,
+                ["game"],
+            );
 
             // recup limit de 25 jeux, correspondant a la value rentré
-            filtered = await Game.aggregate([
-                {
-                    $match: {
-                        name: new RegExp(escapeRegExp(focusedValue.value), "i"),
-                    },
-                },
-                {
-                    $match: { type: "game" },
-                },
-                {
-                    $limit: 25,
-                },
-            ]);
+            filtered = await GameRepository.findByName(
+                focusedValue.value,
+                25,
+                ["game"],
+            );
 
             // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
             filtered = filtered.filter(
