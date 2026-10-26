@@ -10,7 +10,7 @@ const {
 const { DARK_RED, GREEN, YELLOW, NIGHT } = require("../../data/colors.json");
 const { WARNING, CHECK_MARK, CROSS_MARK } = require("../../data/emojis.json");
 const moment = require("moment-timezone");
-const { BAREME_XP, SALON, NEW_SALON } = require("../constants");
+const { BAREME_XP, NEW_SALON } = require("../constants");
 const { addXp } = require("../xp");
 const { getAchievement } = require("./stats");
 const { feedBotMetaAch } = require("../envoiMsg");
