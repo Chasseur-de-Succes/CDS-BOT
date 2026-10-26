@@ -76,8 +76,9 @@ async function createEmbedGroupInfo(client, members, group, isAuthorCaptain) {
 
     const gameAppid = group.gameInfo.appid;
     const completionistLink = `[Completionist](https://completionist.me/steam/app/${gameAppid})`;
+    const steamHunterLink = `[SteamHunters](https://steamhunters.com/apps/${gameAppid})`;
     const steamGuidesLink = `[Steam Guides](https://steamcommunity.com/app/${gameAppid}/guides/?browsefilter=trend&requiredtags[]=Achievements#scrollTop=0)`;
-    const links = `${completionistLink} | ${steamGuidesLink}`;
+    const links = `${completionistLink} | ${steamHunterLink} | ${steamGuidesLink}`;
 
     // TODO icon plutot que l'image ? -> recup via API..
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${gameAppid}/header.jpg`;
