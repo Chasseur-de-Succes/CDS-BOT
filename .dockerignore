@@ -10,3 +10,7 @@
 !util
 !index.js
 !config.js
+!canvas
+!migrations
+!repositories
+!knexfile.js
