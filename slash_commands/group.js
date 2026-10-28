@@ -9,6 +9,7 @@ const {
     editNbParticipant,
 } = require("./subcommands/group");
 const { GameRepository, GroupRepository } = require("../repositories");
+const { formatAutocompleteName } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -184,9 +185,7 @@ module.exports = {
             // Formatage des objets pour l'autocomplete Discord ({ name, value })
             choices = filtered.map((element) => ({
                 // si nom jeu dépasse limite imposé par Discord (100 char)
-                name: element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
+                name: formatAutocompleteName(element.name),
                 // on utilise l'appid pour le jeu
                 value: String(element.appid),
             }));
@@ -199,9 +198,7 @@ module.exports = {
             // Formatage des objets pour l'autocomplete Discord ({ name, value })
             choices = filtered.map((element) => ({
                 // si nom jeu dépasse limite imposé par Discord (100 char)
-                name: element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
+                name: formatAutocompleteName(element.name),
                 // on utilise l'id pour le groupe
                 value: String(element.id),
             }));
@@ -214,9 +211,7 @@ module.exports = {
             filtered = filtered.slice(0, 24);
             // et on ajoute en 1er l'exact
             choices.unshift({
-                name: jeuExact.name.length > 100
-                    ? `${jeuExact.name.substring(0, 96)}...`
-                    : jeuExact.name,
+                name: formatAutocompleteName(jeuExact.name),
                 value: String(jeuExact.appid),
             });
         } else {

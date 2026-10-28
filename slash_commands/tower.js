@@ -6,6 +6,7 @@ const {
     infoBoss,
 } = require("./subcommands/tower");
 const { GameRepository } = require("../repositories");
+const { formatAutocompleteName } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -76,10 +77,7 @@ module.exports = {
 
         // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
         filtered = filtered.slice(0, 25).map((element) => ({
-            name:
-                element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
+            name: formatAutocompleteName(element.name),
             value: element.appid?.toString(),
         }));
 
