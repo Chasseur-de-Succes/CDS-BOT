@@ -208,7 +208,7 @@ module.exports = {
         if (exact.length === 1) {
             const jeuExact = exact[0];
             // on récupère les 24 premiers
-            filtered = filtered.slice(0, 24);
+            choices = choices.slice(0, 24);
             // et on ajoute en 1er l'exact
             choices.unshift({
                 name: formatAutocompleteName(jeuExact.name),
