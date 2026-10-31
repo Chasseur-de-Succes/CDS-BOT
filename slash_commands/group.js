@@ -9,7 +9,7 @@ const {
     editNbParticipant,
 } = require("./subcommands/group");
 const { GroupRepository } = require("../repositories");
-const { formatAutocompleteName, getGameAutocompleteOptions } = require("../util/autocompleteUtils");
+const { truncateAutocompleteName, getGameAutocompleteOptions } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -180,7 +180,7 @@ module.exports = {
             // Formatage des objets pour l'autocomplete Discord ({ name, value })
             choices = filtered.map((element) => ({
                 // si nom jeu dépasse limite imposé par Discord (100 char)
-                name: formatAutocompleteName(element.name),
+                name: truncateAutocompleteName(element.name),
                 // on utilise l'id pour le groupe
                 value: String(element.id),
             }));

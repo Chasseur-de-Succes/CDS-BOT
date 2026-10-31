@@ -17,7 +17,7 @@ const {
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { GroupRepository, GameItemShopRepository } = require("../repositories");
-const { formatAutocompleteName } = require("../util/autocompleteUtils");
+const { truncateAutocompleteName } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -328,7 +328,7 @@ module.exports = {
                 .slice(0, 25)
                 .map((element) => ({
                     // si nom jeu dépasse limite imposé par Discord (100 char)
-                    name: formatAutocompleteName(element.name), 
+                    name: truncateAutocompleteName(element.name), 
                     // on utilise l'id pour le groupe
                     value: String(element.id),
                 }));

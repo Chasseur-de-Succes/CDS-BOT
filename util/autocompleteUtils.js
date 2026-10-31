@@ -10,7 +10,7 @@ const { GameRepository } = require("../repositories");
  * @param {string} name Le nom à formater
  * @returns {string} Le nom tronqué si nécessaire, sinon le nom original
  */
-function formatAutocompleteName(name) {
+function truncateAutocompleteName(name) {
     return name?.length > DISCORD_LIMITS.CHAR_LIMIT_AUTOCOMPLETE 
         ? `${name.substring(0, DISCORD_LIMITS.CHAR_LIMIT_AUTOCOMPLETE - 4)}...` 
         : name;
@@ -39,7 +39,7 @@ async function getGameAutocompleteOptions(query) {
     // Formatage des objets pour l'autocomplete Discord ({ name, value })
     choices = filtered.map((element) => ({
         // si nom jeu dépasse limite imposé par Discord (100 char)
-        name: formatAutocompleteName(element.name),
+        name: truncateAutocompleteName(element.name),
         // on utilise l'appid pour le jeu
         value: String(element.appid),
     }));
@@ -51,7 +51,7 @@ async function getGameAutocompleteOptions(query) {
         choices = choices.slice(0, 24);
         // et on ajoute en 1er l'exact
         choices.unshift({
-            name: formatAutocompleteName(jeuExact.name),
+            name: truncateAutocompleteName(jeuExact.name),
             value: String(jeuExact.appid),
         });
     }
@@ -60,6 +60,6 @@ async function getGameAutocompleteOptions(query) {
 }
 
 module.exports = {
-    formatAutocompleteName,
+    truncateAutocompleteName,
     getGameAutocompleteOptions,
 };
