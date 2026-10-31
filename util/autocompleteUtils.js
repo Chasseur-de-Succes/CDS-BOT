@@ -16,7 +16,11 @@ function truncateAutocompleteName(name) {
         : name;
 }
 
-//
+/**
+ * Obtenir une liste de jeux correspondant à la saisie afin de les proposer lors de l'autocomplétion
+ * @param {string} query Texte a recherché
+ * @returns {Array<{name: string, value: string}>} Liste des jeux correspondant à la recherche
+ */
 async function getGameAutocompleteOptions(query) {
     let filtered = [];
     let choices = [];
