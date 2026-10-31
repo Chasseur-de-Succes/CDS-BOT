@@ -5,8 +5,7 @@ const {
     classement,
     infoBoss,
 } = require("./subcommands/tower");
-const { GameRepository } = require("../repositories");
-const { formatAutocompleteName } = require("../util/autocompleteUtils");
+const { getGameAutocompleteOptions } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -51,52 +50,14 @@ module.exports = {
         ),
     async autocomplete(interaction) {
         const focusedValue = interaction.options.getFocused(true);
-        let filtered = [];
-        let exact = [];
+        let choices = [];
 
         // cmd boss valider, autocomplete sur nom jeu
         if (focusedValue.name === "jeu" && focusedValue.value) {
-            // recherche nom exacte
-            exact = await GameRepository.findByNameExactly(
-                focusedValue.value,
-                ["game"],
-            );
-
-            // recup limit de 25 jeux, correspondant a la value rentré
-            filtered = await GameRepository.findByName(
-                focusedValue.value,
-                25,
-                ["game"],
-            );
-
-            // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-            filtered = filtered.filter(
-                (jeu) => jeu.name && jeu.name !== exact[0]?.name,
-            );
+            choices = await getGameAutocompleteOptions(focusedValue.value);
         }
 
-        // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
-        filtered = filtered.slice(0, 25).map((element) => ({
-            name: formatAutocompleteName(element.name),
-            value: element.appid?.toString(),
-        }));
-
-        // si nom exact trouvé
-        if (exact.length === 1) {
-            const jeuExact = exact[0];
-            // on récupère les 24 premiers
-            filtered = filtered.slice(0, 24);
-            // et on ajoute en 1er l'exact
-            filtered.unshift({
-                name: jeuExact.name,
-                value: jeuExact.appid,
-            });
-        }
-
-        await interaction.respond(
-            filtered,
-            // filtered.map((choice) => ({ name: choice, value: choice })),
-        );
+        await interaction.respond(choices);
     },
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();

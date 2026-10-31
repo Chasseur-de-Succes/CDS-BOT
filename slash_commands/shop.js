@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { jeux, list, sell, remove } = require("./subcommands/shop");
-const { GameRepository, GameItemShopRepository } = require("../repositories");
-const { formatAutocompleteName } = require("../util/autocompleteUtils");
+const { GameItemShopRepository } = require("../repositories");
+const { getGameAutocompleteOptions } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -53,30 +53,11 @@ module.exports = {
         if (interaction.commandName === "shop") {
             if (interaction.options.getSubcommand() === "sell") {
                 const focusedValue = interaction.options.getFocused(true);
-                let filtered = [];
                 let choices = [];
-                let exact = [];
 
                 // cmd shop sell, autocomplete sur nom jeu
                 if (focusedValue.name === "jeu" && focusedValue.value) {
-                    // recherche nom exacte
-                    exact = await GameRepository.findByNameExactly(focusedValue.value);
-
-                    // recup limit de 25 jeux, correspondant a la value rentré
-                    filtered = await GameRepository.findByName(focusedValue.value);
-
-                    // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-                    filtered = filtered.filter(
-                        (jeu) => jeu.name && jeu.name !== exact[0]?.name,
-                    );
-
-                    // Formatage des objets pour l'autocomplete Discord ({ name, value })
-                    choices = filtered.map((element) => ({
-                        // si nom jeu dépasse limite imposé par Discord (100 char)
-                        name: formatAutocompleteName(element.name),
-                        // on utilise l'appid pour le jeu
-                        value: String(element.appid),
-                    }));
+                    choices = await getGameAutocompleteOptions(focusedValue.value);
 
                     await interaction.respond(choices);
                 }
