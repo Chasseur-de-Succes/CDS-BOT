@@ -48,7 +48,7 @@ module.exports = {
                 // TODO editReply ou reply..
                 await interaction.reply({
                     content: "There was an error while executing this command!",
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
         } else if (interaction.isAutocomplete()) {

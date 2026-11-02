@@ -9,14 +9,14 @@ class GameItemShopRepository extends BaseRepository {
     findByIdWithRelations(id) {
         return this.Model.query()
             .findById(id)
-            .withGraphFetched('[gameInfo, sellerInfo, buyerInfo]');
+            .withGraphFetched("[gameInfo, sellerInfo, buyerInfo]");
     }
 
     findPendingItems(userId) {
         return this.Model.query()
             .where("seller", userId)
-            .and('state', 'pending')
-            .withGraphFetched('[gameInfo, sellerInfo, buyerInfo]');
+            .and("state", "pending")
+            .withGraphFetched("[gameInfo, sellerInfo, buyerInfo]");
     }
 
     findGameItemShopBy({ game, seller, notSold, limit } = {}) {
@@ -61,11 +61,14 @@ class GameItemShopRepository extends BaseRepository {
         for (const item of items) {
             if (!item.gameInfo) continue;
             const key = item.gameInfo.appid;
-            if (!groups.has(key)) groups.set(key, { game: item.gameInfo, items: [] });
+            if (!groups.has(key))
+                groups.set(key, { game: item.gameInfo, items: [] });
             groups.get(key).items.push(item);
         }
 
-        return [...groups.values()].sort((a, b) => (a.game.appid ?? 0) - (b.game.appid ?? 0));
+        return [...groups.values()].sort(
+            (a, b) => (a.game.appid ?? 0) - (b.game.appid ?? 0),
+        );
     }
 }
 

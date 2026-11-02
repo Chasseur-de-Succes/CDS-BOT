@@ -21,8 +21,14 @@ module.exports = {
                     )
                 ) {
                     /* HALL HEROS / ZEROS */
-                    const channelHeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_HEROS);
-                    const channelZeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_ZEROS);
+                    const channelHeros = await GuildConfigRepository.getChannel(
+                        msg.guildId,
+                        NEW_SALON.HALL_HEROS,
+                    );
+                    const channelZeros = await GuildConfigRepository.getChannel(
+                        msg.guildId,
+                        NEW_SALON.HALL_ZEROS,
+                    );
                     const isHallHeros = msg.channelId === channelHeros;
                     const isHallZeros = msg.channelId === channelZeros;
 

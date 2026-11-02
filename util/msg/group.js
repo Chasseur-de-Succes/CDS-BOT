@@ -15,7 +15,13 @@ const { addXp } = require("../xp");
 const { getAchievement } = require("./stats");
 const { feedBotMetaAch } = require("../envoiMsg");
 const { discordTimestamp } = require("../discordFormatters");
-const { GroupRepository, UserRepository, StatsRepository, GuildConfigRepository, JobRepository } = require("../../repositories");
+const {
+    GroupRepository,
+    UserRepository,
+    StatsRepository,
+    GuildConfigRepository,
+    JobRepository,
+} = require("../../repositories");
 
 /**
  * Retourne les @ des membres faisant partie du groupe, sauf le capitaine
@@ -158,7 +164,10 @@ async function sendMsgHubGroup(client, guildId, group) {
     );
 
     // recuperation id message pour pouvoir l'editer par la suite
-    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.LIST_GROUP,
+    );
     if (idListGroup) {
         const msg = await client.channels.cache
             .get(idListGroup)
@@ -184,7 +193,10 @@ async function sendMsgHubGroup(client, guildId, group) {
 async function editMsgHubGroup(client, guildId, group) {
     const members = client.guilds.cache.get(guildId).members.cache;
 
-    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.LIST_GROUP,
+    );
     if (idListGroup) {
         const msg = await client.channels.cache
             .get(idListGroup)
@@ -217,7 +229,10 @@ async function editMsgHubGroup(client, guildId, group) {
  * @param {*} group
  */
 async function deleteMsgHubGroup(client, guildId, group) {
-    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.LIST_GROUP,
+    );
     if (idListGroup) {
         const msg = await client.channels.cache
             .get(idListGroup)
@@ -274,7 +289,7 @@ async function createCollectorGroup(client, msg) {
             if (!userDb) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe, car tu n'es pas enregistré.\n:arrow_right: Enregistre toi avec la commande \`/register <steamid>\`.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -282,7 +297,7 @@ async function createCollectorGroup(client, msg) {
             if (userDb.blacklisted) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es blacklisté.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -290,7 +305,7 @@ async function createCollectorGroup(client, msg) {
             if (group.nbMax === group.members.length) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car celui-ci est complet.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -298,7 +313,7 @@ async function createCollectorGroup(client, msg) {
             if (userDb.nbWarning === 3) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es puni.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -306,7 +321,7 @@ async function createCollectorGroup(client, msg) {
             if (group.members.find((us) => us.discordId === userDb.discordId)) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu es déjà membre de ce groupe.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -315,7 +330,7 @@ async function createCollectorGroup(client, msg) {
             if (nbGrps === process.env.MAX_GRPS) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas rejoindre le groupe car tu as rejoins trop de groupes.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -332,7 +347,7 @@ async function createCollectorGroup(client, msg) {
             if (!userDb) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -340,15 +355,17 @@ async function createCollectorGroup(client, msg) {
             if (userDb.discordId === group.captainUser.discordId) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu es le capitaine. \nTu peux toujours transférer le statut de 👑capitaine vers un autre membre du groupe.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
             // Utilisateur hors du groupe
-            if (!group.members.find((us) => us.discordId === userDb.discordId)) {
+            if (
+                !group.members.find((us) => us.discordId === userDb.discordId)
+            ) {
                 return i.editReply({
                     content: `${CROSS_MARK} Tu ne peux pas quitter le groupe car tu n'es pas membre.`,
-                        flags: MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -370,7 +387,7 @@ async function createCollectorGroup(client, msg) {
  */
 async function leaveGroup(client, guildId, grp, userDb) {
     await GroupRepository.removeMember(grp.id, userDb.id);
-    const index = grp.members.findIndex(user => user.id === userDb.id);
+    const index = grp.members.findIndex((user) => user.id === userDb.id);
     if (index !== -1) {
         grp.members.splice(index, 1); // supprime 1 élément à partir de l'index trouvé
     }
@@ -444,12 +461,15 @@ async function createGroup(client, guildId, newGrp) {
     const grpDb = await GroupRepository.createGroup(newGrp);
 
     // stat ++
-    await StatsRepository.incrementGroupCreated(grpDb.captainUser.id)
+    await StatsRepository.incrementGroupCreated(grpDb.captainUser.id);
 
     // creation msg channel + maj grpDb
     const idMsg = await sendMsgHubGroup(client, guildId, grpDb);
 
-    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.LIST_GROUP,
+    );
     if (idListGroup && idMsg) {
         const msgChannel = await client.channels.cache
             .get(idListGroup)
@@ -530,7 +550,10 @@ async function endGroup(client, guildId, grp) {
     }
 
     // déplacer event terminé
-    const idListGroup = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LIST_GROUP);
+    const idListGroup = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.LIST_GROUP,
+    );
     if (idListGroup) {
         await moveToArchive(client, idListGroup, grp);
     } else {

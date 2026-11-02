@@ -2,14 +2,19 @@ const {
     EmbedBuilder,
     SlashCommandBuilder,
     StringSelectMenuBuilder,
-    ActionRowBuilder, InteractionContextType,
+    ActionRowBuilder,
+    InteractionContextType,
     MessageFlags,
 } = require("discord.js");
 const { YELLOW } = require("../data/colors.json");
 const { createError, feedBotMetaAch } = require("../util/envoiMsg");
 const { getAchievement } = require("../util/msg/stats");
 const { createLogs } = require("../util/envoiMsg");
-const { UserRepository, GameItemShopRepository, StatsRepository } = require("../repositories");
+const {
+    UserRepository,
+    GameItemShopRepository,
+    StatsRepository,
+} = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,7 +22,7 @@ module.exports = {
         .setDescription(`Envoi ta clé steam à l'acheteur`)
         .setContexts([
             InteractionContextType.Guild,
-            InteractionContextType.BotDM
+            InteractionContextType.BotDM,
         ])
         .addStringOption((option) =>
             option
@@ -45,13 +50,19 @@ module.exports = {
         }
 
         // cherche l'item en 'pending'
-        const items = await GameItemShopRepository.findPendingItems(vendeurDb.id, "pending");
+        const items = await GameItemShopRepository.findPendingItems(
+            vendeurDb.id,
+            "pending",
+        );
 
         let embed = new EmbedBuilder();
 
         if (items.length === 0) {
             embed.setDescription("Pas de jeu en cours de vente");
-            return interaction.reply({ embeds: [embed], flags: isInGuild ? MessageFlags.Ephemeral : undefined });
+            return interaction.reply({
+                embeds: [embed],
+                flags: isInGuild ? MessageFlags.Ephemeral : undefined,
+            });
         }
 
         if (items.length === 1) {
@@ -59,7 +70,10 @@ module.exports = {
 
             embed = await sendKey(client, vendeur, vendeurDb, item, daKey);
 
-            return interaction.reply({ embeds: [embed], flags: isInGuild ? MessageFlags.Ephemeral : undefined });
+            return interaction.reply({
+                embeds: [embed],
+                flags: isInGuild ? MessageFlags.Ephemeral : undefined,
+            });
         }
 
         const itemsSelect = [];
@@ -160,8 +174,8 @@ async function sendKey(client, vendeur, vendeurDb, item, daKey) {
         await GameItemShopRepository.update(item.id, { state: "done" });
 
         // maj stat vendeur & acheteur
-        await StatsRepository.incrementShopSold(vendeurDb.id)
-        await StatsRepository.incrementShopBought(acheteurDb.id)
+        await StatsRepository.incrementShopSold(vendeurDb.id);
+        await StatsRepository.incrementShopBought(acheteurDb.id);
 
         // test si achievement unlock
         const achievementUnlock = await getAchievement(vendeurDb, "shop");

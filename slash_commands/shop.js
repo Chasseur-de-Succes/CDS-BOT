@@ -57,7 +57,9 @@ module.exports = {
 
                 // cmd shop sell, autocomplete sur nom jeu
                 if (focusedValue.name === "jeu" && focusedValue.value) {
-                    choices = await getGameAutocompleteOptions(focusedValue.value);
+                    choices = await getGameAutocompleteOptions(
+                        focusedValue.value,
+                    );
 
                     await interaction.respond(choices);
                 }
@@ -69,18 +71,20 @@ module.exports = {
 
                 if (focusedValue.name === "jeu") {
                     if (focusedValue.value) {
-                        filtered = await GameItemShopRepository.findGameItemShopBy({
-                            game: focusedValue.value,
-                            seller: memberId,
-                            notSold: true,
-                            limit: 25,
-                        });
+                        filtered =
+                            await GameItemShopRepository.findGameItemShopBy({
+                                game: focusedValue.value,
+                                seller: memberId,
+                                notSold: true,
+                                limit: 25,
+                            });
                     } else {
-                        filtered = await GameItemShopRepository.findGameItemShopBy({
-                            seller: memberId,
-                            notSold: true,
-                            limit: 25,
-                        });
+                        filtered =
+                            await GameItemShopRepository.findGameItemShopBy({
+                                seller: memberId,
+                                notSold: true,
+                                limit: 25,
+                            });
                     }
                 }
 

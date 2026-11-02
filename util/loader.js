@@ -87,7 +87,10 @@ const loadReactionGroup = async (client) => {
 
     // recupere TOUS les messages du channel de listage des groupes
     for (const group of lGrp) {
-        const idListGroup = await GuildConfigRepository.getChannel(group.guildId, NEW_SALON.LIST_GROUP);
+        const idListGroup = await GuildConfigRepository.getChannel(
+            group.guildId,
+            NEW_SALON.LIST_GROUP,
+        );
 
         if (idListGroup) {
             // recup msg sur bon channel
@@ -135,7 +138,9 @@ const loadVocalCreator = async (client) => {
             });
 
             // on save le salon vocal
-            await GuildConfigRepository.upsert(guild.id, { channelCreateVocal: voiceChannel.id });
+            await GuildConfigRepository.upsert(guild.id, {
+                channelCreateVocal: voiceChannel.id,
+            });
             logger.warn(`.. salon vocal 'créateur' créé`);
         } else {
             // s'il n'existe pas, on supprime la valeur dans la bdd

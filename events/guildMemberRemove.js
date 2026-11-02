@@ -53,7 +53,9 @@ module.exports = {
                 } else {
                     await GroupRepository.removeMember(group.id, userDB.id);
 
-                    const memberGrp = group.members.find((u) => u.id === userDB.id);
+                    const memberGrp = group.members.find(
+                        (u) => u.id === userDB.id,
+                    );
                     const indexMember = group.members.indexOf(memberGrp);
                     group.members.splice(indexMember, 1);
 

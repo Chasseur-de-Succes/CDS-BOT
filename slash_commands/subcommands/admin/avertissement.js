@@ -16,9 +16,7 @@ const avertissement = async (interaction, options) => {
     if (!userDb) {
         // Si pas dans la BDD
         return interaction.reply({
-            embeds: [
-                createError(`${user.tag} n'a pas encore de compte !`),
-            ],
+            embeds: [createError(`${user.tag} n'a pas encore de compte !`)],
         });
     }
 
@@ -89,7 +87,9 @@ const avertissement = async (interaction, options) => {
                             ` - ${groupe.members[0].username} est nouveau capitaine pour groupe ${groupe.name}`,
                         );
                         groupe.captain = groupe.members[0].id;
-                        await GroupRepository.update(groupe.id, { captain: groupe.captain });
+                        await GroupRepository.update(groupe.id, {
+                            captain: groupe.captain,
+                        });
 
                         // - notif groupe
                         if (groupe.channelId) {

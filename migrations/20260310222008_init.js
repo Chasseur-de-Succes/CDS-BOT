@@ -89,7 +89,7 @@ exports.up = async function (knex) {
                     enumName: "item_shop_state", // Nom de l'enum dans la base de données
                 })
                 .notNullable()
-                .defaultTo("listed")
+                .defaultTo("listed");
         })
         .createTable("Group", (table) => {
             table.increments("id").primary();

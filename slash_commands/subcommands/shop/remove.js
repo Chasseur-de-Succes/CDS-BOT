@@ -18,7 +18,8 @@ async function remove(interaction, options) {
         });
     }
 
-    const gameItem = await GameItemShopRepository.findByIdWithRelations(gameItemId);
+    const gameItem =
+        await GameItemShopRepository.findByIdWithRelations(gameItemId);
     logger.info(`.. Item ${gameItem.id} choisi`);
 
     // Test si bien le vendeur
@@ -30,7 +31,7 @@ async function remove(interaction, options) {
     }
 
     // Test si state n'existe pas
-    if (gameItem.state === 'pending') {
+    if (gameItem.state === "pending") {
         return interaction.editReply({
             embeds: [
                 createError("Le jeu ne peut pas avoir une demande d'achat !"),

@@ -14,7 +14,10 @@ module.exports.feedBotLevelUp = async (
     userDb,
     nextPalier,
 ) => {
-    const idFeedBot = await GuildConfigRepository.getChannel(guildId, NEW_SALON.FEED_BOT);
+    const idFeedBot = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.FEED_BOT,
+    );
     const feed = await client.channels.cache.get(idFeedBot);
 
     if (feed) {
@@ -36,7 +39,10 @@ module.exports.feedBotLevelUp = async (
 
 /* Nourri feed bot - Meta Succès */
 module.exports.feedBotMetaAch = async (client, guildId, user, achievement) => {
-    const idFeedBot = await GuildConfigRepository.getChannel(guildId, NEW_SALON.FEED_BOT);
+    const idFeedBot = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.FEED_BOT,
+    );
     const feed = await client.channels.cache.get(idFeedBot);
 
     if (feed) {
@@ -102,7 +108,10 @@ module.exports.sendError = (message, text, cmd) => {
  * @returns
  */
 module.exports.sendLogs = async (client, guildId, embedLog) => {
-    const idLogs = await GuildConfigRepository.getChannel(guildId, NEW_SALON.LOGS);
+    const idLogs = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.LOGS,
+    );
     if (idLogs) {
         await client.channels.cache.get(idLogs).send({ embeds: [embedLog] });
     } else {

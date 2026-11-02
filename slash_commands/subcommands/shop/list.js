@@ -6,7 +6,10 @@ const {
 } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { YELLOW } = require("../../../data/colors.json");
-const { UserRepository, GameItemShopRepository } = require("../../../repositories");
+const {
+    UserRepository,
+    GameItemShopRepository,
+} = require("../../../repositories");
 const NB_PAR_PAGES = 10;
 
 async function list(interaction) {
@@ -128,9 +131,7 @@ function createListGame(items, money, currentIndex = 0) {
             jeux.push(`*${item.game.name}*`);
 
             // recupere montant minimum
-            prixMin.push(
-                Math.min(...item.items.map((p) => p.price)),
-            );
+            prixMin.push(Math.min(...item.items.map((p) => p.price)));
         }
     }
 

@@ -9,7 +9,10 @@ const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK, NO_SUCCES } = require("../../../data/emojis.json");
 const { YELLOW } = require("../../../data/colors.json");
 const moment = require("moment");
-const { UserRepository, GameItemShopRepository } = require("../../../repositories");
+const {
+    UserRepository,
+    GameItemShopRepository,
+} = require("../../../repositories");
 
 async function jeux(interaction, options, showGame = false) {
     const nbPage = options.get("page") ? options.get("page").value - 1 : 0;
@@ -88,7 +91,7 @@ async function jeux(interaction, options, showGame = false) {
         .setStyle(ButtonStyle.Danger)
         .setDisabled(
             infos.type === 1 ||
-            userDb.money < infos.items[currentIndex].items[0].price,
+                userDb.money < infos.items[currentIndex].items[0].price,
         );
     const rowBuyButton = new ActionRowBuilder().addComponents(
         prevBtn,
@@ -274,7 +277,9 @@ async function buyGame(client, guildId, author, acheteurDb, vendeur, info) {
     );
 
     // recup dans la BD pour pouvoir le maj
-    let item = await GameItemShopRepository.findByIdWithRelations(info.items[0].id); // le 1er est le - cher
+    let item = await GameItemShopRepository.findByIdWithRelations(
+        info.items[0].id,
+    ); // le 1er est le - cher
 
     // STEP 1 : retire le montant du jeu au "porte-monnaie" de l'acheteur + date dernier achat
     await UserRepository.update(acheteurDb.id, {

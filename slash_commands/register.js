@@ -3,7 +3,8 @@ const {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
-    ButtonBuilder, InteractionContextType,
+    ButtonBuilder,
+    InteractionContextType,
 } = require("discord.js");
 const { GREEN, DARK_RED } = require("../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
@@ -104,7 +105,11 @@ module.exports = {
             await i.deferUpdate();
             await i.editReply({ components: [] });
 
-            await UserRepository.createWithDefaults(member.id, user.tag, steamId64);
+            await UserRepository.createWithDefaults(
+                member.id,
+                user.tag,
+                steamId64,
+            );
 
             const embed = new EmbedBuilder()
                 .setColor(GREEN)

@@ -5,14 +5,14 @@ const { DISCORD_LIMITS } = require("../util/constants");
 const { GameRepository } = require("../repositories");
 
 /**
- * Tronquer le nom s'il dépasse la limite de caractères autorisée par Discord 
+ * Tronquer le nom s'il dépasse la limite de caractères autorisée par Discord
  * pour les options d'autocomplétion (100 char)
  * @param {string} name Le nom à formater
  * @returns {string} Le nom tronqué si nécessaire, sinon le nom original
  */
 function truncateAutocompleteName(name) {
-    return name?.length > DISCORD_LIMITS.CHAR_LIMIT_AUTOCOMPLETE 
-        ? `${name.substring(0, DISCORD_LIMITS.CHAR_LIMIT_AUTOCOMPLETE - 4)}...` 
+    return name?.length > DISCORD_LIMITS.CHAR_LIMIT_AUTOCOMPLETE
+        ? `${name.substring(0, DISCORD_LIMITS.CHAR_LIMIT_AUTOCOMPLETE - 4)}...`
         : name;
 }
 
@@ -25,8 +25,8 @@ async function getGameAutocompleteOptions(query) {
     let filtered = [];
     let choices = [];
     let exact = [];
-    
-    const type =  ["game"];
+
+    const type = ["game"];
     const limit = DISCORD_LIMITS.CHOICES_PER_AUTOCOMPLETE;
 
     // recherche nom exacte

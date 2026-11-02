@@ -17,7 +17,10 @@ const infoBoss = async (interaction, options) => {
     }
 
     // Récupère le boss courant non mort
-    const currentBoss = await TowerRepository.findCurrentBoss(currentTower.id, currentTower.season);
+    const currentBoss = await TowerRepository.findCurrentBoss(
+        currentTower.id,
+        currentTower.season,
+    );
     if (!currentBoss) {
         return interaction.reply({
             content: "Aucun boss n'est actif actuellement.",

@@ -7,7 +7,13 @@ const {
 const { CRIMSON } = require("../../../../data/colors.json");
 const { ObservationRepository } = require("../../../../repositories");
 
-async function addObservationFields(embed, observations, currentPage, pageSize, client) {
+async function addObservationFields(
+    embed,
+    observations,
+    currentPage,
+    pageSize,
+    client,
+) {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, observations.length);
 

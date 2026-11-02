@@ -1,4 +1,9 @@
-const { version, EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+    version,
+    EmbedBuilder,
+    SlashCommandBuilder,
+    InteractionContextType,
+} = require("discord.js");
 const { GREEN } = require("../data/colors.json");
 const { discordTimestamp } = require("../util/discordFormatters");
 

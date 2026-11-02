@@ -13,7 +13,11 @@ const {
 const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { NEW_SALON } = require("../../constants");
 const moment = require("moment");
-const { GuildConfigRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
+const {
+    GuildConfigRepository,
+    TowerRepository,
+    TowerStatsRepository,
+} = require("../../../repositories");
 
 async function seasonOne(
     client,
@@ -26,7 +30,10 @@ async function seasonOne(
     firstUnlock,
 ) {
     // Récupération du channel de l'event
-    const eventChannelId = await GuildConfigRepository.getChannel(interaction.guild.id, NEW_SALON.EVENT_TOWER);
+    const eventChannelId = await GuildConfigRepository.getChannel(
+        interaction.guild.id,
+        NEW_SALON.EVENT_TOWER,
+    );
 
     // si jeu caché donné par les admins
     const hiddenMap = SEASONS["1"].HIDDEN_GAME_APPID;
@@ -40,22 +47,36 @@ async function seasonOne(
 
     // 1 requête PG : la tour en cours + les fields du mois + l'id du message épinglé
     const tower = await TowerRepository.findByGuildIdAndStarted(guildId);
-    const monthFields = await TowerRepository.findMonthlyFields(tower?.msgClueId);
+    const monthFields = await TowerRepository.findMonthlyFields(
+        tower?.msgClueId,
+    );
 
     const genreOrder = new Map(genres.map((g, i) => [g.id, i]));
     const tagOrder = new Map(tags.map((t, i) => [t.tagId, i]));
     const rank = (f) =>
-        (f.type === "genre" ? genreOrder.get(f.value) : tagOrder.get(f.value)) ?? 0;
+        (f.type === "genre"
+            ? genreOrder.get(f.value)
+            : tagOrder.get(f.value)) ?? 0;
 
     // genres d'abord, puis tags, dans l'ordre Steam
     const matches = monthFields
-        .filter((f) => (f.type === "genre" ? genreOrder : tagOrder).has(f.value))
+        .filter((f) =>
+            (f.type === "genre" ? genreOrder : tagOrder).has(f.value),
+        )
         .sort((a, b) =>
-            a.type !== b.type ? (a.type === "genre" ? -1 : 1) : rank(a) - rank(b),
+            a.type !== b.type
+                ? a.type === "genre"
+                    ? -1
+                    : 1
+                : rank(a) - rank(b),
         );
 
-    const genresFoundArr = matches.filter((f) => f.type === "genre").map((f) => f.name);
-    const tagsFoundArr = matches.filter((f) => f.type === "tag").map((f) => f.name);
+    const genresFoundArr = matches
+        .filter((f) => f.type === "genre")
+        .map((f) => f.name);
+    const tagsFoundArr = matches
+        .filter((f) => f.type === "tag")
+        .map((f) => f.name);
 
     const isMonthlyGenre = genresFoundArr.length > 0;
     const genresFound = genresFoundArr.join(", ");
@@ -87,7 +108,9 @@ async function seasonOne(
 
         if (msgClue) {
             await Promise.all(
-                newlyFound.map((f) => TowerRepository.update(f.id, { found: true })),
+                newlyFound.map((f) =>
+                    TowerRepository.update(f.id, { found: true }),
+                ),
             );
             newlyFound.forEach((f) => {
                 f.found = true;
@@ -162,7 +185,8 @@ async function seasonOne(
     // 1er étage franchi (1 jeu complété)
     if (towerStat.nbValidatedGames === 1) {
         // ici, on peut monter de N étages si jeu caché ou tag du mois, on ne risque rien
-        const updatedTowerStat = await TowerStatsRepository.incrementCurrentFloor(userDb, 1, step);
+        const updatedTowerStat =
+            await TowerStatsRepository.incrementCurrentFloor(userDb, 1, step);
 
         logger.info({
             prefix: "TOWER",
@@ -190,9 +214,7 @@ async function seasonOne(
     let isPalierAtteint = false;
     for (let i = 0; i <= step; i++) {
         isPalierAtteint |=
-            (towerStat.currentFloor + i) %
-                SEASONS["1"].ETAGE_PAR_PALIER ===
-            0;
+            (towerStat.currentFloor + i) % SEASONS["1"].ETAGE_PAR_PALIER === 0;
         if (isPalierAtteint) {
             step = i;
             break;
@@ -206,7 +228,8 @@ async function seasonOne(
             message: `${author.user.tag} 100% ${gameName} (${appid}): étage++ ..`,
         });
         // palier non atteint, on peut monter directement le step complet
-        const updatedTowerStat = await TowerStatsRepository.incrementCurrentFloor(userDb, 1, step);
+        const updatedTowerStat =
+            await TowerStatsRepository.incrementCurrentFloor(userDb, 1, step);
 
         const descEtage = initDesc(MESSAGE["1"].ETAGE, gameName, author);
         return interaction.editReply({
@@ -224,11 +247,7 @@ async function seasonOne(
     }
 
     // dans le cas où on arrive à un palier, on incrémente d'abord l'étage courant
-    if (
-        (towerStat.currentFloor + step) %
-            SEASONS["1"].ETAGE_PAR_PALIER ===
-        0
-    ) {
+    if ((towerStat.currentFloor + step) % SEASONS["1"].ETAGE_PAR_PALIER === 0) {
         // si step 0 (on est pile au palier), on monte d'un étage
         towerStat = await TowerStatsRepository.incrementCurrentFloor(
             userDb,

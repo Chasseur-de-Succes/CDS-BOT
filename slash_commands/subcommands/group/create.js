@@ -7,7 +7,12 @@ const {
 const { NEW_SALON, DISCORD_LIMITS } = require("../../../util/constants");
 const { createGroup } = require("../../../util/msg/group");
 const { CHECK_MARK } = require("../../../data/emojis.json");
-const { UserRepository, GroupRepository, GameRepository, GuildConfigRepository } = require("../../../repositories");
+const {
+    UserRepository,
+    GroupRepository,
+    GameRepository,
+    GuildConfigRepository,
+} = require("../../../repositories");
 
 const create = async (interaction, options) => {
     const nameGrp = options.get("nom")?.value;
@@ -89,7 +94,7 @@ const create = async (interaction, options) => {
 
         // pour les devs
         const devIds = process.env.DEVELOPERS.split(",")
-            .map(id => id.trim())
+            .map((id) => id.trim())
             .filter(Boolean);
 
         // On prépare le tableau des permissions
@@ -109,7 +114,7 @@ const create = async (interaction, options) => {
                 ],
             },
             // Ajout des permissions pour les développeurs
-            ...devIds.map(devId => ({
+            ...devIds.map((devId) => ({
                 id: devId,
                 allow: [
                     PermissionFlagsBits.ViewChannel,
@@ -201,8 +206,14 @@ const create = async (interaction, options) => {
 
 // Obtention de la catégorie de discussion de groupe
 async function getAvailableDiscussionCategory(client, interaction, guildId) {
-    const idDiscussionGroupe = await GuildConfigRepository.getChannel(guildId, NEW_SALON.CAT_DISCUSSION_GROUPE);
-    const idDiscussionGroupe2 = await GuildConfigRepository.getChannel(guildId, NEW_SALON.CAT_DISCUSSION_GROUPE_2);
+    const idDiscussionGroupe = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.CAT_DISCUSSION_GROUPE,
+    );
+    const idDiscussionGroupe2 = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.CAT_DISCUSSION_GROUPE_2,
+    );
 
     const configs = [
         [idDiscussionGroupe, "Discussions groupes"],
@@ -232,12 +243,7 @@ async function getAvailableDiscussionCategory(client, interaction, guildId) {
 }
 
 // Obtention ou création de la catégorie des discussions de groupes
-async function getOrCreateCategory(
-    client,
-    interaction,
-    salonId,
-    name,
-) {
+async function getOrCreateCategory(client, interaction, salonId, name) {
     let category = client.channels.cache.get(salonId);
 
     if (!category) {
@@ -257,7 +263,11 @@ async function createCategory(interaction, catConfig, nameCat) {
         type: ChannelType.GuildCategory,
     });
 
-    await GuildConfigRepository.setChannel(interaction.guildId, catConfig, cat.id);
+    await GuildConfigRepository.setChannel(
+        interaction.guildId,
+        catConfig,
+        cat.id,
+    );
 
     logger.info(`Catégorie "${nameCat}" créé avec succès`);
     return cat;

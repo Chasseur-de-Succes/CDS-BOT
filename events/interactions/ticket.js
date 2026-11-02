@@ -48,7 +48,10 @@ module.exports = {
                     interaction.fields.getTextInputValue("ticket-content");
 
                 // Récupération du channel de ticket
-                const ticketChannelId = await GuildConfigRepository.getChannel(interaction.guild.id, NEW_SALON.TICKETS);
+                const ticketChannelId = await GuildConfigRepository.getChannel(
+                    interaction.guild.id,
+                    NEW_SALON.TICKETS,
+                );
 
                 // Gestion d'erreur si aucun salon de ticket n'est défini
                 if (!ticketChannelId) {

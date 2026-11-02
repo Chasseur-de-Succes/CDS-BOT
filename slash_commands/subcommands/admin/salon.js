@@ -16,7 +16,7 @@ const salon = async (interaction, options) => {
 
     if (salon) {
         msgCustom = `${salon.channel} est maintenant considéré comme '${nomConfig}'`;
-        nomConfig = 'channel' + nomConfig;
+        nomConfig = "channel" + nomConfig;
 
         await GuildConfigRepository.upsert(guildId, {
             [nomConfig]: salon.value,

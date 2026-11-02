@@ -35,15 +35,11 @@ async function getAchievement(userDb, code) {
     }
 
     const unlocked = await MetaAchRepository.findUnlockedTierIds(userDb.id);
-    const unlockedIds = new Set(
-        unlocked.map((u) => u.metaAchievementTierId),
-    );
+    const unlockedIds = new Set(unlocked.map((u) => u.metaAchievementTierId));
 
     // paliers atteints et non encore débloqués
     const reachable = tiers
-        .filter(
-            (t) => t.requirement <= statValue && !unlockedIds.has(t.id),
-        )
+        .filter((t) => t.requirement <= statValue && !unlockedIds.has(t.id))
         .sort((a, b) => a.requirement - b.requirement);
 
     const best = reachable[reachable.length - 1];

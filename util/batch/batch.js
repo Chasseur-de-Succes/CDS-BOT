@@ -1,15 +1,18 @@
 const { scheduleJob, scheduledJobs } = require("node-schedule");
 const { createEmbedGroupInfo } = require("../msg/group");
-const {
-    GREEN,
-    VERY_PALE_BLUE,
-} = require("../../data/colors.json");
+const { GREEN, VERY_PALE_BLUE } = require("../../data/colors.json");
 const moment = require("moment-timezone");
 const { createLogs } = require("../envoiMsg");
 const { EmbedBuilder } = require("discord.js");
 const { daysDiff, getMonthName } = require("../util");
 
-const { UserRepository, JobRepository, GuildConfigRepository, TowerRepository, GroupRepository } = require("../../repositories");
+const {
+    UserRepository,
+    JobRepository,
+    GuildConfigRepository,
+    TowerRepository,
+    GroupRepository,
+} = require("../../repositories");
 
 module.exports = {
     /**
@@ -139,7 +142,6 @@ module.exports = {
             });
         }
 
-
         // clean ceux qui sont terminés ou qui ont des dates dépassées, à minuit
         scheduleJob({ hour: 0, minute: 0, tz: "Europe/Paris" }, async () => {
             const jobsToCancel = await JobRepository.findObsolete();
@@ -257,14 +259,20 @@ module.exports = {
                                     .join(", ");
                                 roleHelper.members.each(async (member) => {
                                     const user = member.user;
-                                    const userDb = await UserRepository.findByDiscordUser(user);
+                                    const userDb =
+                                        await UserRepository.findByDiscordUser(
+                                            user,
+                                        );
 
                                     // si dans bdd
                                     if (userDb) {
                                         logger.info(
                                             `.. On est lundi ! On donne 100 point à ${userDb.username}`,
                                         );
-                                        await UserRepository.addMoney(user.id, 100)
+                                        await UserRepository.addMoney(
+                                            user.id,
+                                            100,
+                                        );
                                     }
                                 });
 
@@ -406,7 +414,10 @@ module.exports = {
                 async () => {
                     const monthIndex = moment().tz(tz).month(); // 0 = janvier
                     for (const guild of client.guilds.cache.values()) {
-                        const tower = await TowerRepository.findByGuildIdAndStarted(guild.id);
+                        const tower =
+                            await TowerRepository.findByGuildIdAndStarted(
+                                guild.id,
+                            );
 
                         if (!tower || tower.length === 0) {
                             continue;
@@ -437,12 +448,20 @@ module.exports = {
                     try {
                         const monthIndex = moment().tz(tz).month(); // 0 = janvier
                         const monthName = getMonthName(monthIndex);
-                        const msgClue = await TowerRepository.findCurrentClue(monthIndex);
-                        const clue = msgClue?.description ||  "Aucun indice disponible pour ce mois.";
+                        const msgClue =
+                            await TowerRepository.findCurrentClue(monthIndex);
+                        const clue =
+                            msgClue?.description ||
+                            "Aucun indice disponible pour ce mois.";
 
-                        const clueFields = await TowerRepository.findClueFields(msgClue.id);
-                        const genres = clueFields?.filter(cf => cf.type === 'genre') || [];
-                        const tags = clueFields?.filter(cf => cf.type === 'tag') || [];
+                        const clueFields = await TowerRepository.findClueFields(
+                            msgClue.id,
+                        );
+                        const genres =
+                            clueFields?.filter((cf) => cf.type === "genre") ||
+                            [];
+                        const tags =
+                            clueFields?.filter((cf) => cf.type === "tag") || [];
                         const nbFields = genres.length + tags.length;
 
                         // envoi embed dans le salon event_tower de chaque guild
@@ -450,7 +469,10 @@ module.exports = {
                             logger.info(
                                 `.. création monthly_clue pour ${guild.name}..`,
                             );
-                            const tower = await TowerRepository.findByGuildIdAndStarted(guild.id);
+                            const tower =
+                                await TowerRepository.findByGuildIdAndStarted(
+                                    guild.id,
+                                );
                             if (!tower) {
                                 logger.info(
                                     `.. l'événement Tower n'a pas encore commencé pour ${guild.name}, on skip l'envoi de l'indice mensuel.`,
@@ -461,8 +483,12 @@ module.exports = {
                                 continue;
                             }
 
-                            const guildConfig = await GuildConfigRepository.findByGuildId(guild.id);
-                            const eventChannelId = guildConfig.channelEventTower;
+                            const guildConfig =
+                                await GuildConfigRepository.findByGuildId(
+                                    guild.id,
+                                );
+                            const eventChannelId =
+                                guildConfig.channelEventTower;
 
                             const embed = new EmbedBuilder()
                                 .setTitle(`🏷️ ${monthName}`)
@@ -487,9 +513,7 @@ module.exports = {
                                 });
 
                                 // si message existant, le unpin
-                                if (
-                                    tower?.messageClue?.idMsg
-                                ) {
+                                if (tower?.messageClue?.idMsg) {
                                     const oldMsgId = tower.messageClue.idMsg;
                                     const oldMsg = await channel.messages
                                         .fetch(oldMsgId)
@@ -505,10 +529,13 @@ module.exports = {
                                 // save id message pour edit fields plus tard
                                 await TowerRepository.update(tower.id, {
                                     msgClueId: msgClue.id,
-                                })
-                                await TowerRepository.updateMessageClue(msgClue.id, {
-                                    idMsg: msg.id
-                                })
+                                });
+                                await TowerRepository.updateMessageClue(
+                                    msgClue.id,
+                                    {
+                                        idMsg: msg.id,
+                                    },
+                                );
                                 logger.info(
                                     `.. Embed mensuel envoyé pour le mois ${monthName}`,
                                 );

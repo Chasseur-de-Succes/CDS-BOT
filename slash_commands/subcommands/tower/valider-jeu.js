@@ -7,7 +7,12 @@ const { ASCII_NOT_100 } = require("../../../data/event/tower/constants.json");
 const { NEW_SALON } = require("../../../util/constants");
 const { isAllBossDead } = require("../../../util/events/tower/towerUtils");
 const { seasonOne } = require("../../../util/events/tower/season");
-const { UserRepository, GuildConfigRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
+const {
+    UserRepository,
+    GuildConfigRepository,
+    TowerRepository,
+    TowerStatsRepository,
+} = require("../../../repositories");
 const { EmbedBuilder, MessageFlags } = require("discord.js");
 
 const validerJeu = async (interaction, options) => {
@@ -34,7 +39,10 @@ const validerJeu = async (interaction, options) => {
     }
 
     // Récupération du channel de l'event
-    const eventChannelId = await GuildConfigRepository.getChannel(guildId, NEW_SALON.EVENT_TOWER);
+    const eventChannelId = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.EVENT_TOWER,
+    );
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
         return interaction.editReply({
@@ -64,7 +72,10 @@ const validerJeu = async (interaction, options) => {
     }
 
     // si pas encore inscrit
-    const userFound = await TowerStatsRepository.hasUserAndSeason(userDb, season);
+    const userFound = await TowerStatsRepository.hasUserAndSeason(
+        userDb,
+        season,
+    );
     if (!userFound) {
         return await interaction.editReply({
             embeds: [
@@ -131,7 +142,11 @@ const validerJeu = async (interaction, options) => {
     }
 
     // Vérifier si l'utilisateur a déjà 100% le jeu
-    const hasCompleted = await TowerStatsRepository.hasCompletedGames(userDb, season, appid);
+    const hasCompleted = await TowerStatsRepository.hasCompletedGames(
+        userDb,
+        season,
+        appid,
+    );
     if (hasCompleted) {
         logger.warn({
             prefix: "TOWER",
@@ -188,10 +203,14 @@ ${ASCII_NOT_100}`,
             case 0:
                 // obsolète suite au passage vers PostGre, saison déjà passé donc on a skip
                 return interaction.editReply({
-                    embeds: [new EmbedBuilder()
-                        .setTitle("🏆 Saison 0")
-                        .setDescription("Cette saison ne fonctionne plus actuellement !")
-                        .setColor("#ff0000")],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🏆 Saison 0")
+                            .setDescription(
+                                "Cette saison ne fonctionne plus actuellement !",
+                            )
+                            .setColor("#ff0000"),
+                    ],
                     flags: MessageFlags.Ephemeral,
                 });
             // Saison 1 : Tour à 4 paliers, avec un boss à chaque palier (admin CDS)

@@ -1,6 +1,10 @@
 const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { CDS } = require("../../../data/emojis.json");
-const { TowerRepository, UserRepository, TowerStatsRepository } = require("../../../repositories");
+const {
+    TowerRepository,
+    UserRepository,
+    TowerStatsRepository,
+} = require("../../../repositories");
 const { createError } = require("../../../util/envoiMsg");
 
 const classement = async (interaction, options) => {
@@ -43,9 +47,16 @@ const classement = async (interaction, options) => {
     }
 
     // Trouver la position de l'utilisateur courant
-    const rankingCurrentUser = await TowerStatsRepository.findRankingForSeason(season, authorDb);
-    const positionsUserCourant = rankingCurrentUser ? rankingCurrentUser.rank : undefined;
-    const degatsUserCourant = rankingCurrentUser ? rankingCurrentUser.totalDamage : undefined;
+    const rankingCurrentUser = await TowerStatsRepository.findRankingForSeason(
+        season,
+        authorDb,
+    );
+    const positionsUserCourant = rankingCurrentUser
+        ? rankingCurrentUser.rank
+        : undefined;
+    const degatsUserCourant = rankingCurrentUser
+        ? rankingCurrentUser.totalDamage
+        : undefined;
 
     // Générer les données pour l'embed
     let positions = "**";

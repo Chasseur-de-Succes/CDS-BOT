@@ -4,7 +4,8 @@ const {
     ButtonBuilder,
     ButtonStyle,
     ActionRowBuilder,
-    time, InteractionContextType,
+    time,
+    InteractionContextType,
 } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { TimestampStyles } = require("@discordjs/formatters");
@@ -16,7 +17,7 @@ module.exports = {
         .setDescription("Affiche le calendrier des prochains événements")
         .setContexts([
             InteractionContextType.Guild,
-            InteractionContextType.BotDM
+            InteractionContextType.BotDM,
         ])
         .addUserOption((option) =>
             option
@@ -190,11 +191,7 @@ async function findEventBetween(lundi, dimanche, guildId, dbUser) {
 
         let fieldValue = "◾◾◾";
         for (const group of groups) {
-            const {
-                channelId,
-                dates,
-                gameInfo,
-            } = group;
+            const { channelId, dates, gameInfo } = group;
             const game = gameInfo?.name ?? "Jeu inconnu";
 
             const found = (dates ?? []).filter(

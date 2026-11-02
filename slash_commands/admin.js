@@ -1,4 +1,9 @@
-const { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, MessageFlags } = require("discord.js");
+const {
+    SlashCommandBuilder,
+    PermissionFlagsBits,
+    InteractionContextType,
+    MessageFlags,
+} = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const {
@@ -321,17 +326,18 @@ module.exports = {
 
         // sur nom du groupe
         if (focusedValue.name === "nom_group") {
-            filtered = await GroupRepository.findByNameAndGuildId(focusedValue.value, interaction.guildId);
+            filtered = await GroupRepository.findByNameAndGuildId(
+                focusedValue.value,
+                interaction.guildId,
+            );
 
             // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
-            filtered = filtered
-                .slice(0, 25)
-                .map((element) => ({
-                    // si nom jeu dépasse limite imposé par Discord (100 char)
-                    name: truncateAutocompleteName(element.name), 
-                    // on utilise l'id pour le groupe
-                    value: String(element.id),
-                }));
+            filtered = filtered.slice(0, 25).map((element) => ({
+                // si nom jeu dépasse limite imposé par Discord (100 char)
+                name: truncateAutocompleteName(element.name),
+                // on utilise l'id pour le groupe
+                value: String(element.id),
+            }));
         }
 
         await interaction.respond(filtered);

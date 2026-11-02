@@ -1,5 +1,9 @@
 const { NIGHT } = require("../data/colors.json");
-const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require("discord.js");
+const {
+    SlashCommandBuilder,
+    EmbedBuilder,
+    InteractionContextType,
+} = require("discord.js");
 const { discordTimestamp } = require("../util/discordFormatters");
 
 module.exports = {

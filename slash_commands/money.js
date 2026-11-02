@@ -1,4 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+    EmbedBuilder,
+    SlashCommandBuilder,
+    InteractionContextType,
+} = require("discord.js");
 const { GREEN } = require("../data/colors.json");
 const { createError } = require("../util/envoiMsg");
 const { UserRepository } = require("../repositories");

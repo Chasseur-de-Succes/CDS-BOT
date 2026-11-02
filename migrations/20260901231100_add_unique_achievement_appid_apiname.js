@@ -13,12 +13,9 @@ exports.up = async function (knex) {
     `);
 
     await knex.schema.alterTable("Achievement", (table) => {
-        table.unique(
-            ["appid", "apiName"],
-            {
-                indexName: "achievement_appid_apiname_unique"
-            },
-        );
+        table.unique(["appid", "apiName"], {
+            indexName: "achievement_appid_apiname_unique",
+        });
     });
 };
 

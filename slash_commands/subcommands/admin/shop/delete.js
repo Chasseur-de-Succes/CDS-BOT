@@ -15,7 +15,7 @@ async function deleteItem(interaction, options) {
     logger.info(`.. Item ${gameItem.id} choisi`);
 
     // Test si state n'existe pas
-    if (gameItem.state === 'pending') {
+    if (gameItem.state === "pending") {
         return interaction.reply({
             embeds: [
                 createError(

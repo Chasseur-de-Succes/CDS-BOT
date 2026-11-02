@@ -9,7 +9,10 @@ const {
     editNbParticipant,
 } = require("./subcommands/group");
 const { GroupRepository } = require("../repositories");
-const { truncateAutocompleteName, getGameAutocompleteOptions } = require("../util/autocompleteUtils");
+const {
+    truncateAutocompleteName,
+    getGameAutocompleteOptions,
+} = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -175,7 +178,10 @@ module.exports = {
 
         // autocomplete sur nom groupe
         if (focusedValue.name === "nom") {
-            filtered = await GroupRepository.findByNameAndGuildId(focusedValue.value, interaction.guildId);
+            filtered = await GroupRepository.findByNameAndGuildId(
+                focusedValue.value,
+                interaction.guildId,
+            );
 
             // Formatage des objets pour l'autocomplete Discord ({ name, value })
             choices = filtered.map((element) => ({

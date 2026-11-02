@@ -49,7 +49,9 @@ const transfert = async (interaction, options) => {
     if (!(isAdmin || grp.captainUser.id === authorDb.id)) {
         return interaction.editReply({
             embeds: [
-                createError(`Tu n'es pas capitaine du groupe **${grp.name}** !`),
+                createError(
+                    `Tu n'es pas capitaine du groupe **${grp.name}** !`,
+                ),
             ],
         });
     }

@@ -1,4 +1,8 @@
-const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require("discord.js");
+const {
+    SlashCommandBuilder,
+    EmbedBuilder,
+    InteractionContextType,
+} = require("discord.js");
 const { VERY_PALE_VIOLET } = require("../data/colors.json");
 const {
     ONLINE_STATUS,

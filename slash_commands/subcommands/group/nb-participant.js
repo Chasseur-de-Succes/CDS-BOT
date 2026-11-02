@@ -36,7 +36,9 @@ const editNbParticipant = async (interaction, options) => {
     if (!(isAdmin || grp.captainUser.id === authorDb.id)) {
         return interaction.reply({
             embeds: [
-                createError(`Tu n'es pas capitaine du groupe **${grp.name}** !`),
+                createError(
+                    `Tu n'es pas capitaine du groupe **${grp.name}** !`,
+                ),
             ],
         });
     }

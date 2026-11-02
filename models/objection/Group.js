@@ -63,11 +63,11 @@ class Group extends BaseModel {
                     from: "Group.id",
                     through: {
                         from: "GroupUser.groupid",
-                        to: "GroupUser.userid"
+                        to: "GroupUser.userid",
                     },
-                    to: "User.id"
-                }
-            }
+                    to: "User.id",
+                },
+            },
         };
     }
 }

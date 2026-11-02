@@ -124,7 +124,10 @@ const schedule = async (interaction, options) => {
     }
 
     grp.dateUpdated = new Date();
-    await GroupRepository.update(grp.id, { dates: grp.dates, dateUpdated: grp.dateUpdated });
+    await GroupRepository.update(grp.id, {
+        dates: grp.dates,
+        dateUpdated: grp.dateUpdated,
+    });
 
     // créer/update rappel
     if (indexDateEvent >= 0) {

@@ -2,12 +2,20 @@ const { Colors, EmbedBuilder, MessageFlags } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
 const { MESSAGE } = require("../../../data/event/tower/constants.json");
 const { NEW_SALON } = require("../../../util/constants");
-const { GuildConfigRepository, UserRepository, TowerRepository, TowerStatsRepository } = require("../../../repositories");
+const {
+    GuildConfigRepository,
+    UserRepository,
+    TowerRepository,
+    TowerStatsRepository,
+} = require("../../../repositories");
 
 const inscription = async (interaction, options) => {
     // Récupération du channel de l'event
     const guildId = interaction.guildId;
-    const eventChannelId = await GuildConfigRepository.getChannel(guildId, NEW_SALON.EVENT_TOWER);
+    const eventChannelId = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.EVENT_TOWER,
+    );
 
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
@@ -45,7 +53,10 @@ const inscription = async (interaction, options) => {
     }
 
     // si déjà inscrit
-    const userFound = await TowerStatsRepository.hasUserAndSeason(userDb, season);
+    const userFound = await TowerStatsRepository.hasUserAndSeason(
+        userDb,
+        season,
+    );
     if (userFound) {
         return await interaction.reply({
             content: "Tu es déjà inscrit !",
@@ -73,7 +84,7 @@ const inscription = async (interaction, options) => {
         userId: userDb.id,
         season: season,
         startDate: new Date(),
-    }
+    };
     await TowerStatsRepository.create(newTowerStat);
 
     // Pas besoin de tester si le rôle est déjà ajouté

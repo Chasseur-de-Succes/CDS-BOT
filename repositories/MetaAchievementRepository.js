@@ -11,25 +11,23 @@ class MetaAchievementRepository extends BaseRepository {
     }
 
     findMetaAchievementByCode(code) {
-        return MetaAchievements.query()
-            .where('code', code)
-            .first();
+        return MetaAchievements.query().where("code", code).first();
     }
 
     findTiersByCode(code) {
         return MetaAchievementTiers.query()
             .join(
-                'MetaAchievements',
-                'MetaAchievements.id',
-                'MetaAchievementTiers.metaAchievementId',
+                "MetaAchievements",
+                "MetaAchievements.id",
+                "MetaAchievementTiers.metaAchievementId",
             )
-            .where('MetaAchievements.code', code);
+            .where("MetaAchievements.code", code);
     }
 
     findUnlockedTierIds(userId) {
         return UserMetaAchievementUnlocks.query()
-            .where('userId', userId)
-            .select('metaAchievementTierId');
+            .where("userId", userId)
+            .select("metaAchievementTierId");
     }
 
     unlockTier(userId, tierId) {
@@ -39,7 +37,7 @@ class MetaAchievementRepository extends BaseRepository {
                 metaAchievementTierId: tierId,
                 unlockedAt: new Date(),
             })
-            .onConflict(['userId', 'metaAchievementTierId'])
+            .onConflict(["userId", "metaAchievementTierId"])
             .ignore();
     }
 }

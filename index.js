@@ -66,7 +66,10 @@ knex.raw("SELECT 1")
         logger.info("Connexion PostgreSQL OK");
     })
     .catch((error) => {
-        logger.error(`Connexion PostgreSQL ${process.env.DATABASE_URL} impossible`, error);
+        logger.error(
+            `Connexion PostgreSQL ${process.env.DATABASE_URL} impossible`,
+            error,
+        );
         process.exit(1);
     });
 

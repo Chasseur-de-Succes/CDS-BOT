@@ -1,5 +1,9 @@
 const { MessageFlags } = require("discord.js");
-const { createError, createLogs, createEmbed } = require("../../../../util/envoiMsg");
+const {
+    createError,
+    createLogs,
+    createEmbed,
+} = require("../../../../util/envoiMsg");
 const { NEW_SALON } = require("../../../../util/constants");
 const {
     healBoss,
@@ -193,9 +197,7 @@ async function heal(interaction, options) {
         value: `${displayHealth(currentBoss)}`,
     });
 
-    await client.channels.cache
-        .get(eventChannelId)
-        .send({ embeds: [embed] });
+    await client.channels.cache.get(eventChannelId).send({ embeds: [embed] });
     return interaction.editReply("Ton jeu a bien soigné le boss !");
 }
 

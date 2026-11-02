@@ -83,8 +83,12 @@ const extractFileNameFromUrl = (value) => {
 };
 
 const normalizeShopState = (value) => {
-    const normalized = String(value || "").toLowerCase().trim();
-    return normalized === "pending" || normalized === "done" ? normalized : "done";
+    const normalized = String(value || "")
+        .toLowerCase()
+        .trim();
+    return normalized === "pending" || normalized === "done"
+        ? normalized
+        : "done";
 };
 
 const logStep = (section, message, level = "info") => {
@@ -141,7 +145,7 @@ async function truncateAllTables() {
         "UserMetaAchievementUnlocks",
         "GroupUser",
         "Group",
-        "GameItemShop"
+        "GameItemShop",
     ];
 
     try {
@@ -204,13 +208,17 @@ async function migrate() {
             "MetaAchievementTiers.id as tierId",
         );
     const metaTierLookup = new Map(
-        metaTierRows.map((row) => [`${row.code}:${row.requirement}`, row.tierId]),
+        metaTierRows.map((row) => [
+            `${row.code}:${row.requirement}`,
+            row.tierId,
+        ]),
     );
 
     // USERS
     logStep("USERS", "Récupération des utilisateurs MongoDB");
     let users = await UserMG.find();
-    let usersIds = [], towerStatIds = [];
+    let usersIds = [],
+        towerStatIds = [];
     logStep("USERS", `${users.length} utilisateur(s) à migrer`);
     for (const [index, user] of users.entries()) {
         let userId = await User.query()
@@ -281,14 +289,13 @@ async function migrate() {
         // seulement saison 0 normalement !!
         if (user.event.tower.seasonHistory) {
             for (const event of user.event.tower.seasonHistory) {
-                await TowerStats.query()
-                    .insert({
-                        userId: userId.id,
-                        season: event.seasonNumber,
-                        startDate: event.startDate,
-                        nbValidatedGames: event.maxEtage,
-                        totalDamage: event.totalDamage,
-                    });
+                await TowerStats.query().insert({
+                    userId: userId.id,
+                    season: event.seasonNumber,
+                    startDate: event.startDate,
+                    nbValidatedGames: event.maxEtage,
+                    totalDamage: event.totalDamage,
+                });
             }
         }
         // si saison courante
@@ -302,7 +309,8 @@ async function migrate() {
                     currentFloor: user.event.tower.currentEtage,
                     totalDamage: user.event.tower.totalDamage,
                     completedGames: user.event.tower.completedGames,
-                }).returning("id");
+                })
+                .returning("id");
             // ordre temporaire du boss courant (-1 si aucun)
             towerStatsId.currentBossOrder = user.event.tower.currentBoss;
             towerStatIds.push(towerStatsId);
@@ -377,9 +385,7 @@ async function migrate() {
                 type: "tag",
             });
         }
-        await ClueField.query()
-            .insert(clueFields)
-            .returning("id");
+        await ClueField.query().insert(clueFields).returning("id");
     }
 
     // GUILD CONFIG
@@ -515,19 +521,23 @@ async function migrate() {
             );
 
             // maj du currentBoss des TowerStat
-            for (const stat of towerStatIds.filter((s) => s.season === tower.currentSeason)) {
+            for (const stat of towerStatIds.filter(
+                (s) => s.season === tower.currentSeason,
+            )) {
                 // recupere l'id du boss (s'il existe)
                 let bossId = await TowerBoss.query()
                     .select("id")
                     .where({
                         season: stat.season,
-                        order: stat.currentBossOrder ? stat.currentBossOrder : null,
+                        order: stat.currentBossOrder
+                            ? stat.currentBossOrder
+                            : null,
                     });
 
                 await TowerStats.query()
                     .where({ id: stat.id })
                     .patch({
-                        currentBoss: bossId.length > 0 ? bossId[0].id : null
+                        currentBoss: bossId.length > 0 ? bossId[0].id : null,
                     });
             }
         }
@@ -564,7 +574,9 @@ async function migrate() {
     let duplicateGames = 0;
     const processedAppids = new Set();
     const pageSize = Number(process.env.MIGRATE_GAME_PAGE_SIZE || 5000);
-    const insertBatchSize = Number(process.env.MIGRATE_INSERT_BATCH_SIZE || 2000);
+    const insertBatchSize = Number(
+        process.env.MIGRATE_INSERT_BATCH_SIZE || 2000,
+    );
     const totalPages = Math.ceil(totalGames / pageSize);
 
     let lastMongoId = null;
@@ -642,12 +654,19 @@ async function migrate() {
         if (gamesToInsert.length > 0) {
             const gameChunks = chunkArray(gamesToInsert, insertBatchSize);
             for (const gameChunk of gameChunks) {
-                await knex("Game").insert(gameChunk).onConflict("appid").ignore();
+                await knex("Game")
+                    .insert(gameChunk)
+                    .onConflict("appid")
+                    .ignore();
             }
         }
 
         if (allAchievements.length > 0) {
-            await knex.batchInsert("Achievement", allAchievements, insertBatchSize);
+            await knex.batchInsert(
+                "Achievement",
+                allAchievements,
+                insertBatchSize,
+            );
         }
 
         insertedGames += gamesToInsert.length;
@@ -666,11 +685,16 @@ async function migrate() {
     // GROUP
     deb = Date.now();
     logStep("GROUP", "Récupération des groupes MongoDB");
-    let groups = await GroupMG.find().populate("captain").populate("members").populate("game");
+    let groups = await GroupMG.find()
+        .populate("captain")
+        .populate("members")
+        .populate("game");
     let insertedGroups = 0;
     for (const group of groups) {
         // recupere l'id du capitaine
-        let captainId = usersIds.find((u) => u.discordId === group.captain.userId);
+        let captainId = usersIds.find(
+            (u) => u.discordId === group.captain.userId,
+        );
         let gameId = group.game.appid;
 
         if (captainId && gameId) {
@@ -692,13 +716,17 @@ async function migrate() {
                 .returning("id");
 
             // members
-            const membersToInsert = group.members.map((member) => {
-                const userId = usersIds.find((u) => u.discordId === member.userId);
-                return {
-                    groupid: insertedGroup.id,
-                    userid: userId ? userId.id : null,
-                };
-            }).filter(m => m.userId !== null);
+            const membersToInsert = group.members
+                .map((member) => {
+                    const userId = usersIds.find(
+                        (u) => u.discordId === member.userId,
+                    );
+                    return {
+                        groupid: insertedGroup.id,
+                        userid: userId ? userId.id : null,
+                    };
+                })
+                .filter((m) => m.userId !== null);
 
             await GroupUser.query().insert(membersToInsert);
 
@@ -710,7 +738,10 @@ async function migrate() {
 
     // SHOP
     logStep("SHOP", "Récupération des items du shop MongoDB");
-    let itemsShop = await GameItemMG.find().populate("seller").populate("buyer").populate("game");
+    let itemsShop = await GameItemMG.find()
+        .populate("seller")
+        .populate("buyer")
+        .populate("game");
     let insertedItemShop = 0;
     for (const item of itemsShop) {
         let seller = usersIds.find((u) => u.discordId === item.seller.userId);
@@ -718,22 +749,20 @@ async function migrate() {
         let gameId = item.game?.appid;
 
         if (seller && gameId) {
-            await GameItemShop.query()
-                .insert({
-                    guildId: item.guildId,
-                    game: gameId,
-                    seller: seller.id,
-                    buyer: buyer?.id,
-                    price: item.montant,
-                    state: normalizeShopState(item.state),
-                });
+            await GameItemShop.query().insert({
+                guildId: item.guildId,
+                game: gameId,
+                seller: seller.id,
+                buyer: buyer?.id,
+                price: item.montant,
+                state: normalizeShopState(item.state),
+            });
 
             insertedItemShop++;
         }
     }
 
     logStep("SHOP", `${insertedItemShop} items du shop migrés`);
-
 
     logStep("DONE", "Migration terminée", "success");
     await knex.destroy();

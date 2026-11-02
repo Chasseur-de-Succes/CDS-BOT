@@ -2,7 +2,8 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
     AttachmentBuilder,
-    ActivityType, InteractionContextType,
+    ActivityType,
+    InteractionContextType,
 } = require("discord.js");
 const succes = require("../data/achievements.json");
 const {

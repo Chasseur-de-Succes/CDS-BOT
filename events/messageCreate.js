@@ -2,13 +2,18 @@ const { Collection, Events } = require("discord.js");
 const {
     BAREME_XP,
     BAREME_MONEY,
-    DAILY_MONEY_LIMIT, NEW_SALON,
+    DAILY_MONEY_LIMIT,
+    NEW_SALON,
 } = require("../util/constants");
 
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
 const { feedBotMetaAch } = require("../util/envoiMsg");
-const { UserRepository, StatsRepository, GuildConfigRepository } = require("../repositories");
+const {
+    UserRepository,
+    StatsRepository,
+    GuildConfigRepository,
+} = require("../repositories");
 
 module.exports = {
     name: Events.MessageCreate,
@@ -18,7 +23,9 @@ module.exports = {
         if (!msg.author.bot) {
             const timeLeft = cooldownTimeLeft("messages", 15, msg.author.id);
             if (!timeLeft) {
-                const userDB = await UserRepository.findByDiscordId(msg.author.id);
+                const userDB = await UserRepository.findByDiscordId(
+                    msg.author.id,
+                );
 
                 if (userDB) {
                     // stat ++
@@ -49,8 +56,14 @@ module.exports = {
                 }
             }
 
-            const channelHeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_HEROS);
-            const channelZeros = await GuildConfigRepository.getChannel(msg.guildId, NEW_SALON.HALL_ZEROS);
+            const channelHeros = await GuildConfigRepository.getChannel(
+                msg.guildId,
+                NEW_SALON.HALL_HEROS,
+            );
+            const channelZeros = await GuildConfigRepository.getChannel(
+                msg.guildId,
+                NEW_SALON.HALL_ZEROS,
+            );
             const isHallHeros = msg.channelId === channelHeros;
             const isHallZeros = msg.channelId === channelZeros;
 
@@ -70,7 +83,9 @@ module.exports = {
                         await msg.react("🏆");
                         await msg.react("💯");
 
-                        const userDB = await UserRepository.findByDiscordId(msg.author.id);
+                        const userDB = await UserRepository.findByDiscordId(
+                            msg.author.id,
+                        );
                         if (userDB) {
                             // stat ++
                             await StatsRepository.incrementHero(userDB.id);
@@ -95,7 +110,9 @@ module.exports = {
                         // reaction auto
                         await msg.react("💩");
 
-                        const userDB = await UserRepository.findByDiscordId(msg.author.id);
+                        const userDB = await UserRepository.findByDiscordId(
+                            msg.author.id,
+                        );
                         if (userDB) {
                             // stat ++
                             await StatsRepository.incrementZero(userDB.id);
