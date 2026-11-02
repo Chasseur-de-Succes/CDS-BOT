@@ -122,8 +122,6 @@ const MIN_PRICE_SHOP = 1000; // Prix minimum pour les jeux du shop
 // Discord limites
 // https://support.discord.com/hc/fr/articles/33694251638295-Plafonds-de-compte-Discord-plafonds-de-serveur-et-plus
 const DISCORD_LIMITS = {
-    CHOICES_PER_AUTOCOMPLETE: 25,
-
     // Roles
     ROLES_PER_GUILD: 250,
     ROLE_MAX_LENGTH: 100,
@@ -146,6 +144,10 @@ const DISCORD_LIMITS = {
     EMBED_FIELD_NAME_MAX_LENGTH: 256,
     EMBED_FIELD_VALUE_MAX_LENGTH: 1024,
     EMBED_FOOTER_MAX_LENGTH: 2048,
+
+    // Autocompete
+    CHOICES_PER_AUTOCOMPLETE: 25,
+    CHAR_LIMIT_AUTOCOMPLETE: 100,
 };
 
 exports.DAILY_MONEY_LIMIT = DAILY_MONEY_LIMIT;

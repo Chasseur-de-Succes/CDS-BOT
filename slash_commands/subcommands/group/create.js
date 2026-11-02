@@ -87,62 +87,62 @@ const create = async (interaction, options) => {
             guildId,
         );
 
-    // pour les devs
-    const devIds = process.env.DEVELOPERS.split(",")
-        .map(id => id.trim())
-        .filter(Boolean);
+        // pour les devs
+        const devIds = process.env.DEVELOPERS.split(",")
+            .map(id => id.trim())
+            .filter(Boolean);
 
-    // On prépare le tableau des permissions
-    const overwrites = [
-        // Bloquer l'accès à tout le monde
-        {
-            id: interaction.guild.roles.everyone.id,
-            deny: [PermissionFlagsBits.ViewChannel],
-        },
-        // Accès pour le capitaine
-        {
-            id: captain.id,
-            allow: [
-                PermissionFlagsBits.PinMessages,
-                PermissionFlagsBits.SendMessages,
-                PermissionFlagsBits.ViewChannel,
-            ],
-        },
-        // Ajout des permissions pour les développeurs
-        ...devIds.map(devId => ({
-            id: devId,
-            allow: [
-                PermissionFlagsBits.ViewChannel,
-                PermissionFlagsBits.SendMessages,
-                PermissionFlagsBits.MentionEveryone,
-            ],
-        })),
-    ];
+        // On prépare le tableau des permissions
+        const overwrites = [
+            // Bloquer l'accès à tout le monde
+            {
+                id: interaction.guild.roles.everyone.id,
+                deny: [PermissionFlagsBits.ViewChannel],
+            },
+            // Accès pour le capitaine
+            {
+                id: captain.id,
+                allow: [
+                    PermissionFlagsBits.PinMessages,
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.ViewChannel,
+                ],
+            },
+            // Ajout des permissions pour les développeurs
+            ...devIds.map(devId => ({
+                id: devId,
+                allow: [
+                    PermissionFlagsBits.ViewChannel,
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.MentionEveryone,
+                ],
+            })),
+        ];
 
-    // Création du salon
-    const channel = await interaction.guild.channels.create({
-        name: nameGrp,
-        type: ChannelType.GuildText,
-        parent: category,
-        permissionOverwrites: overwrites,
-    });
+        // Création du salon
+        const channel = await interaction.guild.channels.create({
+            name: nameGrp,
+            type: ChannelType.GuildText,
+            parent: category,
+            permissionOverwrites: overwrites,
+        });
 
-    channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
-    channel.send(`> ${captain} a créé le groupe`);
-    // TODO ajouter la description + info jeu + pin
+        channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
+        channel.send(`> ${captain} a créé le groupe`);
+        // TODO ajouter la description + info jeu + pin
 
-    // creation groupe
-    const newGrp = {
-        guildId: interaction.guild.id,
-        name: nameGrp,
-        desc: description,
-        nbMax: nbMaxMember,
-        captain: captainDb,
-        members: [captainDb],
-        game: game,
-        channelId: channel.id,
-    };
-    await createGroup(client, interaction.guildId, newGrp);
+        // creation groupe
+        const newGrp = {
+            guildId: interaction.guild.id,
+            name: nameGrp,
+            desc: description,
+            nbMax: nbMaxMember,
+            captain: captainDb,
+            members: [captainDb],
+            game: game,
+            channelId: channel.id,
+        };
+        await createGroup(client, interaction.guildId, newGrp);
 
         const newMsgEmbed = new EmbedBuilder()
             .setTitle(
@@ -202,7 +202,7 @@ const create = async (interaction, options) => {
 // Obtention de la catégorie de discussion de groupe
 async function getAvailableDiscussionCategory(client, interaction, guildId) {
     const idDiscussionGroupe = await GuildConfigRepository.getChannel(guildId, NEW_SALON.CAT_DISCUSSION_GROUPE);
-    const idDiscussionGroupe2 = await GuildConfigRepository.getChannel(guildId, NEW_SALON.CAT_DISCUSSION_GROUPE);
+    const idDiscussionGroupe2 = await GuildConfigRepository.getChannel(guildId, NEW_SALON.CAT_DISCUSSION_GROUPE_2);
 
     const configs = [
         [idDiscussionGroupe, "Discussions groupes"],
@@ -213,7 +213,6 @@ async function getAvailableDiscussionCategory(client, interaction, guildId) {
         const category = await getOrCreateCategory(
             client,
             interaction,
-            guildId,
             id,
             name,
         );
@@ -236,13 +235,10 @@ async function getAvailableDiscussionCategory(client, interaction, guildId) {
 async function getOrCreateCategory(
     client,
     interaction,
-    guildId,
     salonId,
     name,
 ) {
-    const channelId = await client.getGuildChannel(guildId, salonId);
-
-    let category = client.channels.cache.get(channelId);
+    let category = client.channels.cache.get(salonId);
 
     if (!category) {
         logger.info(

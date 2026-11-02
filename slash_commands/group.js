@@ -8,7 +8,8 @@ const {
     transfert,
     editNbParticipant,
 } = require("./subcommands/group");
-const { GameRepository, GroupRepository } = require("../repositories");
+const { GroupRepository } = require("../repositories");
+const { truncateAutocompleteName, getGameAutocompleteOptions } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -166,30 +167,10 @@ module.exports = {
         const focusedValue = interaction.options.getFocused(true);
         let filtered = [];
         let choices = [];
-        let exact = [];
 
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
         if (focusedValue.name === "jeu" && focusedValue.value) {
-            // recherche nom exacte
-            exact = await GameRepository.findByNameExactly(focusedValue.value);
-
-            // recup limit de 25 jeux, correspondant a la value rentré
-            filtered = await GameRepository.findByName(focusedValue.value);
-
-            // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-            filtered = filtered.filter(
-                (jeu) => jeu.name && jeu.name !== exact[0]?.name,
-            );
-
-            // Formatage des objets pour l'autocomplete Discord ({ name, value })
-            choices = filtered.map((element) => ({
-                // si nom jeu dépasse limite imposé par Discord (100 char)
-                name: element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
-                // on utilise l'appid pour le jeu
-                value: String(element.appid),
-            }));
+            choices = await getGameAutocompleteOptions(focusedValue.value);
         }
 
         // autocomplete sur nom groupe
@@ -199,29 +180,10 @@ module.exports = {
             // Formatage des objets pour l'autocomplete Discord ({ name, value })
             choices = filtered.map((element) => ({
                 // si nom jeu dépasse limite imposé par Discord (100 char)
-                name: element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
+                name: truncateAutocompleteName(element.name),
                 // on utilise l'id pour le groupe
                 value: String(element.id),
             }));
-        }
-
-        // si nom exact trouvé (pour 'jeu')
-        if (exact.length === 1) {
-            const jeuExact = exact[0];
-            // on récupère les 24 premiers
-            filtered = filtered.slice(0, 24);
-            // et on ajoute en 1er l'exact
-            choices.unshift({
-                name: jeuExact.name.length > 100
-                    ? `${jeuExact.name.substring(0, 96)}...`
-                    : jeuExact.name,
-                value: String(jeuExact.appid),
-            });
-        } else {
-            // Sinon on garde les 25 premiers choix
-            choices = choices.slice(0, 25);
         }
 
         await interaction.respond(choices);
