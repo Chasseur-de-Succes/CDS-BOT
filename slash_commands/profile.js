@@ -5,7 +5,6 @@ const {
     ActivityType,
     InteractionContextType,
 } = require("discord.js");
-const succes = require("../data/achievements.json");
 const {
     VERY_PALE_VIOLET,
     VERY_PALE_BLUE,
@@ -16,8 +15,7 @@ const { createError } = require("../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../util/xp");
 const { renderProfile } = require("../canvas/profile/renderProfile");
 
-const { getJsonValue } = require("../util/util");
-const { UserRepository } = require("../repositories");
+const { UserRepository, MetaAchRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -40,14 +38,17 @@ module.exports = {
         const filtered = [];
 
         if (focusedValue.name === "succes") {
-            for (const x in succes) {
-                filtered.push({ name: succes[x].title, value: x });
+            const achievements = await MetaAchRepository.findAllAchievements();
+            for (const achievement of achievements) {
+                filtered.push({
+                    name: achievement.title,
+                    value: achievement.code,
+                });
             }
         }
         await interaction.respond(filtered);
     },
     async execute(interaction) {
-        const client = interaction.client;
         const user = interaction.options.getUser("target") ?? interaction.user;
         const member = interaction.guild.members.cache.get(user.id);
         const typeSucces = interaction.options.get("succes")?.value;
@@ -71,28 +72,35 @@ module.exports = {
 
         // AFFICHAGE SUCCES
         if (typeSucces) {
-            const userStat = dbUser.stats;
-            const infoSucces = succes[typeSucces];
-            // on test si 'money' car non présent dans stat.
-            const nbStat =
-                typeSucces === "money"
-                    ? money
-                    : getJsonValue(userStat, infoSucces.db, "");
+            const infoSucces =
+                await MetaAchRepository.findMetaAchievementByCode(typeSucces);
+            if (!infoSucces) {
+                const embedErr = createError(
+                    `Le succès \`${typeSucces}\` n'existe pas.`,
+                );
+                return interaction.editReply({ embeds: [embedErr] });
+            }
+
+            const tiers = await MetaAchRepository.findTiersWithUnlockStatus(
+                userDb.id,
+                typeSucces,
+            );
+
             let desc = "";
-            for (const x in infoSucces.succes) {
-                const achieved = nbStat >= Number.parseInt(x);
+            for (const tier of tiers) {
+                const achieved = tier.unlocked;
 
                 if (achieved) {
                     desc += "✅ ";
                 } else {
                     desc += "⬛ ";
                 }
-                desc += `**${infoSucces.succes[x].title}**\n`;
+                desc += `**${tier.title}**\n`;
 
                 if (achieved) {
-                    desc += `> ${infoSucces.succes[x].desc}\n`;
+                    desc += `> ${tier.description}\n`;
                 } else {
-                    desc += `> ||${infoSucces.succes[x].desc}||\n`;
+                    desc += `> ||${tier.description}||\n`;
                 }
             }
             const embed = new EmbedBuilder()
@@ -112,6 +120,17 @@ module.exports = {
 
         const codeFlag = undefined; // todo pour après migration bdd
 
+        // progression = requirement du palier débloqué le plus haut, par code
+        const unlockedTiers = await MetaAchRepository.findUnlockedTiersByUser(
+            userDb.id,
+        );
+        const stats = {};
+        for (const tier of unlockedTiers) {
+            if (!stats[tier.code] || tier.requirement > stats[tier.code]) {
+                stats[tier.code] = tier.requirement;
+            }
+        }
+
         // create image
         const dataCanvas = {
             user,
@@ -123,8 +142,8 @@ module.exports = {
             game: member.presence?.activities.find((a) => a.type === 0),
             codeFlag, // undefined si pas de drapeau
 
-            stats: dbUser.stats,
-            userDb, // temporaire (rework des succès nécessaire)
+            stats,
+            userDb,
         };
 
         const image = await renderProfile(dataCanvas, "default");

@@ -112,6 +112,38 @@ const logStep = (section, message, level = "info") => {
     );
 };
 
+/**
+ * Convertit un document Mongoose `event` en objet JSONB sérialisable.
+ * Les sous-documents `Map` (ex. advent.answers) sont convertis en objet,
+ * et on ne conserve que l'advent 2022 (seule donnée archivée utile).
+ * @param {any} event
+ * @returns {object|null}
+ */
+function toEventJson(event) {
+    if (!event) {
+        return null;
+    }
+
+    const doc = typeof event.toObject === "function" ? event.toObject() : event;
+    const result = {};
+
+    const advent = doc?.[2022]?.advent ?? doc?.["2022"]?.advent;
+    if (advent) {
+        let answers = advent.answers ?? {};
+        if (answers instanceof Map) {
+            answers = Object.fromEntries(answers);
+        }
+        result["2022"] = {
+            advent: {
+                score: advent.score ?? 0,
+                answers,
+            },
+        };
+    }
+
+    return Object.keys(result).length > 0 ? result : null;
+}
+
 function getAchievementStatFromPostgres(userRow, statsRow, statColumn) {
     if (!statColumn) {
         return 0;
@@ -234,6 +266,7 @@ async function migrate() {
                 moneyLimit: user.moneyLimit,
                 lastBuy: user.lastBuy ? user.lastBuy : null,
                 nbWarning: user.warning,
+                event: toEventJson(user.event),
             })
             .returning("id");
         usersIds.push(userId);

@@ -10,6 +10,10 @@ class MetaAchievementRepository extends BaseRepository {
         super(UserMetaAchievementUnlocks);
     }
 
+    findAllAchievements() {
+        return MetaAchievements.query().orderBy("code");
+    }
+
     findMetaAchievementByCode(code) {
         return MetaAchievements.query().where("code", code).first();
     }
@@ -21,7 +25,58 @@ class MetaAchievementRepository extends BaseRepository {
                 "MetaAchievements.id",
                 "MetaAchievementTiers.metaAchievementId",
             )
-            .where("MetaAchievements.code", code);
+            .where("MetaAchievements.code", code)
+            .select("MetaAchievementTiers.*");
+    }
+
+    /**
+     * Retourne les paliers d'un achievement avec un flag `unlocked`
+     * indiquant si l'utilisateur a débloqué ce palier.
+     */
+    findTiersWithUnlockStatus(userId, code) {
+        return MetaAchievementTiers.query()
+            .join(
+                "MetaAchievements",
+                "MetaAchievements.id",
+                "MetaAchievementTiers.metaAchievementId",
+            )
+            .leftJoin("UserMetaAchievementUnlocks", (join) => {
+                join.on(
+                    "UserMetaAchievementUnlocks.metaAchievementTierId",
+                    "MetaAchievementTiers.id",
+                ).andOnVal("UserMetaAchievementUnlocks.userId", "=", userId);
+            })
+            .where("MetaAchievements.code", code)
+            .select(
+                "MetaAchievementTiers.*",
+                MetaAchievementTiers.raw(
+                    '"UserMetaAchievementUnlocks"."userId" IS NOT NULL AS "unlocked"',
+                ),
+            )
+            .orderBy("MetaAchievementTiers.requirement");
+    }
+
+    /**
+     * Retourne tous les paliers débloqués par un utilisateur,
+     * avec le code de l'achievement associé (pour le rendu canvas).
+     */
+    findUnlockedTiersByUser(userId) {
+        return MetaAchievementTiers.query()
+            .join(
+                "UserMetaAchievementUnlocks",
+                "UserMetaAchievementUnlocks.metaAchievementTierId",
+                "MetaAchievementTiers.id",
+            )
+            .join(
+                "MetaAchievements",
+                "MetaAchievements.id",
+                "MetaAchievementTiers.metaAchievementId",
+            )
+            .where("UserMetaAchievementUnlocks.userId", userId)
+            .select(
+                "MetaAchievements.code",
+                "MetaAchievementTiers.requirement",
+            );
     }
 
     findUnlockedTierIds(userId) {
