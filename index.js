@@ -5,6 +5,7 @@ const winston = require("winston");
 require("winston-daily-rotate-file");
 require("dotenv").config();
 
+// ===== Logger Winston =====
 const transport = new winston.transports.DailyRotateFile({
     filename: "logs/app-%DATE%.log",
     datePattern: "YYYY-MM-DD-HH",
@@ -30,6 +31,7 @@ global.logger = winston.createLogger({
 });
 require("date.format");
 
+// ===== Client Discord & intents =====
 const client = new Client({
     intents: [
         GatewayIntentBits.GuildPresences,
@@ -47,14 +49,16 @@ const client = new Client({
 require("./util/functions")(client);
 require("./util/steam")(client);
 
+// ===== Connexion MongoDB (à enlever une fois migration terminée) =====
 client.mongoose = require("./util/mongoose");
 
+// ===== Chargement commandes & events =====
 // SLASH COMMAND
 loadSlashCommands(client);
 // EVENTS
 loadEvents(client);
 
-// POSTGRE / KNEX
+// ===== PostgreSQL / Knex =====
 const { Model } = require("objection");
 const Knex = require("knex");
 const knexConfig = require("./knexfile");
@@ -73,18 +77,20 @@ knex.raw("SELECT 1")
         process.exit(1);
     });
 
-// MONGO DB
+// ===== Init MongoDB (à enlever une fois migration terminée) =====
 client.mongoose.init();
 
+// ===== Handlers Discord =====
 client.on("error", console.error);
 client.on("warn", console.warn);
 
+// ===== Login bot =====
 client.login(process.env.TOKEN).then((c) => {
     //loadBatch(client);
     //loadReactionGroup(client);
 });
 
-// Gestion erreurs
+// ===== Gestion des erreurs globales =====
 process.on("unhandledRejection", (error) => {
     console.error("Unhandled promise rejection:", error);
     sendStackTrace(client, error, "Erreur Non Gérée");
