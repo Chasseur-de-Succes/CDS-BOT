@@ -17,6 +17,7 @@ const { getXpNeededForNextLevel } = require("../util/xp");
 const { renderProfile } = require("../canvas/profile/renderProfile");
 
 const { getJsonValue } = require("../util/util");
+const { UserRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -53,9 +54,9 @@ module.exports = {
 
         await interaction.deferReply();
 
-        const dbUser = await client.getUser(member);
+        const userDb = await UserRepository.findByDiscordId(user.id);
 
-        if (!dbUser) {
+        if (!userDb) {
             // Si pas dans la BDD
             const embedErr = createError(
                 `${user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
@@ -64,9 +65,9 @@ module.exports = {
         }
 
         const colorEmbed =
-            dbUser.banned || dbUser.blacklisted ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
+            userDb.banned || userDb.blacklisted ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
         const pseudo = user.username;
-        const money = dbUser.money;
+        const money = userDb.money;
 
         // AFFICHAGE SUCCES
         if (typeSucces) {
@@ -103,12 +104,11 @@ module.exports = {
         }
 
         // AFFICHAGE CANVAS
-        const urlSteam = `[Steam](https://steamcommunity.com/profiles/${dbUser.steamId})`;
-        const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
-        const urlCme = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
-        const urlSh = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
+        const urlSteam = `[Steam](https://steamcommunity.com/profiles/${userDb.steamId})`;
+        const urlCme = `[Completionist](https://completionist.me/steam/profile/${userDb.steamId})`;
+        const urlSh = `[Steam Hunters](https://steamhunters.com/id/${userDb.steamId}/games)`;
 
-        const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
+        const msg = `[ ${STEAM} ${urlSteam} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
 
         const codeFlag = undefined; // todo pour après migration bdd
 
@@ -117,14 +117,14 @@ module.exports = {
             user,
             pseudo,
             money,
-            level: dbUser.level,
-            xp: dbUser.experience,
-            nextXpNeeded: getXpNeededForNextLevel(dbUser.level),
+            level: userDb.level,
+            xp: userDb.xp,
+            nextXpNeeded: getXpNeededForNextLevel(userDb.level),
             game: member.presence?.activities.find((a) => a.type === 0),
             codeFlag, // undefined si pas de drapeau
 
             stats: dbUser.stats,
-            dbUser, // temporaire (rework des succès nécessaire)
+            userDb, // temporaire (rework des succès nécessaire)
         };
 
         const image = await renderProfile(dataCanvas, "default");
