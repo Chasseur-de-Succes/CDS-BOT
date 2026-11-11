@@ -33,7 +33,7 @@ module.exports = {
                         .setRequired(true)
                         .setAutocomplete(true),
                 )
-                .addStringOption((option) =>
+                .addIntegerOption((option) =>
                     option
                         .setName("max")
                         .setDescription("Nombre max de membres dans le groupe"),

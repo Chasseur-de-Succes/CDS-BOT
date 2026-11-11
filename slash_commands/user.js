@@ -52,7 +52,7 @@ module.exports = {
                 }),
             )
             .addFields(
-                { name: "> Pseudonyme", value: nickname, inline: true },
+                { name: "> Pseudo", value: nickname, inline: true },
                 { name: "> ID", value: user.id, inline: true },
                 { name: "\u200B", value: "\u200B", inline: true },
                 {
@@ -70,7 +70,7 @@ module.exports = {
                     inline: true,
                 },
                 {
-                    name: "> À rejoint le",
+                    name: "> A rejoint le",
                     value: `${discordTimestamp(member.joinedTimestamp, "f")}`,
                     inline: true,
                 },
