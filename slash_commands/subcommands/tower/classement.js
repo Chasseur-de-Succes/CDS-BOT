@@ -1,66 +1,62 @@
-const { User, GuildConfig } = require("../../../models");
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { CDS } = require("../../../data/emojis.json");
+const {
+    TowerRepository,
+    UserRepository,
+    TowerStatsRepository,
+} = require("../../../repositories");
+const { createError } = require("../../../util/envoiMsg");
 
 const classement = async (interaction, options) => {
-    // TODO option pour afficher le classement d'un joueur précis ?
     const client = interaction.client;
     const guildId = interaction.guildId;
-    const crtUser = interaction.user;
-    const dbUser = await client.findUserById(crtUser.id);
-    const guild = await GuildConfig.findOne({ guildId: guildId });
+    const currentTower = await TowerRepository.findCurrentSeason(guildId);
+    // soit saison donnée en option, sinon saison courante
+    const season = options.getInteger("saison") ?? currentTower.season;
+    // si pas de saison en cours
+    if (!season) {
+        // TODO
+    }
 
-    let season = options.getInteger("saison");
-    season = season === null ? guild.event.tower.currentSeason : season;
-    const isCurrentSeason = season === guild.event.tower.currentSeason;
-
-    logger.info(
-        `[TOWER] ${interaction.user.tag} consulte le classement de la saison ${season} (saison en cours: ${guild.event.tower.currentSeason})`,
-    );
-
-    await interaction.deferReply({ ephemeral: true });
-
-    // Récupérer les utilisateurs ayant participé à la saison donnée
-    const users = isCurrentSeason
-        ? await User.find({ "event.tower.season": season })
-        : await User.find({
-              "event.tower.seasonHistory": {
-                  $elemMatch: { seasonNumber: season },
-              },
-          });
-
-    if (users.length === 0) {
-        return interaction.editReply({
-            content: `Aucun classement n'est disponible pour la saison ${season}..`,
-            ephemeral: true,
+    const authorDb = await UserRepository.findByDiscordUser(interaction.user);
+    if (!authorDb) {
+        // Si pas dans la BDD
+        return interaction.reply({
+            embeds: [
+                createError(
+                    `${interaction.user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
+                ),
+            ],
         });
     }
 
-    // Trier les utilisateurs par maxEtage pour la saison donnée
-    const leaderboard = users
-        .map((user) => {
-            const maxEtage = isCurrentSeason
-                ? user.event.tower.etage
-                : user.event.tower.seasonHistory.find(
-                      (s) => s.seasonNumber === season,
-                  )?.maxEtage;
-            return {
-                userId: user.userId,
-                maxEtage: maxEtage || 0,
-            };
-        })
-        .sort((a, b) => b.maxEtage - a.maxEtage);
+    logger.info(
+        `[TOWER] ${interaction.user.tag} consulte le classement de la saison ${season} (saison en cours: ${currentTower.season})`,
+    );
+
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // Récupérer le top10 des utilisateurs ayant participé à la saison donnée
+    const top10 = await TowerStatsRepository.findTop10UsersBySeason(season);
+
+    if (top10.length === 0) {
+        return interaction.editReply({
+            content: `Aucun classement n'est disponible pour la saison ${season}..`,
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 
     // Trouver la position de l'utilisateur courant
-    const userIndex = leaderboard.findIndex(
-        (entry) => entry.userId === interaction.user.id,
+    const rankingCurrentUser = await TowerStatsRepository.findRankingForSeason(
+        season,
+        authorDb,
     );
-    const positionsUserCourant = userIndex !== -1 ? userIndex + 1 : undefined;
-    const degatsUserCourant =
-        userIndex !== -1 ? leaderboard[userIndex].maxEtage : undefined;
-
-    // Limiter aux 10 premiers pour l'affichage
-    const top10 = leaderboard.slice(0, 10);
+    const positionsUserCourant = rankingCurrentUser
+        ? rankingCurrentUser.rank
+        : undefined;
+    const degatsUserCourant = rankingCurrentUser
+        ? rankingCurrentUser.totalDamage
+        : undefined;
 
     // Générer les données pour l'embed
     let positions = "**";
@@ -69,10 +65,10 @@ const classement = async (interaction, options) => {
     let i = 1;
 
     for (const entry of top10) {
-        const discordUser = await client.users.fetch(entry.userId);
+        const discordUser = await client.users.fetch(entry.user.discordId);
         positions += `${i} - \n`;
         joueurs += `${discordUser}\n`;
-        degats += `${entry.maxEtage}\n`;
+        degats += `${entry.totalDamage}\n`;
         i++;
     }
     positions += "**";
@@ -98,7 +94,10 @@ const classement = async (interaction, options) => {
             text: messageFooter,
         });
 
-    return interaction.editReply({ embeds: [embed], ephemeral: true });
+    return interaction.editReply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+    });
 };
 
 exports.classement = classement;

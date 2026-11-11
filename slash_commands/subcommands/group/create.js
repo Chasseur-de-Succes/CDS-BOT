@@ -1,31 +1,31 @@
 const { createError } = require("../../../util/envoiMsg");
-const { escapeRegExp } = require("../../../util/util");
-const { Game, GuildConfig } = require("../../../models");
 const {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
     EmbedBuilder,
-    ComponentType,
     ChannelType,
     PermissionFlagsBits,
 } = require("discord.js");
-const { SALON, DISCORD_LIMITS } = require("../../../util/constants");
+const { NEW_SALON, DISCORD_LIMITS } = require("../../../util/constants");
 const { createGroup } = require("../../../util/msg/group");
-const { NIGHT } = require("../../../data/colors.json");
 const { CHECK_MARK } = require("../../../data/emojis.json");
+const {
+    UserRepository,
+    GroupRepository,
+    GameRepository,
+    GuildConfigRepository,
+} = require("../../../repositories");
 
 const create = async (interaction, options) => {
     const nameGrp = options.get("nom")?.value;
     const nbMaxMember = options.getInteger("max")?.value; // INTEGER
-    const gameName = options.get("jeu")?.value;
+    const gameAppid = options.get("jeu")?.value;
     const description = options.get("description")?.value;
     const client = interaction.client;
     const captain = interaction.member;
     const guildId = interaction.guildId;
 
     // test si captain est register
-    const captainDb = await client.getUser(captain);
-    const nbGrps = await client.getNbOngoingGroups(captain.id);
+    const captainDb = await UserRepository.findByDiscordUser(captain.user);
+    const nbGrps = await GroupRepository.countOngoingByMember(captainDb);
 
     if (!captainDb) {
         // Si pas dans la BDD
@@ -38,7 +38,7 @@ const create = async (interaction, options) => {
         });
     }
 
-    if (captainDb.warning >= 3) {
+    if (captainDb.nbWarning >= 3) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -54,7 +54,7 @@ const create = async (interaction, options) => {
         });
     }
 
-    // la regex test la taille mais pour l'utilisateur il vaut mieux lui dire d'où vient le pb
+    // la regex test la taille, mais pour l'utilisateur, il vaut mieux lui dire d'où vient le pb
     if (nameGrp.length < 3) {
         return interaction.reply({
             embeds: [
@@ -66,8 +66,7 @@ const create = async (interaction, options) => {
     }
 
     // si nom groupe existe
-    const grp = await client.findGroupByName(nameGrp);
-    if (grp) {
+    if (await GroupRepository.existsByName(nameGrp)) {
         return interaction.reply({
             embeds: [
                 createError(
@@ -77,99 +76,12 @@ const create = async (interaction, options) => {
         });
     }
 
-    // création de la regex sur le nom du jeu
-    logger.info(`Recherche jeu Steam par nom : ${gameName}..`);
-    const regGame = new RegExp(escapeRegExp(gameName), "i");
-
     // "recherche.."
     await interaction.deferReply();
 
-    // récupère les jeux en base en fonction d'un nom, avec succès et Multi et/ou Coop
-    const games = await Game.aggregate([
-        {
-            $match: { name: regGame },
-        },
-        {
-            $match: { type: "game" },
-        },
-        {
-            $limit: 25,
-        },
-    ]);
-
-    logger.info(`.. ${games.length} jeu(x) trouvé(s)`);
-    if (!games) {
-        return interaction.editReply({
-            embeds: [createError("Erreur lors de la recherche du jeu")],
-        });
-    }
-    if (games.length === 0) {
-        return interaction.editReply({
-            embeds: [
-                createError(`Pas de résultat trouvé pour **${gameName}** !`),
-            ],
-        });
-    }
-
-    // values pour Select Menu
-    const items = [];
-    for (const game of games) {
-        if (game) {
-            items.unshift({
-                label: game.name,
-                // description: 'Description',
-                value: `${game.appid}`,
-            });
-        }
-    }
-
-    // SELECT n'accepte que 25 max
-    // if (items.length > 25) return interaction.editReply({ embeds: [createError(`Trop de jeux trouvés ! Essaie d'être plus précis stp.`)] });
-
-    // row contenant le Select menu
-    const row = new ActionRowBuilder().addComponents(
-        new StringSelectMenuBuilder()
-            .setCustomId(`select-games-${captain}`)
-            .setPlaceholder("Sélectionner le jeu..")
-            .addOptions(items),
-    );
-
-    const embed = new EmbedBuilder()
-        .setColor(NIGHT)
-        .setTitle(
-            `J'ai trouvé ${games.length} jeux, avec succès, en multi et/ou coop !`,
-        )
-        .setDescription("Lequel est celui que tu cherchais ?");
-
-    const msgEmbed = await interaction.editReply({
-        embeds: [embed],
-        components: [row],
-    });
-
-    // attend une interaction bouton de l'auteur de la commande
-    let filter;
-    let itrSelect;
-    try {
-        filter = (i) => {
-            i.deferUpdate();
-            return i.user.id === interaction.user.id;
-        };
-        itrSelect = await msgEmbed.awaitMessageComponent({
-            filter,
-            componentType: ComponentType.StringSelect,
-            time: 30000, // 5min
-        });
-    } catch (error) {
-        await interaction.editReply({ components: [] });
-        return;
-    }
-    // on enleve le select
-    await interaction.editReply({ components: [] });
-
-    const gameId = itrSelect.values[0];
-    logger.info(`.. Steam app ${gameId} choisi`);
-    // on recupere le custom id "APPID_GAME"
-    const game = await client.findGameByAppid(gameId);
+    logger.info(`.. Steam app ${gameAppid} choisi`);
+    // on récupère le custom id "APPID_GAME"
+    const game = await GameRepository.findByAppid(gameAppid);
 
     let channel;
     try {
@@ -180,51 +92,62 @@ const create = async (interaction, options) => {
             guildId,
         );
 
-        // création du channel de discussion
-        channel = await interaction.guild.channels.create({
+        // pour les devs
+        const devIds = process.env.DEVELOPERS.split(",")
+            .map((id) => id.trim())
+            .filter(Boolean);
+
+        // On prépare le tableau des permissions
+        const overwrites = [
+            // Bloquer l'accès à tout le monde
+            {
+                id: interaction.guild.roles.everyone.id,
+                deny: [PermissionFlagsBits.ViewChannel],
+            },
+            // Accès pour le capitaine
+            {
+                id: captain.id,
+                allow: [
+                    PermissionFlagsBits.PinMessages,
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.ViewChannel,
+                ],
+            },
+            // Ajout des permissions pour les développeurs
+            ...devIds.map((devId) => ({
+                id: devId,
+                allow: [
+                    PermissionFlagsBits.ViewChannel,
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.MentionEveryone,
+                ],
+            })),
+        ];
+
+        // Création du salon
+        const channel = await interaction.guild.channels.create({
             name: nameGrp,
             type: ChannelType.GuildText,
             parent: category,
-            permissionOverwrites: [
-                {
-                    id: interaction.guild.roles.everyone.id,
-                    deny: [PermissionFlagsBits.ViewChannel],
-                },
-                {
-                    id: captain.id,
-                    allow: [
-                        PermissionFlagsBits.PinMessages,
-                        PermissionFlagsBits.SendMessages,
-                        PermissionFlagsBits.ViewChannel,
-                    ],
-                },
-            ],
+            permissionOverwrites: overwrites,
         });
 
-        await Promise.all(
-            process.env.DEVELOPERS.split(",").map((devId) =>
-                channel.permissionOverwrites.edit(devId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    MentionEveryone: true,
-                }),
-            ),
-        );
+        channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
+        channel.send(`> ${captain} a créé le groupe`);
+        // TODO ajouter la description + info jeu + pin
 
-        // creation du groupe dans la BDD
+        // creation groupe
         const newGrp = {
+            guildId: interaction.guild.id,
             name: nameGrp,
             desc: description,
             nbMax: nbMaxMember,
-            captain: captainDb._id,
-            members: [captainDb._id],
+            captain: captainDb,
+            members: [captainDb],
             game: game,
             channelId: channel.id,
         };
         await createGroup(client, interaction.guildId, newGrp);
-
-        channel.send(`Bienvenue dans le channel du groupe : ${nameGrp}`);
-        channel.send(`> ${captain} a créé le groupe`);
 
         const newMsgEmbed = new EmbedBuilder()
             .setTitle(
@@ -283,16 +206,24 @@ const create = async (interaction, options) => {
 
 // Obtention de la catégorie de discussion de groupe
 async function getAvailableDiscussionCategory(client, interaction, guildId) {
+    const idDiscussionGroupe = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.CAT_DISCUSSION_GROUPE,
+    );
+    const idDiscussionGroupe2 = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.CAT_DISCUSSION_GROUPE_2,
+    );
+
     const configs = [
-        [SALON.CAT_DISCUSSION_GROUPE, "Discussions groupes"],
-        [SALON.CAT_DISCUSSION_GROUPE_2, "Discussions groupes 2"],
+        [idDiscussionGroupe, "Discussions groupes"],
+        [idDiscussionGroupe2, "Discussions groupes 2"],
     ];
 
     for (const [id, name] of configs) {
         const category = await getOrCreateCategory(
             client,
             interaction,
-            guildId,
             id,
             name,
         );
@@ -312,16 +243,8 @@ async function getAvailableDiscussionCategory(client, interaction, guildId) {
 }
 
 // Obtention ou création de la catégorie des discussions de groupes
-async function getOrCreateCategory(
-    client,
-    interaction,
-    guildId,
-    salonId,
-    name,
-) {
-    const channelId = await client.getGuildChannel(guildId, salonId);
-
-    let category = client.channels.cache.get(channelId);
+async function getOrCreateCategory(client, interaction, salonId, name) {
+    let category = client.channels.cache.get(salonId);
 
     if (!category) {
         logger.info(
@@ -340,9 +263,10 @@ async function createCategory(interaction, catConfig, nameCat) {
         type: ChannelType.GuildCategory,
     });
 
-    await GuildConfig.updateOne(
-        { guildId: interaction.guildId },
-        { $set: { [`channels.${catConfig}`]: cat.id } },
+    await GuildConfigRepository.setChannel(
+        interaction.guildId,
+        catConfig,
+        cat.id,
     );
 
     logger.info(`Catégorie "${nameCat}" créé avec succès`);

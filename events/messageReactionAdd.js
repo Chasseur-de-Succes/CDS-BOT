@@ -1,6 +1,6 @@
 const { Events } = require("discord.js");
-const { MsgHallHeros, MsgHallZeros } = require("../models/index.js");
-const { SALON } = require("../util/constants.js");
+const { GuildConfigRepository } = require("../repositories");
+const { NEW_SALON } = require("../util/constants");
 
 module.exports = {
     name: Events.MessageReactionAdd,
@@ -10,22 +10,8 @@ module.exports = {
             const emoji = msgReaction.emoji;
             const count = msgReaction.count;
 
-            /* HALL HEROS / ZEROS */
-            const idHeros = await msgReaction.client.getGuildChannel(
-                msg.guildId,
-                SALON.HALL_HEROS,
-            );
-            const idZeros = await msgReaction.client.getGuildChannel(
-                msg.guildId,
-                SALON.HALL_ZEROS,
-            );
-
-            const isHallHeros = msg.channelId === idHeros;
-            const isHallZeros = msg.channelId === idZeros;
-
             const hasPJ = msg.attachments.size > 0;
 
-            // nb img dans hall héros
             // si piece jointes
             if (hasPJ) {
                 // si image
@@ -34,30 +20,23 @@ module.exports = {
                         m.contentType.startsWith("image"),
                     )
                 ) {
-                    // si hall heros
+                    /* HALL HEROS / ZEROS */
+                    const channelHeros = await GuildConfigRepository.getChannel(
+                        msg.guildId,
+                        NEW_SALON.HALL_HEROS,
+                    );
+                    const channelZeros = await GuildConfigRepository.getChannel(
+                        msg.guildId,
+                        NEW_SALON.HALL_ZEROS,
+                    );
+                    const isHallHeros = msg.channelId === channelHeros;
+                    const isHallZeros = msg.channelId === channelZeros;
+
+                    // TODO si emoji special =>  meta achievement, à définir avec Sqweeb
                     if (isHallHeros) {
-                        // maj nb reactions
-                        await MsgHallHeros.findOneAndUpdate(
-                            { msgId: msg.id },
-                            {
-                                $set: {
-                                    [`reactions.${emoji.name}`]: count,
-                                },
-                            },
-                        );
                     }
 
-                    // si hall zeros
                     if (isHallZeros) {
-                        // maj nb reactions
-                        await MsgHallZeros.findOneAndUpdate(
-                            { msgId: msg.id },
-                            {
-                                $set: {
-                                    [`reactions.${emoji.name}`]: count,
-                                },
-                            },
-                        );
                     }
                 }
             }

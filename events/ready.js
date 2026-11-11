@@ -3,9 +3,9 @@ require("date.format");
 const {
     loadBatch,
     loadReactionGroup,
-    loadReactionMsg,
     loadVocalCreator,
 } = require("../util/loader");
+const { GuildConfigRepository } = require("../repositories");
 
 module.exports = {
     name: Events.ClientReady,
@@ -35,9 +35,9 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
 
         client.guilds.cache.map(async (g) => {
             const guildId = g.id;
-            const dbGuild = await client.findGuildById(guildId);
+            const dbGuild = await GuildConfigRepository.findByGuildId(guildId);
             if (!dbGuild) {
-                await client.createGuild({
+                await GuildConfigRepository.upsert(guildId, {
                     guildId: guildId,
                 });
             }
@@ -51,14 +51,8 @@ o888     88  888    88o 888               888    888 o888   888o 88  888  88
         await loadReactionGroup(client);
         logger.info(".. terminé");
 
-        logger.info("Chargement des reactions hall héros/zéros ..");
-        await loadReactionMsg(client);
-        logger.info(".. terminé");
-
         logger.info("Chargement du chan vocal créateur ..");
         await loadVocalCreator(client);
         logger.info(".. terminé");
-
-        //   loadRoleGiver(client);
     },
 };

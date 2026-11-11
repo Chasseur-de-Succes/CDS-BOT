@@ -1,44 +1,41 @@
-const { User } = require("../models/index.js");
+const { UserRepository } = require("../repositories");
 const { THREESOLD_LVL } = require("./constants.js");
 const { feedBotLevelUp } = require("./envoiMsg.js");
 
 /**
  * Ajoute de l'xp à un utilisateur
  * @param {*} client
+ * @param guildId
  * @param {*} user User Discord
  * @param {*} xp montant de l'xp à donner
  */
 module.exports.addXp = async (client, guildId, user, xp) => {
-    const userDb = await User.findOneAndUpdate(
-        { userId: user.id },
-        { $inc: { experience: xp } },
-        { new: true },
-    ).exec();
+    const userDb = await UserRepository.findByDiscordId(user.id);
 
-    // si update ok
+    // si utilisateur trouvé
     if (userDb) {
         const crtLvl = userDb.level;
+        const crtXp = userDb.xp;
+
+        await UserRepository.addXp(userDb.id, xp);
 
         if (crtLvl === 0) {
             // nivo 1 direct, au cas où
-            await User.updateOne({ userId: user.id }, { $inc: { level: 1 } });
+            await UserRepository.incrementLevel(userDb.id);
         } else {
             const palier = this.getXpNeededForNextLevel(crtLvl);
 
-            if (userDb.experience >= palier) {
+            if (crtXp + xp >= palier) {
                 // youpi niveau sup.
-                await User.updateOne(
-                    { userId: user.id },
-                    { $inc: { level: 1 } },
-                );
+                await UserRepository.incrementLevel(userDb.id);
 
                 // nourri feed bot
                 feedBotLevelUp(
                     client,
                     guildId,
                     user,
-                    userDb,
-                    this.getXpNeededForNextLevel(userDb.level + 1),
+                    { ...userDb, experience: crtXp + xp },
+                    this.getXpNeededForNextLevel(crtLvl + 1),
                 );
             }
         }

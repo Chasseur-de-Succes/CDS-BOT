@@ -1,15 +1,19 @@
 const { Collection, Events } = require("discord.js");
-const { User } = require("../models/index.js");
 const {
     BAREME_XP,
     BAREME_MONEY,
-    SALON,
     DAILY_MONEY_LIMIT,
+    NEW_SALON,
 } = require("../util/constants");
 
 const { addXp } = require("../util/xp.js");
 const { getAchievement } = require("../util/msg/stats");
 const { feedBotMetaAch } = require("../util/envoiMsg");
+const {
+    UserRepository,
+    StatsRepository,
+    GuildConfigRepository,
+} = require("../repositories");
 
 module.exports = {
     name: Events.MessageCreate,
@@ -17,13 +21,15 @@ module.exports = {
         /* Pour stat nb msg envoyé (sans compter bot, commande avec prefix et /) */
         /* et money par jour */
         if (!msg.author.bot) {
-            const timeLeft = cooldownTimeLeft("messages", 30, msg.author.id);
+            const timeLeft = cooldownTimeLeft("messages", 15, msg.author.id);
             if (!timeLeft) {
-                const userDB = await msg.client.getUser(msg.author);
+                const userDB = await UserRepository.findByDiscordId(
+                    msg.author.id,
+                );
 
                 if (userDB) {
                     // stat ++
-                    userDB.stats.msg++;
+                    await StatsRepository.incrementMsgStat(userDB.id);
 
                     // test si achievement unlock
                     const achievementUnlock = await getAchievement(
@@ -38,7 +44,6 @@ module.exports = {
                             achievementUnlock,
                         );
                     }
-                    await userDB.save();
 
                     await addXp(
                         msg.client,
@@ -47,21 +52,20 @@ module.exports = {
                         BAREME_XP.MSG,
                     );
 
-                    await addMoney(msg.client, msg.author, BAREME_MONEY.MSG);
+                    await addMoney(msg.author, BAREME_MONEY.MSG);
                 }
             }
 
-            const idHeros = await msg.client.getGuildChannel(
+            const channelHeros = await GuildConfigRepository.getChannel(
                 msg.guildId,
-                SALON.HALL_HEROS,
+                NEW_SALON.HALL_HEROS,
             );
-            const idZeros = await msg.client.getGuildChannel(
+            const channelZeros = await GuildConfigRepository.getChannel(
                 msg.guildId,
-                SALON.HALL_ZEROS,
+                NEW_SALON.HALL_ZEROS,
             );
-
-            const isHallHeros = msg.channelId === idHeros;
-            const isHallZeros = msg.channelId === idZeros;
+            const isHallHeros = msg.channelId === channelHeros;
+            const isHallZeros = msg.channelId === channelZeros;
 
             const hasPJ = msg.attachments.size > 0;
             // nb img dans hall héros
@@ -79,10 +83,12 @@ module.exports = {
                         await msg.react("🏆");
                         await msg.react("💯");
 
-                        const userDB = await msg.client.getUser(msg.author);
+                        const userDB = await UserRepository.findByDiscordId(
+                            msg.author.id,
+                        );
                         if (userDB) {
                             // stat ++
-                            userDB.stats.img.heros++;
+                            await StatsRepository.incrementHero(userDB.id);
                             // test si achievement unlock
                             const achievementUnlock = await getAchievement(
                                 userDB,
@@ -96,19 +102,6 @@ module.exports = {
                                     achievementUnlock,
                                 );
                             }
-                            await userDB.save();
-
-                            // save msg dans base
-                            const initReactions = new Map([
-                                ["🏆", 0],
-                                ["💯", 0],
-                            ]);
-                            await msg.client.createMsgHallHeros({
-                                author: userDB,
-                                msgId: msg.id,
-                                guildId: msg.guildId,
-                                reactions: initReactions,
-                            });
                         }
                     }
 
@@ -117,10 +110,12 @@ module.exports = {
                         // reaction auto
                         await msg.react("💩");
 
-                        const userDB = await msg.client.getUser(msg.author);
+                        const userDB = await UserRepository.findByDiscordId(
+                            msg.author.id,
+                        );
                         if (userDB) {
                             // stat ++
-                            userDB.stats.img.zeros++;
+                            await StatsRepository.incrementZero(userDB.id);
                             // test si achievement unlock
                             const achievementUnlock = await getAchievement(
                                 userDB,
@@ -134,16 +129,6 @@ module.exports = {
                                     achievementUnlock,
                                 );
                             }
-                            await userDB.save();
-
-                            // save msg dans base
-                            const initReactions = new Map([["💩", 0]]);
-                            await msg.client.createMsgHallZeros({
-                                author: userDB,
-                                msgId: msg.id,
-                                guildId: msg.guildId,
-                                reactions: initReactions,
-                            });
                         }
                     }
                 }
@@ -177,17 +162,14 @@ const cooldownTimeLeft = (type, seconds, userID) => {
     return 0;
 };
 
-const addMoney = async (client, user, money) => {
-    const userDB = await client.getUser(user);
+const addMoney = async (user, money) => {
+    const userDB = await UserRepository.findByDiscordUser(user);
 
     // limite les points gagnés par DAILY_MONEY_LIMIT
     if (userDB?.moneyLimit < DAILY_MONEY_LIMIT) {
         // si pas register pas grave, ca ne passera pas
         // incrémente les points gagnés aujourd'hui (limite) et la cagnotte
-        await User.updateOne(
-            { userId: user.id },
-            { $inc: { moneyLimit: money } },
-        );
-        await User.updateOne({ userId: user.id }, { $inc: { money: money } });
+        await UserRepository.addMoneyLimit(userDB.id, money);
+        await UserRepository.addMoney(userDB.id, money);
     }
 };

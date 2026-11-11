@@ -4,14 +4,6 @@ function escapeRegExp(string) {
     return string?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
 
-function monthDiff(d1, d2) {
-    let months;
-    months = (d2.getFullYear() - d1.getFullYear()) * 12;
-    months -= d1.getMonth();
-    months += d2.getMonth();
-    return months <= 0 ? 0 : months;
-}
-
 function daysDiff(d1, d2) {
     const diffTime = Math.abs(d2 - d1);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -81,7 +73,6 @@ function capitalize(str) {
 
 module.exports = {
     escapeRegExp,
-    monthDiff,
     daysDiff,
     getJsonValue,
     retryAfter5min,

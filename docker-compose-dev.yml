@@ -13,6 +13,7 @@ services:
       - .env.tower
     depends_on:
       - mongodb
+      - postgres
   mongodb:
     image: mongo:7.0
     restart: always
@@ -20,6 +21,26 @@ services:
       - /opt/cds:/data/db
     networks:
       - bdd
+    ports:
+      - "27017:27017"
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: cds_user
+      POSTGRES_PASSWORD: cds_pwd
+      POSTGRES_DB: cds_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+#      - /opt/cds:/var/lib/postgresql/data
+    networks:
+      - bdd
+    ports:
+      - "5432:5432"
+
+volumes:
+  cds_data:
+  postgres_data:
 
 networks:
   bdd:

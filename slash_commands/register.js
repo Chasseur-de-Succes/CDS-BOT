@@ -4,16 +4,18 @@ const {
     ActionRowBuilder,
     ButtonStyle,
     ButtonBuilder,
+    InteractionContextType,
 } = require("discord.js");
 const { GREEN, DARK_RED } = require("../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require("../data/emojis.json");
 const { createError } = require("../util/envoiMsg");
+const { UserRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("register")
         .setDescription(`Création d'un compte CDS`)
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addStringOption((option) =>
             option
                 .setName("id-steam-64")
@@ -29,7 +31,7 @@ module.exports = {
         const client = interaction.client;
         const member = interaction.member;
         const user = interaction.user;
-        const dbUser = await client.getUser(member);
+        const dbUser = await UserRepository.findByDiscordId(member.id);
 
         if (dbUser)
             // Si dans la BDD
@@ -80,11 +82,8 @@ module.exports = {
             )
             .setThumbnail(userSteam.body.response.players[0].avatarmedium); // .avatarfull -> pour plus grande image
 
-        const msg = await interaction.reply({
-            embeds: [embedVerif],
-            components: [row],
-            fetchReply: true,
-        });
+        await interaction.reply({ embeds: [embedVerif], components: [row] });
+        const msg = await interaction.fetchReply();
 
         const confirmFilter = (i) =>
             i.customId === "confirm" && i.user.id === interaction.user.id;
@@ -106,11 +105,11 @@ module.exports = {
             await i.deferUpdate();
             await i.editReply({ components: [] });
 
-            await client.createUser({
-                userId: member.id,
-                username: user.tag,
-                steamId: steamId64,
-            });
+            await UserRepository.createWithDefaults(
+                member.id,
+                user.tag,
+                steamId64,
+            );
 
             const embed = new EmbedBuilder()
                 .setColor(GREEN)
