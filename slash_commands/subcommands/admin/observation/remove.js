@@ -7,7 +7,7 @@ const {
 const { createError, createLogs } = require("../../../../util/envoiMsg");
 const { CRIMSON, GREEN, DARK_RED } = require("../../../../data/colors.json");
 const { CHECK_MARK, CROSS_MARK } = require("../../../../data/emojis.json");
-const mongoose = require("mongoose");
+const { ObservationRepository } = require("../../../../repositories");
 
 async function remove(interaction, options) {
     const observationId = options.get("id")?.value;
@@ -17,36 +17,27 @@ async function remove(interaction, options) {
 
     await interaction.deferReply();
 
-    if (!mongoose.Types.ObjectId.isValid(observationId))
+    const observation = await ObservationRepository.findById(observationId);
+    if (observation === undefined)
         return interaction.editReply({
             embeds: [
                 createError(
-                    "ID de la note d'observation non valide !\nID trouvable avec la commande `/admin observation histoy @user`",
-                ),
-            ],
-        });
-
-    const observationItem = await client.getObservationById(observationId);
-    if (observationItem === undefined)
-        return interaction.editReply({
-            embeds: [
-                createError(
-                    "ID de la note d'observation non trouvé !\nID trouvable avec la commande `/admin observation histoy @user`",
+                    "Observation non trouvée !\nID trouvable avec la commande `/admin observation histoy @user`",
                 ),
             ],
         });
 
     let user;
     try {
-        const fetched = await client.users.fetch(observationItem.userId);
+        const fetched = await client.users.fetch(observation.userId);
         user = fetched.toString();
     } catch {
         user = "Utilisateur inconnu";
     }
-    const timestamp = Math.floor(observationItem.date.getTime() / 1000);
+    const timestamp = Math.floor(observation.date.getTime() / 1000);
     let reporter;
     try {
-        const fetched = await client.users.fetch(observationItem.reporterId);
+        const fetched = await client.users.fetch(observation.reporterId);
         reporter = fetched.toString();
     } catch {
         reporter = "Utilisateur inconnu";
@@ -73,14 +64,14 @@ async function remove(interaction, options) {
         )
         .addFields({
             name: `Raison`,
-            value: `${observationItem.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
+            value: `${observation.reason}\nPar ${reporter}, le <t:${timestamp}:F>`,
         });
 
-    const msg = await interaction.editReply({
+    await interaction.editReply({
         embeds: [embedConfirmation],
         components: [row],
-        fetchReply: true,
     });
+    const msg = await interaction.fetchReply();
 
     const confirmFilter = (i) =>
         i.customId === "confirm" && i.user.id === interaction.user.id;
@@ -102,7 +93,7 @@ async function remove(interaction, options) {
         await i.deferUpdate();
         await i.editReply({ components: [] });
 
-        await client.deleteObservationItem(observationId);
+        await ObservationRepository.delete(observationId);
 
         createLogs(
             client,

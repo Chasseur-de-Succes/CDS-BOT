@@ -3,11 +3,16 @@ const {
     ButtonBuilder,
     ButtonStyle,
     EmbedBuilder,
+    MessageFlags,
 } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { CHECK_MARK, NO_SUCCES } = require("../../../data/emojis.json");
 const { YELLOW } = require("../../../data/colors.json");
 const moment = require("moment");
+const {
+    UserRepository,
+    GameItemShopRepository,
+} = require("../../../repositories");
 
 async function jeux(interaction, options, showGame = false) {
     const nbPage = options.get("page") ? options.get("page").value - 1 : 0;
@@ -18,7 +23,7 @@ async function jeux(interaction, options, showGame = false) {
     // "Bot réfléchit.."
     await interaction.deferReply();
 
-    const userDb = await client.getUser(author);
+    const userDb = await UserRepository.findByDiscordUser(author);
     if (!userDb) {
         return interaction.editReply({
             embeds: [
@@ -39,7 +44,7 @@ async function jeux(interaction, options, showGame = false) {
         // recupere array d'info sur jeux à vendre
         // [0]._id -> Game
         // [0].items -> GameItemShop
-        infos.items = await client.findGameItemShopByGame();
+        infos.items = await GameItemShopRepository.findGameItemShopByGame();
     } else {
         // Si CUSTOM
         infos.soustitre = "TUNNING";
@@ -86,7 +91,7 @@ async function jeux(interaction, options, showGame = false) {
         .setStyle(ButtonStyle.Danger)
         .setDisabled(
             infos.type === 1 ||
-                userDb.money < infos.items[currentIndex].items[0].montant,
+                userDb.money < infos.items[currentIndex].items[0].price,
         );
     const rowBuyButton = new ActionRowBuilder().addComponents(
         prevBtn,
@@ -96,11 +101,11 @@ async function jeux(interaction, options, showGame = false) {
 
     // on envoie créer et envoie le message du shop
     const shopEmbed = createShop(guild, infos, nbPage);
-    const msgShopEmbed = await interaction.editReply({
+    await interaction.editReply({
         embeds: [shopEmbed],
         components: [rowBuyButton],
-        fetchReply: true,
     });
+    const msgShopEmbed = await interaction.fetchReply();
 
     // Collect button interactions
     const collector = msgShopEmbed.createMessageComponentCollector({
@@ -118,7 +123,7 @@ async function jeux(interaction, options, showGame = false) {
             nextBtn.setDisabled(currentIndex + 1 === max);
             // disable buy si pas assez argent
             buyBtn.setDisabled(
-                userDb.money < infos.items[currentIndex].items[0].montant,
+                userDb.money < infos.items[currentIndex].items[0].price,
             );
 
             // Respond to interaction by updating message with new embed
@@ -133,16 +138,16 @@ async function jeux(interaction, options, showGame = false) {
         } else if (infos.type === 0) {
             const items = infos.items[currentIndex];
             const vendeur = guild.members.cache.get(
-                items.items[0].seller.userId,
+                items.items[0].sellerInfo.discordId,
             );
 
             // empeche l'achat de son propre jeu
-            if (items.items[0].seller.userId === userDb.userId) {
+            if (items.items[0].sellerInfo.discordId === userDb.discordId) {
                 return itr.reply({
                     embeds: [
                         createError("Tu ne peux pas acheter ton propre jeu !"),
                     ],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -158,7 +163,7 @@ async function jeux(interaction, options, showGame = false) {
                             "Tu dois attendre au mois 2 jours avant de pouvoir racheter un jeu !",
                         ),
                     ],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
 
@@ -176,12 +181,12 @@ async function jeux(interaction, options, showGame = false) {
             const recapEmbed = new EmbedBuilder()
                 .setColor(YELLOW)
                 .setTitle(`💰 BOUTIQUE - ${infos.soustitre} - RECAP' 💰`)
-                .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items._id.name}** à **${items.items[0].montant}** ${process.env.MONEY}
+                .setDescription(`${CHECK_MARK} ${author}, vous venez d'acheter **${items.game.name}** à **${items.items[0].price}** ${process.env.MONEY}
                         ${vendeur} a reçu un **DM**, dès qu'il m'envoie la clé, je te l'envoie !
 
                         *En cas de problème, n'hésitez pas à contacter un **admin***.`)
                 .setFooter({
-                    text: `💵 ${userDb.money - items.items[0].montant} ${
+                    text: `💵 ${userDb.money - items.items[0].price} ${
                         process.env.MONEY
                     }`,
                 });
@@ -211,7 +216,7 @@ function createShop(guild, infos, currentIndex = 0) {
         .setTitle(`💰 BOUTIQUE - ${infos.soustitre} 💰`);
     // JEUX
     if (infos.type === 0) {
-        const game = infos.items[currentIndex]._id;
+        const game = infos.items[currentIndex].game;
         const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
         const items = infos.items[currentIndex].items;
 
@@ -235,12 +240,11 @@ function createShop(guild, infos, currentIndex = 0) {
         const prix = [];
         const vendeurStr = [];
         for (const item of items) {
-            const vendeur = guild.members.cache.get(item.seller.userId);
+            const vendeur = guild.members.cache.get(item.sellerInfo.discordId);
             // on limite le nb de jeu affichable (car embed à une limite de caracteres)
             if (nbItem < nbMax) {
-                prix.push(`${item.montant} ${process.env.MONEY}`);
+                prix.push(`${item.price} ${process.env.MONEY}`);
                 vendeurStr.push(vendeur);
-
                 nbItem++;
             }
         }
@@ -266,34 +270,35 @@ function createShop(guild, infos, currentIndex = 0) {
 }
 
 async function buyGame(client, guildId, author, acheteurDb, vendeur, info) {
-    const game = info._id;
+    const game = info.game;
     const gameUrlHeader = `https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`;
     logger.info(
         `Achat jeu ${game.name} par ${acheteurDb.username} pour ${acheteurDb.money} ${process.env.MONEY}`,
     );
 
     // recup dans la BD pour pouvoir le maj
-    let item = await client.findGameItemShop({ _id: info.items[0]._id }); // le 1er est le - cher
-    item = item[0];
+    let item = await GameItemShopRepository.findByIdWithRelations(
+        info.items[0].id,
+    ); // le 1er est le - cher
 
     // STEP 1 : retire le montant du jeu au "porte-monnaie" de l'acheteur + date dernier achat
-    await client.update(acheteurDb, {
-        money: acheteurDb.money - item.montant,
-        lastBuy: Date.now(),
+    await UserRepository.update(acheteurDb.id, {
+        money: acheteurDb.money - item.price,
+        lastBuy: new Date(),
     });
     // log 'Acheteur perd montant process.env.MONEY a cause vente'
     createLogs(
         client,
         guildId,
         "Argent perdu",
-        `${author} achète **${game.name}** à **${item.montant} ${process.env.MONEY}**`,
-        `ID vente : ${item._id}`,
+        `${author} achète **${game.name}** à **${item.price} ${process.env.MONEY}**`,
+        `ID vente : ${item.id}`,
         YELLOW,
     );
 
     // maj buyer & etat GameItem à 'pending' ou qqchose dans le genre
-    await client.update(item, {
-        buyer: acheteurDb,
+    await GameItemShopRepository.update(item.id, {
+        buyer: acheteurDb.id,
         state: "pending",
     });
 
@@ -305,7 +310,7 @@ async function buyGame(client, guildId, author, acheteurDb, vendeur, info) {
         .setTitle("💰 BOUTIQUE - VENTE 💰")
         .setDescription(`${author} vous a acheté ***${game.name}*** !
 
-            Pour recevoir vos ${item.montant} ${process.env.MONEY}, il faut :
+            Pour recevoir vos ${item.price} ${process.env.MONEY}, il faut :
             ▶️ **Lancer la commande ** \`/envoi-cle TA-CLE-STEAM\`
             *L'acheteur recevra directement la clé dans ses MPs !*
             

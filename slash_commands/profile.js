@@ -3,8 +3,8 @@ const {
     EmbedBuilder,
     AttachmentBuilder,
     ActivityType,
+    InteractionContextType,
 } = require("discord.js");
-const succes = require("../data/achievements.json");
 const {
     VERY_PALE_VIOLET,
     VERY_PALE_BLUE,
@@ -15,12 +15,12 @@ const { createError } = require("../util/envoiMsg");
 const { getXpNeededForNextLevel } = require("../util/xp");
 const { renderProfile } = require("../canvas/profile/renderProfile");
 
-const { getJsonValue } = require("../util/util");
+const { UserRepository, MetaAchRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("profile")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Affiche le profil d'un utilisateur.")
         .addUserOption((option) =>
             option
@@ -38,23 +38,26 @@ module.exports = {
         const filtered = [];
 
         if (focusedValue.name === "succes") {
-            for (const x in succes) {
-                filtered.push({ name: succes[x].title, value: x });
+            const achievements = await MetaAchRepository.findAllAchievements();
+            for (const achievement of achievements) {
+                filtered.push({
+                    name: achievement.title,
+                    value: achievement.code,
+                });
             }
         }
         await interaction.respond(filtered);
     },
     async execute(interaction) {
-        const client = interaction.client;
         const user = interaction.options.getUser("target") ?? interaction.user;
         const member = interaction.guild.members.cache.get(user.id);
         const typeSucces = interaction.options.get("succes")?.value;
 
         await interaction.deferReply();
 
-        const dbUser = await client.getUser(member);
+        const userDb = await UserRepository.findByDiscordId(user.id);
 
-        if (!dbUser) {
+        if (!userDb) {
             // Si pas dans la BDD
             const embedErr = createError(
                 `${user.tag} n'a pas encore de compte ! Pour s'enregistrer : \`/register\``,
@@ -63,34 +66,41 @@ module.exports = {
         }
 
         const colorEmbed =
-            dbUser.banned || dbUser.blacklisted ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
+            userDb.banned || userDb.blacklisted ? CRIMSON : VERY_PALE_BLUE; //si banni ou blacklisté -> couleur en rouge
         const pseudo = user.username;
-        const money = dbUser.money;
+        const money = userDb.money;
 
         // AFFICHAGE SUCCES
         if (typeSucces) {
-            const userStat = dbUser.stats;
-            const infoSucces = succes[typeSucces];
-            // on test si 'money' car non présent dans stat.
-            const nbStat =
-                typeSucces === "money"
-                    ? money
-                    : getJsonValue(userStat, infoSucces.db, "");
+            const infoSucces =
+                await MetaAchRepository.findMetaAchievementByCode(typeSucces);
+            if (!infoSucces) {
+                const embedErr = createError(
+                    `Le succès \`${typeSucces}\` n'existe pas.`,
+                );
+                return interaction.editReply({ embeds: [embedErr] });
+            }
+
+            const tiers = await MetaAchRepository.findTiersWithUnlockStatus(
+                userDb.id,
+                typeSucces,
+            );
+
             let desc = "";
-            for (const x in infoSucces.succes) {
-                const achieved = nbStat >= Number.parseInt(x);
+            for (const tier of tiers) {
+                const achieved = tier.unlocked;
 
                 if (achieved) {
                     desc += "✅ ";
                 } else {
                     desc += "⬛ ";
                 }
-                desc += `**${infoSucces.succes[x].title}**\n`;
+                desc += `**${tier.title}**\n`;
 
                 if (achieved) {
-                    desc += `> ${infoSucces.succes[x].desc}\n`;
+                    desc += `> ${tier.description}\n`;
                 } else {
-                    desc += `> ||${infoSucces.succes[x].desc}||\n`;
+                    desc += `> ||${tier.description}||\n`;
                 }
             }
             const embed = new EmbedBuilder()
@@ -102,28 +112,38 @@ module.exports = {
         }
 
         // AFFICHAGE CANVAS
-        const urlSteam = `[Steam](https://steamcommunity.com/profiles/${dbUser.steamId})`;
-        const urlAstats = `[Astats](https://astats.astats.nl/astats/User_Info.php?SteamID64=${dbUser.steamId})`;
-        const urlCme = `[Completionist](https://completionist.me/steam/profile/${dbUser.steamId})`;
-        const urlSh = `[Steam Hunters](https://steamhunters.com/id/${dbUser.steamId}/games)`;
+        const urlSteam = `[Steam](https://steamcommunity.com/profiles/${userDb.steamId})`;
+        const urlCme = `[Completionist](https://completionist.me/steam/profile/${userDb.steamId})`;
+        const urlSh = `[Steam Hunters](https://steamhunters.com/id/${userDb.steamId}/games)`;
 
-        const msg = `[ ${STEAM} ${urlSteam} | ${ASTATS} ${urlAstats} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
+        const msg = `[ ${STEAM} ${urlSteam} | ${CME} ${urlCme} | ${SH} ${urlSh} ]`;
 
         const codeFlag = undefined; // todo pour après migration bdd
+
+        // progression = requirement du palier débloqué le plus haut, par code
+        const unlockedTiers = await MetaAchRepository.findUnlockedTiersByUser(
+            userDb.id,
+        );
+        const stats = {};
+        for (const tier of unlockedTiers) {
+            if (!stats[tier.code] || tier.requirement > stats[tier.code]) {
+                stats[tier.code] = tier.requirement;
+            }
+        }
 
         // create image
         const dataCanvas = {
             user,
             pseudo,
             money,
-            level: dbUser.level,
-            xp: dbUser.experience,
-            nextXpNeeded: getXpNeededForNextLevel(dbUser.level),
+            level: userDb.level,
+            xp: userDb.xp,
+            nextXpNeeded: getXpNeededForNextLevel(userDb.level),
             game: member.presence?.activities.find((a) => a.type === 0),
             codeFlag, // undefined si pas de drapeau
 
-            stats: dbUser.stats,
-            dbUser, // temporaire (rework des succès nécessaire)
+            stats,
+            userDb,
         };
 
         const image = await renderProfile(dataCanvas, "default");

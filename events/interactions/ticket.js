@@ -5,9 +5,11 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    MessageFlags,
 } = require("discord.js");
-const { SALON } = require("../../util/constants");
 const { GREEN } = require("../../data/colors.json");
+const { GuildConfigRepository } = require("../../repositories");
+const { NEW_SALON } = require("../../util/constants");
 
 module.exports = {
     async execute(interaction) {
@@ -46,17 +48,16 @@ module.exports = {
                     interaction.fields.getTextInputValue("ticket-content");
 
                 // Récupération du channel de ticket
-                const ticketChannelId =
-                    await interaction.client.getGuildChannel(
-                        interaction.guild.id,
-                        SALON.TICKETS,
-                    );
+                const ticketChannelId = await GuildConfigRepository.getChannel(
+                    interaction.guild.id,
+                    NEW_SALON.TICKETS,
+                );
 
                 // Gestion d'erreur si aucun salon de ticket n'est défini
                 if (!ticketChannelId) {
                     return interaction.reply({
                         content: `Aucun salon de ticket n'a été trouvé.`,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                 }
 
@@ -105,7 +106,7 @@ module.exports = {
 
                 await interaction.reply({
                     content: `Ton ticket \`${ticketTitle}\` a bien été reçu !`,
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
         }

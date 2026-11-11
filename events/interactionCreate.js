@@ -1,4 +1,4 @@
-const { Events } = require("discord.js");
+const { Events, MessageFlags } = require("discord.js");
 const ticket = require("./interactions/ticket");
 const { sendStackTrace } = require("../util/envoiMsg");
 module.exports = {
@@ -48,7 +48,7 @@ module.exports = {
                 // TODO editReply ou reply..
                 await interaction.reply({
                     content: "There was an error while executing this command!",
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             }
         } else if (interaction.isAutocomplete()) {

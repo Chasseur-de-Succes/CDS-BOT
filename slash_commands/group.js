@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
-const { escapeRegExp } = require("../util/util");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const {
     create,
     dissolve,
@@ -9,13 +8,17 @@ const {
     transfert,
     editNbParticipant,
 } = require("./subcommands/group");
-const { Game, Group } = require("../models");
+const { GroupRepository } = require("../repositories");
+const {
+    truncateAutocompleteName,
+    getGameAutocompleteOptions,
+} = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("group")
         .setDescription("Gestion des groupes")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addSubcommand((sub) =>
             sub
                 .setName("create")
@@ -164,72 +167,32 @@ module.exports = {
                 ),
         ),
     async autocomplete(interaction) {
-        const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
         let filtered = [];
-        let exact = [];
+        let choices = [];
 
         // cmd group create, autocomplete sur nom jeu multi/coop avec succès
         if (focusedValue.name === "jeu" && focusedValue.value) {
-            // recherche nom exacte
-            exact = await client.findGames({
-                name: focusedValue.value,
-                type: "game",
-            });
-
-            // recup limit de 25 jeux, correspondant a la value rentré
-            filtered = await Game.aggregate([
-                {
-                    $match: {
-                        name: new RegExp(escapeRegExp(focusedValue.value), "i"),
-                    },
-                },
-                {
-                    $match: { type: "game" },
-                },
-                {
-                    $limit: 25,
-                },
-            ]);
-
-            // filtre nom jeu existant ET != du jeu exact trouvé (pour éviter doublon)
-            filtered = filtered.filter(
-                (jeu) => jeu.name && jeu.name !== exact[0]?.name,
-            );
+            choices = await getGameAutocompleteOptions(focusedValue.value);
         }
 
         // autocomplete sur nom groupe
         if (focusedValue.name === "nom") {
-            filtered = await Group.find({
-                $and: [
-                    { validated: false },
-                    { name: new RegExp(escapeRegExp(focusedValue.value), "i") },
-                    { guildId: interaction.guildId },
-                ],
-            });
-        }
-
-        // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
-        filtered = filtered
-            .slice(0, 25)
-            .map((element) =>
-                element.name?.length > 100
-                    ? `${element.name.substring(0, 96)}...`
-                    : element.name,
+            filtered = await GroupRepository.findByNameAndGuildId(
+                focusedValue.value,
+                interaction.guildId,
             );
 
-        // si nom exact trouvé
-        if (exact.length === 1) {
-            const jeuExact = exact[0];
-            // on récupère les 24 premiers
-            filtered = filtered.slice(0, 24);
-            // et on ajoute en 1er l'exact
-            filtered.unshift(jeuExact.name);
+            // Formatage des objets pour l'autocomplete Discord ({ name, value })
+            choices = filtered.map((element) => ({
+                // si nom jeu dépasse limite imposé par Discord (100 char)
+                name: truncateAutocompleteName(element.name),
+                // on utilise l'id pour le groupe
+                value: String(element.id),
+            }));
         }
 
-        await interaction.respond(
-            filtered.map((choice) => ({ name: choice, value: choice })),
-        );
+        await interaction.respond(choices);
     },
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();

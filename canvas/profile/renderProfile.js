@@ -1,13 +1,9 @@
 const themes = require("./themes");
-const {
-    getAchievementRarity,
-    getAdventAchievementRarity,
-} = require("./achievementUtils");
+const { getAchievementRarity } = require("./achievementUtils");
 
 const Canvas = require("canvas");
 const sharp = require("sharp");
 const path = require("node:path");
-const { User } = require("../../models");
 
 const ACHIEVEMENT_RARITY_SUFFIX = {
     platinum: "_plat",
@@ -234,35 +230,35 @@ async function renderProfile(data, themeName = "default") {
     ctx.fillStyle = theme.medals.title;
     ctx.fillText(`SUCCÈS`, 70, 240);
 
-    // - recup stats OU achievements lié à user
+    // - recup achievements liés à user (requirement du dernier palier débloqué)
     const ACHIEVEMENTS = [
         {
             // - Hall héros 🏆
-            progressValue: data.stats.img?.heros,
+            progressValue: data.stats.heros,
             thresholds: [100, 50, 10, 1],
             filename: "trophy",
         },
         {
             // - Hall zéros 💩
-            progressValue: data.stats.img?.zeros,
+            progressValue: data.stats.zeros,
             thresholds: [250, 50, 10, 1],
             filename: "poop",
         },
         {
             // - Dmd aides 🤝
-            progressValue: data.stats.group?.ended,
+            progressValue: data.stats["dmd-aide"],
             thresholds: [100, 50, 25, 1],
             filename: "dmd-aide",
         },
         {
             // - Shop 💰
-            progressValue: data.stats.shop?.sold,
+            progressValue: data.stats.shop,
             thresholds: [50, 25, 10, 1],
             filename: "shop",
         },
         {
             // - Nb messages 💬
-            progressValue: data.stats.msg,
+            progressValue: data.stats.nbMsg,
             thresholds: [10000, 2500, 500, 50],
             filename: "nbMsg",
         },
@@ -290,41 +286,14 @@ async function renderProfile(data, themeName = "default") {
     // - Event communautaires
     // advent 2022 🎄
     // - recup nb enigme resolu => succes participatif
-    const nbEnigme = data.dbUser.event[2022]?.advent?.answers
-        ? data.dbUser.event[2022].advent.answers.size
-        : 0;
+    const advent = data.userDb.event?.["2022"]?.advent;
+    const nbEnigme = advent?.answers ? Object.keys(advent.answers).length : 0;
     if (nbEnigme >= 12) {
-        // - recup top 10 des user qui ont des points
-        const agg = [
-            {
-                $match: {
-                    "event.2022.advent.score": { $exists: true },
-                },
-            },
-            {
-                $sort: { "event.2022.advent.score": -1 },
-            },
-        ];
-        const top10 = await User.aggregate(agg);
-        const indexUser = top10.findIndex(
-            (u) => u.userId === data.dbUser.userId,
-        );
-
-        const rarity = getAdventAchievementRarity(indexUser);
-        const colorFill = {
-            platinum: theme.medals.achievement.platinum,
-            gold: theme.medals.achievement.gold,
-            silver: theme.medals.achievement.silver,
-            bronze: theme.medals.achievement.bronze,
-            locked: theme.medals.achievement.locked,
-        }[rarity];
-
-        const filename = "advent_22" + ACHIEVEMENT_RARITY_SUFFIX[rarity];
-
+        // TODO classement à calculer (pour le top 10)
         await addAchievement(
             ctx,
-            colorFill,
-            filename,
+            theme.medals.achievement.bronze,
+            "advent_22",
             positionXY.crtX,
             positionXY.crtY,
             true,

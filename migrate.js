@@ -1,0 +1,806 @@
+const mongoose = require("mongoose");
+const { Model } = require("objection");
+require("dotenv").config();
+
+// Initialiser Knex
+const Knex = require("knex");
+const knexConfig = require("./knexfile");
+const knex = Knex(knexConfig);
+Model.knex(knex);
+
+// Modèles Objection.js
+const {
+    User,
+    Stats,
+    GuildConfig,
+    MessageClue,
+    ClueField,
+    Tower,
+    TowerBoss,
+    TowerStats,
+    Job,
+    Observation,
+    Game,
+    Achievement,
+    Group,
+    GroupUser,
+    GameItemShop,
+} = require("./models/objection");
+const {
+    User: UserMG,
+    GuildConfig: GuildConfigMG,
+    TowerBoss: TowerBossMG,
+    Job: JobMG,
+    Observation: ObservationMG,
+    Game: GameMG,
+    Group: GroupMG,
+    GameItem: GameItemMG,
+} = require("./models");
+const achievements = require("./data/achievements.json");
+const constants = require("./data/event/tower/constants.json");
+
+const ANSI = {
+    reset: "\x1b[0m",
+    dim: "\x1b[2m",
+    cyan: "\x1b[36m",
+    green: "\x1b[32m",
+    yellow: "\x1b[33m",
+    red: "\x1b[31m",
+};
+
+const toSec = (start, end) => {
+    // Affiche la différence entre start et end en min/sec
+    const diffMs = Math.max(0, Number(end) - Number(start));
+
+    const totalSec = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = totalSec % 60;
+
+    if (minutes === 0) return `${seconds}s`;
+    if (seconds === 0) return `${minutes}min`;
+    return `${minutes}min ${seconds}s`;
+};
+
+const chunkArray = (array, size) => {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += size) {
+        chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+};
+
+const truncate = (value, maxLength) => {
+    if (value == null) return value;
+    const str = String(value);
+    return str.length > maxLength ? str.slice(0, maxLength) : str;
+};
+
+const extractFileNameFromUrl = (value) => {
+    if (value == null) return value;
+    const str = String(value);
+    const lastSlashIndex = str.lastIndexOf("/");
+    return lastSlashIndex === -1 ? str : str.slice(lastSlashIndex + 1);
+};
+
+const normalizeShopState = (value) => {
+    const normalized = String(value || "")
+        .toLowerCase()
+        .trim();
+    return normalized === "pending" || normalized === "done"
+        ? normalized
+        : "done";
+};
+
+const logStep = (section, message, level = "info") => {
+    const isNoColor =
+        process.env.NO_COLOR === "1" || process.env.NO_COLOR === "true";
+    if (isNoColor) {
+        console.log(`[MIGRATE][${section}] ${message}`);
+        return;
+    }
+
+    const colorByLevel = {
+        info: ANSI.cyan,
+        success: ANSI.green,
+        warn: ANSI.yellow,
+        error: ANSI.red,
+    };
+
+    const levelColor = colorByLevel[level] || ANSI.cyan;
+    console.log(
+        `${ANSI.dim}[MIGRATE]${ANSI.reset}${levelColor}[${section}]${ANSI.reset} ${message}`,
+    );
+};
+
+/**
+ * Convertit un document Mongoose `event` en objet JSONB sérialisable.
+ * Les sous-documents `Map` (ex. advent.answers) sont convertis en objet,
+ * et on ne conserve que l'advent 2022 (seule donnée archivée utile).
+ * @param {any} event
+ * @returns {object|null}
+ */
+function toEventJson(event) {
+    if (!event) {
+        return null;
+    }
+
+    const doc = typeof event.toObject === "function" ? event.toObject() : event;
+    const result = {};
+
+    const advent = doc?.[2022]?.advent ?? doc?.["2022"]?.advent;
+    if (advent) {
+        let answers = advent.answers ?? {};
+        if (answers instanceof Map) {
+            answers = Object.fromEntries(answers);
+        }
+        result["2022"] = {
+            advent: {
+                score: advent.score ?? 0,
+                answers,
+            },
+        };
+    }
+
+    return Object.keys(result).length > 0 ? result : null;
+}
+
+function getAchievementStatFromPostgres(userRow, statsRow, statColumn) {
+    if (!statColumn) {
+        return 0;
+    }
+
+    if (statColumn === "money") {
+        return userRow?.money || 0;
+    }
+
+    if (!statsRow) {
+        return 0;
+    }
+
+    return statsRow[statColumn] || 0;
+}
+
+async function truncateAllTables() {
+    const tables = [
+        "TowerBoss",
+        "TowerStats",
+        "Tower",
+        "ClueField",
+        "MessageClue",
+        "Stats",
+        "Job",
+        "Observation",
+        "GuildConfig",
+        "User",
+        "Game",
+        "Achievement",
+        "UserMetaAchievementUnlocks",
+        "GroupUser",
+        "Group",
+        "GameItemShop",
+    ];
+
+    try {
+        logStep("TRUNCATE", `Début du vidage de ${tables.length} tables`);
+
+        // Désactiver les contraintes de clés étrangères temporairement
+        await knex.raw("BEGIN");
+
+        for (const table of tables) {
+            await knex.raw(`TRUNCATE TABLE "${table}" CASCADE`);
+        }
+
+        await knex.raw("COMMIT");
+        logStep(
+            "TRUNCATE",
+            "Toutes les tables ont été vidées avec succès",
+            "success",
+        );
+    } catch (error) {
+        logStep(
+            "TRUNCATE",
+            `Erreur lors du vidage des tables: ${error.message}`,
+            "error",
+        );
+        await knex.raw("ROLLBACK");
+        throw error;
+    }
+}
+
+async function migrate() {
+    // 1. Connexion à MongoDB
+    // 2. Récupérer les données depuis MongoDB
+    // 3. Insérer dans PostgreSQL
+    const mongOptions = {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
+        autoIndex: false, // Don't build indexes
+        poolSize: 10, // Maintain up to 10 socket connections
+        serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+        socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+        family: 4, // Use IPv4, skip trying IPv6
+    };
+    await mongoose.connect(process.env.DBCONNECTION, mongOptions);
+    logStep("INIT", "Connexion MongoDB OK");
+
+    // vide la bdd
+    await truncateAllTables();
+
+    const metaTierRows = await knex("MetaAchievementTiers")
+        .join(
+            "MetaAchievements",
+            "MetaAchievements.id",
+            "MetaAchievementTiers.metaAchievementId",
+        )
+        .select(
+            "MetaAchievements.code as code",
+            "MetaAchievementTiers.requirement as requirement",
+            "MetaAchievementTiers.id as tierId",
+        );
+    const metaTierLookup = new Map(
+        metaTierRows.map((row) => [
+            `${row.code}:${row.requirement}`,
+            row.tierId,
+        ]),
+    );
+
+    // USERS
+    logStep("USERS", "Récupération des utilisateurs MongoDB");
+    let users = await UserMG.find();
+    let usersIds = [],
+        towerStatIds = [];
+    logStep("USERS", `${users.length} utilisateur(s) à migrer`);
+    for (const [index, user] of users.entries()) {
+        let userId = await User.query()
+            .insert({
+                discordId: user.userId,
+                steamId: user.steamId,
+                username: user.username,
+                xp: user.experience,
+                level: user.level,
+                money: user.money,
+                banned: user.banned,
+                blacklisted: user.blacklisted,
+                moneyLimit: user.moneyLimit,
+                lastBuy: user.lastBuy ? user.lastBuy : null,
+                nbWarning: user.warning,
+                event: toEventJson(user.event),
+            })
+            .returning("id");
+        usersIds.push(userId);
+        const userRow = await User.query().findById(userId.id);
+
+        // stats
+        // on met la year à null car on a pas l'info
+        const statsId = await Stats.query()
+            .insert({
+                userId: userId.id,
+                nbMsg: user.stats.msg,
+                nbGroupCreated: user.stats.group.created,
+                nbGroupJoined: user.stats.group.joined,
+                nbGroupLeft: user.stats.group.left,
+                nbGroupDissolved: user.stats.group.dissolved,
+                nbGroupEnded: user.stats.group.ended,
+                nbShopSold: user.stats.shop.sold,
+                nbShopBought: user.stats.shop.bought,
+                nbHero: user.stats.img.heros,
+                nbZero: user.stats.img.zeros,
+            })
+            .returning("id");
+
+        const statsRow = await Stats.query().findById(statsId.id);
+
+        const metaUnlocks = [];
+        for (const [code, achievement] of Object.entries(achievements)) {
+            const statValue = getAchievementStatFromPostgres(
+                userRow,
+                statsRow,
+                achievement.dbPG,
+            );
+
+            for (const requirement of Object.keys(achievement.succes)) {
+                if (statValue >= Number(requirement)) {
+                    const tierId = metaTierLookup.get(`${code}:${requirement}`);
+                    if (tierId) {
+                        metaUnlocks.push({
+                            userId: userId.id,
+                            metaAchievementTierId: tierId,
+                            unlockedAt: null,
+                        });
+                    }
+                }
+            }
+        }
+
+        if (metaUnlocks.length > 0) {
+            await knex("UserMetaAchievementUnlocks").insert(metaUnlocks);
+        }
+
+        // tower stats, histo et current
+        // seulement saison 0 normalement !!
+        if (user.event.tower.seasonHistory) {
+            for (const event of user.event.tower.seasonHistory) {
+                await TowerStats.query().insert({
+                    userId: userId.id,
+                    season: event.seasonNumber,
+                    startDate: event.startDate,
+                    nbValidatedGames: event.maxEtage,
+                    totalDamage: event.totalDamage,
+                });
+            }
+        }
+        // si saison courante
+        if (user.event.tower.startDate) {
+            let towerStatsId = await TowerStats.query()
+                .insert({
+                    userId: userId.id,
+                    season: user.event.tower.season,
+                    startDate: user.event.tower.startDate,
+                    nbValidatedGames: user.event.tower.etage,
+                    currentFloor: user.event.tower.currentEtage,
+                    totalDamage: user.event.tower.totalDamage,
+                    completedGames: user.event.tower.completedGames,
+                })
+                .returning("id");
+            // ordre temporaire du boss courant (-1 si aucun)
+            towerStatsId.currentBossOrder = user.event.tower.currentBoss;
+            towerStatIds.push(towerStatsId);
+        }
+
+        if ((index + 1) % 10 === 0 || index === users.length - 1) {
+            logStep(
+                "USERS",
+                `${index + 1}/${users.length} utilisateur(s) migré(s)`,
+            );
+        }
+    }
+    logStep("USERS", `.. ${users.length} migrés`);
+
+    // OBSERVATIONS
+    logStep("OBSERVATIONS", "Récupération des observations MongoDB");
+    let observations = await ObservationMG.find();
+    let insertedObservations = 0;
+    for (const obs of observations) {
+        // recupere l'id de l'utilisateur concerné
+        let userId = usersIds.find((u) => u.discordId === obs.userId);
+        let reporterId = usersIds.find((u) => u.discordId === obs.reporterId);
+        if (userId && reporterId) {
+            await Observation.query().insert({
+                userId: userId.id,
+                reporterId: reporterId.id,
+                reason: obs.reason,
+                date: obs.date,
+            });
+            insertedObservations++;
+        }
+    }
+    logStep(
+        "OBSERVATIONS",
+        `${insertedObservations}/${observations.length} observation(s) migrée(s)`,
+    );
+
+    // Message Clue & Clue Field from constants
+    const genres = constants.MONTHLY.GENRES;
+    const tags = constants.MONTHLY.TAGS;
+    const clues = constants.MONTHLY.CLUES;
+    const messagesClue = [];
+    // d'abord le MessageClue
+    // créer MessageClue pour chaque mois avec idMsg null du coup
+    for (let i = 0; i < 12; i++) {
+        messagesClue.push({
+            month: i,
+            description: clues[i],
+        });
+    }
+    let messagesClueId = await MessageClue.query()
+        .insert(messagesClue)
+        .returning("id");
+
+    for (const element of messagesClueId) {
+        const month = element.month;
+        const messageClueId = element.id;
+        const clueFields = [];
+        for (const genre of genres[month]) {
+            clueFields.push({
+                idMsgClue: messageClueId,
+                name: genre.label,
+                value: genre.id,
+                type: "genre",
+            });
+        }
+        for (const tag of tags[month]) {
+            clueFields.push({
+                idMsgClue: messageClueId,
+                name: tag.label,
+                value: tag.id,
+                type: "tag",
+            });
+        }
+        await ClueField.query().insert(clueFields).returning("id");
+    }
+
+    // GUILD CONFIG
+    logStep("GUILD", "Récupération des configurations serveur");
+    let guildConfigs = await GuildConfigMG.find();
+    logStep("GUILD", `${guildConfigs.length} configuration(s) à migrer`);
+    for (const gc of guildConfigs) {
+        logStep("GUILD", `Migration de la config pour ${gc.guildId}`);
+        // guildconfig
+        await GuildConfig.query()
+            .insert({
+                guildId: gc.guildId,
+                channelWelcome: gc.channels["welcome"],
+                channelListGroup: gc.channels["list_group"],
+                channelHeros: gc.channels["hall_heros"],
+                channelZeros: gc.channels["hall_zeros"],
+                channelLogs: gc.channels["logs"],
+                channelCreateVocal: gc.channels["create_vocal"],
+                channelCatGroup: gc.channels["cat_discussion_groupe"],
+                channelCatGroup2: gc.channels["cat_discussion_groupe_2"],
+                channelFeed: gc.channels["feed_bot"],
+                channelFeedAchievement: gc.channels["feed_achievement"],
+                channelTickets: gc.channels["tickets"],
+                channelEventTower: gc.channels["event_tower"],
+                channelVoice: gc.voice_channels,
+                webhook: gc.webhook["feed_achievement"],
+            })
+            .onConflict("guildId")
+            .ignore();
+
+        // tower
+        if (gc.event?.tower) {
+            let idCrtTower = null;
+            const tower = gc.event.tower;
+            if (tower.history) {
+                for (const history of tower.history) {
+                    await Tower.query().insert({
+                        guildId: gc.guildId,
+                        season: history.season,
+                        start: history.startDate,
+                        finish: history.endDate,
+                        finished: history.finished,
+                    });
+                }
+            }
+            if (tower.started) {
+                idCrtTower = await Tower.query()
+                    .insert({
+                        guildId: gc.guildId,
+                        season: tower.currentSeason,
+                        start: tower.startDate,
+                        started: tower.started,
+                        msgClueId: tower.msgClueId,
+                    })
+                    .returning("id");
+            }
+
+            if (idCrtTower) {
+                await Tower.query()
+                    .where({
+                        id: idCrtTower.id,
+                    })
+                    .patch({
+                        msgClueId:
+                            messagesClueId[tower.currentMsgClue.month].id,
+                    });
+            }
+
+            if (tower.currentMsgClue.fields.length > 0) {
+                // maj MessageClue mois courant
+                await MessageClue.query()
+                    .where({
+                        id: messagesClueId[tower.currentMsgClue.month].id,
+                    })
+                    .patch({
+                        idMsg: tower.currentMsgClue.id,
+                    });
+
+                // maj ClueField mois courant
+                for (const field of tower.currentMsgClue.fields) {
+                    let found = field.found;
+                    let idTagGenre = field.id;
+
+                    await ClueField.query()
+                        .where({
+                            idMsgClue:
+                                messagesClueId[tower.currentMsgClue.month].id,
+                            value: idTagGenre,
+                        })
+                        .patch({
+                            found: found,
+                        });
+                }
+            }
+
+            // TOWER BOSSES
+            let insertedTowerBosses = 0;
+            let skippedTowerBosses = 0;
+            let towerBosses = await TowerBossMG.find().populate("killedBy");
+            for (const boss of towerBosses) {
+                // recupere l'id de la tour
+                let crtTower = await Tower.query().select("id").where({
+                    guildId: gc.guildId,
+                    season: boss.season,
+                });
+                // recupere l'id du tueur (s'il existe)
+                let killer = await User.query()
+                    .select("id")
+                    .where({
+                        discordId: boss.killedBy ? boss.killedBy.userId : null,
+                    });
+
+                if (crtTower.length > 0) {
+                    await TowerBoss.query().insert({
+                        towerId: crtTower[0].id,
+                        name: boss.name,
+                        hp: boss.hp,
+                        maxHp: boss.maxHp,
+                        season: boss.season,
+                        hidden: boss.hidden,
+                        order: boss.ordre,
+                        killedBy: killer.length > 0 ? killer[0].id : null,
+                    });
+
+                    insertedTowerBosses++;
+                } else {
+                    skippedTowerBosses++;
+                }
+            }
+            logStep(
+                "TOWER_BOSS",
+                `Guild ${gc.guildId}: ${insertedTowerBosses} boss migré(s), ${skippedTowerBosses} ignoré(s)`,
+            );
+
+            // maj du currentBoss des TowerStat
+            for (const stat of towerStatIds.filter(
+                (s) => s.season === tower.currentSeason,
+            )) {
+                // recupere l'id du boss (s'il existe)
+                let bossId = await TowerBoss.query()
+                    .select("id")
+                    .where({
+                        season: stat.season,
+                        order: stat.currentBossOrder
+                            ? stat.currentBossOrder
+                            : null,
+                    });
+
+                await TowerStats.query()
+                    .where({ id: stat.id })
+                    .patch({
+                        currentBoss: bossId.length > 0 ? bossId[0].id : null,
+                    });
+            }
+        }
+    }
+    logStep("GUILD", "Migration des configurations et tours terminée");
+
+    // JOB
+    logStep("JOB", "Récupération des jobs MongoDB");
+    let jobs = await JobMG.find();
+    let insertedJobs = 0;
+    for (const job of jobs) {
+        await Job.query().insert({
+            name: job.name,
+            guildId: job.guildId,
+            when: job.when,
+            functionName: job.what,
+            args: job.args,
+            pending: job.pending,
+        });
+        insertedJobs++;
+    }
+    logStep("JOB", `${insertedJobs} job(s) migré(s)`);
+
+    // GAME
+    let deb = Date.now();
+    logStep("GAME", "Récupération des jeux MongoDB avec pagination");
+
+    // Récupérer le nombre total de jeux
+    const totalGames = await GameMG.countDocuments();
+    logStep("GAME", `${totalGames} jeu(s) à migrer`);
+
+    let insertedGames = 0;
+    let scannedGames = 0;
+    let duplicateGames = 0;
+    const processedAppids = new Set();
+    const pageSize = Number(process.env.MIGRATE_GAME_PAGE_SIZE || 5000);
+    const insertBatchSize = Number(
+        process.env.MIGRATE_INSERT_BATCH_SIZE || 2000,
+    );
+    const totalPages = Math.ceil(totalGames / pageSize);
+
+    let lastMongoId = null;
+    let page = 0;
+
+    while (true) {
+        page++;
+        logStep("GAME", `Lecture du batch ${page}/${totalPages}`);
+
+        const query = lastMongoId ? { _id: { $gt: lastMongoId } } : {};
+        const games = await GameMG.find(query)
+            .sort({ _id: 1 })
+            .limit(pageSize)
+            .select({
+                _id: 1,
+                appid: 1,
+                iconHash: 1,
+                name: 1,
+                type: 1,
+                isMulti: 1,
+                isCoop: 1,
+                hasAchievements: 1,
+                isRemoved: 1,
+                achievements: 1,
+            })
+            .lean()
+            .exec();
+
+        if (games.length === 0) {
+            break;
+        }
+
+        const gamesToInsert = [];
+        const allAchievements = [];
+        for (const game of games) {
+            const appid = String(game.appid);
+            scannedGames++;
+
+            if (processedAppids.has(appid)) {
+                duplicateGames++;
+                continue;
+            }
+            processedAppids.add(appid);
+
+            gamesToInsert.push({
+                appid,
+                iconHash: game.iconHash,
+                name: game.name ? game.name : "???",
+                type: game.type,
+                isMulti: game.isMulti,
+                isCoop: game.isCoop,
+                hasAchievements: game.hasAchievements,
+                isRemoved: game.isRemoved,
+            });
+
+            if (!game.achievements || game.achievements.length === 0) continue;
+
+            for (const ach of game.achievements) {
+                allAchievements.push({
+                    appid,
+                    apiName: ach.apiName,
+                    displayName: ach.displayName,
+                    description: ach.description,
+                    icon: extractFileNameFromUrl(ach.icon),
+                    icongray: extractFileNameFromUrl(ach.icongray),
+                    // apiName: ach.apiName ? truncate(ach.apiName, 500) : null,
+                    // displayName: ach.displayName ? truncate(ach.displayName, 500) : null,
+                    // description: ach.description ? truncate(ach.description, 2000) : null,
+                    // icon: ach.icon ? truncate(ach.icon, 1000) : null,
+                    // icongray: ach.icongray ? truncate(ach.icongray, 1000) : null,
+                });
+            }
+        }
+
+        if (gamesToInsert.length > 0) {
+            const gameChunks = chunkArray(gamesToInsert, insertBatchSize);
+            for (const gameChunk of gameChunks) {
+                await knex("Game")
+                    .insert(gameChunk)
+                    .onConflict("appid")
+                    .ignore();
+            }
+        }
+
+        if (allAchievements.length > 0) {
+            await knex.batchInsert(
+                "Achievement",
+                allAchievements,
+                insertBatchSize,
+            );
+        }
+
+        insertedGames += gamesToInsert.length;
+        if (scannedGames % 1000 === 0 || scannedGames === totalGames) {
+            logStep(
+                "GAME",
+                `${scannedGames}/${totalGames} jeu(x) lu(s), ${insertedGames} inséré(s), ${duplicateGames} doublon(s)`,
+            );
+        }
+
+        lastMongoId = games[games.length - 1]._id;
+    }
+    let fin = Date.now();
+    logStep("GAME", `${insertedGames} jeux migrés, en ${toSec(deb, fin)}`);
+
+    // GROUP
+    deb = Date.now();
+    logStep("GROUP", "Récupération des groupes MongoDB");
+    let groups = await GroupMG.find()
+        .populate("captain")
+        .populate("members")
+        .populate("game");
+    let insertedGroups = 0;
+    for (const group of groups) {
+        // recupere l'id du capitaine
+        let captainId = usersIds.find(
+            (u) => u.discordId === group.captain.userId,
+        );
+        let gameId = group.game.appid;
+
+        if (captainId && gameId) {
+            const insertedGroup = await Group.query()
+                .insert({
+                    guildId: group.guildId,
+                    name: truncate(group.name, 255),
+                    desc: truncate(group.desc, 500),
+                    idMsg: group.idMsg,
+                    nbMax: group.nbMax,
+                    captain: captainId.id,
+                    game: gameId,
+                    dates: group.dateEvent,
+                    dateCreated: group.dateCreated,
+                    dateUpdated: group.dateUpdated,
+                    validated: group.validated,
+                    channelId: group.channelId,
+                })
+                .returning("id");
+
+            // members
+            const membersToInsert = group.members
+                .map((member) => {
+                    const userId = usersIds.find(
+                        (u) => u.discordId === member.userId,
+                    );
+                    return {
+                        groupid: insertedGroup.id,
+                        userid: userId ? userId.id : null,
+                    };
+                })
+                .filter((m) => m.userId !== null);
+
+            await GroupUser.query().insert(membersToInsert);
+
+            insertedGroups++;
+        }
+    }
+    fin = Date.now();
+    logStep("GROUP", `${insertedGroups} groupe migrés, en ${toSec(deb, fin)}`);
+
+    // SHOP
+    logStep("SHOP", "Récupération des items du shop MongoDB");
+    let itemsShop = await GameItemMG.find()
+        .populate("seller")
+        .populate("buyer")
+        .populate("game");
+    let insertedItemShop = 0;
+    for (const item of itemsShop) {
+        let seller = usersIds.find((u) => u.discordId === item.seller.userId);
+        let buyer = usersIds.find((u) => u.discordId === item.buyer?.userId);
+        let gameId = item.game?.appid;
+
+        if (seller && gameId) {
+            await GameItemShop.query().insert({
+                guildId: item.guildId,
+                game: gameId,
+                seller: seller.id,
+                buyer: buyer?.id,
+                price: item.montant,
+                state: normalizeShopState(item.state),
+            });
+
+            insertedItemShop++;
+        }
+    }
+
+    logStep("SHOP", `${insertedItemShop} items du shop migrés`);
+
+    logStep("DONE", "Migration terminée", "success");
+    await knex.destroy();
+}
+
+migrate().catch((error) => {
+    logStep("FATAL", error?.stack || error?.message || String(error), "error");
+});

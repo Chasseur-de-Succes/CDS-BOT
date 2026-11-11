@@ -1,10 +1,10 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("fetchgame")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription("Ajout ou maj d'un jeu dans la base de données.")
         .addIntegerOption((option) =>
             option

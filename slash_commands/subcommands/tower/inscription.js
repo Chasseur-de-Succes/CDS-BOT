@@ -1,32 +1,35 @@
-const { Colors, EmbedBuilder } = require("discord.js");
+const { Colors, EmbedBuilder, MessageFlags } = require("discord.js");
 const { createError } = require("../../../util/envoiMsg");
-const { GuildConfig } = require("../../../models");
 const { MESSAGE } = require("../../../data/event/tower/constants.json");
-const { SALON } = require("../../../util/constants");
+const { NEW_SALON } = require("../../../util/constants");
+const {
+    GuildConfigRepository,
+    UserRepository,
+    TowerRepository,
+    TowerStatsRepository,
+} = require("../../../repositories");
 
 const inscription = async (interaction, options) => {
     // Récupération du channel de l'event
-    const eventChannelId = await interaction.client.getGuildChannel(
-        interaction.guild.id,
-        SALON.EVENT_TOWER,
+    const guildId = interaction.guildId;
+    const eventChannelId = await GuildConfigRepository.getChannel(
+        guildId,
+        NEW_SALON.EVENT_TOWER,
     );
 
     // Gestion d'erreur si aucun salon n'est défini
     if (!eventChannelId) {
         return interaction.reply({
             content: `Aucun salon de l'événement tower n'a été trouvé.`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 
     const eventChannel = interaction.client.channels.cache.get(eventChannelId);
     const author = interaction.member;
-    const client = interaction.client;
-    const guildId = interaction.guildId;
-    const guild = await GuildConfig.findOne({ guildId: guildId });
 
     // test si auteur est register
-    const userDb = await client.getUser(author);
+    const userDb = await UserRepository.findByDiscordUser(interaction.user);
     if (!userDb) {
         // Si pas dans la BDD
         return interaction.reply({
@@ -38,8 +41,11 @@ const inscription = async (interaction, options) => {
         });
     }
 
+    const currentTower = await TowerRepository.findCurrentSeason(guildId);
+    const season = currentTower.season;
+
     // si la saison n'a pas encore commencé (à faire manuellement via commande '/admin tower start')
-    if (!guild.event.tower.started) {
+    if (typeof season === "undefined") {
         logger.info(".. événement tower pas encore commencé");
         return await interaction.reply({
             embeds: [createError("L'événement n'a pas encore commencé..")],
@@ -47,10 +53,14 @@ const inscription = async (interaction, options) => {
     }
 
     // si déjà inscrit
-    if (userDb.event.tower.startDate) {
+    const userFound = await TowerStatsRepository.hasUserAndSeason(
+        userDb,
+        season,
+    );
+    if (userFound) {
         return await interaction.reply({
             content: "Tu es déjà inscrit !",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
     }
 
@@ -70,10 +80,12 @@ const inscription = async (interaction, options) => {
     }
 
     // Saison et date de commencement de l'événement par l'user
-    const season = guild.event.tower.currentSeason;
-    userDb.event.tower.season = season;
-    userDb.event.tower.startDate = Date.now();
-    await userDb.save();
+    const newTowerStat = {
+        userId: userDb.id,
+        season: season,
+        startDate: new Date(),
+    };
+    await TowerStatsRepository.create(newTowerStat);
 
     // Pas besoin de tester si le rôle est déjà ajouté
     await author.roles.add(
@@ -90,7 +102,10 @@ const inscription = async (interaction, options) => {
         .setDescription(`${MESSAGE[season].INTRO}
   On se retrouve par ici : ${eventChannel}
 `);
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+    });
 };
 
 exports.inscription = inscription;

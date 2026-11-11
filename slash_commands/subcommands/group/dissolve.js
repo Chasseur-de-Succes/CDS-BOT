@@ -2,16 +2,17 @@ const { PermissionFlagsBits } = require("discord.js");
 const { createError, createLogs } = require("../../../util/envoiMsg");
 const { dissolveGroup } = require("../../../util/msg/group");
 const { WARNING } = require("../../../data/emojis.json");
+const { UserRepository, GroupRepository } = require("../../../repositories");
 
 const dissolve = async (interaction, options) => {
-    const grpName = options.get("nom")?.value;
+    const idGrp = options.get("nom")?.value;
     const client = interaction.client;
     const author = interaction.member;
 
     const isAdmin = author.permissions.has(PermissionFlagsBits.Administrator);
 
     // test si captain est register
-    const authorDb = await client.getUser(author);
+    const authorDb = await UserRepository.findByDiscordId(author.id);
     if (!authorDb) {
         // Si pas dans la BDD
         return interaction.reply({
@@ -24,18 +25,18 @@ const dissolve = async (interaction, options) => {
     }
 
     // recup le groupe
-    const grp = await client.findGroupByName(grpName);
+    const grp = await GroupRepository.findByIdWithRelations(idGrp);
     if (!grp) {
         return interaction.reply({
-            embeds: [createError(`Le groupe ${grpName} n'existe pas !`)],
+            embeds: [createError(`Le groupe n'existe pas !`)],
         });
     }
 
     // si l'author n'est pas capitaine et non admin
-    if (!(isAdmin || grp.captain._id.equals(authorDb._id))) {
+    if (!(isAdmin || grp.captainUser.id === authorDb.id)) {
         return interaction.reply({
             embeds: [
-                createError(`Tu n'es pas capitaine du groupe ${grpName} !`),
+                createError(`Tu n'es pas capitaine du groupe ${grp.name} !`),
             ],
         });
     }
@@ -51,7 +52,7 @@ const dissolve = async (interaction, options) => {
 
     let mentionsUsers = "";
     for (const member of grp.members) {
-        mentionsUsers += `<@${member.userId}> `;
+        mentionsUsers += `<@${member.discordId}> `;
     }
 
     // envoi dans channel log
@@ -59,13 +60,13 @@ const dissolve = async (interaction, options) => {
         client,
         interaction.guildId,
         `${WARNING} Dissolution d'un groupe`,
-        `Le groupe **${grpName}** a été dissout.
+        `Le groupe **${grp.name}** a été dissout.
                                                             Membres concernés : ${mentionsUsers}`,
     );
 
-    logger.info(`${author.user.tag} a dissout le groupe ${grpName}`);
+    logger.info(`${author.user.tag} a dissout le groupe ${grp.name}`);
     await interaction.reply(
-        `${mentionsUsers} : le groupe **${grpName}** a été dissout !`,
+        `${mentionsUsers} : le groupe **${grp.name}** a été dissout !`,
     );
 };
 

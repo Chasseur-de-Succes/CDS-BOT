@@ -1,11 +1,16 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const {
+    EmbedBuilder,
+    SlashCommandBuilder,
+    InteractionContextType,
+} = require("discord.js");
 const { GREEN } = require("../data/colors.json");
 const { createError } = require("../util/envoiMsg");
+const { UserRepository } = require("../repositories");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("money")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .setDescription(`Combien j'ai de ${process.env.MONEY} ?`)
         .addUserOption((option) =>
             option
@@ -13,11 +18,10 @@ module.exports = {
                 .setDescription("De cet utilisateur en particulier"),
         ),
     async execute(interaction) {
-        const client = interaction.client;
         const user = interaction.options.getUser("target") ?? interaction.user;
         const member = interaction.guild.members.cache.get(user.id);
 
-        const dbUser = await client.getUser(member);
+        const dbUser = await UserRepository.findByDiscordUser(member);
         if (!dbUser) {
             // Si pas dans la BDD
             return interaction.reply({

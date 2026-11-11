@@ -2,6 +2,8 @@
     "heros": {
         "title": "🏆 Hall des héros 🏆",
         "db": "img.heros",
+        "dbPG": "nbHero",
+        "desc": "Partager des 100% dans le hall des héros",
         "succes": {
             "1": {
                 "title": "Et de 1 !",
@@ -28,6 +30,8 @@
     "zeros": {
         "title": "💩 Hall des zéros 💩",
         "db": "img.zeros",
+        "dbPG": "nbZero",
+        "desc": "Partager des 100% dans le hall des zéros",
         "succes": {
             "1": {
                 "title": "Tu ne te sens pas sale ?",
@@ -54,6 +58,8 @@
     "dmd-aide": {
         "title": "🤝 Participations aux groupes 🤝",
         "db": "group.ended",
+        "dbPG": "nbGroupEnded",
+        "desc": "Participer à des events de groupe",
         "succes": {
             "1": {
                 "title": "Good job",
@@ -80,6 +86,8 @@
     "shop": {
         "title": "💰 Ventes du shop 💰",
         "db": "shop.sold",
+        "dbPG": "nbShopSold",
+        "desc": "Vendre des jeux via le shop",
         "succes": {
             "1": {
                 "title": "Bienvenue chez les rats",
@@ -106,6 +114,8 @@
     "nbMsg": {
         "title": "💬 Nombre de messages 💬",
         "db": "msg",
+        "dbPG": "nbMsg",
+        "desc": "Écrire des messages sur le serveur",
         "succes": {
             "50": {
                 "title": "Sois pas timide",
@@ -132,6 +142,8 @@
     "nbPoints": {
         "title": "🪙 Nombre de points CDS 🪙",
         "db": "money",
+        "dbPG": "money",
+        "desc": "Gagner des points CDS",
         "succes": {
             "1000000": {
                 "title": "Qu'est ce que je vais faire de tous ces points",

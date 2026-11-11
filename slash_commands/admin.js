@@ -1,4 +1,9 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const {
+    SlashCommandBuilder,
+    PermissionFlagsBits,
+    InteractionContextType,
+    MessageFlags,
+} = require("discord.js");
 const { createError } = require("../util/envoiMsg");
 const { cancel, refund, deleteItem } = require("./subcommands/admin/shop");
 const {
@@ -16,14 +21,14 @@ const {
 } = require("./subcommands/admin/observation");
 const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
-const { Group } = require("../models");
-const { escapeRegExp } = require("../util/util");
+const { GroupRepository, GameItemShopRepository } = require("../repositories");
+const { truncateAutocompleteName } = require("../util/autocompleteUtils");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("admin")
         .setDescription("Gestion des différents paramètres du bot")
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild)
         .addSubcommandGroup((subcommandGroup) =>
             subcommandGroup
                 .setName("tower")
@@ -158,7 +163,7 @@ module.exports = {
                         .setDescription(
                             "Supprimer une note d'observation pour l'utilisateur mentionné.",
                         )
-                        .addStringOption((option) =>
+                        .addIntegerOption((option) =>
                             option
                                 .setName("id")
                                 .setDescription(
@@ -286,7 +291,6 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async autocomplete(interaction) {
         // cmd adminshop delete, autocomplete sur nom jeu
-        const client = interaction.client;
         const focusedValue = interaction.options.getFocused(true);
         const vendeurId = interaction.options.get("vendeur")?.value;
 
@@ -294,14 +298,14 @@ module.exports = {
 
         if (focusedValue.name === "jeu") {
             if (focusedValue.value) {
-                filtered = await client.findGameItemShopBy({
+                filtered = await GameItemShopRepository.findGameItemShopBy({
                     game: focusedValue.value,
                     seller: vendeurId,
                     notSold: true,
                     limit: 25,
                 });
             } else {
-                filtered = await client.findGameItemShopBy({
+                filtered = await GameItemShopRepository.findGameItemShopBy({
                     seller: vendeurId,
                     notSold: true,
                     limit: 25,
@@ -310,8 +314,8 @@ module.exports = {
 
             // on ne prend que les 25 1er (au cas où)
             filtered = filtered.slice(0, 25).map((choice) => ({
-                name: choice.game.name,
-                value: choice._id,
+                name: choice.gameInfo.name,
+                value: String(choice.id),
             }));
         }
 
@@ -322,23 +326,18 @@ module.exports = {
 
         // sur nom du groupe
         if (focusedValue.name === "nom_group") {
-            filtered = await Group.find({
-                $and: [
-                    { validated: false },
-                    { name: new RegExp(escapeRegExp(focusedValue.value), "i") },
-                    { guildId: interaction.guildId },
-                ],
-            });
+            filtered = await GroupRepository.findByNameAndGuildId(
+                focusedValue.value,
+                interaction.guildId,
+            );
 
             // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
-            filtered = filtered
-                .slice(0, 25)
-                .map((element) =>
-                    element.name?.length > 100
-                        ? `${element.name.substring(0, 96)}...`
-                        : element.name,
-                )
-                .map((choice) => ({ name: choice, value: choice }));
+            filtered = filtered.slice(0, 25).map((element) => ({
+                // si nom jeu dépasse limite imposé par Discord (100 char)
+                name: truncateAutocompleteName(element.name),
+                // on utilise l'id pour le groupe
+                value: String(element.id),
+            }));
         }
 
         await interaction.respond(filtered);
@@ -355,7 +354,7 @@ module.exports = {
                         "Tu n'as pas le droit d'exécuter cette commande !",
                     ),
                 ],
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
 

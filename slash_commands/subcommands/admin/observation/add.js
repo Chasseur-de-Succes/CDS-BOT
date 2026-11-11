@@ -1,15 +1,15 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { createLogs, createError } = require("../../../../util/envoiMsg");
 const { CRIMSON, GREEN } = require("../../../../data/colors.json");
 const { CHECK_MARK } = require("../../../../data/emojis.json");
+const { ObservationRepository } = require("../../../../repositories");
 
 async function add(interaction, options) {
-    const userId = options.get("user")?.value;
+    const user = options.get("user")?.user;
     const reason = options.get("reason")?.value;
     const client = interaction.client;
     const guildId = interaction.guildId;
     const author = interaction.member;
-    const authorId = interaction.member.id;
 
     await interaction.deferReply();
 
@@ -20,18 +20,10 @@ async function add(interaction, options) {
                     `La raison dépasse la limite autorisée (${reason.length}/500 caractères).`,
                 ),
             ],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
 
-    const user = await client.users.fetch(userId);
-    const date = new Date();
-
-    await client.createObservation({
-        userId: userId,
-        reporterId: authorId,
-        reason: reason,
-        date: date,
-    });
+    await ObservationRepository.create(user.id, author.id, reason);
 
     createLogs(
         client,

@@ -1,14 +1,17 @@
-const { GuildConfig } = require("../../../../models");
 const { createError } = require("../../../../util/envoiMsg");
+const {
+    UserRepository,
+    TowerRepository,
+    TowerStatsRepository,
+} = require("../../../../repositories");
 
 async function down(interaction, options) {
-    const client = interaction.client;
     const guildId = interaction.guildId;
     const author = interaction.member;
 
     // récup l'utilisateur et test si register
     const user = options.getUser("user");
-    const userDb = await client.getUser(user);
+    const userDb = await UserRepository.findByDiscordUser(user);
     if (!userDb) {
         // Si pas dans la BDD
         return interaction.reply({
@@ -20,26 +23,32 @@ async function down(interaction, options) {
         });
     }
 
-    // si déjà stop, on skip
-    const guild = await GuildConfig.findOne({ guildId: guildId });
-    if (!guild.event.tower.started) {
+    // saison en cours (via la ligne Tower)
+    const currentTower = await TowerRepository.findCurrentSeason(guildId);
+    if (!currentTower) {
         return await interaction.reply({
             content: "Événement déjà arrêté !",
         });
     }
 
-    // si l'user n'est pas inscrit, on skip
-    if (!userDb.event.tower.startDate) {
+    // l'utilisateur doit être inscrit à la saison en cours
+    const towerStats = await TowerStatsRepository.findByUserAndSeason(
+        userDb,
+        currentTower.season,
+    );
+    if (!towerStats) {
         return await interaction.reply({
             content: "L'utilisateur n'est pas inscrit à l'événement !",
         });
     }
 
     // on enlève un étage à l'utilisateur
-    if (userDb.event.tower.etage > 0) {
+    if (towerStats.currentFloor > 0) {
         logger.info(`${author.user.tag} a enlevé **1** étage à ${user.tag} ..`);
-        userDb.event.tower.etage -= 1;
-        await userDb.save();
+        await TowerStatsRepository.decrementCurrentFloor(
+            userDb,
+            currentTower.season,
+        );
         return await interaction.reply({
             content: `${user.tag} a bien descendu d'un étage !`,
         });
