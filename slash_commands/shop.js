@@ -90,12 +90,10 @@ module.exports = {
 
                 await interaction.respond(
                     // on ne prend que les 25 1er (au cas où)
-                    filtered
-                        .slice(0, 25)
-                        .map((choice) => ({
-                            name: choice.gameInfo.name,
-                            value: String(choice.id),
-                        })),
+                    filtered.slice(0, 25).map((choice) => ({
+                        name: choice.gameInfo.name,
+                        value: String(choice.id),
+                    })),
                 );
             }
         }
