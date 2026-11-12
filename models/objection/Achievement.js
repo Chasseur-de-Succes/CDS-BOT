@@ -7,8 +7,6 @@ const BaseModel = require("./BaseModel");
  * @property {string} apiName
  * @property {string | null} displayName
  * @property {string | null} description
- * @property {string | null} icon
- * @property {string | null} icongray
  */
 
 class Achievement extends BaseModel {
@@ -30,8 +28,6 @@ class Achievement extends BaseModel {
                 apiName: { type: "string", minLength: 1 },
                 displayName: { type: ["string", "null"] },
                 description: { type: ["string", "null"] },
-                icon: { type: ["string", "null"] },
-                icongray: { type: ["string", "null"] },
             },
         };
     }

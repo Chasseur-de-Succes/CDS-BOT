@@ -75,13 +75,6 @@ const truncate = (value, maxLength) => {
     return str.length > maxLength ? str.slice(0, maxLength) : str;
 };
 
-const extractFileNameFromUrl = (value) => {
-    if (value == null) return value;
-    const str = String(value);
-    const lastSlashIndex = str.lastIndexOf("/");
-    return lastSlashIndex === -1 ? str : str.slice(lastSlashIndex + 1);
-};
-
 const normalizeShopState = (value) => {
     const normalized = String(value || "")
         .toLowerCase()
@@ -673,13 +666,9 @@ async function migrate() {
                     apiName: ach.apiName,
                     displayName: ach.displayName,
                     description: ach.description,
-                    icon: extractFileNameFromUrl(ach.icon),
-                    icongray: extractFileNameFromUrl(ach.icongray),
                     // apiName: ach.apiName ? truncate(ach.apiName, 500) : null,
                     // displayName: ach.displayName ? truncate(ach.displayName, 500) : null,
                     // description: ach.description ? truncate(ach.description, 2000) : null,
-                    // icon: ach.icon ? truncate(ach.icon, 1000) : null,
-                    // icongray: ach.icongray ? truncate(ach.icongray, 1000) : null,
                 });
             }
         }
