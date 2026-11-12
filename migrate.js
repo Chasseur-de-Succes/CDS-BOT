@@ -153,6 +153,40 @@ function getAchievementStatFromPostgres(userRow, statsRow, statColumn) {
     return statsRow[statColumn] || 0;
 }
 
+async function precreateTowerBosses() {
+    const towers = await knex("Tower").where({ started: true });
+    let inserted = 0;
+    for (const tower of towers) {
+        const enemies = constants.ENEMIES[String(tower.season)];
+
+        // seules les saisons définies sous forme de tableau sont gérées
+        if (!Array.isArray(enemies)) continue;
+
+        const existing = await knex("TowerBoss")
+            .where({ towerId: tower.id, season: tower.season })
+            .count("* as c")
+            .first();
+
+        if (Number(existing.c) > 0) continue;
+
+        await knex("TowerBoss").insert(
+            enemies.map((enemy, index) => ({
+                towerId: tower.id,
+                name: enemy.name,
+                hp: enemy.hp,
+                maxHp: enemy.hp,
+                season: tower.season,
+                hidden: false,
+                order: index,
+                isDiscovered: false,
+            })),
+        );
+
+        inserted += enemies.length;
+    }
+    logStep("TOWER_BOSS", `${inserted} boss pré-créé(s)`);
+}
+
 async function truncateAllTables() {
     const tables = [
         "TowerBoss",
@@ -569,6 +603,8 @@ async function migrate() {
         }
     }
     logStep("GUILD", "Migration des configurations et tours terminée");
+
+    await precreateTowerBosses();
 
     // JOB
     logStep("JOB", "Récupération des jobs MongoDB");
