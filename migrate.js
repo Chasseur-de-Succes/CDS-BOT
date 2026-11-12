@@ -695,11 +695,16 @@ async function migrate() {
         }
 
         if (allAchievements.length > 0) {
-            await knex.batchInsert(
-                "Achievement",
+            const achievementChunks = chunkArray(
                 allAchievements,
                 insertBatchSize,
             );
+            for (const achievementChunk of achievementChunks) {
+                await knex("Achievement")
+                    .insert(achievementChunk)
+                    .onConflict(["appid", "apiName"])
+                    .ignore();
+            }
         }
 
         insertedGames += gamesToInsert.length;
