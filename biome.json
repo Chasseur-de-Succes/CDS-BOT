@@ -14,7 +14,7 @@
         "lineWidth": 80
     },
     "files": {
-        "includes": ["**", "!**/.vscode"]
+        "includes": ["**", "!**/.vscode", "!**/*.yml"]
     },
     "javascript": {
         "formatter": {

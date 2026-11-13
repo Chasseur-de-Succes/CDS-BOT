@@ -44,8 +44,6 @@ exports.up = async function (knex) {
             table.text("apiName");
             table.text("displayName");
             table.text("description");
-            table.text("icon");
-            table.text("icongray");
         })
         .createTable("User", (table) => {
             table.increments("id").primary();
