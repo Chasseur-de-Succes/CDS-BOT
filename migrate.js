@@ -75,13 +75,6 @@ const truncate = (value, maxLength) => {
     return str.length > maxLength ? str.slice(0, maxLength) : str;
 };
 
-const extractFileNameFromUrl = (value) => {
-    if (value == null) return value;
-    const str = String(value);
-    const lastSlashIndex = str.lastIndexOf("/");
-    return lastSlashIndex === -1 ? str : str.slice(lastSlashIndex + 1);
-};
-
 const normalizeShopState = (value) => {
     const normalized = String(value || "")
         .toLowerCase()
@@ -158,6 +151,40 @@ function getAchievementStatFromPostgres(userRow, statsRow, statColumn) {
     }
 
     return statsRow[statColumn] || 0;
+}
+
+async function precreateTowerBosses() {
+    const towers = await knex("Tower").where({ started: true });
+    let inserted = 0;
+    for (const tower of towers) {
+        const enemies = constants.ENEMIES[String(tower.season)];
+
+        // seules les saisons définies sous forme de tableau sont gérées
+        if (!Array.isArray(enemies)) continue;
+
+        const existing = await knex("TowerBoss")
+            .where({ towerId: tower.id, season: tower.season })
+            .count("* as c")
+            .first();
+
+        if (Number(existing.c) > 0) continue;
+
+        await knex("TowerBoss").insert(
+            enemies.map((enemy, index) => ({
+                towerId: tower.id,
+                name: enemy.name,
+                hp: enemy.hp,
+                maxHp: enemy.hp,
+                season: tower.season,
+                hidden: false,
+                order: index,
+                isDiscovered: false,
+            })),
+        );
+
+        inserted += enemies.length;
+    }
+    logStep("TOWER_BOSS", `${inserted} boss pré-créé(s)`);
 }
 
 async function truncateAllTables() {
@@ -577,6 +604,8 @@ async function migrate() {
     }
     logStep("GUILD", "Migration des configurations et tours terminée");
 
+    await precreateTowerBosses();
+
     // JOB
     logStep("JOB", "Récupération des jobs MongoDB");
     let jobs = await JobMG.find();
@@ -673,13 +702,9 @@ async function migrate() {
                     apiName: ach.apiName,
                     displayName: ach.displayName,
                     description: ach.description,
-                    icon: extractFileNameFromUrl(ach.icon),
-                    icongray: extractFileNameFromUrl(ach.icongray),
                     // apiName: ach.apiName ? truncate(ach.apiName, 500) : null,
                     // displayName: ach.displayName ? truncate(ach.displayName, 500) : null,
                     // description: ach.description ? truncate(ach.description, 2000) : null,
-                    // icon: ach.icon ? truncate(ach.icon, 1000) : null,
-                    // icongray: ach.icongray ? truncate(ach.icongray, 1000) : null,
                 });
             }
         }
@@ -695,11 +720,16 @@ async function migrate() {
         }
 
         if (allAchievements.length > 0) {
-            await knex.batchInsert(
-                "Achievement",
+            const achievementChunks = chunkArray(
                 allAchievements,
                 insertBatchSize,
             );
+            for (const achievementChunk of achievementChunks) {
+                await knex("Achievement")
+                    .insert(achievementChunk)
+                    .onConflict(["appid", "apiName"])
+                    .ignore();
+            }
         }
 
         insertedGames += gamesToInsert.length;
