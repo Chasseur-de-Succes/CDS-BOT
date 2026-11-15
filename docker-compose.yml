@@ -6,15 +6,7 @@ services:
     env_file:
       - .env
       - .env.tower
-    depends_on: [mongodb, postgres]
-  mongodb:
-    image: mongo:7.0
-    restart: always
-    volumes:
-      - /opt/cds:/data/db
-    networks: [bdd]
-    ports:
-      - "27017:27017"
+    depends_on: [postgres]
   postgres:
     image: postgres:15
     restart: always

@@ -4,7 +4,9 @@ Bot Discord officiel du serveur "Chasseurs de Succès" (CDS).
 
 ## Installation
 
-Ce bot a besoin de `node` et `mongodb`.
+Ce bot a besoin de :
+- Node.js
+- PostgreSQL
 
 Pour le configurer, modifiez le fichier `example.env` tout en le renommant
 `.env`. Vous pouvez ensuite l'exécuter en tapant ces commandes :
@@ -19,7 +21,7 @@ node run index.js
 
 Vous pouvez utiliser l'image Docker pour pouvoir déployer le bot sur votre
 machine. Vous pouvez le configurer en modifiant `exemple.env` tout en le
-renommant `.env`. **Ne modifiez pas la valeur de `DBCONNECTION`.** La valeur
+renommant `.env`. **Ne modifiez pas la valeur de `DATABASE_URL`.** La valeur
 d'exemple redirige vers la base de données se trouvant dans le fichier
 `docker-compose.yml`.
 
@@ -34,6 +36,9 @@ redémarre le bot dès qu'il y en a un.
 Utilisez la commande `docker compose -f docker-compose-dev.yml up`.
 
 ## Migration BDD
+**(Outdated)**
+
+La procédure de migration ci-dessous concerne l'ancienne base de données MongoDB et n'est plus applicable depuis la migration vers PostgreSQL.
 
 Vous devez avoir un dump de base de données puis taper ces commandes. N'oubliez
 pas de changer le nom `cds_dump` avec le nom de votre fichier et
