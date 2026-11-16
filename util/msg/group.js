@@ -538,8 +538,9 @@ async function endGroup(client, guildId, grp) {
     // - Stat++ pour tous les membres
     for (const member of grp.members) {
         const usr = await client.users.fetch(member.discordId);
+        const userDb = await UserRepository.findByDiscordUser(usr);
         await StatsRepository.incrementGroupEnded(member.id);
-        await UserRepository.addMoney(member.id, prize);
+        await UserRepository.addMoney(userDb.id, prize);
 
         // test si achievement unlock
         const achievementUnlock = await getAchievement(member, "dmd-aide");
