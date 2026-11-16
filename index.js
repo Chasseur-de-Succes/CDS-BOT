@@ -46,11 +46,7 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates,
     ],
 });
-require("./util/functions")(client);
 require("./util/steam")(client);
-
-// ===== Connexion MongoDB (à enlever une fois migration terminée) =====
-client.mongoose = require("./util/mongoose");
 
 // ===== Chargement commandes & events =====
 // SLASH COMMAND
@@ -76,9 +72,6 @@ knex.raw("SELECT 1")
         );
         process.exit(1);
     });
-
-// ===== Init MongoDB (à enlever une fois migration terminée) =====
-client.mongoose.init();
 
 // ===== Handlers Discord =====
 client.on("error", console.error);

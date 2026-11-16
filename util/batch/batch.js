@@ -270,7 +270,7 @@ module.exports = {
                                             `.. On est lundi ! On donne 100 point à ${userDb.username}`,
                                         );
                                         await UserRepository.addMoney(
-                                            user.id,
+                                            userDb.id,
                                             100,
                                         );
                                     }
