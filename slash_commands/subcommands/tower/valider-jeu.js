@@ -120,7 +120,7 @@ const validerJeu = async (interaction, options) => {
     } = await client.hasAllAchievementsAfterDate(
         steamId,
         appid,
-        currentTower.started,
+        currentTower.start,
     );
 
     if (error) {
