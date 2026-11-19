@@ -43,7 +43,7 @@ async function heal(interaction, options) {
 
     // saison en cours (via la ligne Tower)
     const currentTower = await TowerRepository.findCurrentSeason(guildId);
-    if (!currentTower || !currentTower.started) {
+    if (!currentTower) {
         logger.info(".. évènement tower pas encore commencé");
         return await interaction.editReply({
             embeds: [createError("L'évènement n'a pas encore commencé..")],
