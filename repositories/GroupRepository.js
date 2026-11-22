@@ -40,7 +40,9 @@ class GroupRepository extends BaseRepository {
         return this.Model.query()
             .where("name", "ilike", `%${escapedName}%`)
             .where("guildId", guildId)
-            .whereNull("validated");
+            .where(function () {
+                this.whereNull("validated").orWhere("validated", false);
+            });
     }
 
     /**
