@@ -14,7 +14,7 @@
         "cpu-stat": "^2.0.1",
         "date.format": "^1.1.2",
         "discord.js": "^14.27.0",
-        "dotenv": "^17.4.2",
+        "dotenv": "^18.0.10",
         "knex": "^3.1.0",
         "flag-icons": "^7.5.0",
         "moment": "^2.31.0",
