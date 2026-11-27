@@ -35,14 +35,15 @@ class GroupRepository extends BaseRepository {
     /**
      * Cherche les groupes par nom
      */
-    findByNameAndGuildId(name, guildId) {
+    findByNameAndGuildId(name, guildId, limit = 25) {
         const escapedName = name?.replace(/[%_]/g, "\\$&");
         return this.Model.query()
             .where("name", "ilike", `%${escapedName}%`)
             .where("guildId", guildId)
             .where(function () {
                 this.whereNull("validated").orWhere("validated", false);
-            });
+            })
+            .limit(limit);
     }
 
     /**
