@@ -13,6 +13,7 @@ const {
     truncateAutocompleteName,
     getGameAutocompleteOptions,
 } = require("../util/autocompleteUtils");
+const { DISCORD_LIMITS } = require("../util/constants");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -181,6 +182,7 @@ module.exports = {
             filtered = await GroupRepository.findByNameAndGuildId(
                 focusedValue.value,
                 interaction.guildId,
+                DISCORD_LIMITS.CHOICES_PER_AUTOCOMPLETE,
             );
 
             // Formatage des objets pour l'autocomplete Discord ({ name, value })

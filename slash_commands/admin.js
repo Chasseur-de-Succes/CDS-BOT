@@ -19,7 +19,7 @@ const {
     history: historyObservation,
     list: listObservation,
 } = require("./subcommands/admin/observation");
-const { CHANNEL, WEBHOOK_ARRAY } = require("../util/constants");
+const { CHANNEL, WEBHOOK_ARRAY, DISCORD_LIMITS } = require("../util/constants");
 const { salon, avertissement, givemoney, add } = require("./subcommands/admin");
 const { GroupRepository, GameItemShopRepository } = require("../repositories");
 const { truncateAutocompleteName } = require("../util/autocompleteUtils");
@@ -329,6 +329,7 @@ module.exports = {
             filtered = await GroupRepository.findByNameAndGuildId(
                 focusedValue.value,
                 interaction.guildId,
+                DISCORD_LIMITS.CHOICES_PER_AUTOCOMPLETE,
             );
 
             // 25 premiers + si nom jeu dépasse limite imposé par Discord (100 char)
